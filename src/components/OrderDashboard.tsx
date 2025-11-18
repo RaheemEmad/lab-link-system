@@ -5,7 +5,24 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter } from "lucide-react";
-import { Order, OrderStatus } from "@/types/order";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+
+type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
+
+interface Order {
+  id: string;
+  order_number: string;
+  doctor_name: string;
+  patient_name: string;
+  crown_type: string;
+  teeth_shade: string;
+  teeth_number: string;
+  urgency: string;
+  status: OrderStatus;
+  timestamp: string;
+}
 
 const statusColors: Record<OrderStatus, string> = {
   "Pending": "bg-warning/10 text-warning border-warning/20",
@@ -19,20 +36,39 @@ const OrderDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Load orders from localStorage
-    const savedOrders = localStorage.getItem("dentalOrders");
-    if (savedOrders) {
-      setOrders(JSON.parse(savedOrders));
+    fetchOrders();
+  }, [user]);
+
+  const fetchOrders = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .order("timestamp", { ascending: false });
+
+      if (error) throw error;
+
+      setOrders(data || []);
+    } catch (error: any) {
+      toast.error("Failed to load orders", {
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = 
-      order.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchTerm.toLowerCase());
+      order.doctor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.order_number.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     
@@ -45,6 +81,17 @@ const OrderDashboard = () => {
     inProgress: orders.filter(o => o.status === "In Progress").length,
     delivered: orders.filter(o => o.status === "Delivered").length,
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -145,19 +192,19 @@ const OrderDashboard = () => {
                 ) : (
                   filteredOrders.map((order) => (
                     <TableRow key={order.id}>
-                      <TableCell className="font-mono font-medium">{order.id}</TableCell>
-                      <TableCell>{order.doctorName}</TableCell>
-                      <TableCell>{order.patientName}</TableCell>
-                      <TableCell>{order.crownType}</TableCell>
-                      <TableCell>{order.teethShade}</TableCell>
-                      <TableCell>{order.teethNumber}</TableCell>
+                      <TableCell className="font-mono font-medium">{order.order_number}</TableCell>
+                      <TableCell>{order.doctor_name}</TableCell>
+                      <TableCell>{order.patient_name}</TableCell>
+                      <TableCell>{order.crown_type}</TableCell>
+                      <TableCell>{order.teeth_shade}</TableCell>
+                      <TableCell>{order.teeth_number}</TableCell>
                       <TableCell>
                         <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>
                           {order.urgency}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={statusColors[order.status as OrderStatus]}>
+                        <Badge variant="outline" className={statusColors[order.status]}>
                           {order.status}
                         </Badge>
                       </TableCell>
