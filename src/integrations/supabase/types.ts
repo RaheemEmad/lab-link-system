@@ -14,16 +14,121 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          biological_notes: string | null
+          created_at: string
+          crown_type: Database["public"]["Enums"]["crown_type"]
+          delivery_date: string | null
+          doctor_id: string | null
+          doctor_name: string
+          id: string
+          order_number: string
+          patient_name: string
+          photos_link: string | null
+          price: number | null
+          shipment_tracking: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          teeth_number: string
+          teeth_shade: string
+          timestamp: string
+          updated_at: string
+          urgency: Database["public"]["Enums"]["urgency_level"]
+        }
+        Insert: {
+          biological_notes?: string | null
+          created_at?: string
+          crown_type: Database["public"]["Enums"]["crown_type"]
+          delivery_date?: string | null
+          doctor_id?: string | null
+          doctor_name: string
+          id?: string
+          order_number: string
+          patient_name: string
+          photos_link?: string | null
+          price?: number | null
+          shipment_tracking?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          teeth_number: string
+          teeth_shade: string
+          timestamp?: string
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["urgency_level"]
+        }
+        Update: {
+          biological_notes?: string | null
+          created_at?: string
+          crown_type?: Database["public"]["Enums"]["crown_type"]
+          delivery_date?: string | null
+          doctor_id?: string | null
+          doctor_name?: string
+          id?: string
+          order_number?: string
+          patient_name?: string
+          photos_link?: string | null
+          price?: number | null
+          shipment_tracking?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          teeth_number?: string
+          teeth_shade?: string
+          timestamp?: string
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["urgency_level"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_order_number: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      crown_type: "Zirconia" | "E-max" | "PFM" | "Metal" | "Acrylic"
+      order_status:
+        | "Pending"
+        | "In Progress"
+        | "Ready for QC"
+        | "Ready for Delivery"
+        | "Delivered"
+      urgency_level: "Normal" | "Urgent"
+      user_role: "doctor" | "lab_staff" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +255,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      crown_type: ["Zirconia", "E-max", "PFM", "Metal", "Acrylic"],
+      order_status: [
+        "Pending",
+        "In Progress",
+        "Ready for QC",
+        "Ready for Delivery",
+        "Delivered",
+      ],
+      urgency_level: ["Normal", "Urgent"],
+      user_role: ["doctor", "lab_staff", "admin"],
+    },
   },
 } as const
