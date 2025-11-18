@@ -1,0 +1,272 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { CrownType, UrgencyLevel } from "@/types/order";
+import { CheckCircle2 } from "lucide-react";
+
+const formSchema = z.object({
+  doctorName: z.string().min(2, "Doctor name is required").max(100),
+  patientName: z.string().min(2, "Patient name is required").max(100),
+  crownType: z.enum(["Zirconia", "E-max", "PFM", "Metal", "Acrylic"]),
+  teethShade: z.string().min(1, "Shade is required").max(50),
+  teethNumber: z.string().min(1, "Teeth number is required").max(100),
+  biologicalNotes: z.string().max(1000).optional(),
+  urgency: z.enum(["Normal", "Urgent"]),
+  photosLink: z.string().url().optional().or(z.literal("")),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+const crownTypes: CrownType[] = ["Zirconia", "E-max", "PFM", "Metal", "Acrylic"];
+const shades = ["A1", "A2", "A3", "A3.5", "A4", "B1", "B2", "B3", "B4", "C1", "C2", "C3", "C4", "D2", "D3", "D4", "Bleach"];
+
+interface OrderFormProps {
+  onSubmitSuccess?: () => void;
+}
+
+const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [orderId, setOrderId] = useState("");
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      doctorName: "",
+      patientName: "",
+      crownType: "Zirconia",
+      teethShade: "",
+      teethNumber: "",
+      biologicalNotes: "",
+      urgency: "Normal",
+      photosLink: "",
+    },
+  });
+
+  const onSubmit = (data: FormValues) => {
+    // Simulate order submission
+    const newOrderId = `LAB-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, "0")}`;
+    setOrderId(newOrderId);
+    setIsSubmitted(true);
+    
+    toast.success("Order submitted successfully!", {
+      description: `Order ID: ${newOrderId}`,
+    });
+
+    // Store in localStorage (temporary solution)
+    const existingOrders = JSON.parse(localStorage.getItem("dentalOrders") || "[]");
+    const newOrder = {
+      ...data,
+      id: newOrderId,
+      timestamp: new Date().toISOString(),
+      status: "Pending",
+    };
+    localStorage.setItem("dentalOrders", JSON.stringify([...existingOrders, newOrder]));
+
+    if (onSubmitSuccess) {
+      setTimeout(() => onSubmitSuccess(), 2000);
+    }
+  };
+
+  if (isSubmitted) {
+    return (
+      <Card className="max-w-md mx-auto shadow-lg">
+        <CardContent className="pt-12 pb-12 text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="rounded-full bg-success/10 p-4">
+              <CheckCircle2 className="h-12 w-12 text-success" />
+            </div>
+          </div>
+          <h3 className="mb-2 text-2xl font-bold">Order Submitted!</h3>
+          <p className="mb-4 text-muted-foreground">Your order has been received and is being processed.</p>
+          <div className="mb-6 rounded-lg bg-muted p-4">
+            <p className="text-sm text-muted-foreground">Order ID</p>
+            <p className="text-xl font-mono font-bold">{orderId}</p>
+          </div>
+          <Button onClick={() => window.location.reload()} className="w-full">
+            Submit Another Order
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="shadow-lg">
+      <CardHeader>
+        <CardTitle>New Order Submission</CardTitle>
+        <CardDescription>Fill out the form below to submit a new dental lab order</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="doctorName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Doctor Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Dr. Smith" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="patientName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="crownType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Crown Type *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select crown type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {crownTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="teethShade"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Teeth Shade *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select shade" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {shades.map((shade) => (
+                          <SelectItem key={shade} value={shade}>
+                            {shade}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="teethNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Teeth Number(s) *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 12, 36" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="urgency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Urgency *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select urgency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Normal">Normal</SelectItem>
+                        <SelectItem value="Urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="biologicalNotes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Biological Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Any allergies or specific patient concerns..."
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="photosLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Photos/Scans Link</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://..." type="url" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" className="w-full" size="lg">
+              Submit Order
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default OrderForm;
