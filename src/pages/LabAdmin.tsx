@@ -247,13 +247,35 @@ const LabAdmin = () => {
     );
   }
 
-  if (labLoading || !lab) {
+  if (labLoading) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
           <LandingNav />
           <div className="flex-1 flex items-center justify-center">
             <p className="text-muted-foreground">Loading lab data...</p>
+          </div>
+          <LandingFooter />
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (!lab) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen flex flex-col">
+          <LandingNav />
+          <div className="flex-1 flex items-center justify-center">
+            <Card className="max-w-md">
+              <CardContent className="py-12 text-center">
+                <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h2 className="text-xl font-bold mb-2">No Lab Assigned</h2>
+                <p className="text-muted-foreground">
+                  Your account is not currently assigned to a lab. Please contact an administrator.
+                </p>
+              </CardContent>
+            </Card>
           </div>
           <LandingFooter />
         </div>

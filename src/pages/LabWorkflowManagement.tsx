@@ -278,78 +278,85 @@ const LabWorkflowManagement = () => {
   }
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Lab Workflow Management</h1>
-        <p className="text-muted-foreground">
-          Manage order status, upload designs, and track shipments
-        </p>
+    <div className="min-h-screen flex flex-col">
+      <LandingNav />
+      <div className="flex-1 bg-secondary/30 py-8">
+        <div className="container max-w-7xl mx-auto px-4">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold mb-2">Lab Workflow Management</h1>
+            <p className="text-muted-foreground">
+              Manage order status, upload designs, and track shipments
+            </p>
+          </div>
+
+          <Tabs defaultValue="active" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="active">Active Orders</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="active" className="space-y-4">
+              {orders.filter(o => o.status !== 'Delivered').length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No Active Orders</h3>
+                    <p className="text-muted-foreground">
+                      All orders are completed or there are no orders assigned to your lab.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                orders.filter(o => o.status !== 'Delivered').map((order) => (
+                  <OrderWorkflowCard
+                    key={order.id}
+                    order={order}
+                    onStatusUpdate={handleStatusUpdate}
+                    onFileUpload={handleFileUpload}
+                    onDeliveryDateUpdate={handleDeliveryDateUpdate}
+                    onShipmentUpdate={handleShipmentUpdate}
+                    isUpdating={isUpdating}
+                    isUploadingFile={isUploadingFile}
+                    getStatusColor={getStatusColor}
+                    formatDate={formatDate}
+                  />
+                ))
+              )}
+            </TabsContent>
+
+            <TabsContent value="completed" className="space-y-4">
+              {orders.filter(o => o.status === 'Delivered').length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No Completed Orders</h3>
+                    <p className="text-muted-foreground">
+                      Completed orders will appear here.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                orders.filter(o => o.status === 'Delivered').map((order) => (
+                  <OrderWorkflowCard
+                    key={order.id}
+                    order={order}
+                    onStatusUpdate={handleStatusUpdate}
+                    onFileUpload={handleFileUpload}
+                    onDeliveryDateUpdate={handleDeliveryDateUpdate}
+                    onShipmentUpdate={handleShipmentUpdate}
+                    isUpdating={isUpdating}
+                    isUploadingFile={isUploadingFile}
+                    getStatusColor={getStatusColor}
+                    formatDate={formatDate}
+                  />
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-
-      <Tabs defaultValue="active" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="active">Active Orders</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="active" className="space-y-4">
-          {orders.filter(o => o.status !== 'Delivered').length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No Active Orders</h3>
-                <p className="text-muted-foreground">
-                  All orders are completed or there are no orders assigned to your lab.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            orders.filter(o => o.status !== 'Delivered').map((order) => (
-              <OrderWorkflowCard
-                key={order.id}
-                order={order}
-                onStatusUpdate={handleStatusUpdate}
-                onFileUpload={handleFileUpload}
-                onDeliveryDateUpdate={handleDeliveryDateUpdate}
-                onShipmentUpdate={handleShipmentUpdate}
-                isUpdating={isUpdating}
-                isUploadingFile={isUploadingFile}
-                getStatusColor={getStatusColor}
-                formatDate={formatDate}
-              />
-            ))
-          )}
-        </TabsContent>
-
-        <TabsContent value="completed" className="space-y-4">
-          {orders.filter(o => o.status === 'Delivered').length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No Completed Orders</h3>
-                <p className="text-muted-foreground">
-                  Completed orders will appear here.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            orders.filter(o => o.status === 'Delivered').map((order) => (
-              <OrderWorkflowCard
-                key={order.id}
-                order={order}
-                onStatusUpdate={handleStatusUpdate}
-                onFileUpload={handleFileUpload}
-                onDeliveryDateUpdate={handleDeliveryDateUpdate}
-                onShipmentUpdate={handleShipmentUpdate}
-                isUpdating={isUpdating}
-                isUploadingFile={isUploadingFile}
-                getStatusColor={getStatusColor}
-                formatDate={formatDate}
-              />
-            ))
-          )}
-        </TabsContent>
-      </Tabs>
+      <LandingFooter />
+      <ScrollToTop />
     </div>
   );
 };
