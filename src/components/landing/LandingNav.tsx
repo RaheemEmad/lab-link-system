@@ -36,6 +36,7 @@ const LandingNav = () => {
   const userLinks = user ? [
     { label: "Submit Order", href: "/new-order" },
     { label: "Dashboard", href: "/dashboard" },
+    { label: "Notifications", href: "/notifications" },
     { label: "Profile", href: "/profile" },
   ] : [];
 
