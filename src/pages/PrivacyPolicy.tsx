@@ -160,6 +160,7 @@ const PrivacyPolicy = () => {
             </div>
           </section>
         </div>
+        </div>
       </div>
       <LandingFooter />
     </div>
