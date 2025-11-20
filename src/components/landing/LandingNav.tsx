@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Menu, X, Download, Bell, User, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 import {
   Tooltip,
   TooltipContent,
@@ -25,6 +26,8 @@ const LandingNav = () => {
   const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
+  const { playUrgentNotification } = useNotificationSound();
+  const previousUrgentCountRef = useRef<number>(0);
 
   // Fetch unread notification count and check for urgent notifications
   const { data: notificationData } = useQuery({
@@ -53,6 +56,15 @@ const LandingNav = () => {
 
   const unreadCount = notificationData?.count || 0;
   const hasUrgent = notificationData?.hasUrgent || false;
+
+  // Play sound when new urgent notifications arrive
+  useEffect(() => {
+    if (hasUrgent && unreadCount > previousUrgentCountRef.current && previousUrgentCountRef.current > 0) {
+      playUrgentNotification();
+      console.log('🔔 Urgent notification sound played');
+    }
+    previousUrgentCountRef.current = unreadCount;
+  }, [unreadCount, hasUrgent, playUrgentNotification]);
 
   useEffect(() => {
     const handler = (e: Event) => {
