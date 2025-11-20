@@ -15,6 +15,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { ToothSelector } from "./order/ToothSelector";
 import { ShadeSelector } from "./order/ShadeSelector";
 
+// Trusted domains for photo/scan links
+const TRUSTED_PHOTO_DOMAINS = [
+  'drive.google.com',
+  'dropbox.com',
+  'www.dropbox.com',
+  's3.amazonaws.com',
+  'onedrive.live.com',
+  'icloud.com',
+  'box.com',
+  'mega.nz',
+];
+
 const formSchema = z.object({
   doctorName: z.string().min(2, "Doctor name is required").max(100),
   patientName: z.string().min(2, "Patient name is required").max(100),
@@ -24,7 +36,30 @@ const formSchema = z.object({
   teethNumber: z.string().min(1, "At least one tooth must be selected").max(100),
   biologicalNotes: z.string().max(1000).optional(),
   urgency: z.enum(["Normal", "Urgent"]),
-  photosLink: z.string().url().optional().or(z.literal("")),
+  photosLink: z.string()
+    .max(2048, "URL must be less than 2048 characters")
+    .optional()
+    .or(z.literal(""))
+    .refine((url) => {
+      if (!url || url === "") return true;
+      
+      // Must use HTTPS protocol
+      if (!url.startsWith('https://')) {
+        return false;
+      }
+      
+      // Validate against trusted domains
+      try {
+        const domain = new URL(url).hostname;
+        return TRUSTED_PHOTO_DOMAINS.some(trusted => 
+          domain === trusted || domain.endsWith('.' + trusted)
+        );
+      } catch {
+        return false;
+      }
+    }, {
+      message: "Photo links must use HTTPS and be from trusted storage providers (Google Drive, Dropbox, OneDrive, iCloud, Box, Mega, AWS S3)"
+    }),
   htmlExport: z.string().optional(),
 });
 
