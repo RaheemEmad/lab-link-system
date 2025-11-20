@@ -110,6 +110,7 @@ const LandingNav = () => {
   const leftNavLinks = [
     { label: "Home", href: "/", type: "route" },
     { label: "How It Works", href: "/how-it-works", type: "route" },
+    { label: "Labs", href: "/labs", type: "route" },
     { label: "About", href: "/about", type: "route" },
     { label: "Contact", href: "/contact", type: "route" },
     ...(user ? [{ label: "Dashboard", href: "/dashboard", type: "route" }] : []),

@@ -14,6 +14,145 @@ export type Database = {
   }
   public: {
     Tables: {
+      lab_performance_metrics: {
+        Row: {
+          approval_rate: number | null
+          average_turnaround_days: number | null
+          completed_orders: number
+          id: string
+          lab_id: string
+          last_calculated_at: string
+          on_time_deliveries: number
+          total_orders: number
+        }
+        Insert: {
+          approval_rate?: number | null
+          average_turnaround_days?: number | null
+          completed_orders?: number
+          id?: string
+          lab_id: string
+          last_calculated_at?: string
+          on_time_deliveries?: number
+          total_orders?: number
+        }
+        Update: {
+          approval_rate?: number | null
+          average_turnaround_days?: number | null
+          completed_orders?: number
+          id?: string
+          lab_id?: string
+          last_calculated_at?: string
+          on_time_deliveries?: number
+          total_orders?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_performance_metrics_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: true
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_specializations: {
+        Row: {
+          created_at: string
+          expertise_level: Database["public"]["Enums"]["expertise_level"]
+          id: string
+          is_preferred: boolean
+          lab_id: string
+          restoration_type: Database["public"]["Enums"]["restoration_type"]
+          turnaround_days: number
+        }
+        Insert: {
+          created_at?: string
+          expertise_level?: Database["public"]["Enums"]["expertise_level"]
+          id?: string
+          is_preferred?: boolean
+          lab_id: string
+          restoration_type: Database["public"]["Enums"]["restoration_type"]
+          turnaround_days: number
+        }
+        Update: {
+          created_at?: string
+          expertise_level?: Database["public"]["Enums"]["expertise_level"]
+          id?: string
+          is_preferred?: boolean
+          lab_id?: string
+          restoration_type?: Database["public"]["Enums"]["restoration_type"]
+          turnaround_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_specializations_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      labs: {
+        Row: {
+          address: string | null
+          contact_email: string
+          contact_phone: string | null
+          created_at: string
+          current_load: number
+          description: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          max_capacity: number
+          name: string
+          performance_score: number | null
+          pricing_tier: Database["public"]["Enums"]["pricing_tier"]
+          standard_sla_days: number
+          updated_at: string
+          urgent_sla_days: number
+          website_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string
+          current_load?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          max_capacity?: number
+          name: string
+          performance_score?: number | null
+          pricing_tier?: Database["public"]["Enums"]["pricing_tier"]
+          standard_sla_days?: number
+          updated_at?: string
+          urgent_sla_days?: number
+          website_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string
+          current_load?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          max_capacity?: number
+          name?: string
+          performance_score?: number | null
+          pricing_tier?: Database["public"]["Enums"]["pricing_tier"]
+          standard_sla_days?: number
+          updated_at?: string
+          urgent_sla_days?: number
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -169,11 +308,17 @@ export type Database = {
       }
       orders: {
         Row: {
+          actual_delivery_date: string | null
+          approval_notes: string | null
+          assigned_lab_id: string | null
           biological_notes: string | null
           created_at: string
           delivery_date: string | null
+          design_approved: boolean | null
+          design_file_url: string | null
           doctor_id: string | null
           doctor_name: string
+          expected_delivery_date: string | null
           html_export: string | null
           id: string
           order_number: string
@@ -192,11 +337,17 @@ export type Database = {
           urgency: Database["public"]["Enums"]["urgency_level"]
         }
         Insert: {
+          actual_delivery_date?: string | null
+          approval_notes?: string | null
+          assigned_lab_id?: string | null
           biological_notes?: string | null
           created_at?: string
           delivery_date?: string | null
+          design_approved?: boolean | null
+          design_file_url?: string | null
           doctor_id?: string | null
           doctor_name: string
+          expected_delivery_date?: string | null
           html_export?: string | null
           id?: string
           order_number: string
@@ -215,11 +366,17 @@ export type Database = {
           urgency?: Database["public"]["Enums"]["urgency_level"]
         }
         Update: {
+          actual_delivery_date?: string | null
+          approval_notes?: string | null
+          assigned_lab_id?: string | null
           biological_notes?: string | null
           created_at?: string
           delivery_date?: string | null
+          design_approved?: boolean | null
+          design_file_url?: string | null
           doctor_id?: string | null
           doctor_name?: string
+          expected_delivery_date?: string | null
           html_export?: string | null
           id?: string
           order_number?: string
@@ -239,10 +396,49 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "orders_assigned_lab_id_fkey"
+            columns: ["assigned_lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "orders_doctor_id_fkey"
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preferred_labs: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          id: string
+          lab_id: string
+          priority_order: number
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          id?: string
+          lab_id: string
+          priority_order?: number
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          id?: string
+          lab_id?: string
+          priority_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preferred_labs_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
             referencedColumns: ["id"]
           },
         ]
@@ -315,6 +511,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          lab_id: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
@@ -322,6 +519,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          lab_id?: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
@@ -329,10 +527,19 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          lab_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -350,12 +557,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "lab_staff" | "doctor"
+      expertise_level: "basic" | "intermediate" | "expert"
       order_status:
         | "Pending"
         | "In Progress"
         | "Ready for QC"
         | "Ready for Delivery"
         | "Delivered"
+      pricing_tier: "budget" | "standard" | "premium"
       restoration_type:
         | "Zirconia"
         | "E-max"
@@ -495,6 +704,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "lab_staff", "doctor"],
+      expertise_level: ["basic", "intermediate", "expert"],
       order_status: [
         "Pending",
         "In Progress",
@@ -502,6 +712,7 @@ export const Constants = {
         "Ready for Delivery",
         "Delivered",
       ],
+      pricing_tier: ["budget", "standard", "premium"],
       restoration_type: [
         "Zirconia",
         "E-max",

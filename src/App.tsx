@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import Home from "./pages/Home";
 import HowItWorks from "./pages/HowItWorks";
+import Labs from "./pages/Labs";
 import NewOrder from "./pages/NewOrder";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -28,6 +29,7 @@ const AppContent = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
+      <Route path="/labs" element={<Labs />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/new-order" element={<NewOrder />} />
       <Route path="/dashboard" element={<Dashboard />} />
