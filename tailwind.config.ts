@@ -59,6 +59,12 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        lablink: {
+          blue: "hsl(var(--lablink-blue))",
+        },
+        dental: {
+          slate: "hsl(var(--dental-slate))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
