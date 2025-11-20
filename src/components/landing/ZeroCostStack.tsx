@@ -12,14 +12,14 @@ const ZeroCostStack = () => {
     <section className="py-24 bg-secondary/30">
       <div className="container px-4 mx-auto">
         <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-3xl md:text-4xl font-bold mb-6">
-            Built on a zero-cost, secure stack — transparent & auditable
+          <h3 className="text-3xl md:text-4xl font-bold mb-6 animate-fade-in">
+            Built on a zero-cost, secure stack: transparent & auditable
           </h3>
           
           <div className="flex flex-wrap justify-center items-center gap-6 my-12">
             {stack.map((item, index) => (
-              <div key={index} className="flex items-center">
-                <div className="flex items-center gap-3 bg-card px-6 py-4 rounded-xl border border-border shadow-sm">
+              <div key={index} className="flex items-center animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                <div className="flex items-center gap-3 bg-card px-6 py-4 rounded-xl border border-border shadow-sm hover:shadow-md hover-scale transition-all duration-300">
                   <item.icon className={`w-6 h-6 ${item.color}`} strokeWidth={2} />
                   <span className="font-medium">{item.label}</span>
                 </div>
@@ -30,9 +30,9 @@ const ZeroCostStack = () => {
             ))}
           </div>
           
-          <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground bg-card px-6 py-4 rounded-xl border border-border inline-flex">
+          <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground bg-card px-6 py-4 rounded-xl border border-border inline-flex animate-fade-in [animation-delay:400ms]">
             <Shield className="w-5 h-5 text-success" />
-            <span>Data stored in your Google Workspace — you control access</span>
+            <span>Data stored in your Google Workspace, you control access</span>
           </div>
         </div>
       </div>

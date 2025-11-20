@@ -13,7 +13,7 @@ const FAQSection = () => {
     },
     {
       question: "Do dentists need accounts?",
-      answer: "No — dentists simply use the form link you share. No logins, no app installs. They fill out the form and submit. That's it.",
+      answer: "No, dentists simply use the form link you share. No logins, no app installs. They fill out the form and submit. That's it.",
     },
     {
       question: "Is patient data secure?",
@@ -25,7 +25,7 @@ const FAQSection = () => {
     },
     {
       question: "Paid upgrade?",
-      answer: "The core system is free forever. We're building optional paid features like automated reminders, analytics dashboards, and advanced reporting — coming soon.",
+      answer: "The core system is free forever. We're building optional paid features like automated reminders, analytics dashboards, and advanced reporting coming soon.",
     },
   ];
 
@@ -33,7 +33,7 @@ const FAQSection = () => {
     <section className="py-24 bg-secondary/30">
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto">
-          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12">
+          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12 animate-fade-in">
             Frequently Asked Questions
           </h3>
           
@@ -42,7 +42,8 @@ const FAQSection = () => {
               <AccordionItem 
                 key={index} 
                 value={`item-${index}`}
-                className="bg-card px-6 rounded-xl border border-border"
+                className="bg-card px-6 rounded-xl border border-border animate-fade-in"
+                style={{ animationDelay: `${index * 80}ms` }}
               >
                 <AccordionTrigger className="text-left font-semibold hover:no-underline">
                   {faq.question}
