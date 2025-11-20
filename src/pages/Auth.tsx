@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -16,7 +16,6 @@ const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters"),
   fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-  role: z.enum(["doctor", "lab_staff"]),
 });
 
 const signInSchema = z.object({
@@ -38,7 +37,6 @@ const Auth = () => {
       email: "",
       password: "",
       fullName: "",
-      role: "doctor",
     },
   });
 
@@ -58,7 +56,7 @@ const Auth = () => {
 
   const handleSignUp = async (values: SignUpValues) => {
     setIsLoading(true);
-    await signUp(values.email, values.password, values.fullName, values.role);
+    await signUp(values.email, values.password, values.fullName);
     setIsLoading(false);
   };
 
@@ -160,28 +158,6 @@ const Auth = () => {
                         <FormControl>
                           <Input type="password" placeholder="••••••••" {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={signUpForm.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select your role" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="doctor">Doctor</SelectItem>
-                            <SelectItem value="lab_staff">Lab Staff</SelectItem>
-                          </SelectContent>
-                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
