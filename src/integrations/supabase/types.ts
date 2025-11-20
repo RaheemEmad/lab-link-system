@@ -216,7 +216,6 @@ export type Database = {
           notification_new_notes: boolean | null
           notification_status_change: boolean | null
           phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
           sms_notifications: boolean | null
           updated_at: string
         }
@@ -229,7 +228,6 @@ export type Database = {
           notification_new_notes?: boolean | null
           notification_status_change?: boolean | null
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           sms_notifications?: boolean | null
           updated_at?: string
         }
@@ -242,7 +240,6 @@ export type Database = {
           notification_new_notes?: boolean | null
           notification_status_change?: boolean | null
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           sms_notifications?: boolean | null
           updated_at?: string
         }
@@ -305,7 +302,6 @@ export type Database = {
         | "Zirconia Layer"
         | "Zirco-Max"
       urgency_level: "Normal" | "Urgent"
-      user_role: "doctor" | "lab_staff" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -453,7 +449,6 @@ export const Constants = {
         "Zirco-Max",
       ],
       urgency_level: ["Normal", "Urgent"],
-      user_role: ["doctor", "lab_staff", "admin"],
     },
   },
 } as const
