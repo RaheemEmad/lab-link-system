@@ -9,6 +9,7 @@ import ProofSection from "@/components/landing/ProofSection";
 import FAQSection from "@/components/landing/FAQSection";
 import FinalCTA from "@/components/landing/FinalCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 const Home = () => {
   return (
@@ -24,6 +25,7 @@ const Home = () => {
       <FAQSection />
       <FinalCTA />
       <LandingFooter />
+      <ScrollToTop />
     </div>
   );
 };

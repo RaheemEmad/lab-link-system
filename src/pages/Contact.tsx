@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 const contactFormSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
@@ -307,6 +308,7 @@ const Contact = () => {
         </div>
       </div>
       <LandingFooter />
+      <ScrollToTop />
     </div>
   );
 };
