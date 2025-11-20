@@ -173,11 +173,11 @@ const Profile = () => {
         <div className="container px-4 max-w-4xl mx-auto">
           <Button
             variant="ghost"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/")}
             className="mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            Back to Home
           </Button>
 
           <div className="space-y-6">
