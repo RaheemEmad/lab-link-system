@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Bell, Check, CheckCheck, Eye, Trash2 } from "lucide-react";
+import { Bell, Check, CheckCheck, Eye, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { formatDistanceToNow } from "date-fns";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 import {
   Tooltip,
   TooltipContent,
@@ -138,20 +140,12 @@ const NotificationHistory = () => {
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <TooltipProvider delayDuration={200}>
-          <div className="min-h-screen bg-secondary/30 py-8 md:py-12">
-            <div className="container px-4 max-w-4xl mx-auto">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Go back to previous page</p>
-                </TooltipContent>
-              </Tooltip>
+        <div className="min-h-screen flex flex-col">
+          <LandingNav />
+          <TooltipProvider delayDuration={200}>
+            <div className="flex-1 bg-secondary/30 py-8 md:py-12">
+              <div className="container px-4 max-w-4xl mx-auto">
+                <h1 className="text-2xl sm:text-3xl font-bold mb-6">Notification History</h1>
 
               <Card>
                 <CardHeader>
@@ -165,26 +159,38 @@ const NotificationHistory = () => {
             </div>
           </div>
         </TooltipProvider>
+        <LandingFooter />
+      </div>
       </ProtectedRoute>
     );
   }
 
   return (
     <ProtectedRoute>
-      <TooltipProvider delayDuration={200}>
-        <div className="min-h-screen bg-secondary/30 py-8 md:py-12">
-          <div className="container px-4 max-w-4xl mx-auto">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Go back to previous page</p>
-              </TooltipContent>
-            </Tooltip>
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <TooltipProvider delayDuration={200}>
+          <div className="flex-1 bg-secondary/30 py-8 md:py-12">
+            <div className="container px-4 max-w-4xl mx-auto">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold">Notification History</h1>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={markAllAsRead}
+                      disabled={markAllAsReadMutation.isPending || unreadCount === 0}
+                      variant="outline"
+                    >
+                      <CheckCheck className="mr-2 h-4 w-4" />
+                      Mark All Read
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mark all notifications as read</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
 
             <Card>
               <CardHeader>
@@ -295,9 +301,11 @@ const NotificationHistory = () => {
               </Tabs>
             </CardContent>
           </Card>
-        </div>
+            </div>
+          </div>
+        </TooltipProvider>
+        <LandingFooter />
       </div>
-      </TooltipProvider>
     </ProtectedRoute>
   );
 };
