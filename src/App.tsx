@@ -21,6 +21,8 @@ import Contact from "./pages/Contact";
 import Install from "./pages/Install";
 import NotificationHistory from "./pages/NotificationHistory";
 import OrderTracking from "./pages/OrderTracking";
+import LabWorkflowManagement from "./pages/LabWorkflowManagement";
+import DesignApprovalWorkflow from "./pages/DesignApprovalWorkflow";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +41,8 @@ const AppContent = () => {
       <Route path="/new-order" element={<NewOrder />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/order-tracking" element={<OrderTracking />} />
+      <Route path="/lab-workflow" element={<LabWorkflowManagement />} />
+      <Route path="/design-approval" element={<DesignApprovalWorkflow />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/about" element={<About />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
