@@ -124,6 +124,17 @@ const Profile = () => {
         throw new Error(validation.error.errors[0].message);
       }
 
+      // SECURITY: Verify current password before allowing change
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user!.email!,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error('Current password is incorrect');
+      }
+
+      // Only then update to new password
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });

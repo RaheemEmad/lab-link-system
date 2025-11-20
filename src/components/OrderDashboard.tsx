@@ -107,9 +107,9 @@ const OrderDashboard = () => {
 
     try {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("user_roles")
         .select("role")
-        .eq("id", user.id)
+        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
