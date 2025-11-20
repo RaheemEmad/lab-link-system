@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, X, Download, Bell, User, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +24,7 @@ import {
 
 const LandingNav = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
@@ -122,9 +123,18 @@ const LandingNav = () => {
         element.scrollIntoView({ behavior: "smooth" });
       }
     } else {
+      // Navigate to route
       navigate(link.href);
+      // Smooth scroll to top when navigating
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
     setIsOpen(false);
+  };
+
+  // Check if a link is active
+  const isLinkActive = (link: { href: string; type?: string }) => {
+    if (link.type === "anchor") return false;
+    return location.pathname === link.href;
   };
 
   return (
@@ -154,7 +164,11 @@ const LandingNav = () => {
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => handleNavClick(link)}
-                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                      className={`text-sm font-medium transition-colors ${
+                        isLinkActive(link)
+                          ? "text-primary font-semibold border-b-2 border-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
                     >
                       {link.label}
                     </button>
@@ -297,7 +311,11 @@ const LandingNav = () => {
                       <button
                         key={link.href}
                         onClick={() => handleNavClick(link)}
-                        className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                        className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                          isLinkActive(link)
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`}
                       >
                         {link.label}
                       </button>
