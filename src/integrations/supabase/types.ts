@@ -506,6 +506,56 @@ export type Database = {
         }
         Relationships: []
       }
+      qc_checklist_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          item_description: string | null
+          item_name: string
+          notes: string | null
+          order_id: string
+          photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          item_description?: string | null
+          item_name: string
+          notes?: string | null
+          order_id: string
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          item_description?: string | null
+          item_name?: string
+          notes?: string | null
+          order_id?: string
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qc_checklist_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -553,6 +603,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      initialize_qc_checklist: {
+        Args: { order_id_param: string }
+        Returns: undefined
       }
     }
     Enums: {
