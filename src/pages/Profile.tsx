@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { z } from "zod";
+import { SkeletonForm } from "@/components/ui/skeleton-card";
 
 const profileSchema = z.object({
   full_name: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
@@ -169,12 +170,52 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading profile...</p>
+      <ProtectedRoute>
+        <div className="min-h-screen bg-secondary/30 py-12">
+          <div className="container px-4 max-w-4xl mx-auto">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/")}
+              className="mb-6"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile Information</CardTitle>
+                  <CardDescription>Loading your profile...</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SkeletonForm />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>Loading...</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SkeletonForm />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notification Preferences</CardTitle>
+                  <CardDescription>Loading preferences...</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SkeletonForm />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
-      </div>
+      </ProtectedRoute>
     );
   }
 
