@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { OrderNotes } from "@/components/order/OrderNotes";
 import { toast } from "sonner";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -227,10 +228,28 @@ const DesignApprovalWorkflow = () => {
                         className="flex-1"
                         onClick={() => setSelectedOrder(order)}
                       >
-                        <MessageSquare className="h-4 w-4 mr-2" />
+                        <XCircle className="h-4 w-4 mr-2" />
                         Request Revision
                       </Button>
                     </DialogTrigger>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-2"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Notes
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Order Notes - {order.order_number}</DialogTitle>
+                        </DialogHeader>
+                        <OrderNotes orderId={order.id} />
+                      </DialogContent>
+                    </Dialog>
                   </div>
 
                   <DialogContent>

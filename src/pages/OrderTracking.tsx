@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { OrderNotes } from "@/components/order/OrderNotes";
 import { useNavigate } from "react-router-dom";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -18,7 +20,8 @@ import {
   Calendar,
   AlertCircle,
   ExternalLink,
-  ArrowLeft
+  ArrowLeft,
+  MessageSquare
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -346,10 +349,24 @@ const OrderTracking = () => {
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-border">
+                      <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                         <p className="text-xs text-muted-foreground">
                           Order submitted on {formatDate(order.created_at)}
                         </p>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              View Notes
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Order Notes - {order.order_number}</DialogTitle>
+                            </DialogHeader>
+                            <OrderNotes orderId={order.id} />
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </CardContent>
                   </Card>
