@@ -20,6 +20,7 @@ import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
 import Install from "./pages/Install";
 import NotificationHistory from "./pages/NotificationHistory";
+import OrderTracking from "./pages/OrderTracking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const AppContent = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/new-order" element={<NewOrder />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/order-tracking" element={<OrderTracking />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/about" element={<About />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
