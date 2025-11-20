@@ -28,13 +28,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { OrderStatusDialog } from "./order/OrderStatusDialog";
 import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
+import OrderNotesDialog from "./order/OrderNotesDialog";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -70,6 +71,8 @@ const OrderDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [historyOrder, setHistoryOrder] = useState<Order | null>(null);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [notesOrder, setNotesOrder] = useState<Order | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -174,6 +177,11 @@ const OrderDashboard = () => {
   const handleViewHistory = (order: Order) => {
     setHistoryOrder(order);
     setHistoryDialogOpen(true);
+  };
+
+  const handleViewNotes = (order: Order) => {
+    setNotesOrder(order);
+    setNotesDialogOpen(true);
   };
 
   const isLabStaff = userRole === "lab_staff" || userRole === "admin";
@@ -337,6 +345,10 @@ const OrderDashboard = () => {
                               <History className="mr-2 h-4 w-4" />
                               View History
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewNotes(order)}>
+                              <MessageSquare className="mr-2 h-4 w-4" />
+                              View Notes
+                            </DropdownMenuItem>
                             {isLabStaff && (
                               <>
                                 <DropdownMenuSeparator />
@@ -414,6 +426,14 @@ const OrderDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Order Notes Dialog */}
+      <OrderNotesDialog
+        orderId={notesOrder?.id || null}
+        open={notesDialogOpen}
+        onOpenChange={setNotesDialogOpen}
+        orderNumber={notesOrder?.order_number || ""}
+      />
     </div>
   );
 };
