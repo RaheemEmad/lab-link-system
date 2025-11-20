@@ -27,8 +27,8 @@ const ProofSection = () => {
     <section className="py-24 bg-background">
       <div className="container px-4 mx-auto">
         <div className="text-center mb-16">
-          <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            Early adopters saw —70% fewer daily calls
+          <h3 className="text-3xl md:text-4xl font-bold mb-4 animate-fade-in">
+            Early adopters saw 70% fewer daily calls
           </h3>
         </div>
         
@@ -36,7 +36,8 @@ const ProofSection = () => {
           {testimonials.map((testimonial, index) => (
             <div 
               key={index}
-              className="bg-card p-8 rounded-xl border border-border shadow-[0_8px_30px_rgba(47,59,74,0.08)] hover:shadow-[0_12px_40px_rgba(47,59,74,0.12)] transition-all duration-200"
+              className="bg-card p-8 rounded-xl border border-border shadow-[0_8px_30px_rgba(47,59,74,0.08)] hover:shadow-[0_12px_40px_rgba(47,59,74,0.12)] hover:-translate-y-1 transition-all duration-300 animate-fade-in"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <Quote className="w-8 h-8 text-primary/30 mb-4" />
               <p className="text-muted-foreground mb-6 leading-relaxed">
