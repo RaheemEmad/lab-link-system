@@ -7,6 +7,7 @@ import { Menu, X, Download, Bell, User, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import {
   Tooltip,
   TooltipContent,
@@ -27,7 +28,15 @@ const LandingNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
   const { playUrgentNotification } = useNotificationSound();
+  const { 
+    requestPermission, 
+    showUrgentNotification, 
+    showNormalNotification,
+    isGranted,
+    isSupported 
+  } = useBrowserNotifications();
   const previousUrgentCountRef = useRef<number>(0);
+  const previousTotalCountRef = useRef<number>(0);
 
   // Fetch unread notification count and check for urgent notifications
   const { data: notificationData } = useQuery({
@@ -57,14 +66,34 @@ const LandingNav = () => {
   const unreadCount = notificationData?.count || 0;
   const hasUrgent = notificationData?.hasUrgent || false;
 
-  // Play sound when new urgent notifications arrive
+  // Request notification permission on mount if user is logged in
   useEffect(() => {
-    if (hasUrgent && unreadCount > previousUrgentCountRef.current && previousUrgentCountRef.current > 0) {
-      playUrgentNotification();
-      console.log('🔔 Urgent notification sound played');
+    if (user && isSupported && !isGranted) {
+      // Delay the request slightly to avoid disrupting the user experience
+      const timer = setTimeout(() => {
+        requestPermission();
+      }, 2000);
+      return () => clearTimeout(timer);
     }
+  }, [user, isSupported, isGranted, requestPermission]);
+
+  // Play sound and show browser notification when new urgent notifications arrive
+  useEffect(() => {
+    const isNewUrgent = hasUrgent && unreadCount > previousUrgentCountRef.current && previousUrgentCountRef.current > 0;
+    const isNewNotification = unreadCount > previousTotalCountRef.current && previousTotalCountRef.current > 0;
+
+    if (isNewUrgent) {
+      playUrgentNotification();
+      showUrgentNotification(unreadCount);
+      console.log('🔔 Urgent notification: sound + desktop notification');
+    } else if (isNewNotification) {
+      showNormalNotification(unreadCount);
+      console.log('📬 Normal notification: desktop notification');
+    }
+
     previousUrgentCountRef.current = unreadCount;
-  }, [unreadCount, hasUrgent, playUrgentNotification]);
+    previousTotalCountRef.current = unreadCount;
+  }, [unreadCount, hasUrgent, playUrgentNotification, showUrgentNotification, showNormalNotification]);
 
   useEffect(() => {
     const handler = (e: Event) => {
