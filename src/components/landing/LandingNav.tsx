@@ -107,6 +107,7 @@ const LandingNav = () => {
 
   // Left navigation links
   const leftNavLinks = [
+    { label: "Home", href: "/", type: "route" },
     { label: "How It Works", href: "#how-it-works", type: "anchor" },
     { label: "About", href: "/about", type: "route" },
     { label: "Contact", href: "/contact", type: "route" },
