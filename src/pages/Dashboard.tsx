@@ -63,9 +63,9 @@ const Dashboard = () => {
                       {unreadCount && unreadCount > 0 && (
                         <Badge
                           variant="default"
-                          className="ml-2 px-2 py-0 h-5 text-xs"
+                          className="absolute -top-1 -right-1 h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center text-xs font-semibold"
                         >
-                          {unreadCount}
+                          {unreadCount > 99 ? '99+' : unreadCount}
                         </Badge>
                       )}
                     </Button>
