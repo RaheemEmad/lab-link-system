@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell } from "lucide-react";
+import { Plus, Bell, Package } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -95,6 +95,18 @@ const Dashboard = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold">Order Dashboard</h1>
               
               <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/order-tracking")} className="flex-1 sm:flex-none">
+                      <Package className="h-4 w-4" />
+                      <span className="ml-2">Track Orders</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Real-time order tracking with delivery updates</p>
+                  </TooltipContent>
+                </Tooltip>
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="sm" onClick={() => navigate("/notifications")} className="relative flex-1 sm:flex-none">
