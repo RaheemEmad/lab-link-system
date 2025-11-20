@@ -10,38 +10,34 @@ import { supabase } from "@/integrations/supabase/client";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
 
   // Fetch unread notification count
-  const { data: unreadCount } = useQuery({
+  const {
+    data: unreadCount
+  } = useQuery({
     queryKey: ["unread-notifications", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
-
-      const { count, error } = await supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("read", false);
-
+      const {
+        count,
+        error
+      } = await supabase.from("notifications").select("*", {
+        count: "exact",
+        head: true
+      }).eq("user_id", user.id).eq("read", false);
       if (error) throw error;
       return count || 0;
     },
     enabled: !!user?.id,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000 // Refetch every 30 seconds
   });
-
-  return (
-    <ProtectedRoute>
+  return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
         <TooltipProvider delayDuration={200}>
@@ -53,28 +49,11 @@ const Dashboard = () => {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/notifications")}
-                      className="relative flex-1 sm:flex-none"
-                    >
-                      <Bell className="mr-2 h-4 w-4" />
-                      Notifications
-                      {unreadCount && unreadCount > 0 && (
-                        <Badge
-                          variant="default"
-                          className="absolute -top-1 -right-1 h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center text-xs font-semibold"
-                        >
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </Badge>
-                      )}
-                    </Button>
+                    
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      {unreadCount && unreadCount > 0 
-                        ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` 
-                        : 'View notification history'}
+                      {unreadCount && unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'View notification history'}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -100,8 +79,6 @@ const Dashboard = () => {
       <LandingFooter />
       <ScrollToTop />
     </div>
-    </ProtectedRoute>
-  );
+    </ProtectedRoute>;
 };
-
 export default Dashboard;
