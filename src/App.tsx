@@ -15,6 +15,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
 import Install from "./pages/Install";
+import NotificationHistory from "./pages/NotificationHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const AppContent = () => {
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/install" element={<Install />} />
+      <Route path="/notifications" element={<NotificationHistory />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
