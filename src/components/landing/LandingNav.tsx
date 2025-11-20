@@ -26,24 +26,33 @@ const LandingNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
 
-  // Fetch unread notification count
-  const { data: unreadCount } = useQuery({
+  // Fetch unread notification count and check for urgent notifications
+  const { data: notificationData } = useQuery({
     queryKey: ["unread-notifications", user?.id],
     queryFn: async () => {
-      if (!user?.id) return 0;
+      if (!user?.id) return { count: 0, hasUrgent: false };
 
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("notifications")
-        .select("*", { count: "exact", head: true })
+        .select("type")
         .eq("user_id", user.id)
         .eq("read", false);
 
       if (error) throw error;
-      return count || 0;
+      
+      // Check if any notification is of urgent type (status_change or urgent types)
+      const hasUrgent = data?.some(n => 
+        n.type === "status_change" || n.type === "urgent"
+      ) || false;
+
+      return { count: data?.length || 0, hasUrgent };
     },
     enabled: !!user?.id,
     refetchInterval: 30000,
   });
+
+  const unreadCount = notificationData?.count || 0;
+  const hasUrgent = notificationData?.hasUrgent || false;
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -134,20 +143,22 @@ const LandingNav = () => {
                       >
                         <Bell className="h-4 w-4" />
                         <span className="hidden xl:inline">Notifications</span>
-                        {unreadCount && unreadCount > 0 && (
+                        {unreadCount > 0 && (
                           <Badge
-                            variant="default"
-                            className="absolute -top-1 -right-1 px-1.5 py-0 h-5 min-w-5 text-xs"
+                            variant={hasUrgent ? "destructive" : "default"}
+                            className={`absolute -top-1 -right-1 h-5 min-w-5 rounded-full flex items-center justify-center text-xs px-1.5 ${
+                              hasUrgent ? "animate-pulse" : ""
+                            }`}
                           >
-                            {unreadCount}
+                            {unreadCount > 99 ? "99+" : unreadCount}
                           </Badge>
                         )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>
-                        {unreadCount && unreadCount > 0 
-                          ? `View ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` 
+                        {unreadCount > 0
+                          ? `${hasUrgent ? "🔴 " : ""}View ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}${hasUrgent ? " (urgent)" : ""}` 
                           : 'View all notifications'}
                       </p>
                     </TooltipContent>
@@ -267,9 +278,14 @@ const LandingNav = () => {
                             <Bell className="h-4 w-4" />
                             Notifications
                           </span>
-                          {unreadCount && unreadCount > 0 && (
-                            <Badge variant="default" className="ml-2">
-                              {unreadCount}
+                          {unreadCount > 0 && (
+                            <Badge 
+                              variant={hasUrgent ? "destructive" : "default"}
+                              className={`h-5 min-w-5 rounded-full flex items-center justify-center text-xs px-1.5 ${
+                                hasUrgent ? "animate-pulse" : ""
+                              }`}
+                            >
+                              {unreadCount > 99 ? "99+" : unreadCount}
                             </Badge>
                           )}
                         </button>
