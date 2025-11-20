@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { OrderNotes } from "@/components/order/OrderNotes";
+import { QCChecklist } from "@/components/order/QCChecklist";
 import { toast } from "sonner";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -390,6 +391,8 @@ const OrderWorkflowCard = ({
   const [shipmentTracking, setShipmentTracking] = useState(order.shipment_tracking || '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showFileDialog, setShowFileDialog] = useState(false);
+  const [qcComplete, setQcComplete] = useState(false);
+  const [showQcWarning, setShowQcWarning] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -403,6 +406,15 @@ const OrderWorkflowCard = ({
       setSelectedFile(null);
       setShowFileDialog(false);
     }
+  };
+
+  const handleStatusChange = (value: string) => {
+    // Check if trying to move to "Ready for Delivery" without QC completion
+    if (value === 'Ready for Delivery' && order.status === 'Ready for QC' && !qcComplete) {
+      setShowQcWarning(true);
+      return;
+    }
+    setNewStatus(value);
   };
 
   return (
@@ -484,7 +496,7 @@ const OrderWorkflowCard = ({
           {/* Status Update */}
           <div className="space-y-2">
             <Label>Order Status</Label>
-            <Select value={newStatus} onValueChange={setNewStatus}>
+            <Select value={newStatus} onValueChange={handleStatusChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -496,6 +508,11 @@ const OrderWorkflowCard = ({
                 <SelectItem value="Delivered">Delivered</SelectItem>
               </SelectContent>
             </Select>
+            {showQcWarning && (
+              <p className="text-xs text-destructive">
+                Complete all QC checklist items before marking as Ready for Delivery
+              </p>
+            )}
             {newStatus !== order.status && (
               <Button
                 size="sm"
@@ -644,6 +661,22 @@ const OrderWorkflowCard = ({
             )}
           </div>
         </div>
+
+        {/* QC Checklist - Show when order is Ready for QC or later */}
+        {(order.status === 'Ready for QC' || order.status === 'Ready for Delivery' || order.status === 'Delivered') && (
+          <div className="mt-4 pt-4 border-t">
+            <QCChecklist 
+              orderId={order.id} 
+              orderStatus={order.status}
+              onStatusUpdateAllowed={(allowed) => {
+                setQcComplete(allowed);
+                if (!allowed && newStatus === 'Ready for Delivery') {
+                  setShowQcWarning(true);
+                }
+              }}
+            />
+          </div>
+        )}
 
         {/* Internal Notes */}
         <div className="mt-4 pt-4 border-t">
