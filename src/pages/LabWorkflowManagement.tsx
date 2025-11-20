@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { OrderNotes } from "@/components/order/OrderNotes";
 import { toast } from "sonner";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -642,6 +643,11 @@ const OrderWorkflowCard = ({
               </Button>
             )}
           </div>
+        </div>
+
+        {/* Internal Notes */}
+        <div className="mt-4 pt-4 border-t">
+          <OrderNotes orderId={order.id} />
         </div>
       </CardContent>
     </Card>
