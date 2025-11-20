@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -75,6 +76,46 @@ const Profile = () => {
     },
     enabled: !!user?.id,
   });
+
+  // Fetch user role
+  const { data: userRole } = useQuery({
+    queryKey: ["user-role", user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("No user");
+      
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) throw error;
+      return data.role;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Helper function to format role names
+  const formatRole = (role: string) => {
+    const roleMap: Record<string, { label: string; description: string; variant: "default" | "secondary" | "destructive" }> = {
+      admin: { 
+        label: "Administrator", 
+        description: "Full system access and management",
+        variant: "destructive"
+      },
+      lab_staff: { 
+        label: "Lab Staff", 
+        description: "Manage and process lab orders",
+        variant: "secondary"
+      },
+      doctor: { 
+        label: "Doctor", 
+        description: "Submit and track dental orders",
+        variant: "default"
+      },
+    };
+    return roleMap[role] || { label: role, description: "User role", variant: "default" };
+  };
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -194,6 +235,16 @@ const Profile = () => {
 
                 <Card>
                   <CardHeader>
+                    <CardTitle>Account Role</CardTitle>
+                    <CardDescription>Loading role information...</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <SkeletonForm />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
                     <CardTitle>Change Password</CardTitle>
                     <CardDescription>Loading...</CardDescription>
                   </CardHeader>
@@ -238,43 +289,63 @@ const Profile = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={user?.email || ""}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Email cannot be changed
-                    </p>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={user?.email || ""}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Email cannot be changed
+                  </p>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Enter your full name"
-                      maxLength={100}
-                    />
+                {/* Role Display */}
+                <div className="space-y-2">
+                  <Label>Account Role</Label>
+                  <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50 border border-border">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant={userRole ? formatRole(userRole).variant : "default"} className="text-xs">
+                          {userRole ? formatRole(userRole).label : "Loading..."}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {userRole ? formatRole(userRole).description : "Fetching your role information..."}
+                      </p>
+                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Contact support if your role needs to be changed
+                  </p>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Enter your phone number"
-                      maxLength={20}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your full name"
+                    maxLength={100}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Enter your phone number"
+                    maxLength={20}
+                  />
+                </div>
 
                   <Button
                     onClick={handleProfileUpdate}
