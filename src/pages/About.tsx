@@ -19,11 +19,11 @@ const About = () => {
         </Button>
 
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <div className="text-center mb-12 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             About LabLink
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
             Transforming dental lab workflows from WhatsApp chaos to streamlined digital precision
           </p>
         </div>
@@ -47,17 +47,17 @@ const About = () => {
         </Card>
 
         {/* The Problem We Solve */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">The Problem We Solve</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+        <div className="mb-12 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">The Problem We Solve</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             <Card className="border-destructive/20 hover:border-destructive/40 transition-colors">
-              <CardContent className="pt-6">
+              <CardContent className="pt-5 sm:pt-6">
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">❌</span>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <span className="text-xl sm:text-2xl">❌</span>
                   </div>
-                  <h3 className="font-semibold mb-2 text-lg">Lost Messages</h3>
-                  <p className="text-muted-foreground">
+                  <h3 className="font-semibold mb-2 text-base sm:text-lg">Lost Messages</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">
                     Critical order details buried in endless WhatsApp threads
                   </p>
                 </div>
@@ -95,13 +95,13 @@ const About = () => {
         </div>
 
         {/* Our Values */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Our Core Values</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mb-12 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">Our Core Values</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <Target className="h-6 w-6 text-primary" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                  <Target className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <CardTitle>Precision</CardTitle>
               </CardHeader>
@@ -271,17 +271,17 @@ const About = () => {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center bg-primary/5 rounded-lg p-12 border border-primary/20">
-          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Workflow?</h2>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+        <div className="text-center bg-primary/5 rounded-lg p-8 sm:p-12 border border-primary/20">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to Transform Your Workflow?</h2>
+          <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
             Join dental professionals and labs who've replaced WhatsApp chaos with organized, 
             trackable workflows
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Button size="lg" onClick={() => navigate("/auth")}>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+            <Button size="lg" onClick={() => navigate("/auth")} className="w-full sm:w-auto">
               Get Started Free
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate("/contact")}>
+            <Button size="lg" variant="outline" onClick={() => navigate("/contact")} className="w-full sm:w-auto">
               Contact Sales
             </Button>
           </div>
