@@ -8,24 +8,28 @@ import {
 const FAQSection = () => {
   const faqs = [
     {
-      question: "How long to onboard?",
-      answer: "5–10 minutes to set up the Google Form and Glide dashboard, plus a quick staff briefing. Most labs are up and running the same day.",
+      question: "How does role-based access work?",
+      answer: "When you sign up, you choose your role: Doctor, Lab Staff, or Admin. Doctors can create and track their orders. Lab Staff can update statuses and add notes to all orders. Admins have full oversight and management capabilities.",
     },
     {
-      question: "Do dentists need accounts?",
-      answer: "No, dentists simply use the form link you share. No logins, no app installs. They fill out the form and submit. That's it.",
+      question: "What features are included?",
+      answer: "LabLink includes complete order management, real-time status tracking with full history timeline, internal notes system for collaboration between doctors and lab staff, automatic notifications for status changes, and secure role-based access control.",
     },
     {
-      question: "Is patient data secure?",
-      answer: "Yes. All data is stored in your Google Workspace account, following your organization's G-Suite security policies. You control access and permissions.",
+      question: "Do both doctors and lab staff need accounts?",
+      answer: "Yes, both doctors and lab staff need accounts to access LabLink. This ensures secure access, proper tracking of who made changes, and role-specific features. Sign up takes less than 2 minutes.",
     },
     {
-      question: "Can we use across branches?",
-      answer: "Absolutely. Multi-location labs can use LabLink by adding a location tag to each order. Everything stays in one central dashboard.",
+      question: "How do I track order changes?",
+      answer: "Every order has a complete history timeline showing all status changes with timestamps and the user who made each change. You can also add internal notes to communicate about specific orders with your team.",
     },
     {
-      question: "Paid upgrade?",
-      answer: "The core system is free forever. We're building optional paid features like automated reminders, analytics dashboards, and advanced reporting coming soon.",
+      question: "Is my data secure?",
+      answer: "Absolutely. LabLink uses enterprise-grade security with role-based access control, encrypted data storage, and secure authentication. Only authorized users with the correct role can access specific features and data.",
+    },
+    {
+      question: "How much does it cost?",
+      answer: "LabLink is currently free to use with all core features included: order management, status tracking, notes, and notifications. We're building advanced analytics and reporting features that may be offered as paid upgrades in the future.",
     },
   ];
 
