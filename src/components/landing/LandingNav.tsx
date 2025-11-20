@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Download } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -15,6 +15,17 @@ const LandingNav = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isInstallable, setIsInstallable] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setIsInstallable(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
 
   const navLinks = [
     { label: "How It Works", href: "#how-it-works", type: "anchor" },
@@ -77,6 +88,17 @@ const LandingNav = () => {
           
           {/* Desktop Auth buttons */}
           <div className="hidden lg:flex items-center gap-3">
+            {isInstallable && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/install")}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden xl:inline">Install App</span>
+              </Button>
+            )}
             {user ? (
               <>
                 <span className="text-sm text-muted-foreground hidden xl:inline">
@@ -152,6 +174,24 @@ const LandingNav = () => {
                           </button>
                         ))}
                       </div>
+                    </>
+                  )}
+
+                  {/* Install App */}
+                  {isInstallable && (
+                    <>
+                      <div className="border-t border-border my-2" />
+                      <Button
+                        variant="outline"
+                        className="w-full gap-2"
+                        onClick={() => {
+                          navigate("/install");
+                          setIsOpen(false);
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                        Install App
+                      </Button>
                     </>
                   )}
 
