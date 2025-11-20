@@ -4,10 +4,28 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Search, Filter, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -37,11 +55,32 @@ const OrderDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>("");
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrders();
+    fetchUserRole();
   }, [user]);
+
+  const fetchUserRole = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      setUserRole(data?.role || "");
+    } catch (error: any) {
+      console.error("Failed to fetch user role:", error.message);
+    }
+  };
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -62,6 +101,35 @@ const OrderDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteOrderId) return;
+
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", deleteOrderId);
+
+      if (error) throw error;
+
+      toast.success("Order deleted successfully");
+      fetchOrders();
+    } catch (error: any) {
+      toast.error("Failed to delete order", {
+        description: error.message,
+      });
+    } finally {
+      setDeleteOrderId(null);
+    }
+  };
+
+  const handleEdit = (orderId: string) => {
+    // Navigate to edit page (you can create this later)
+    toast.info("Edit functionality coming soon", {
+      description: "Order ID: " + orderId,
+    });
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -92,6 +160,8 @@ const OrderDashboard = () => {
       </div>
     );
   }
+
+  const isDoctor = userRole === "doctor";
 
   return (
     <div className="space-y-6">
@@ -144,7 +214,7 @@ const OrderDashboard = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by doctor, patient, or order ID..."
+                placeholder="Search by patient or order ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -173,19 +243,20 @@ const OrderDashboard = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Order ID</TableHead>
-                  <TableHead>Doctor</TableHead>
+                  {!isDoctor && <TableHead>Doctor</TableHead>}
                   <TableHead>Patient</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Shade</TableHead>
                   <TableHead>Teeth</TableHead>
                   <TableHead>Urgency</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    <TableCell colSpan={isDoctor ? 8 : 9} className="text-center text-muted-foreground">
                       No orders found
                     </TableCell>
                   </TableRow>
@@ -193,7 +264,7 @@ const OrderDashboard = () => {
                   filteredOrders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-mono font-medium">{order.order_number}</TableCell>
-                      <TableCell>{order.doctor_name}</TableCell>
+                      {!isDoctor && <TableCell>{order.doctor_name}</TableCell>}
                       <TableCell>{order.patient_name}</TableCell>
                       <TableCell>{order.restoration_type}</TableCell>
                       <TableCell>{order.teeth_shade}</TableCell>
@@ -208,6 +279,28 @@ const OrderDashboard = () => {
                           {order.status}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-background">
+                            <DropdownMenuItem onClick={() => handleEdit(order.id)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit Order
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => setDeleteOrderId(order.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Order
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -216,6 +309,24 @@ const OrderDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteOrderId} onOpenChange={(open) => !open && setDeleteOrderId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this order. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
