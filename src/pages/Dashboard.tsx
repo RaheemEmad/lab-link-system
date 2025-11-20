@@ -2,11 +2,13 @@ import { useNavigate } from "react-router-dom";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Bell } from "lucide-react";
+import { Plus, Bell } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 import {
   Tooltip,
   TooltipContent,
@@ -39,25 +41,13 @@ const Dashboard = () => {
 
   return (
     <ProtectedRoute>
-      <TooltipProvider delayDuration={200}>
-        <div className="min-h-screen bg-secondary/30 py-6 sm:py-12">
-          <div className="container px-4">
-            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => navigate("/")}
-                    className="text-sm"
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Home
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Return to home page</p>
-                </TooltipContent>
-              </Tooltip>
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <TooltipProvider delayDuration={200}>
+          <div className="flex-1 bg-secondary/30 py-6 sm:py-12">
+            <div className="container px-4">
+              <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <h1 className="text-2xl sm:text-3xl font-bold">Order Dashboard</h1>
               
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Tooltip>
@@ -106,6 +96,8 @@ const Dashboard = () => {
           </div>
         </div>
       </TooltipProvider>
+      <LandingFooter />
+    </div>
     </ProtectedRoute>
   );
 };

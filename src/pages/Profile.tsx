@@ -7,14 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Save, KeyRound, Bell } from "lucide-react";
+import { Save, KeyRound, Bell } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { z } from "zod";
 import { SkeletonForm } from "@/components/ui/skeleton-card";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
+import { z } from "zod";
 
 const profileSchema = z.object({
   full_name: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
@@ -173,49 +175,46 @@ const Profile = () => {
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-secondary/30 py-12">
-          <div className="container px-4 max-w-4xl mx-auto">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/")}
-              className="mb-6"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
+        <div className="min-h-screen flex flex-col">
+          <LandingNav />
+          <div className="flex-1 bg-secondary/30 py-6 sm:py-12">
+            <div className="container px-4 max-w-4xl mx-auto">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-6">Profile Settings</h1>
 
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>Loading your profile...</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SkeletonForm />
-                </CardContent>
-              </Card>
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Profile Information</CardTitle>
+                    <CardDescription>Loading your profile...</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <SkeletonForm />
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Change Password</CardTitle>
-                  <CardDescription>Loading...</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SkeletonForm />
-                </CardContent>
-              </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Change Password</CardTitle>
+                    <CardDescription>Loading...</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <SkeletonForm />
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notification Preferences</CardTitle>
-                  <CardDescription>Loading preferences...</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SkeletonForm />
-                </CardContent>
-              </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Notification Preferences</CardTitle>
+                    <CardDescription>Loading preferences...</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <SkeletonForm />
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
+          <LandingFooter />
         </div>
       </ProtectedRoute>
     );
@@ -223,243 +222,240 @@ const Profile = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-secondary/30 py-12">
-        <div className="container px-4 max-w-4xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="mb-6"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <div className="flex-1 bg-secondary/30 py-6 sm:py-12">
+          <div className="container px-4 max-w-4xl mx-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-6">Profile Settings</h1>
 
-          <div className="space-y-6">
-            {/* Profile Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Update your personal information and contact details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email || ""}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Email cannot be changed
-                  </p>
-                </div>
+            <div className="space-y-6">
+              {/* Profile Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile Information</CardTitle>
+                  <CardDescription>
+                    Update your personal information and contact details
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={user?.email || ""}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Email cannot be changed
+                    </p>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
-                    maxLength={100}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Enter your full name"
+                      maxLength={100}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Enter your phone number"
-                    maxLength={20}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Enter your phone number"
+                      maxLength={20}
+                    />
+                  </div>
 
-                <Button
-                  onClick={handleProfileUpdate}
-                  disabled={updateProfileMutation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button
+                    onClick={handleProfileUpdate}
+                    disabled={updateProfileMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </CardContent>
+              </Card>
 
-            {/* Change Password */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>
-                  Update your password to keep your account secure
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input
-                    id="currentPassword"
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Enter current password"
-                  />
-                </div>
+              {/* Change Password */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>
+                    Update your password to keep your account secure
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Enter current password"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password (min. 6 characters)"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password (min. 6 characters)"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                    />
+                  </div>
 
-                <Button
-                  onClick={handlePasswordChange}
-                  disabled={changePasswordMutation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  <KeyRound className="mr-2 h-4 w-4" />
-                  {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button
+                    onClick={handlePasswordChange}
+                    disabled={changePasswordMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
+                  </Button>
+                </CardContent>
+              </Card>
 
-            {/* Notification Preferences */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Manage how you receive notifications about order updates
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h4 className="font-medium mb-4">Notification Channels</h4>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="email-notifications">Email Notifications</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receive notifications via email
-                        </p>
+              {/* Notification Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notification Preferences</CardTitle>
+                  <CardDescription>
+                    Manage how you receive notifications about order updates
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h4 className="font-medium mb-4">Notification Channels</h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="email-notifications">Email Notifications</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Receive notifications via email
+                          </p>
+                        </div>
+                        <Switch
+                          id="email-notifications"
+                          checked={emailNotifications}
+                          onCheckedChange={setEmailNotifications}
+                        />
                       </div>
-                      <Switch
-                        id="email-notifications"
-                        checked={emailNotifications}
-                        onCheckedChange={setEmailNotifications}
-                      />
-                    </div>
 
-                    <Separator />
+                      <Separator />
 
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="push-notifications">Push Notifications</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receive real-time browser notifications
-                        </p>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="push-notifications">Push Notifications</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Receive real-time browser notifications
+                          </p>
+                        </div>
+                        <Button
+                          variant={isSubscribed ? "outline" : "default"}
+                          size="sm"
+                          onClick={isSubscribed ? unsubscribe : subscribe}
+                          disabled={pushLoading}
+                        >
+                          <Bell className="mr-2 h-4 w-4" />
+                          {pushLoading ? "Loading..." : isSubscribed ? "Disable" : "Enable"}
+                        </Button>
                       </div>
-                      <Button
-                        variant={isSubscribed ? "outline" : "default"}
-                        size="sm"
-                        onClick={isSubscribed ? unsubscribe : subscribe}
-                        disabled={pushLoading}
-                      >
-                        <Bell className="mr-2 h-4 w-4" />
-                        {pushLoading ? "Loading..." : isSubscribed ? "Disable" : "Enable"}
-                      </Button>
-                    </div>
 
-                    <Separator />
+                      <Separator />
 
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receive notifications via SMS (coming soon)
-                        </p>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="sms-notifications">SMS Notifications</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Receive notifications via SMS (coming soon)
+                          </p>
+                        </div>
+                        <Switch
+                          id="sms-notifications"
+                          checked={smsNotifications}
+                          onCheckedChange={setSmsNotifications}
+                          disabled
+                        />
                       </div>
-                      <Switch
-                        id="sms-notifications"
-                        checked={smsNotifications}
-                        onCheckedChange={setSmsNotifications}
-                        disabled
-                      />
                     </div>
                   </div>
-                </div>
 
-                <Separator />
+                  <Separator />
 
-                <div>
-                  <h4 className="font-medium mb-4">Notification Types</h4>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="status-change">Order Status Changes</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Get notified when order status is updated
-                        </p>
+                  <div>
+                    <h4 className="font-medium mb-4">Notification Types</h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="status-change">Order Status Changes</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Get notified when order status is updated
+                          </p>
+                        </div>
+                        <Switch
+                          id="status-change"
+                          checked={notificationStatusChange}
+                          onCheckedChange={setNotificationStatusChange}
+                        />
                       </div>
-                      <Switch
-                        id="status-change"
-                        checked={notificationStatusChange}
-                        onCheckedChange={setNotificationStatusChange}
-                      />
-                    </div>
 
-                    <Separator />
+                      <Separator />
 
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="new-notes">New Notes Added</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Get notified when someone adds a note to an order
-                        </p>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="new-notes">New Notes Added</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Get notified when someone adds a note to an order
+                          </p>
+                        </div>
+                        <Switch
+                          id="new-notes"
+                          checked={notificationNewNotes}
+                          onCheckedChange={setNotificationNewNotes}
+                        />
                       </div>
-                      <Switch
-                        id="new-notes"
-                        checked={notificationNewNotes}
-                        onCheckedChange={setNotificationNewNotes}
-                      />
                     </div>
                   </div>
-                </div>
 
-                <Button
-                  onClick={handleProfileUpdate}
-                  disabled={updateProfileMutation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  {updateProfileMutation.isPending ? "Saving..." : "Save Preferences"}
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button
+                    onClick={handleProfileUpdate}
+                    disabled={updateProfileMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {updateProfileMutation.isPending ? "Saving..." : "Save Preferences"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
+        <LandingFooter />
       </div>
     </ProtectedRoute>
   );

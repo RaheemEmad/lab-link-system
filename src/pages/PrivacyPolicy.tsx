@@ -1,21 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container px-4 py-12 max-w-4xl mx-auto">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate("/")}
-          className="mb-8"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Home
-        </Button>
+    <div className="min-h-screen flex flex-col">
+      <LandingNav />
+      <div className="flex-1 bg-background">
+        <div className="container px-4 py-8 sm:py-12 max-w-4xl mx-auto">
 
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">Privacy Policy</h1>
         <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">Last updated: {new Date().toLocaleDateString()}</p>
@@ -166,6 +161,7 @@ const PrivacyPolicy = () => {
           </section>
         </div>
       </div>
+      <LandingFooter />
     </div>
   );
 };
