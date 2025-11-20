@@ -25,7 +25,7 @@ const LandingHero = () => {
     label: "Order Accuracy"
   }];
   const hooks = ["Stop losing orders in WhatsApp threads", "Every shade, every tooth, always tracked", "From chaos to clarity in 2 minutes"];
-  return <section className="relative min-h-[90vh] sm:min-h-[95vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background">
+  return <section className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20">
       {/* Animated gradient orbs - hidden on small mobile */}
       <div className="hidden sm:block absolute top-20 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" style={{
       animationDuration: '4s'
@@ -56,7 +56,7 @@ const LandingHero = () => {
       <div className="container relative z-10 px-4 mx-auto">
         <div className="max-w-5xl mx-auto">
           {/* Center-aligned hero content */}
-          <div className="text-center space-y-8">
+          <div className="text-center space-y-6 sm:space-y-8 md:space-y-10">
             {/* Attention-grabbing pill */}
             
             
