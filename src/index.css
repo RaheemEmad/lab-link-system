@@ -8,92 +8,99 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 215 25% 15%;
+    /* LabLink Brand Colors */
+    --lablink-blue: 221 100% 60%; /* #3269FF */
+    --dental-slate: 215 20% 24%; /* #2F3B4A */
+    --soft-gray: 210 33% 96%; /* #F3F5F7 */
+    --success-green: 152 75% 46%; /* #1DCC6C */
+    --urgent-red: 6 87% 63%; /* #F15555 */
+    --accent-amber: 45 87% 62%; /* #F2C94C */
+    
+    --background: 0 0% 100%;
+    --foreground: 215 20% 24%; /* dental-slate */
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 215 20% 24%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 215 20% 24%;
 
-    --primary: 210 100% 40%;
+    --primary: 221 100% 60%; /* lablink-blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 30% 95%;
-    --secondary-foreground: 215 25% 15%;
+    --secondary: 210 33% 96%; /* soft-gray */
+    --secondary-foreground: 215 20% 24%;
 
-    --muted: 210 30% 96%;
-    --muted-foreground: 215 15% 50%;
+    --muted: 210 33% 96%;
+    --muted-foreground: 215 20% 50%;
 
-    --accent: 175 70% 45%;
+    --accent: 221 100% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 6 87% 63%; /* urgent-red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 30% 88%;
-    --input: 210 30% 90%;
-    --ring: 210 100% 40%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 100% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --success: 142 71% 45%;
+    --success: 152 75% 46%; /* success-green */
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 45 87% 62%; /* accent-amber */
+    --warning-foreground: 215 20% 24%;
 
-    --info: 199 89% 48%;
+    --info: 221 100% 60%;
     --info-foreground: 0 0% 100%;
-
-    --gradient-hero: linear-gradient(135deg, hsl(210 100% 40%), hsl(175 70% 45%));
-    --shadow-soft: 0 2px 8px -2px hsl(210 30% 70% / 0.2);
-    --shadow-medium: 0 4px 16px -4px hsl(210 30% 60% / 0.25);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    --hero-gradient: linear-gradient(135deg, hsl(221 100% 60%), hsl(221 100% 70%));
+    --shadow-soft: 0 8px 30px rgba(47, 59, 74, 0.08);
+    --shadow-medium: 0 12px 40px rgba(47, 59, 74, 0.12);
+    --transition-smooth: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 215 30% 8%;
-    --foreground: 210 30% 95%;
+    --background: 215 25% 12%;
+    --foreground: 210 40% 98%;
 
-    --card: 215 28% 12%;
-    --card-foreground: 210 30% 95%;
+    --card: 215 23% 16%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 215 28% 12%;
-    --popover-foreground: 210 30% 95%;
+    --popover: 215 25% 12%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 210 100% 50%;
+    --primary: 221 100% 65%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 25% 18%;
-    --secondary-foreground: 210 30% 95%;
+    --secondary: 215 20% 20%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 215 25% 18%;
-    --muted-foreground: 215 15% 60%;
+    --muted: 215 20% 20%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 175 70% 40%;
+    --accent: 221 100% 65%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 6 87% 63%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 25% 20%;
-    --input: 215 25% 20%;
-    --ring: 210 100% 50%;
+    --border: 215 20% 25%;
+    --input: 215 20% 25%;
+    --ring: 221 100% 65%;
 
-    --success: 142 71% 45%;
+    --success: 152 75% 46%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 45 87% 62%;
+    --warning-foreground: 215 20% 10%;
 
-    --info: 199 89% 48%;
+    --info: 221 100% 65%;
     --info-foreground: 0 0% 100%;
-
-    --gradient-hero: linear-gradient(135deg, hsl(210 100% 50%), hsl(175 70% 40%));
-    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
-    --shadow-medium: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
+    
+    --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.4);
   }
 }
 
