@@ -7,6 +7,12 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -33,46 +39,73 @@ const Dashboard = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-secondary/30 py-6 sm:py-12">
-        <div className="container px-4">
-          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate("/")}
-              className="text-sm"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-            
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/notifications")}
-                className="relative flex-1 sm:flex-none"
-              >
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
-                {unreadCount && unreadCount > 0 && (
-                  <Badge
-                    variant="default"
-                    className="ml-2 px-2 py-0 h-5 text-xs"
+      <TooltipProvider delayDuration={200}>
+        <div className="min-h-screen bg-secondary/30 py-6 sm:py-12">
+          <div className="container px-4">
+            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => navigate("/")}
+                    className="text-sm"
                   >
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Button>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Home
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Return to home page</p>
+                </TooltipContent>
+              </Tooltip>
               
-              <Button onClick={() => navigate("/new-order")} className="flex-1 sm:flex-none">
-                <Plus className="mr-2 h-4 w-4" />
-                New Order
-              </Button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/notifications")}
+                      className="relative flex-1 sm:flex-none"
+                    >
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notifications
+                      {unreadCount && unreadCount > 0 && (
+                        <Badge
+                          variant="default"
+                          className="ml-2 px-2 py-0 h-5 text-xs"
+                        >
+                          {unreadCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      {unreadCount && unreadCount > 0 
+                        ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` 
+                        : 'View notification history'}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={() => navigate("/new-order")} className="flex-1 sm:flex-none">
+                      <Plus className="mr-2 h-4 w-4" />
+                      New Order
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Create a new dental lab order</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
+            
+            <OrderDashboard />
           </div>
-          
-          <OrderDashboard />
         </div>
-      </div>
+      </TooltipProvider>
     </ProtectedRoute>
   );
 };

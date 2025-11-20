@@ -7,6 +7,12 @@ import { Menu, X, Download, Bell, User, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -71,93 +77,151 @@ const LandingNav = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-      <div className="container px-4 mx-auto">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <div 
-            className="text-2xl font-bold text-primary cursor-pointer"
-            onClick={() => navigate("/")}
-          >
-            LabLink
-          </div>
-          
-          {/* Desktop Left Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
-            {leftNavLinks.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => handleNavClick(link)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </button>
-            ))}
-          </div>
-          
-          {/* Desktop Right Section (Auth & User Actions) */}
-          <div className="hidden lg:flex items-center gap-3">
-            {user ? (
-              <>
-                {/* Notifications */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/notifications")}
-                  className="relative gap-2"
+    <TooltipProvider delayDuration={200}>
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+        <div className="container px-4 mx-auto">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div 
+                  className="text-2xl font-bold text-primary cursor-pointer"
+                  onClick={() => navigate("/")}
                 >
-                  <Bell className="h-4 w-4" />
-                  <span className="hidden xl:inline">Notifications</span>
-                  {unreadCount && unreadCount > 0 && (
-                    <Badge
-                      variant="default"
-                      className="absolute -top-1 -right-1 px-1.5 py-0 h-5 min-w-5 text-xs"
+                  LabLink
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Go to home page</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            {/* Desktop Left Navigation */}
+            <div className="hidden lg:flex items-center gap-8">
+              {leftNavLinks.map((link) => (
+                <Tooltip key={link.href}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => handleNavClick(link)}
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {unreadCount}
-                    </Badge>
-                  )}
-                </Button>
+                      {link.label}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      {link.type === "anchor" 
+                        ? `Scroll to ${link.label.toLowerCase()}` 
+                        : `Navigate to ${link.label}`}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+            
+            {/* Desktop Right Section (Auth & User Actions) */}
+            <div className="hidden lg:flex items-center gap-3">
+              {user ? (
+                <>
+                  {/* Notifications */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate("/notifications")}
+                        className="relative gap-2"
+                      >
+                        <Bell className="h-4 w-4" />
+                        <span className="hidden xl:inline">Notifications</span>
+                        {unreadCount && unreadCount > 0 && (
+                          <Badge
+                            variant="default"
+                            className="absolute -top-1 -right-1 px-1.5 py-0 h-5 min-w-5 text-xs"
+                          >
+                            {unreadCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        {unreadCount && unreadCount > 0 
+                          ? `View ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` 
+                          : 'View all notifications'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
 
-                {/* Profile */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/profile")}
-                  className="gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  <span className="hidden xl:inline">Profile</span>
-                </Button>
+                  {/* Profile */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate("/profile")}
+                        className="gap-2"
+                      >
+                        <User className="h-4 w-4" />
+                        <span className="hidden xl:inline">Profile</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View and edit your profile</p>
+                    </TooltipContent>
+                  </Tooltip>
 
-                {/* Sign Out */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={signOut}
-                  className="gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden xl:inline">Sign Out</span>
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/auth")}
-                >
-                  Sign In
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => navigate("/auth")}
-                >
-                  Sign Up
-                </Button>
-              </>
-            )}
-          </div>
+                  {/* Sign Out */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={signOut}
+                        className="gap-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span className="hidden xl:inline">Sign Out</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Sign out of your account</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              ) : (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate("/auth")}
+                      >
+                        Sign In
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Sign in to your account</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        onClick={() => navigate("/auth")}
+                      >
+                        Sign Up
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Create a new account</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+            </div>
 
           {/* Mobile Menu */}
           <div className="lg:hidden">
@@ -293,6 +357,7 @@ const LandingNav = () => {
         </div>
       </div>
     </nav>
+    </TooltipProvider>
   );
 };
 

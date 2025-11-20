@@ -12,6 +12,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { formatDistanceToNow } from "date-fns";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Notification {
   id: string;
@@ -132,67 +138,91 @@ const NotificationHistory = () => {
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-secondary/30 py-8 md:py-12">
-          <div className="container px-4 max-w-4xl mx-auto">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
+        <TooltipProvider delayDuration={200}>
+          <div className="min-h-screen bg-secondary/30 py-8 md:py-12">
+            <div className="container px-4 max-w-4xl mx-auto">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Go back to previous page</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification History</CardTitle>
-                <CardDescription>Loading notifications...</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SkeletonCard />
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notification History</CardTitle>
+                  <CardDescription>Loading notifications...</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SkeletonCard />
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
+        </TooltipProvider>
       </ProtectedRoute>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-secondary/30 py-8 md:py-12">
-        <div className="container px-4 max-w-4xl mx-auto">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+      <TooltipProvider delayDuration={200}>
+        <div className="min-h-screen bg-secondary/30 py-8 md:py-12">
+          <div className="container px-4 max-w-4xl mx-auto">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Go back to previous page</p>
+              </TooltipContent>
+            </Tooltip>
 
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Notification History
-                  </CardTitle>
-                  <CardDescription className="mt-2">
-                    View all notifications about your orders
-                    {unreadCount > 0 && (
-                      <Badge variant="default" className="ml-2">
-                        {unreadCount} unread
-                      </Badge>
-                    )}
-                  </CardDescription>
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Bell className="h-5 w-5" />
+                      Notification History
+                    </CardTitle>
+                    <CardDescription className="mt-2">
+                      View all notifications about your orders
+                      {unreadCount > 0 && (
+                        <Badge variant="default" className="ml-2">
+                          {unreadCount} unread
+                        </Badge>
+                      )}
+                    </CardDescription>
+                  </div>
+                  {unreadCount > 0 && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => markAllAsReadMutation.mutate()}
+                          disabled={markAllAsReadMutation.isPending}
+                        >
+                          <CheckCheck className="mr-2 h-4 w-4" />
+                          Mark All Read
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Mark all {unreadCount} notification{unreadCount > 1 ? 's' : ''} as read</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
-                {unreadCount > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => markAllAsReadMutation.mutate()}
-                    disabled={markAllAsReadMutation.isPending}
-                  >
-                    <CheckCheck className="mr-2 h-4 w-4" />
-                    Mark All Read
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
+              </CardHeader>
             <CardContent>
               <Tabs value={filter} onValueChange={(v) => setFilter(v as "all" | "unread")}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -267,6 +297,7 @@ const NotificationHistory = () => {
           </Card>
         </div>
       </div>
+      </TooltipProvider>
     </ProtectedRoute>
   );
 };
