@@ -12,6 +12,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Loader2, Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { z } from "zod";
+
+const NOTE_MAX_LENGTH = 2000;
+
+const noteSchema = z.object({
+  note_text: z.string()
+    .trim()
+    .min(1, "Note cannot be empty")
+    .max(NOTE_MAX_LENGTH, `Note must be less than ${NOTE_MAX_LENGTH} characters`),
+});
 
 interface OrderNote {
   id: string;
@@ -79,8 +89,16 @@ export default function OrderNotesDialog({
   };
 
   const handleAddNote = async () => {
-    if (!orderId || !newNote.trim()) {
-      toast.error("Please enter a note");
+    if (!orderId) {
+      toast.error("Order ID is missing");
+      return;
+    }
+
+    // Validate note with schema
+    const validation = noteSchema.safeParse({ note_text: newNote });
+    
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
       return;
     }
 
@@ -118,13 +136,19 @@ export default function OrderNotesDialog({
         <div className="space-y-4">
           {/* Add New Note */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Add Note</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Add Note</label>
+              <span className="text-xs text-muted-foreground">
+                {newNote.length}/{NOTE_MAX_LENGTH}
+              </span>
+            </div>
             <div className="flex gap-2">
               <Textarea
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Enter your note here..."
                 className="min-h-[80px]"
+                maxLength={NOTE_MAX_LENGTH}
               />
               <Button
                 onClick={handleAddNote}
