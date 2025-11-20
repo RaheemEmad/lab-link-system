@@ -83,18 +83,18 @@ const Contact = () => {
           Back to Home
         </Button>
 
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Get in Touch</h1>
-          <p className="text-muted-foreground text-lg">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">Get in Touch</h1>
+          <p className="text-base sm:text-lg text-muted-foreground">
             We're here to help with any questions or concerns about LabLink
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 mb-12">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 mb-8 sm:mb-12">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Mail className="h-6 w-6 text-primary" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <CardTitle>Technical Support</CardTitle>
               <CardDescription>
@@ -104,7 +104,7 @@ const Contact = () => {
             <CardContent>
               <a 
                 href="mailto:raheem.amer.swe@gmail.com"
-                className="text-primary hover:underline font-medium text-lg"
+                className="text-primary hover:underline font-medium text-base sm:text-lg break-all"
               >
                 raheem.amer.swe@gmail.com
               </a>

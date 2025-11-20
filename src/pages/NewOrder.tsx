@@ -9,12 +9,12 @@ const NewOrder = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-secondary/30 py-12">
+      <div className="min-h-screen bg-secondary/30 py-6 sm:py-12">
         <div className="container px-4">
           <Button 
             variant="ghost" 
             onClick={() => navigate("/")}
-            className="mb-6"
+            className="mb-4 sm:mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
