@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +12,12 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 const Dashboard = () => {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const { playUrgentNotification } = useNotificationSound();
+  const previousUrgentCountRef = useRef<number>(0);
 
   // Fetch unread notification count and check for urgent notifications
   const { data: notificationData } = useQuery({
@@ -44,6 +46,16 @@ const Dashboard = () => {
 
   const unreadCount = notificationData?.count || 0;
   const hasUrgent = notificationData?.hasUrgent || false;
+
+  // Play sound when new urgent notifications arrive
+  useEffect(() => {
+    if (hasUrgent && unreadCount > previousUrgentCountRef.current && previousUrgentCountRef.current > 0) {
+      playUrgentNotification();
+      console.log('🔔 Urgent notification sound played on Dashboard');
+    }
+    previousUrgentCountRef.current = unreadCount;
+  }, [unreadCount, hasUrgent, playUrgentNotification]);
+
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
