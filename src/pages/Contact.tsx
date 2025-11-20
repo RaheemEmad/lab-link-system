@@ -1,10 +1,75 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Mail, Phone, MessageSquare } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Mail, Phone, MessageSquare, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const contactFormSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().trim().email("Invalid email address").max(255),
+  phone: z.string().trim().max(20).optional(),
+  subject: z.enum(["technical", "business", "general", "feedback"]),
+  message: z.string().trim().min(10, "Message must be at least 10 characters").max(2000),
+});
 
 const Contact = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form data
+    try {
+      contactFormSchema.parse(formData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+
+    // Simulate form submission (in production, this would send to your backend)
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success("Message sent successfully!", {
+        description: "We'll get back to you within 24 hours.",
+      });
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
+    } catch (error) {
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
     <div className="min-h-screen bg-secondary/30">
@@ -72,6 +137,102 @@ const Contact = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Contact Form */}
+        <Card className="mb-12">
+          <CardHeader>
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <Send className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle>Send Us a Message</CardTitle>
+            <CardDescription>
+              Fill out the form below and we'll get back to you as soon as possible
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    required
+                    maxLength={100}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                    maxLength={255}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone (Optional)</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 (555) 000-0000"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    maxLength={20}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Subject *</Label>
+                  <Select
+                    value={formData.subject}
+                    onValueChange={(value) => handleInputChange("subject", value)}
+                    required
+                  >
+                    <SelectTrigger id="subject">
+                      <SelectValue placeholder="Select a subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technical">Technical Support</SelectItem>
+                      <SelectItem value="business">Business Inquiry</SelectItem>
+                      <SelectItem value="general">General Question</SelectItem>
+                      <SelectItem value="feedback">Feedback</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="message">Message *</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Tell us how we can help you..."
+                  className="min-h-[150px] resize-none"
+                  value={formData.message}
+                  onChange={(e) => handleInputChange("message", e.target.value)}
+                  required
+                  maxLength={2000}
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {formData.message.length}/2000 characters
+                </p>
+              </div>
+
+              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Sending..." : "Send Message"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

@@ -9,6 +9,7 @@ import NewOrder from "./pages/NewOrder";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import About from "./pages/About";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/new-order" element={<NewOrder />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/about" element={<About />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/contact" element={<Contact />} />

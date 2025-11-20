@@ -1,10 +1,45 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Menu, X } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const LandingNav = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const navLinks = [
+    { label: "How It Works", href: "#how-it-works", type: "anchor" },
+    { label: "About", href: "/about", type: "route" },
+    { label: "Contact", href: "/contact", type: "route" },
+  ];
+
+  const userLinks = user ? [
+    { label: "Submit Order", href: "/new-order" },
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Profile", href: "/profile" },
+  ] : [];
+
+  const handleNavClick = (link: { href: string; type?: string }) => {
+    if (link.type === "anchor") {
+      // Smooth scroll for anchor links
+      const element = document.querySelector(link.href);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      navigate(link.href);
+    }
+    setIsOpen(false);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -18,43 +53,33 @@ const LandingNav = () => {
             LabLink
           </div>
           
-          {/* Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <a 
-              href="#how-it-works" 
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              How It Works
-            </a>
-            {user && (
-              <>
-                <button
-                  onClick={() => navigate("/new-order")}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Submit Order
-                </button>
-                <button
-                  onClick={() => navigate("/dashboard")}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => navigate("/profile")}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Profile
-                </button>
-              </>
-            )}
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <button
+                key={link.href}
+                onClick={() => handleNavClick(link)}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </button>
+            ))}
+            {userLinks.map((link) => (
+              <button
+                key={link.href}
+                onClick={() => handleNavClick(link)}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </button>
+            ))}
           </div>
           
-          {/* Auth buttons */}
-          <div className="flex items-center gap-3">
+          {/* Desktop Auth buttons */}
+          <div className="hidden lg:flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-sm text-muted-foreground hidden sm:inline">
+                <span className="text-sm text-muted-foreground hidden xl:inline">
                   {user.email}
                 </span>
                 <Button
@@ -82,6 +107,100 @@ const LandingNav = () => {
                 </Button>
               </>
             )}
+          </div>
+
+          {/* Mobile Menu */}
+          <div className="lg:hidden">
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <SheetHeader>
+                  <SheetTitle className="text-2xl font-bold text-primary">
+                    LabLink
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-4 mt-8">
+                  {/* Main Navigation */}
+                  <div className="space-y-2">
+                    {navLinks.map((link) => (
+                      <button
+                        key={link.href}
+                        onClick={() => handleNavClick(link)}
+                        className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      >
+                        {link.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* User Links */}
+                  {userLinks.length > 0 && (
+                    <>
+                      <div className="border-t border-border my-2" />
+                      <div className="space-y-2">
+                        {userLinks.map((link) => (
+                          <button
+                            key={link.href}
+                            onClick={() => handleNavClick(link)}
+                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                          >
+                            {link.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Auth Section */}
+                  <div className="border-t border-border mt-4 pt-4">
+                    {user ? (
+                      <>
+                        <div className="px-4 py-2 mb-2">
+                          <p className="text-xs text-muted-foreground">Signed in as</p>
+                          <p className="text-sm font-medium truncate">{user.email}</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            signOut();
+                            setIsOpen(false);
+                          }}
+                        >
+                          Sign Out
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            navigate("/auth");
+                            setIsOpen(false);
+                          }}
+                        >
+                          Sign In
+                        </Button>
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            navigate("/auth");
+                            setIsOpen(false);
+                          }}
+                        >
+                          Sign Up
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
