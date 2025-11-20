@@ -40,6 +40,12 @@ const LandingNav = () => {
                 >
                   Dashboard
                 </button>
+                <button
+                  onClick={() => navigate("/profile")}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Profile
+                </button>
               </>
             )}
           </div>
