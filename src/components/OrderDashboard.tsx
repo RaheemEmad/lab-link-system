@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -21,11 +22,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { OrderStatusDialog } from "./order/OrderStatusDialog";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -57,12 +59,35 @@ const OrderDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string>("");
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrders();
     fetchUserRole();
+    
+    // Set up realtime subscription for order updates
+    const channel = supabase
+      .channel('orders-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders'
+        },
+        (payload) => {
+          console.log('Order update received:', payload);
+          fetchOrders(); // Refresh orders on any change
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const fetchUserRole = async () => {
@@ -131,6 +156,13 @@ const OrderDashboard = () => {
       description: "Order ID: " + orderId,
     });
   };
+
+  const handleStatusUpdate = (order: Order) => {
+    setSelectedOrder(order);
+    setStatusDialogOpen(true);
+  };
+
+  const isLabStaff = userRole === "lab_staff" || userRole === "admin";
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = 
@@ -287,6 +319,15 @@ const OrderDashboard = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-background">
+                            {isLabStaff && (
+                              <>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(order)}>
+                                  <RefreshCw className="mr-2 h-4 w-4" />
+                                  Update Status
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
                             <DropdownMenuItem onClick={() => handleEdit(order.id)}>
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit Order
@@ -327,6 +368,18 @@ const OrderDashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Order Status Update Dialog */}
+      {selectedOrder && (
+        <OrderStatusDialog
+          orderId={selectedOrder.id}
+          orderNumber={selectedOrder.order_number}
+          currentStatus={selectedOrder.status}
+          open={statusDialogOpen}
+          onOpenChange={setStatusDialogOpen}
+          onStatusUpdated={fetchOrders}
+        />
+      )}
     </div>
   );
 };
