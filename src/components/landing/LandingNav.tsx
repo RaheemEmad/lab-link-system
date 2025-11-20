@@ -106,6 +106,27 @@ const LandingNav = () => {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  // Fetch user role
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data) {
+        setUserRole(data.role);
+      }
+    };
+    
+    fetchUserRole();
+  }, [user]);
+
   // Left navigation links
   const leftNavLinks = [
     { label: "Home", href: "/", type: "route" },
@@ -114,6 +135,8 @@ const LandingNav = () => {
     { label: "About", href: "/about", type: "route" },
     { label: "Contact", href: "/contact", type: "route" },
     ...(user ? [{ label: "Dashboard", href: "/dashboard", type: "route" }] : []),
+    ...(user ? [{ label: "Preferred Labs", href: "/preferred-labs", type: "route" }] : []),
+    ...(userRole === 'lab_staff' || userRole === 'admin' ? [{ label: "Lab Admin", href: "/lab-admin", type: "route" }] : []),
   ];
 
   const handleNavClick = (link: { href: string; type?: string }) => {

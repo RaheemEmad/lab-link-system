@@ -148,6 +148,27 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
 
       if (error) throw error;
 
+      // If auto-assign was selected (assignedLabId is null), call the auto-routing function
+      if (!data.assignedLabId) {
+        const { error: autoAssignError } = await supabase.functions.invoke('auto-assign-lab', {
+          body: {
+            orderId: orderData.id,
+            restorationType: data.restorationType,
+            urgency: data.urgency,
+            doctorId: user.id,
+          },
+        });
+
+        if (autoAssignError) {
+          console.error('Auto-assignment error:', autoAssignError);
+          toast.error("Order created but auto-assignment failed", {
+            description: "Please assign a lab manually from your dashboard.",
+          });
+        } else {
+          toast.success("Order auto-assigned to optimal lab!");
+        }
+      }
+
       setOrderId(orderData.order_number);
       setIsSubmitted(true);
 
