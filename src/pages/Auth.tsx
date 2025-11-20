@@ -52,7 +52,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
@@ -72,8 +72,8 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Dental Lab System</CardTitle>
-          <CardDescription>Sign in to manage orders or create a new account</CardDescription>
+          <CardTitle className="text-2xl">Welcome to LabLink</CardTitle>
+          <CardDescription>Sign in to track orders or create your account</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">

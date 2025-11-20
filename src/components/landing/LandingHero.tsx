@@ -1,7 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const LandingHero = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleGetStarted = () => {
+    if (user) {
+      navigate("/new-order");
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-secondary/30 to-background">
       {/* Grid overlay */}
@@ -32,9 +45,9 @@ const LandingHero = () => {
                 <Button 
                   size="lg" 
                   className="w-full sm:w-auto text-base px-8 hover:scale-105 transition-transform duration-160"
-                  onClick={() => window.open('https://forms.google.com/', '_blank')}
+                  onClick={handleGetStarted}
                 >
-                  Start LabLink Free — Submit an Order
+                  {user ? "Submit New Order" : "Launch LabLink Free"}
                 </Button>
                 <p className="text-xs text-muted-foreground text-center sm:text-left">2 minutes to complete</p>
               </div>
@@ -44,11 +57,14 @@ const LandingHero = () => {
                   size="lg" 
                   variant="outline"
                   className="w-full sm:w-auto text-base px-8 hover:scale-105 transition-transform duration-160"
+                  onClick={() => navigate(user ? "/dashboard" : "/auth")}
                 >
                   <Play className="mr-2 h-4 w-4" />
-                  Watch 30-sec Demo
+                  {user ? "View Dashboard" : "Watch 30-sec Demo"}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center sm:text-left">See LabLink in action</p>
+                <p className="text-xs text-muted-foreground text-center sm:text-left">
+                  {user ? "Track all your orders" : "See LabLink in action"}
+                </p>
               </div>
             </div>
             
