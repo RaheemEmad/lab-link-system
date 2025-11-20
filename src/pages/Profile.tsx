@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Save, KeyRound } from "lucide-react";
+import { ArrowLeft, Save, KeyRound, Bell } from "lucide-react";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,6 +35,7 @@ const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isSubscribed, isLoading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -368,6 +370,26 @@ const Profile = () => {
                         checked={emailNotifications}
                         onCheckedChange={setEmailNotifications}
                       />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="push-notifications">Push Notifications</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Receive real-time browser notifications
+                        </p>
+                      </div>
+                      <Button
+                        variant={isSubscribed ? "outline" : "default"}
+                        size="sm"
+                        onClick={isSubscribed ? unsubscribe : subscribe}
+                        disabled={pushLoading}
+                      >
+                        <Bell className="mr-2 h-4 w-4" />
+                        {pushLoading ? "Loading..." : isSubscribed ? "Disable" : "Enable"}
+                      </Button>
                     </div>
 
                     <Separator />
