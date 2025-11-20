@@ -5,7 +5,11 @@ export type OrderStatus =
   | "Ready for Delivery"
   | "Delivered";
 
-export type CrownType = 
+export type RestorationType = 
+  | "Crown"
+  | "Bridge"
+  | "Zirconia Layer"
+  | "Zirco-Max"
   | "Zirconia"
   | "E-max"
   | "PFM"
@@ -14,17 +18,21 @@ export type CrownType =
 
 export type UrgencyLevel = "Normal" | "Urgent";
 
+export type ShadeSystem = "VITA Classical" | "VITA 3D-Master";
+
 export interface Order {
   id: string;
   timestamp: Date;
   doctorName: string;
   patientName: string;
-  crownType: CrownType;
+  restorationType: RestorationType;
   teethShade: string;
   teethNumber: string;
   biologicalNotes: string;
   urgency: UrgencyLevel;
   photosLink?: string;
+  htmlExport?: string;
+  shadeSystem?: ShadeSystem;
   price?: number;
   status: OrderStatus;
   shipmentTracking?: string;

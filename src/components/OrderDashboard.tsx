@@ -16,7 +16,7 @@ interface Order {
   order_number: string;
   doctor_name: string;
   patient_name: string;
-  crown_type: string;
+  restoration_type: string;
   teeth_shade: string;
   teeth_number: string;
   urgency: string;
@@ -195,7 +195,7 @@ const OrderDashboard = () => {
                       <TableCell className="font-mono font-medium">{order.order_number}</TableCell>
                       <TableCell>{order.doctor_name}</TableCell>
                       <TableCell>{order.patient_name}</TableCell>
-                      <TableCell>{order.crown_type}</TableCell>
+                      <TableCell>{order.restoration_type}</TableCell>
                       <TableCell>{order.teeth_shade}</TableCell>
                       <TableCell>{order.teeth_number}</TableCell>
                       <TableCell>

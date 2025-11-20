@@ -18,15 +18,17 @@ export type Database = {
         Row: {
           biological_notes: string | null
           created_at: string
-          crown_type: Database["public"]["Enums"]["crown_type"]
           delivery_date: string | null
           doctor_id: string | null
           doctor_name: string
+          html_export: string | null
           id: string
           order_number: string
           patient_name: string
           photos_link: string | null
           price: number | null
+          restoration_type: Database["public"]["Enums"]["restoration_type"]
+          shade_system: string | null
           shipment_tracking: string | null
           status: Database["public"]["Enums"]["order_status"]
           teeth_number: string
@@ -38,15 +40,17 @@ export type Database = {
         Insert: {
           biological_notes?: string | null
           created_at?: string
-          crown_type: Database["public"]["Enums"]["crown_type"]
           delivery_date?: string | null
           doctor_id?: string | null
           doctor_name: string
+          html_export?: string | null
           id?: string
           order_number: string
           patient_name: string
           photos_link?: string | null
           price?: number | null
+          restoration_type: Database["public"]["Enums"]["restoration_type"]
+          shade_system?: string | null
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           teeth_number: string
@@ -58,15 +62,17 @@ export type Database = {
         Update: {
           biological_notes?: string | null
           created_at?: string
-          crown_type?: Database["public"]["Enums"]["crown_type"]
           delivery_date?: string | null
           doctor_id?: string | null
           doctor_name?: string
+          html_export?: string | null
           id?: string
           order_number?: string
           patient_name?: string
           photos_link?: string | null
           price?: number | null
+          restoration_type?: Database["public"]["Enums"]["restoration_type"]
+          shade_system?: string | null
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           teeth_number?: string
@@ -120,13 +126,22 @@ export type Database = {
       generate_order_number: { Args: never; Returns: string }
     }
     Enums: {
-      crown_type: "Zirconia" | "E-max" | "PFM" | "Metal" | "Acrylic"
       order_status:
         | "Pending"
         | "In Progress"
         | "Ready for QC"
         | "Ready for Delivery"
         | "Delivered"
+      restoration_type:
+        | "Zirconia"
+        | "E-max"
+        | "PFM"
+        | "Metal"
+        | "Acrylic"
+        | "Crown"
+        | "Bridge"
+        | "Zirconia Layer"
+        | "Zirco-Max"
       urgency_level: "Normal" | "Urgent"
       user_role: "doctor" | "lab_staff" | "admin"
     }
@@ -256,13 +271,23 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      crown_type: ["Zirconia", "E-max", "PFM", "Metal", "Acrylic"],
       order_status: [
         "Pending",
         "In Progress",
         "Ready for QC",
         "Ready for Delivery",
         "Delivered",
+      ],
+      restoration_type: [
+        "Zirconia",
+        "E-max",
+        "PFM",
+        "Metal",
+        "Acrylic",
+        "Crown",
+        "Bridge",
+        "Zirconia Layer",
+        "Zirco-Max",
       ],
       urgency_level: ["Normal", "Urgent"],
       user_role: ["doctor", "lab_staff", "admin"],
