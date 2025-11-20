@@ -8,6 +8,8 @@ import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import Home from "./pages/Home";
 import HowItWorks from "./pages/HowItWorks";
 import Labs from "./pages/Labs";
+import PreferredLabs from "./pages/PreferredLabs";
+import LabAdmin from "./pages/LabAdmin";
 import NewOrder from "./pages/NewOrder";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -30,6 +32,8 @@ const AppContent = () => {
       <Route path="/" element={<Home />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path="/labs" element={<Labs />} />
+      <Route path="/preferred-labs" element={<PreferredLabs />} />
+      <Route path="/lab-admin" element={<LabAdmin />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/new-order" element={<NewOrder />} />
       <Route path="/dashboard" element={<Dashboard />} />
