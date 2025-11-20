@@ -17,26 +17,33 @@ const Dashboard = () => {
     user
   } = useAuth();
 
-  // Fetch unread notification count
-  const {
-    data: unreadCount
-  } = useQuery({
+  // Fetch unread notification count and check for urgent notifications
+  const { data: notificationData } = useQuery({
     queryKey: ["unread-notifications", user?.id],
     queryFn: async () => {
-      if (!user?.id) return 0;
-      const {
-        count,
-        error
-      } = await supabase.from("notifications").select("*", {
-        count: "exact",
-        head: true
-      }).eq("user_id", user.id).eq("read", false);
+      if (!user?.id) return { count: 0, hasUrgent: false };
+
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("type")
+        .eq("user_id", user.id)
+        .eq("read", false);
+
       if (error) throw error;
-      return count || 0;
+      
+      // Check if any notification is of urgent type (status_change or urgent types)
+      const hasUrgent = data?.some(n => 
+        n.type === "status_change" || n.type === "urgent"
+      ) || false;
+
+      return { count: data?.length || 0, hasUrgent };
     },
     enabled: !!user?.id,
-    refetchInterval: 30000 // Refetch every 30 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
+
+  const unreadCount = notificationData?.count || 0;
+  const hasUrgent = notificationData?.hasUrgent || false;
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
@@ -49,11 +56,17 @@ const Dashboard = () => {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    
+                    <Button variant="ghost" size="sm" onClick={() => navigate("/notifications")} className="relative flex-1 sm:flex-none">
+                      <Bell className="h-4 w-4" />
+                      <span className="ml-2">Notifications</span>
+                      {unreadCount > 0 && <Badge variant={hasUrgent ? "destructive" : "default"} className={`absolute -top-1 -right-1 h-5 min-w-5 rounded-full flex items-center justify-center text-xs px-1.5 ${hasUrgent ? "animate-pulse" : ""}`}>
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </Badge>}
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      {unreadCount && unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'View notification history'}
+                      {unreadCount > 0 ? `${hasUrgent ? "🔴 " : ""}You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}${hasUrgent ? " (urgent)" : ""}` : 'View notification history'}
                     </p>
                   </TooltipContent>
                 </Tooltip>
