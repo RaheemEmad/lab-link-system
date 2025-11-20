@@ -136,7 +136,8 @@ const LandingNav = () => {
     { label: "Contact", href: "/contact", type: "route" },
     ...(user ? [{ label: "Dashboard", href: "/dashboard", type: "route" }] : []),
     ...(user ? [{ label: "Preferred Labs", href: "/preferred-labs", type: "route" }] : []),
-    ...(userRole === 'lab_staff' || userRole === 'admin' ? [{ label: "Lab Admin", href: "/lab-admin", type: "route" }] : []),
+    ...(userRole === 'lab_staff' || userRole === 'admin' ? [{ label: "Lab Workflow", href: "/lab-workflow", type: "route" }] : []),
+    ...(user && userRole === 'doctor' ? [{ label: "Design Approval", href: "/design-approval", type: "route" }] : []),
   ];
 
   const handleNavClick = (link: { href: string; type?: string }) => {
