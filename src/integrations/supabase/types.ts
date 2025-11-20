@@ -178,25 +178,40 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          email_notifications: boolean | null
           full_name: string | null
           id: string
+          notification_new_notes: boolean | null
+          notification_status_change: boolean | null
+          phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          sms_notifications: boolean | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
+          email_notifications?: boolean | null
           full_name?: string | null
           id: string
+          notification_new_notes?: boolean | null
+          notification_status_change?: boolean | null
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          sms_notifications?: boolean | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
+          email_notifications?: boolean | null
           full_name?: string | null
           id?: string
+          notification_new_notes?: boolean | null
+          notification_status_change?: boolean | null
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          sms_notifications?: boolean | null
           updated_at?: string
         }
         Relationships: []
