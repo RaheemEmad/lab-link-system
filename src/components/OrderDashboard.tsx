@@ -36,6 +36,7 @@ import { useNavigate } from "react-router-dom";
 import { OrderStatusDialog } from "./order/OrderStatusDialog";
 import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
 import OrderNotesDialog from "./order/OrderNotesDialog";
+import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -206,11 +207,30 @@ const OrderDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading orders...</p>
+      <div className="space-y-4 sm:space-y-6">
+        {/* Skeleton Stats Cards */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
+
+        {/* Skeleton Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading Orders...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row">
+              <div className="relative flex-1">
+                <div className="h-10 bg-muted rounded-md animate-pulse" />
+              </div>
+              <div className="w-full sm:w-[200px] h-10 bg-muted rounded-md animate-pulse" />
+            </div>
+            <SkeletonTable rows={8} />
+          </CardContent>
+        </Card>
       </div>
     );
   }

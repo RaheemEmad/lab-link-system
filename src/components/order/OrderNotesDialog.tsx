@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Loader2, Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";
+import { SkeletonNote } from "@/components/ui/skeleton-card";
 
 const NOTE_MAX_LENGTH = 2000;
 
@@ -169,8 +170,10 @@ export default function OrderNotesDialog({
           <div className="space-y-2">
             <label className="text-sm font-medium">Previous Notes</label>
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <div className="space-y-3">
+                <SkeletonNote />
+                <SkeletonNote />
+                <SkeletonNote />
               </div>
             ) : notes.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">

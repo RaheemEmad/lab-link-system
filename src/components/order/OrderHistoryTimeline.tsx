@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, User, ArrowRight } from "lucide-react";
+import { SkeletonTimeline } from "@/components/ui/skeleton-card";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -75,11 +76,7 @@ export const OrderHistoryTimeline = ({ orderId, orderNumber }: OrderHistoryTimel
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <SkeletonTimeline items={5} />;
   }
 
   if (history.length === 0) {
