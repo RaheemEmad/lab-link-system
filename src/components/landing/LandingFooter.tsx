@@ -11,19 +11,19 @@ const LandingFooter = () => {
           
           <nav className="flex gap-8">
             <a 
-              href="#" 
+              href="/privacy" 
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Privacy Policy
             </a>
             <a 
-              href="#" 
+              href="/terms" 
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms of Service
             </a>
             <a 
-              href="mailto:contact@lablink.com" 
+              href="/contact" 
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Contact
