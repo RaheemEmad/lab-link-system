@@ -246,6 +246,7 @@ const TermsOfService = () => {
             </p>
           </section>
         </div>
+        </div>
       </div>
       <LandingFooter />
     </div>

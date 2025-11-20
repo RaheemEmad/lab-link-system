@@ -135,6 +135,10 @@ const NotificationHistory = () => {
     }
   };
 
+  const markAllAsRead = () => {
+    markAllAsReadMutation.mutate();
+  };
+
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
 
   if (isLoading) {
