@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const FinalCTA = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   return (
     <section className="py-24 bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <div className="container px-4 mx-auto">
@@ -12,9 +16,9 @@ const FinalCTA = () => {
           <Button 
             size="lg"
             className="text-lg px-12 py-6 h-auto hover:scale-105 transition-transform duration-160"
-            onClick={() => window.open('https://forms.google.com/', '_blank')}
+            onClick={() => navigate(user ? "/new-order" : "/auth")}
           >
-            Launch LabLink Free — Submit an order
+            {user ? "Submit an Order Now" : "Launch LabLink Free"}
           </Button>
         </div>
       </div>

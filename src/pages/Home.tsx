@@ -1,3 +1,4 @@
+import LandingNav from "@/components/landing/LandingNav";
 import LandingHero from "@/components/landing/LandingHero";
 import ProblemSection from "@/components/landing/ProblemSection";
 import FeatureSnapshot from "@/components/landing/FeatureSnapshot";
@@ -12,6 +13,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 const Home = () => {
   return (
     <div className="min-h-screen">
+      <LandingNav />
       <LandingHero />
       <ProblemSection />
       <FeatureSnapshot />

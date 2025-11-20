@@ -1,7 +1,11 @@
 import { FileText, Settings, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const HowItWorks = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const steps = [
     {
       number: "1",
@@ -63,9 +67,9 @@ const HowItWorks = () => {
           <Button 
             size="lg"
             className="text-base px-8"
-            onClick={() => window.open('https://forms.google.com/', '_blank')}
+            onClick={() => navigate(user ? "/new-order" : "/auth")}
           >
-            Start LabLink Free — Submit your first order
+            {user ? "Submit Your First Order" : "Start LabLink Free"}
           </Button>
         </div>
       </div>
