@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +20,25 @@ const LandingNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
 
+  // Fetch unread notification count
+  const { data: unreadCount } = useQuery({
+    queryKey: ["unread-notifications", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("read", false);
+
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user?.id,
+    refetchInterval: 30000,
+  });
+
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
@@ -27,18 +49,13 @@ const LandingNav = () => {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  const navLinks = [
+  // Left navigation links
+  const leftNavLinks = [
     { label: "How It Works", href: "#how-it-works", type: "anchor" },
     { label: "About", href: "/about", type: "route" },
     { label: "Contact", href: "/contact", type: "route" },
+    ...(user ? [{ label: "Dashboard", href: "/dashboard", type: "route" }] : []),
   ];
-
-  const userLinks = user ? [
-    { label: "Submit Order", href: "/new-order" },
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Notifications", href: "/notifications" },
-    { label: "Profile", href: "/profile" },
-  ] : [];
 
   const handleNavClick = (link: { href: string; type?: string }) => {
     if (link.type === "anchor") {
@@ -65,18 +82,9 @@ const LandingNav = () => {
             LabLink
           </div>
           
-          {/* Desktop Navigation */}
+          {/* Desktop Left Navigation */}
           <div className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => handleNavClick(link)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </button>
-            ))}
-            {userLinks.map((link) => (
+            {leftNavLinks.map((link) => (
               <button
                 key={link.href}
                 onClick={() => handleNavClick(link)}
@@ -87,30 +95,49 @@ const LandingNav = () => {
             ))}
           </div>
           
-          {/* Desktop Auth buttons */}
+          {/* Desktop Right Section (Auth & User Actions) */}
           <div className="hidden lg:flex items-center gap-3">
-            {isInstallable && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/install")}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                <span className="hidden xl:inline">Install App</span>
-              </Button>
-            )}
             {user ? (
               <>
-                <span className="text-sm text-muted-foreground hidden xl:inline">
-                  {user.email}
-                </span>
+                {/* Notifications */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/notifications")}
+                  className="relative gap-2"
+                >
+                  <Bell className="h-4 w-4" />
+                  <span className="hidden xl:inline">Notifications</span>
+                  {unreadCount && unreadCount > 0 && (
+                    <Badge
+                      variant="default"
+                      className="absolute -top-1 -right-1 px-1.5 py-0 h-5 min-w-5 text-xs"
+                    >
+                      {unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+
+                {/* Profile */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/profile")}
+                  className="gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="hidden xl:inline">Profile</span>
+                </Button>
+
+                {/* Sign Out */}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={signOut}
+                  className="gap-2"
                 >
-                  Sign Out
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden xl:inline">Sign Out</span>
                 </Button>
               </>
             ) : (
@@ -149,7 +176,7 @@ const LandingNav = () => {
                 <div className="flex flex-col gap-4 mt-8">
                   {/* Main Navigation */}
                   <div className="space-y-2">
-                    {navLinks.map((link) => (
+                    {leftNavLinks.map((link) => (
                       <button
                         key={link.href}
                         onClick={() => handleNavClick(link)}
@@ -160,20 +187,39 @@ const LandingNav = () => {
                     ))}
                   </div>
 
-                  {/* User Links */}
-                  {userLinks.length > 0 && (
+                  {/* User Actions (when logged in) */}
+                  {user && (
                     <>
                       <div className="border-t border-border my-2" />
                       <div className="space-y-2">
-                        {userLinks.map((link) => (
-                          <button
-                            key={link.href}
-                            onClick={() => handleNavClick(link)}
-                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                          >
-                            {link.label}
-                          </button>
-                        ))}
+                        <button
+                          onClick={() => {
+                            navigate("/notifications");
+                            setIsOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center justify-between"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Bell className="h-4 w-4" />
+                            Notifications
+                          </span>
+                          {unreadCount && unreadCount > 0 && (
+                            <Badge variant="default" className="ml-2">
+                              {unreadCount}
+                            </Badge>
+                          )}
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            navigate("/profile");
+                            setIsOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-2"
+                        >
+                          <User className="h-4 w-4" />
+                          Profile
+                        </button>
                       </div>
                     </>
                   )}
@@ -206,12 +252,13 @@ const LandingNav = () => {
                         </div>
                         <Button
                           variant="outline"
-                          className="w-full"
+                          className="w-full gap-2"
                           onClick={() => {
                             signOut();
                             setIsOpen(false);
                           }}
                         >
+                          <LogOut className="h-4 w-4" />
                           Sign Out
                         </Button>
                       </>
