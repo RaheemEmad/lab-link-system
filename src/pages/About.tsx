@@ -4,6 +4,7 @@ import { Target, Users, Shield, Zap, Heart, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 const About = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const About = () => {
         </div>
       </div>
       <LandingFooter />
+      <ScrollToTop />
     </div>
   );
 };

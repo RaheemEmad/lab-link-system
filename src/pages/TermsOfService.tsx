@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 const TermsOfService = () => {
   const navigate = useNavigate();
@@ -249,6 +250,7 @@ const TermsOfService = () => {
         </div>
       </div>
       <LandingFooter />
+      <ScrollToTop />
     </div>
   );
 };

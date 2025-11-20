@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
@@ -163,6 +164,7 @@ const PrivacyPolicy = () => {
         </div>
       </div>
       <LandingFooter />
+      <ScrollToTop />
     </div>
   );
 };

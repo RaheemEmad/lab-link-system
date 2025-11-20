@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import {
   Tooltip,
   TooltipContent,
@@ -93,10 +94,11 @@ const Dashboard = () => {
             </div>
             
             <OrderDashboard />
-          </div>
         </div>
+      </div>
       </TooltipProvider>
       <LandingFooter />
+      <ScrollToTop />
     </div>
     </ProtectedRoute>
   );
