@@ -31,6 +31,7 @@ export type Database = {
           shade_system: string | null
           shipment_tracking: string | null
           status: Database["public"]["Enums"]["order_status"]
+          status_updated_at: string | null
           teeth_number: string
           teeth_shade: string
           timestamp: string
@@ -53,6 +54,7 @@ export type Database = {
           shade_system?: string | null
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          status_updated_at?: string | null
           teeth_number: string
           teeth_shade: string
           timestamp?: string
@@ -75,6 +77,7 @@ export type Database = {
           shade_system?: string | null
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          status_updated_at?: string | null
           teeth_number?: string
           teeth_shade?: string
           timestamp?: string
