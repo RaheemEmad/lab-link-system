@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, X, Download, Bell, User, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +14,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -127,18 +134,25 @@ const LandingNav = () => {
     fetchUserRole();
   }, [user]);
 
-  // Left navigation links
+  // Left navigation links - role-based and cleaner
   const leftNavLinks = [
     { label: "Home", href: "/", type: "route" },
     { label: "How It Works", href: "/how-it-works", type: "route" },
     { label: "Labs", href: "/labs", type: "route" },
-    { label: "About", href: "/about", type: "route" },
-    { label: "Contact", href: "/contact", type: "route" },
     ...(user ? [{ label: "Dashboard", href: "/dashboard", type: "route" }] : []),
-    ...(user ? [{ label: "Preferred Labs", href: "/preferred-labs", type: "route" }] : []),
-    ...(userRole === 'lab_staff' || userRole === 'admin' ? [{ label: "Lab Workflow", href: "/lab-workflow", type: "route" }] : []),
-    ...(user && userRole === 'doctor' ? [{ label: "Design Approval", href: "/design-approval", type: "route" }] : []),
   ];
+
+  // Role-specific dropdown menu items
+  const doctorMenuItems = user && userRole === 'doctor' ? [
+    { label: "Track Orders", href: "/order-tracking" },
+    { label: "Design Approval", href: "/design-approval" },
+    { label: "Preferred Labs", href: "/preferred-labs" },
+  ] : [];
+
+  const labStaffMenuItems = (userRole === 'lab_staff' || userRole === 'admin') ? [
+    { label: "Lab Workflow", href: "/lab-workflow" },
+    { label: "Lab Admin", href: "/lab-admin" },
+  ] : [];
 
   const handleNavClick = (link: { href: string; type?: string }) => {
     if (link.type === "anchor") {
@@ -245,41 +259,49 @@ const LandingNav = () => {
                     </TooltipContent>
                   </Tooltip>
 
-                  {/* Profile */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate("/profile")}
-                        className="gap-2"
-                      >
-                        <User className="h-4 w-4" />
-                        <span className="hidden xl:inline">Profile</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View and edit your profile</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  {/* Role-specific dropdown menu */}
+                  {(doctorMenuItems.length > 0 || labStaffMenuItems.length > 0) && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Menu className="h-4 w-4" />
+                          <span className="ml-2 hidden xl:inline">My Tools</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {doctorMenuItems.map((item) => (
+                          <DropdownMenuItem key={item.href} asChild>
+                            <Link to={item.href}>{item.label}</Link>
+                          </DropdownMenuItem>
+                        ))}
+                        {labStaffMenuItems.map((item) => (
+                          <DropdownMenuItem key={item.href} asChild>
+                            <Link to={item.href}>{item.label}</Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
 
-                  {/* Sign Out */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={signOut}
-                        className="gap-2"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span className="hidden xl:inline">Sign Out</span>
+                  {/* Profile Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="gap-2">
+                        <User className="h-4 w-4" />
+                        <span className="hidden xl:inline">Account</span>
                       </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Sign out of your account</p>
-                    </TooltipContent>
-                  </Tooltip>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={signOut} className="text-destructive">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
                 <>

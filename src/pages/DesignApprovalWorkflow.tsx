@@ -8,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { CheckCircle2, XCircle, FileText, Download, MessageSquare } from "lucide-react";
 
 interface Order {
