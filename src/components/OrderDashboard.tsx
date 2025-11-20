@@ -5,13 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,12 +28,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { OrderStatusDialog } from "./order/OrderStatusDialog";
+import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -61,6 +68,8 @@ const OrderDashboard = () => {
   const [userRole, setUserRole] = useState<string>("");
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyOrder, setHistoryOrder] = useState<Order | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -160,6 +169,11 @@ const OrderDashboard = () => {
   const handleStatusUpdate = (order: Order) => {
     setSelectedOrder(order);
     setStatusDialogOpen(true);
+  };
+
+  const handleViewHistory = (order: Order) => {
+    setHistoryOrder(order);
+    setHistoryDialogOpen(true);
   };
 
   const isLabStaff = userRole === "lab_staff" || userRole === "admin";
@@ -319,15 +333,20 @@ const OrderDashboard = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-background">
+                            <DropdownMenuItem onClick={() => handleViewHistory(order)}>
+                              <History className="mr-2 h-4 w-4" />
+                              View History
+                            </DropdownMenuItem>
                             {isLabStaff && (
                               <>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(order)}>
                                   <RefreshCw className="mr-2 h-4 w-4" />
                                   Update Status
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
                               </>
                             )}
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleEdit(order.id)}>
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit Order
@@ -380,6 +399,21 @@ const OrderDashboard = () => {
           onStatusUpdated={fetchOrders}
         />
       )}
+
+      {/* Order History Timeline Dialog */}
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Order Status History</DialogTitle>
+          </DialogHeader>
+          {historyOrder && (
+            <OrderHistoryTimeline
+              orderId={historyOrder.id}
+              orderNumber={historyOrder.order_number}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
