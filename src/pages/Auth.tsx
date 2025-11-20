@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Chrome } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { z } from "zod";
@@ -27,9 +29,10 @@ type SignUpValues = z.infer<typeof signUpSchema>;
 type SignInValues = z.infer<typeof signInSchema>;
 
 const Auth = () => {
-  const { user, signUp, signIn } = useAuth();
+  const { user, signUp, signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const signUpForm = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -64,6 +67,12 @@ const Auth = () => {
     setIsLoading(true);
     await signIn(values.email, values.password);
     setIsLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    await signInWithGoogle();
+    // Don't set loading to false here as user will be redirected
   };
 
   return (
@@ -111,11 +120,29 @@ const Auth = () => {
                     )}
                   />
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </Form>
+
+              <div className="relative my-6">
+                <Separator />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+                  OR
+                </span>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading || isGoogleLoading}
+              >
+                <Chrome className="mr-2 h-4 w-4" />
+                {isGoogleLoading ? "Connecting..." : "Continue with Google"}
+              </Button>
             </TabsContent>
 
             <TabsContent value="signup">
@@ -163,11 +190,29 @@ const Auth = () => {
                     )}
                   />
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
                     {isLoading ? "Creating account..." : "Create Account"}
                   </Button>
                 </form>
               </Form>
+
+              <div className="relative my-6">
+                <Separator />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+                  OR
+                </span>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading || isGoogleLoading}
+              >
+                <Chrome className="mr-2 h-4 w-4" />
+                {isGoogleLoading ? "Connecting..." : "Sign up with Google"}
+              </Button>
             </TabsContent>
           </Tabs>
         </CardContent>
