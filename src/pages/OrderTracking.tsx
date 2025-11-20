@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { 
   Package, 
   Clock, 
@@ -173,181 +176,191 @@ const OrderTracking = () => {
 
   if (isLoading) {
     return (
-      <div className="container max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Skeleton className="h-10 w-64 mb-2" />
-          <Skeleton className="h-4 w-96" />
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <div className="flex-1 bg-secondary/30 py-8">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="mb-6">
+              <Skeleton className="h-10 w-64 mb-2" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-64 w-full" />
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-64 w-full" />
-          ))}
-        </div>
+        <LandingFooter />
       </div>
     );
   }
 
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/dashboard')}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-        <h1 className="text-3xl font-bold mb-2">Order Tracking</h1>
-        <p className="text-muted-foreground">
-          Real-time updates on all your orders
-        </p>
-      </div>
-
-      {orders.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No Orders Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              You haven't submitted any orders yet.
-            </p>
-            <Button onClick={() => navigate('/new-order')}>
-              Create Your First Order
+    <div className="min-h-screen flex flex-col">
+      <LandingNav />
+      <div className="flex-1 bg-secondary/30 py-8">
+        <div className="container max-w-6xl mx-auto px-4">
+          <div className="mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/dashboard')}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
             </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {orders.map((order) => {
-            const daysUntil = calculateDaysUntil(order.expected_delivery_date);
-            const isUrgent = daysUntil !== null && daysUntil <= 2 && order.status !== 'Delivered';
-            
-            return (
-              <Card key={order.id} className={isUrgent ? 'border-destructive' : ''}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {getStatusIcon(order.status)}
-                        Order {order.order_number}
-                        {order.urgency === 'Urgent' && (
-                          <Badge variant="destructive">Urgent</Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription>
-                        {order.patient_name} • {order.restoration_type}
-                      </CardDescription>
-                    </div>
-                    <Badge variant={getStatusColor(order.status)}>
-                      {order.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {/* Lab Information */}
-                    <div className="flex items-start gap-3">
-                      <div className="rounded-lg bg-primary/10 p-2">
-                        <Building2 className="h-5 w-5 text-primary" />
+            <h1 className="text-3xl font-bold mb-2">Order Tracking</h1>
+            <p className="text-muted-foreground">
+              Real-time updates on all your orders
+            </p>
+          </div>
+
+          {orders.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">No Orders Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  You haven't submitted any orders yet.
+                </p>
+                <Button onClick={() => navigate('/new-order')}>
+                  Create Your First Order
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((order) => {
+                const daysUntil = calculateDaysUntil(order.expected_delivery_date);
+                const isUrgent = daysUntil !== null && daysUntil <= 2 && order.status !== 'Delivered';
+                
+                return (
+                  <Card key={order.id} className={isUrgent ? 'border-destructive' : ''}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="flex items-center gap-2">
+                            {getStatusIcon(order.status)}
+                            Order {order.order_number}
+                            {order.urgency === 'Urgent' && (
+                              <Badge variant="destructive">Urgent</Badge>
+                            )}
+                          </CardTitle>
+                          <CardDescription>
+                            {order.patient_name} • {order.restoration_type}
+                          </CardDescription>
+                        </div>
+                        <Badge variant={getStatusColor(order.status)}>
+                          {order.status}
+                        </Badge>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">Assigned Lab</p>
-                        {order.labs ? (
-                          <>
-                            <p className="text-sm text-foreground font-semibold">
-                              {order.labs.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {order.labs.contact_email}
-                            </p>
-                            {order.labs.contact_phone && (
-                              <p className="text-xs text-muted-foreground">
-                                {order.labs.contact_phone}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="flex items-start gap-3">
+                          <div className="rounded-lg bg-primary/10 p-2">
+                            <Building2 className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">Assigned Lab</p>
+                            {order.labs ? (
+                              <>
+                                <p className="text-sm text-foreground font-semibold">
+                                  {order.labs.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {order.labs.contact_email}
+                                </p>
+                                {order.labs.contact_phone && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {order.labs.contact_phone}
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                Not assigned yet
                               </p>
                             )}
-                          </>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            Not assigned yet
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                          </div>
+                        </div>
 
-                    {/* Expected Delivery */}
-                    <div className="flex items-start gap-3">
-                      <div className="rounded-lg bg-primary/10 p-2">
-                        <Calendar className="h-5 w-5 text-primary" />
+                        <div className="flex items-start gap-3">
+                          <div className="rounded-lg bg-primary/10 p-2">
+                            <Calendar className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">Expected Delivery</p>
+                            <p className="text-sm text-foreground font-semibold">
+                              {formatDate(order.expected_delivery_date)}
+                            </p>
+                            {daysUntil !== null && order.status !== 'Delivered' && (
+                              <p className={`text-xs ${
+                                daysUntil <= 2 ? 'text-destructive font-medium' : 'text-muted-foreground'
+                              }`}>
+                                {daysUntil > 0 
+                                  ? `${daysUntil} day${daysUntil !== 1 ? 's' : ''} remaining`
+                                  : daysUntil === 0
+                                  ? 'Due today'
+                                  : `${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? 's' : ''} overdue`
+                                }
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <div className="rounded-lg bg-primary/10 p-2">
+                            <Truck className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">Shipment Tracking</p>
+                            {order.shipment_tracking ? (
+                              <Button
+                                variant="link"
+                                className="h-auto p-0 text-sm font-semibold"
+                                asChild
+                              >
+                                <a
+                                  href={order.shipment_tracking}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1"
+                                >
+                                  Track Package
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              </Button>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                Not available yet
+                              </p>
+                            )}
+                            {order.actual_delivery_date && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Delivered: {formatDate(order.actual_delivery_date)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Expected Delivery</p>
-                        <p className="text-sm text-foreground font-semibold">
-                          {formatDate(order.expected_delivery_date)}
+
+                      <div className="mt-4 pt-4 border-t border-border">
+                        <p className="text-xs text-muted-foreground">
+                          Order submitted on {formatDate(order.created_at)}
                         </p>
-                        {daysUntil !== null && order.status !== 'Delivered' && (
-                          <p className={`text-xs ${
-                            daysUntil <= 2 ? 'text-destructive font-medium' : 'text-muted-foreground'
-                          }`}>
-                            {daysUntil > 0 
-                              ? `${daysUntil} day${daysUntil !== 1 ? 's' : ''} remaining`
-                              : daysUntil === 0
-                              ? 'Due today'
-                              : `${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? 's' : ''} overdue`
-                            }
-                          </p>
-                        )}
                       </div>
-                    </div>
-
-                    {/* Shipment Tracking */}
-                    <div className="flex items-start gap-3">
-                      <div className="rounded-lg bg-primary/10 p-2">
-                        <Truck className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Shipment Tracking</p>
-                        {order.shipment_tracking ? (
-                          <Button
-                            variant="link"
-                            className="h-auto p-0 text-sm font-semibold"
-                            asChild
-                          >
-                            <a
-                              href={order.shipment_tracking}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1"
-                            >
-                              Track Package
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </Button>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            Not available yet
-                          </p>
-                        )}
-                        {order.actual_delivery_date && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Delivered: {formatDate(order.actual_delivery_date)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-xs text-muted-foreground">
-                      Order submitted on {formatDate(order.created_at)}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
+      </div>
+      <LandingFooter />
+      <ScrollToTop />
     </div>
   );
 };
