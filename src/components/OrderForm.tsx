@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,13 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { CheckCircle2, Upload, X, Loader2 } from "lucide-react";
+import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ToothSelector } from "./order/ToothSelector";
 import { ShadeSelector } from "./order/ShadeSelector";
 import { LabSelector } from "./order/LabSelector";
 import { Progress } from "@/components/ui/progress";
+import { compressImage, createThumbnail, validateImageType, validateImageSize, formatFileSize } from "@/lib/imageCompression";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -48,6 +50,10 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+  const [thumbnails, setThumbnails] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const uploadAbortController = useRef<AbortController | null>(null);
   const { user } = useAuth();
   const [doctorName, setDoctorName] = useState("");
 
@@ -86,44 +92,103 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
 
     fetchDoctorName();
   }, [user, form]);
+  
+  // Cleanup thumbnails on unmount
+  useEffect(() => {
+    return () => {
+      thumbnails.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [thumbnails]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    setUploadError(null);
     
-    // Validate file types and sizes
-    const validFiles = files.filter(file => {
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        toast.error(`Invalid file type: ${file.name}`, {
-          description: "Only JPG, PNG, and WEBP images are allowed",
+    const processedFiles: File[] = [];
+    const newThumbnails: string[] = [];
+    
+    for (const file of files) {
+      // Validate file type
+      if (!validateImageType(file, ACCEPTED_IMAGE_TYPES)) {
+        toast.error(`Unsupported file type: ${file.name}`, {
+          description: `Only JPG, PNG, and WEBP images are allowed. Got: ${file.type || 'unknown'}`,
         });
-        return false;
+        continue;
       }
       
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`File too large: ${file.name}`, {
-          description: "Maximum file size is 10MB",
+      let processedFile = file;
+      
+      // Check if file needs compression
+      if (!validateImageSize(file, 10)) {
+        toast.info(`Compressing ${file.name}...`, {
+          description: `Original size: ${formatFileSize(file.size)}`,
         });
-        return false;
+        
+        try {
+          processedFile = await compressImage(file, 10, 1920);
+          toast.success(`${file.name} compressed`, {
+            description: `New size: ${formatFileSize(processedFile.size)}`,
+          });
+        } catch (error: any) {
+          toast.error(`Failed to compress ${file.name}`, {
+            description: error.message,
+          });
+          continue;
+        }
       }
       
-      return true;
-    });
-
-    setUploadedFiles(prev => [...prev, ...validFiles]);
+      // Create thumbnail
+      const thumbnail = createThumbnail(processedFile);
+      newThumbnails.push(thumbnail);
+      processedFiles.push(processedFile);
+    }
+    
+    if (processedFiles.length > 0) {
+      setUploadedFiles(prev => [...prev, ...processedFiles]);
+      setThumbnails(prev => [...prev, ...newThumbnails]);
+    }
+    
+    // Reset input
+    e.target.value = '';
   };
 
   const removeFile = (index: number) => {
+    // Revoke thumbnail URL to prevent memory leaks
+    if (thumbnails[index]) {
+      URL.revokeObjectURL(thumbnails[index]);
+    }
+    
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
     setUploadedUrls(prev => prev.filter((_, i) => i !== index));
+    setThumbnails(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  const cancelUpload = () => {
+    if (uploadAbortController.current) {
+      uploadAbortController.current.abort();
+      uploadAbortController.current = null;
+      setIsUploading(false);
+      setUploadProgress(0);
+      toast.info("Upload cancelled");
+    }
   };
 
   const uploadFiles = async (): Promise<string[]> => {
     if (uploadedFiles.length === 0) return [];
 
+    setIsUploading(true);
+    setUploadError(null);
+    uploadAbortController.current = new AbortController();
+    
     const uploadedPaths: string[] = [];
     const totalFiles = uploadedFiles.length;
 
     for (let i = 0; i < totalFiles; i++) {
+      // Check if upload was cancelled
+      if (uploadAbortController.current.signal.aborted) {
+        throw new Error('Upload cancelled');
+      }
+      
       const file = uploadedFiles[i];
       const fileExt = file.name.split('.').pop();
       const fileName = `${user!.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -143,13 +208,20 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
         uploadedPaths.push(publicUrl);
         setUploadProgress(Math.round(((i + 1) / totalFiles) * 100));
       } catch (error: any) {
+        if (error.message === 'Upload cancelled') {
+          throw error;
+        }
+        
+        const errorMsg = `Failed to upload ${file.name}: ${error.message}`;
         console.error('Upload error:', error);
-        toast.error(`Failed to upload ${file.name}`, {
+        setUploadError(errorMsg);
+        toast.error(`Upload failed: ${file.name}`, {
           description: error.message,
         });
       }
     }
-
+    
+    setIsUploading(false);
     return uploadedPaths;
   };
 
@@ -427,11 +499,11 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
 
             <div className="space-y-2">
               <FormLabel>Patient Photos / Scans</FormLabel>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <Input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
                     multiple
                     onChange={handleFileSelect}
                     disabled={isLoading}
@@ -452,34 +524,67 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                     </Button>
                   </label>
                   <FormDescription className="text-xs">
-                    Max 10MB per file. JPG, PNG, WEBP
+                    Max 10MB per file. JPG, PNG, WEBP only
                   </FormDescription>
                 </div>
 
+                {uploadError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-sm">{uploadError}</AlertDescription>
+                  </Alert>
+                )}
+
                 {uploadedFiles.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                        <span className="text-sm truncate">{file.name}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFile(index)}
-                          disabled={isLoading}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                      <div key={index} className="relative group rounded-lg border border-border bg-card overflow-hidden">
+                        <div className="aspect-video relative bg-muted flex items-center justify-center">
+                          {thumbnails[index] ? (
+                            <img 
+                              src={thumbnails[index]} 
+                              alt={file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                          )}
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeFile(index)}
+                            disabled={isLoading}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="p-2 space-y-1">
+                          <p className="text-xs font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
 
                 {isLoading && uploadProgress > 0 && uploadProgress < 100 && (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Uploading images...</p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={cancelUpload}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                     <Progress value={uploadProgress} className="h-2" />
                     <p className="text-xs text-muted-foreground text-center">
-                      Uploading: {uploadProgress}%
+                      {uploadProgress}% complete
                     </p>
                   </div>
                 )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,9 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { Progress } from "@/components/ui/progress";
 
 const profileSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal("")),
@@ -35,6 +36,18 @@ export default function ProfileCompletion() {
       specialty: "",
     },
   });
+  
+  // Calculate completion percentage
+  const completionPercentage = useMemo(() => {
+    const values = form.watch();
+    let filledFields = 0;
+    const totalRequiredFields = 2; // clinicName and specialty (phone is optional)
+    
+    if (values.clinicName && values.clinicName.length >= 2) filledFields++;
+    if (values.specialty && values.specialty.length >= 2) filledFields++;
+    
+    return Math.round((filledFields / totalRequiredFields) * 100);
+  }, [form.watch()]);
 
   const handleSubmit = async (values: ProfileValues) => {
     if (!user) return;
@@ -75,6 +88,25 @@ export default function ProfileCompletion() {
             <CardDescription className="text-sm mt-2">
               Tell us a bit more about your practice to get started
             </CardDescription>
+            
+            {/* Progress Indicator */}
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Profile Completion</span>
+                <span className="text-sm font-bold text-primary">{completionPercentage}%</span>
+              </div>
+              <Progress value={completionPercentage} className="h-2" />
+              <div className="flex items-center gap-2 justify-center text-xs text-muted-foreground">
+                {completionPercentage === 100 ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    <span>Ready to launch!</span>
+                  </>
+                ) : (
+                  <span>Fill in all fields to continue</span>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <Form {...form}>
@@ -130,7 +162,7 @@ export default function ProfileCompletion() {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading || completionPercentage < 100}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
