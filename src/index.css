@@ -113,3 +113,75 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile-first responsive utilities */
+@layer utilities {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Responsive typography and mobile optimizations */
+@layer base {
+  html {
+    @apply tap-highlight-none;
+  }
+
+  /* Improve text rendering on mobile */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Prevent text size adjustment on mobile */
+  input, textarea, select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+  
+  /* Improve scrolling on iOS */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile-optimized animations */
+@media (max-width: 768px) {
+  .hover-scale {
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .hover-scale:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Responsive components */
+@layer components {
+  .responsive-card {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .responsive-form-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6;
+  }
+
+  .responsive-heading {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+  }
+
+  .responsive-subheading {
+    @apply text-xl sm:text-2xl md:text-3xl;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

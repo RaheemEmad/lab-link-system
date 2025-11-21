@@ -238,19 +238,19 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   if (isSubmitted) {
     return (
       <Card className="max-w-md mx-auto shadow-lg">
-        <CardContent className="pt-12 pb-12 text-center">
-          <div className="mb-6 flex justify-center">
-            <div className="rounded-full bg-success/10 p-4">
-              <CheckCircle2 className="h-12 w-12 text-success" />
+        <CardContent className="pt-8 sm:pt-12 pb-8 sm:pb-12 px-4 sm:px-6 text-center">
+          <div className="mb-4 sm:mb-6 flex justify-center">
+            <div className="rounded-full bg-success/10 p-3 sm:p-4">
+              <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12 text-success" />
             </div>
           </div>
-          <h3 className="mb-2 text-2xl font-bold">Order Submitted!</h3>
-          <p className="mb-4 text-muted-foreground">Your order has been received and is being processed.</p>
-          <div className="mb-6 rounded-lg bg-muted p-4">
-            <p className="text-sm text-muted-foreground">Order ID</p>
-            <p className="text-xl font-mono font-bold">{orderId}</p>
+          <h3 className="mb-2 text-xl sm:text-2xl font-bold">Order Submitted!</h3>
+          <p className="mb-3 sm:mb-4 text-sm sm:text-base text-muted-foreground">Your order has been received and is being processed.</p>
+          <div className="mb-4 sm:mb-6 rounded-lg bg-muted p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">Order ID</p>
+            <p className="text-lg sm:text-xl font-mono font-bold break-all">{orderId}</p>
           </div>
-          <Button onClick={() => window.location.reload()} className="w-full">
+          <Button onClick={() => window.location.reload()} className="w-full" size="lg">
             Submit Another Order
           </Button>
         </CardContent>
@@ -259,14 +259,14 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   }
 
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle>New Order Submission</CardTitle>
-        <CardDescription>Fill out the form below to submit a new dental lab order</CardDescription>
+    <Card className="shadow-lg w-full">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="text-xl sm:text-2xl">New Order Submission</CardTitle>
+        <CardDescription className="text-sm">Fill out the form below to submit a new dental lab order</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 sm:px-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
