@@ -445,6 +445,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          clinic_name: string | null
           created_at: string
           email: string
           email_notifications: boolean | null
@@ -452,11 +453,14 @@ export type Database = {
           id: string
           notification_new_notes: boolean | null
           notification_status_change: boolean | null
+          onboarding_completed: boolean | null
           phone: string | null
           sms_notifications: boolean | null
+          specialty: string | null
           updated_at: string
         }
         Insert: {
+          clinic_name?: string | null
           created_at?: string
           email: string
           email_notifications?: boolean | null
@@ -464,11 +468,14 @@ export type Database = {
           id: string
           notification_new_notes?: boolean | null
           notification_status_change?: boolean | null
+          onboarding_completed?: boolean | null
           phone?: string | null
           sms_notifications?: boolean | null
+          specialty?: string | null
           updated_at?: string
         }
         Update: {
+          clinic_name?: string | null
           created_at?: string
           email?: string
           email_notifications?: boolean | null
@@ -476,8 +483,10 @@ export type Database = {
           id?: string
           notification_new_notes?: boolean | null
           notification_status_change?: boolean | null
+          onboarding_completed?: boolean | null
           phone?: string | null
           sms_notifications?: boolean | null
+          specialty?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -596,6 +605,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_onboarding: {
+        Args: {
+          clinic_name_param: string
+          phone_param: string
+          specialty_param: string
+          user_id_param: string
+        }
+        Returns: undefined
+      }
       generate_order_number: { Args: never; Returns: string }
       has_role: {
         Args: {

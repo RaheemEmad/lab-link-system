@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +14,11 @@ import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
+import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { playUrgentNotification } = useNotificationSound();
   const { 
     requestPermission, 
@@ -56,6 +58,36 @@ const Dashboard = () => {
   const unreadCount = notificationData?.count || 0;
   const hasUrgent = notificationData?.hasUrgent || false;
 
+  // Check if this is first login and show onboarding modal
+  useEffect(() => {
+    const checkFirstLogin = async () => {
+      if (!user?.id) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed, created_at")
+        .eq("id", user.id)
+        .single();
+
+      // Show onboarding if completed recently (within 5 minutes)
+      if (profile?.onboarding_completed) {
+        const createdAt = new Date(profile.created_at).getTime();
+        const now = Date.now();
+        const fiveMinutes = 5 * 60 * 1000;
+
+        if (now - createdAt < fiveMinutes) {
+          const hasSeenOnboarding = localStorage.getItem(`onboarding_seen_${user.id}`);
+          if (!hasSeenOnboarding) {
+            setShowOnboarding(true);
+            localStorage.setItem(`onboarding_seen_${user.id}`, "true");
+          }
+        }
+      }
+    };
+
+    checkFirstLogin();
+  }, [user]);
+
   // Request notification permission on mount if user is logged in
   useEffect(() => {
     if (user && isSupported && !isGranted) {
@@ -87,6 +119,7 @@ const Dashboard = () => {
 
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
+        <FirstTimeModal open={showOnboarding} onClose={() => setShowOnboarding(false)} />
         <LandingNav />
         <TooltipProvider delayDuration={200}>
           <div className="flex-1 bg-secondary/30 py-6 sm:py-12">
