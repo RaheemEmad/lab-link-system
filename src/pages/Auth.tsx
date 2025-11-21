@@ -87,13 +87,13 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNav />
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
       <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl sm:text-3xl">Welcome to LabLink</CardTitle>
-          <CardDescription className="text-sm sm:text-base">Sign in to track orders or create your account</CardDescription>
+        <CardHeader className="text-center px-4 sm:px-6">
+          <CardTitle className="text-xl sm:text-2xl md:text-3xl">Welcome to LabLink</CardTitle>
+          <CardDescription className="text-sm">Sign in to track orders or create your account</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
