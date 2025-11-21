@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -7,6 +8,8 @@ import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Building2, 
   Mail, 
@@ -17,7 +20,10 @@ import {
   Zap,
   TrendingUp,
   Award,
-  ExternalLink
+  ExternalLink,
+  Search,
+  Filter,
+  ArrowUpDown
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -46,24 +52,47 @@ interface LabSpecialization {
   is_preferred: boolean;
 }
 
-const Labs = () => {
-  const [selectedPricingTier, setSelectedPricingTier] = useState<'budget' | 'standard' | 'premium' | null>(null);
+const ITEMS_PER_PAGE = 9;
 
-  // Fetch all active labs
-  const { data: labs, isLoading } = useQuery({
-    queryKey: ["labs", selectedPricingTier],
+const Labs = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Get state from URL or defaults
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [selectedPricingTier, setSelectedPricingTier] = useState<'budget' | 'standard' | 'premium' | null>(
+    searchParams.get('pricing') as any || null
+  );
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>(
+    searchParams.get('specialty') || 'all'
+  );
+  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'turnaround'>(
+    (searchParams.get('sort') as any) || 'rating'
+  );
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get('page') || '1', 10)
+  );
+  
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set('search', searchQuery);
+    if (selectedPricingTier) params.set('pricing', selectedPricingTier);
+    if (selectedSpecialty !== 'all') params.set('specialty', selectedSpecialty);
+    if (sortBy !== 'rating') params.set('sort', sortBy);
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    
+    setSearchParams(params, { replace: true });
+  }, [searchQuery, selectedPricingTier, selectedSpecialty, sortBy, currentPage, setSearchParams]);
+
+  // Fetch all active labs (no server-side filtering for search/specialty - we'll do client-side)
+  const { data: allLabs, isLoading } = useQuery({
+    queryKey: ["labs"],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("labs")
         .select("*")
-        .eq("is_active", true)
-        .order("performance_score", { ascending: false });
+        .eq("is_active", true);
 
-      if (selectedPricingTier) {
-        query = query.eq("pricing_tier", selectedPricingTier);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return data as Lab[];
     },
@@ -83,6 +112,80 @@ const Labs = () => {
 
   const getLabSpecializations = (labId: string) => {
     return specializations?.filter(s => s.lab_id === labId) || [];
+  };
+  
+  // Get unique specialties for filter
+  const availableSpecialties = useMemo(() => {
+    if (!specializations) return [];
+    const unique = new Set(specializations.map(s => s.restoration_type));
+    return Array.from(unique).sort();
+  }, [specializations]);
+  
+  // Filter, search, and sort labs
+  const filteredAndSortedLabs = useMemo(() => {
+    if (!allLabs) return [];
+    
+    let filtered = [...allLabs];
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(lab => 
+        lab.name.toLowerCase().includes(query) ||
+        lab.description?.toLowerCase().includes(query) ||
+        lab.contact_email.toLowerCase().includes(query) ||
+        lab.address?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply pricing tier filter
+    if (selectedPricingTier) {
+      filtered = filtered.filter(lab => lab.pricing_tier === selectedPricingTier);
+    }
+    
+    // Apply specialty filter
+    if (selectedSpecialty !== 'all') {
+      filtered = filtered.filter(lab => {
+        const labSpecs = getLabSpecializations(lab.id);
+        return labSpecs.some(s => s.restoration_type === selectedSpecialty);
+      });
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'rating':
+          return (b.performance_score || 0) - (a.performance_score || 0);
+        case 'turnaround':
+          return a.standard_sla_days - b.standard_sla_days;
+        default:
+          return 0;
+      }
+    });
+    
+    return filtered;
+  }, [allLabs, searchQuery, selectedPricingTier, selectedSpecialty, sortBy, specializations]);
+  
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedLabs.length / ITEMS_PER_PAGE);
+  const paginatedLabs = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedLabs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredAndSortedLabs, currentPage]);
+  
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedPricingTier, selectedSpecialty, sortBy]);
+  
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedPricingTier(null);
+    setSelectedSpecialty('all');
+    setSortBy('rating');
+    setCurrentPage(1);
   };
 
   const getPricingBadgeVariant = (tier: string) => {
@@ -120,46 +223,105 @@ const Labs = () => {
           <div className="mb-8">
             <h1 className="text-3xl sm:text-4xl font-bold mb-2">Partner Labs</h1>
             <p className="text-muted-foreground">
-              Browse our network of certified dental laboratories
+              Browse our network of {allLabs?.length || 0} certified dental laboratories
             </p>
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Button
-              variant={selectedPricingTier === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedPricingTier(null)}
-            >
-              All Labs
-            </Button>
-            <Button
-              variant={selectedPricingTier === 'premium' ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedPricingTier('premium')}
-            >
-              Premium
-            </Button>
-            <Button
-              variant={selectedPricingTier === 'standard' ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedPricingTier('standard')}
-            >
-              Standard
-            </Button>
-            <Button
-              variant={selectedPricingTier === 'budget' ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedPricingTier('budget')}
-            >
-              Budget
-            </Button>
-          </div>
+          {/* Search and Filters */}
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by lab name, description, location..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {/* Filter Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {/* Pricing Tier */}
+                  <Select
+                    value={selectedPricingTier || 'all'}
+                    onValueChange={(value) => setSelectedPricingTier(value === 'all' ? null : value as any)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pricing Tier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Tiers</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="budget">Budget</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Specialty */}
+                  <Select
+                    value={selectedSpecialty}
+                    onValueChange={setSelectedSpecialty}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Specialty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Specialties</SelectItem>
+                      {availableSpecialties.map(specialty => (
+                        <SelectItem key={specialty} value={specialty}>
+                          {specialty}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Sort By */}
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value) => setSortBy(value as any)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort By" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rating">Highest Rated</SelectItem>
+                      <SelectItem value="name">Name (A-Z)</SelectItem>
+                      <SelectItem value="turnaround">Fastest Turnaround</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Clear Filters */}
+                  <Button 
+                    variant="outline" 
+                    onClick={handleClearFilters}
+                    className="w-full"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+                
+                {/* Results Summary */}
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>
+                    Showing {paginatedLabs.length} of {filteredAndSortedLabs.length} labs
+                  </span>
+                  {(searchQuery || selectedPricingTier || selectedSpecialty !== 'all') && (
+                    <span className="text-xs">
+                      Filters active
+                    </span>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Labs Grid */}
           {isLoading ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i}>
                   <CardHeader>
                     <Skeleton className="h-6 w-3/4 mb-2" />
@@ -171,9 +333,10 @@ const Labs = () => {
                 </Card>
               ))}
             </div>
-          ) : labs && labs.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {labs.map((lab) => {
+          ) : paginatedLabs.length > 0 ? (
+            <>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {paginatedLabs.map((lab) => {
                 const labSpecs = getLabSpecializations(lab.id);
                 const capacityPercentage = (lab.current_load / lab.max_capacity) * 100;
 
@@ -307,16 +470,73 @@ const Labs = () => {
                 );
               })}
             </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                    // Show first, last, current, and adjacent pages
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                          className="w-10"
+                        >
+                          {page}
+                        </Button>
+                      );
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="px-2">...</span>;
+                    }
+                    return null;
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
                 <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-medium mb-2">No Labs Found</h3>
-                <p className="text-muted-foreground">
-                  {selectedPricingTier 
-                    ? `No ${selectedPricingTier} tier labs available at this time.`
+                <p className="text-muted-foreground mb-4">
+                  {searchQuery 
+                    ? `No labs match your search: "${searchQuery}"`
+                    : selectedPricingTier || selectedSpecialty !== 'all'
+                    ? 'No labs match your selected filters.'
                     : 'No labs available at this time.'}
                 </p>
+                {(searchQuery || selectedPricingTier || selectedSpecialty !== 'all') && (
+                  <Button variant="outline" onClick={handleClearFilters}>
+                    Clear All Filters
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
