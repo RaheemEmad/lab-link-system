@@ -5,6 +5,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
+const MAX_REQUESTS_PER_WINDOW = 10; // 10 requests per minute per user
+const MAX_REQUESTS_PER_HOUR = 50; // 50 requests per hour per user
+
 interface CreateOrderRequest {
   doctorName: string;
   patientName: string;
@@ -126,6 +131,88 @@ function validateOrderData(data: any): { isValid: boolean; errors: ValidationErr
   };
 }
 
+async function checkRateLimit(
+  supabase: any,
+  identifier: string,
+  endpoint: string
+): Promise<{ allowed: boolean; resetAt?: Date; message?: string }> {
+  const now = new Date();
+  
+  // Check minute window
+  const minuteAgo = new Date(now.getTime() - RATE_LIMIT_WINDOW);
+  const { data: minuteRecord } = await supabase
+    .from('rate_limits')
+    .select('*')
+    .eq('identifier', identifier)
+    .eq('endpoint', `${endpoint}_minute`)
+    .gte('window_start', minuteAgo.toISOString())
+    .single();
+
+  if (minuteRecord && minuteRecord.request_count >= MAX_REQUESTS_PER_WINDOW) {
+    const resetAt = new Date(new Date(minuteRecord.window_start).getTime() + RATE_LIMIT_WINDOW);
+    return {
+      allowed: false,
+      resetAt,
+      message: `Rate limit exceeded. Maximum ${MAX_REQUESTS_PER_WINDOW} requests per minute. Try again at ${resetAt.toISOString()}`,
+    };
+  }
+
+  // Check hour window
+  const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+  const { data: hourRecord } = await supabase
+    .from('rate_limits')
+    .select('*')
+    .eq('identifier', identifier)
+    .eq('endpoint', `${endpoint}_hour`)
+    .gte('window_start', hourAgo.toISOString())
+    .single();
+
+  if (hourRecord && hourRecord.request_count >= MAX_REQUESTS_PER_HOUR) {
+    const resetAt = new Date(new Date(hourRecord.window_start).getTime() + 60 * 60 * 1000);
+    return {
+      allowed: false,
+      resetAt,
+      message: `Hourly rate limit exceeded. Maximum ${MAX_REQUESTS_PER_HOUR} requests per hour. Try again at ${resetAt.toISOString()}`,
+    };
+  }
+
+  // Update or create minute record
+  if (minuteRecord) {
+    await supabase
+      .from('rate_limits')
+      .update({ request_count: minuteRecord.request_count + 1 })
+      .eq('id', minuteRecord.id);
+  } else {
+    await supabase
+      .from('rate_limits')
+      .insert({
+        identifier,
+        endpoint: `${endpoint}_minute`,
+        request_count: 1,
+        window_start: now.toISOString(),
+      });
+  }
+
+  // Update or create hour record
+  if (hourRecord) {
+    await supabase
+      .from('rate_limits')
+      .update({ request_count: hourRecord.request_count + 1 })
+      .eq('id', hourRecord.id);
+  } else {
+    await supabase
+      .from('rate_limits')
+      .insert({
+        identifier,
+        endpoint: `${endpoint}_hour`,
+        request_count: 1,
+        window_start: now.toISOString(),
+      });
+  }
+
+  return { allowed: true };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -197,6 +284,31 @@ Deno.serve(async (req) => {
         }
       );
     }
+
+    // Check rate limit
+    const rateLimitResult = await checkRateLimit(supabase, user.id, 'create-order');
+    if (!rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for user:', user.id);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many requests',
+          message: rateLimitResult.message,
+          resetAt: rateLimitResult.resetAt?.toISOString()
+        }),
+        {
+          status: 429,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': rateLimitResult.resetAt 
+              ? Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000).toString()
+              : '60'
+          },
+        }
+      );
+    }
+
+    // Parse request body
 
     // Validate input data
     const validation = validateOrderData(requestData);
