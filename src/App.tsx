@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
+import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import Home from "./pages/Home";
 import HowItWorks from "./pages/HowItWorks";
 import Labs from "./pages/Labs";
@@ -32,29 +33,32 @@ const AppContent = () => {
   useServiceWorkerUpdate();
   
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/how-it-works" element={<HowItWorks />} />
-      <Route path="/labs" element={<Labs />} />
-      <Route path="/preferred-labs" element={<PreferredLabs />} />
-      <Route path="/lab-admin" element={<LabAdmin />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/new-order" element={<NewOrder />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/order-tracking" element={<OrderTracking />} />
-      <Route path="/lab-workflow" element={<LabWorkflowManagement />} />
-      <Route path="/design-approval" element={<DesignApprovalWorkflow />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="/terms" element={<TermsOfService />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/install" element={<Install />} />
-      <Route path="/notifications" element={<NotificationHistory />} />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <SessionTimeoutWarning />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/labs" element={<Labs />} />
+        <Route path="/preferred-labs" element={<PreferredLabs />} />
+        <Route path="/lab-admin" element={<LabAdmin />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/new-order" element={<NewOrder />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/order-tracking" element={<OrderTracking />} />
+        <Route path="/lab-workflow" element={<LabWorkflowManagement />} />
+        <Route path="/design-approval" element={<DesignApprovalWorkflow />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/install" element={<Install />} />
+        <Route path="/notifications" element={<NotificationHistory />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 };
 

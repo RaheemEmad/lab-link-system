@@ -4,29 +4,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Upload, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ToothSelector } from "./order/ToothSelector";
 import { ShadeSelector } from "./order/ShadeSelector";
 import { LabSelector } from "./order/LabSelector";
+import { Progress } from "@/components/ui/progress";
 
-// Trusted domains for photo/scan links
-const TRUSTED_PHOTO_DOMAINS = [
-  'drive.google.com',
-  'dropbox.com',
-  'www.dropbox.com',
-  's3.amazonaws.com',
-  'onedrive.live.com',
-  'icloud.com',
-  'box.com',
-  'mega.nz',
-];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z.object({
   doctorName: z.string().min(2, "Doctor name is required").max(100),
@@ -38,30 +30,6 @@ const formSchema = z.object({
   biologicalNotes: z.string().max(1000).optional(),
   urgency: z.enum(["Normal", "Urgent"]),
   assignedLabId: z.string().nullable().optional(),
-  photosLink: z.string()
-    .max(2048, "URL must be less than 2048 characters")
-    .optional()
-    .or(z.literal(""))
-    .refine((url) => {
-      if (!url || url === "") return true;
-      
-      // Must use HTTPS protocol
-      if (!url.startsWith('https://')) {
-        return false;
-      }
-      
-      // Validate against trusted domains
-      try {
-        const domain = new URL(url).hostname;
-        return TRUSTED_PHOTO_DOMAINS.some(trusted => 
-          domain === trusted || domain.endsWith('.' + trusted)
-        );
-      } catch {
-        return false;
-      }
-    }, {
-      message: "Photo links must use HTTPS and be from trusted storage providers (Google Drive, Dropbox, OneDrive, iCloud, Box, Mega, AWS S3)"
-    }),
   htmlExport: z.string().optional(),
 });
 
@@ -77,6 +45,9 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
   const { user } = useAuth();
   const [doctorName, setDoctorName] = useState("");
 
@@ -92,7 +63,6 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       biologicalNotes: "",
       urgency: "Normal",
       assignedLabId: null,
-      photosLink: "",
       htmlExport: "",
     },
   });
@@ -117,6 +87,72 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     fetchDoctorName();
   }, [user, form]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast.error(`Invalid file type: ${file.name}`, {
+          description: "Only JPG, PNG, and WEBP images are allowed",
+        });
+        return false;
+      }
+      
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`File too large: ${file.name}`, {
+          description: "Maximum file size is 10MB",
+        });
+        return false;
+      }
+      
+      return true;
+    });
+
+    setUploadedFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadedUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async (): Promise<string[]> => {
+    if (uploadedFiles.length === 0) return [];
+
+    const uploadedPaths: string[] = [];
+    const totalFiles = uploadedFiles.length;
+
+    for (let i = 0; i < totalFiles; i++) {
+      const file = uploadedFiles[i];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user!.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      try {
+        const { data, error } = await supabase.storage
+          .from('design-files')
+          .upload(fileName, file);
+
+        if (error) throw error;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('design-files')
+          .getPublicUrl(fileName);
+
+        uploadedPaths.push(publicUrl);
+        setUploadProgress(Math.round(((i + 1) / totalFiles) * 100));
+      } catch (error: any) {
+        console.error('Upload error:', error);
+        toast.error(`Failed to upload ${file.name}`, {
+          description: error.message,
+        });
+      }
+    }
+
+    return uploadedPaths;
+  };
+
   const onSubmit = async (data: FormValues) => {
     if (!user) {
       toast.error("You must be logged in to submit an order");
@@ -124,8 +160,19 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     }
 
     setIsLoading(true);
+    setUploadProgress(0);
 
     try {
+      // Upload files first if any
+      let photoUrls: string[] = [];
+      if (uploadedFiles.length > 0) {
+        toast.info("Uploading images...");
+        photoUrls = await uploadFiles();
+        setUploadedUrls(photoUrls);
+      }
+
+      toast.info("Creating order...");
+      
       const { data: orderData, error } = await supabase
         .from("orders")
         .insert({
@@ -139,7 +186,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
           biological_notes: data.biologicalNotes || "",
           urgency: data.urgency,
           assigned_lab_id: data.assignedLabId || null,
-          photos_link: data.photosLink || "",
+          photos_link: photoUrls.join(','), // Store multiple URLs as comma-separated
           html_export: data.htmlExport || "",
           order_number: "",  // Will be auto-generated by trigger
         })
@@ -378,22 +425,78 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="photosLink"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Photos / Scan Link</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://..." type="url" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <FormLabel>Patient Photos / Scans</FormLabel>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileSelect}
+                    disabled={isLoading}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label htmlFor="file-upload">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isLoading}
+                      asChild
+                    >
+                      <span>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Images
+                      </span>
+                    </Button>
+                  </label>
+                  <FormDescription className="text-xs">
+                    Max 10MB per file. JPG, PNG, WEBP
+                  </FormDescription>
+                </div>
+
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                        <span className="text-sm truncate">{file.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(index)}
+                          disabled={isLoading}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {isLoading && uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="space-y-1">
+                    <Progress value={uploadProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Uploading: {uploadProgress}%
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-              {isLoading ? "Submitting..." : "Submit Order"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {uploadProgress > 0 && uploadProgress < 100 
+                    ? `Uploading ${uploadProgress}%` 
+                    : "Creating Order..."}
+                </>
+              ) : (
+                "Submit Order"
+              )}
             </Button>
           </form>
         </Form>
