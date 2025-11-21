@@ -17,6 +17,8 @@ import { ShadeSelector } from "./order/ShadeSelector";
 import { LabSelector } from "./order/LabSelector";
 import { Progress } from "@/components/ui/progress";
 import { compressImage, createThumbnail, validateImageType, validateImageSize, formatFileSize } from "@/lib/imageCompression";
+import { processImageForUpload } from "@/lib/imageMetadata";
+import { validateUploadFile } from "@/lib/fileValidation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -136,6 +138,23 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     const newThumbnails: string[] = [];
     
     for (const file of files) {
+      // Validate file security first
+      const validationResult = await validateUploadFile(file);
+      
+      if (!validationResult.isValid) {
+        toast.error(`Security check failed: ${file.name}`, {
+          description: validationResult.errors.join(', '),
+        });
+        continue;
+      }
+      
+      // Show warnings if any
+      if (validationResult.warnings.length > 0) {
+        toast.warning(`File warnings: ${file.name}`, {
+          description: validationResult.warnings.join(', '),
+        });
+      }
+      
       // Validate file type
       if (!validateImageType(file, ACCEPTED_IMAGE_TYPES)) {
         toast.error(`Unsupported file type: ${file.name}`, {
@@ -144,18 +163,31 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
         continue;
       }
       
-      let processedFile = file;
+      // Process image: extract metadata, correct orientation, strip sensitive data
+      toast.info(`Processing ${file.name}...`);
+      const { file: processedFile, metadata } = await processImageForUpload(file, {
+        correctOrientation: true,
+        stripSensitiveData: true,
+        extractMetadata: true,
+      });
+      
+      // Log metadata if available (for debugging)
+      if (metadata) {
+        console.log(`Image metadata for ${file.name}:`, metadata);
+      }
+      
+      let finalFile = processedFile;
       
       // Check if file needs compression
-      if (!validateImageSize(file, 10)) {
+      if (!validateImageSize(finalFile, 10)) {
         toast.info(`Compressing ${file.name}...`, {
-          description: `Original size: ${formatFileSize(file.size)}`,
+          description: `Original size: ${formatFileSize(finalFile.size)}`,
         });
         
         try {
-          processedFile = await compressImage(file, 10, 1920);
-          toast.success(`${file.name} compressed`, {
-            description: `New size: ${formatFileSize(processedFile.size)}`,
+          finalFile = await compressImage(finalFile, 10, 1920);
+          toast.success(`${file.name} processed`, {
+            description: `New size: ${formatFileSize(finalFile.size)}`,
           });
         } catch (error: any) {
           toast.error(`Failed to compress ${file.name}`, {
@@ -163,12 +195,14 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
           });
           continue;
         }
+      } else {
+        toast.success(`${file.name} processed successfully`);
       }
       
       // Create thumbnail
-      const thumbnail = createThumbnail(processedFile);
+      const thumbnail = createThumbnail(finalFile);
       newThumbnails.push(thumbnail);
-      processedFiles.push(processedFile);
+      processedFiles.push(finalFile);
     }
     
     if (processedFiles.length > 0) {
