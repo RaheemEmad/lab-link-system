@@ -1,24 +1,27 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Chrome } from "lucide-react";
+import { Chrome, Check } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
 
 const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
   fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
 });
 
@@ -52,6 +55,10 @@ const Auth = () => {
       password: "",
     },
   });
+  
+  const signUpPassword = signUpForm.watch("password");
+  const signUpEmail = signUpForm.watch("email");
+  const signInEmail = signInForm.watch("email");
 
   useEffect(() => {
     if (user) {
@@ -103,7 +110,12 @@ const Auth = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="doctor@example.com" {...field} />
+                          <div className="relative">
+                            <Input type="email" placeholder="doctor@example.com" {...field} />
+                            {signInEmail && z.string().email().safeParse(signInEmail).success && (
+                              <Check className="absolute right-3 top-3 h-4 w-4 text-green-600" />
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -115,7 +127,12 @@ const Auth = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Password</FormLabel>
+                          <Link to="/reset-password" className="text-xs text-primary hover:underline">
+                            Forgot Password?
+                          </Link>
+                        </div>
                         <FormControl>
                           <Input type="password" placeholder="••••••••" {...field} />
                         </FormControl>
@@ -173,7 +190,12 @@ const Auth = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="doctor@example.com" {...field} />
+                          <div className="relative">
+                            <Input type="email" placeholder="doctor@example.com" {...field} />
+                            {signUpEmail && z.string().email().safeParse(signUpEmail).success && (
+                              <Check className="absolute right-3 top-3 h-4 w-4 text-green-600" />
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -189,6 +211,7 @@ const Auth = () => {
                         <FormControl>
                           <Input type="password" placeholder="••••••••" {...field} />
                         </FormControl>
+                        <PasswordStrengthIndicator password={signUpPassword || ""} />
                         <FormMessage />
                       </FormItem>
                     )}

@@ -13,6 +13,7 @@ import LabAdmin from "./pages/LabAdmin";
 import NewOrder from "./pages/NewOrder";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -38,6 +39,7 @@ const AppContent = () => {
       <Route path="/preferred-labs" element={<PreferredLabs />} />
       <Route path="/lab-admin" element={<LabAdmin />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/new-order" element={<NewOrder />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/order-tracking" element={<OrderTracking />} />
