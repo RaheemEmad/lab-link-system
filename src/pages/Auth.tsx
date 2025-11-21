@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -80,7 +81,23 @@ const Auth = () => {
 
   const handleSignIn = async (values: SignInValues) => {
     setIsLoading(true);
-    await signIn(values.email, values.password);
+    const { error } = await signIn(values.email, values.password);
+    
+    if (!error && user) {
+      // Check if profile is complete
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile && !profile.onboarding_completed) {
+        navigate("/profile-completion");
+        setIsLoading(false);
+        return;
+      }
+    }
+    
     setIsLoading(false);
   };
 
