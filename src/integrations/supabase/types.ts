@@ -55,6 +55,99 @@ export type Database = {
           },
         ]
       }
+      lab_photos: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          lab_id: string
+          photo_url: string
+          updated_at: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          lab_id: string
+          photo_url: string
+          updated_at?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          lab_id?: string
+          photo_url?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_photos_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_reviews: {
+        Row: {
+          created_at: string | null
+          dentist_id: string
+          id: string
+          lab_id: string
+          order_id: string | null
+          rating: number
+          review_text: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dentist_id: string
+          id?: string
+          lab_id: string
+          order_id?: string | null
+          rating: number
+          review_text?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dentist_id?: string
+          id?: string
+          lab_id?: string
+          order_id?: string | null
+          rating?: number
+          review_text?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_reviews_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_reviews_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_specializations: {
         Row: {
           created_at: string

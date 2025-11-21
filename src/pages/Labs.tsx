@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -71,6 +71,15 @@ const Labs = () => {
   const [currentPage, setCurrentPage] = useState(
     parseInt(searchParams.get('page') || '1', 10)
   );
+  const [minRating, setMinRating] = useState(
+    parseFloat(searchParams.get('minRating') || '0')
+  );
+  const [maxTurnaround, setMaxTurnaround] = useState(
+    parseInt(searchParams.get('maxTurnaround') || '999')
+  );
+  const [availableOnly, setAvailableOnly] = useState(
+    searchParams.get('available') === 'true'
+  );
   
   // Update URL when filters change
   useEffect(() => {
@@ -80,9 +89,12 @@ const Labs = () => {
     if (selectedSpecialty !== 'all') params.set('specialty', selectedSpecialty);
     if (sortBy !== 'rating') params.set('sort', sortBy);
     if (currentPage > 1) params.set('page', currentPage.toString());
+    if (minRating > 0) params.set('minRating', minRating.toString());
+    if (maxTurnaround < 999) params.set('maxTurnaround', maxTurnaround.toString());
+    if (availableOnly) params.set('available', 'true');
     
     setSearchParams(params, { replace: true });
-  }, [searchQuery, selectedPricingTier, selectedSpecialty, sortBy, currentPage, setSearchParams]);
+  }, [searchQuery, selectedPricingTier, selectedSpecialty, sortBy, currentPage, minRating, maxTurnaround, availableOnly, setSearchParams]);
 
   // Fetch all active labs (no server-side filtering for search/specialty - we'll do client-side)
   const { data: allLabs, isLoading } = useQuery({
@@ -150,6 +162,21 @@ const Labs = () => {
         return labSpecs.some(s => s.restoration_type === selectedSpecialty);
       });
     }
+
+    // Apply rating filter
+    if (minRating > 0) {
+      filtered = filtered.filter(lab => (lab.performance_score || 0) >= minRating);
+    }
+
+    // Apply turnaround filter
+    if (maxTurnaround < 999) {
+      filtered = filtered.filter(lab => lab.standard_sla_days <= maxTurnaround);
+    }
+
+    // Apply capacity filter
+    if (availableOnly) {
+      filtered = filtered.filter(lab => lab.current_load < lab.max_capacity);
+    }
     
     // Apply sorting
     filtered.sort((a, b) => {
@@ -166,7 +193,7 @@ const Labs = () => {
     });
     
     return filtered;
-  }, [allLabs, searchQuery, selectedPricingTier, selectedSpecialty, sortBy, specializations]);
+  }, [allLabs, searchQuery, selectedPricingTier, selectedSpecialty, sortBy, minRating, maxTurnaround, availableOnly, specializations]);
   
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedLabs.length / ITEMS_PER_PAGE);
@@ -178,7 +205,7 @@ const Labs = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedPricingTier, selectedSpecialty, sortBy]);
+  }, [searchQuery, selectedPricingTier, selectedSpecialty, sortBy, minRating, maxTurnaround, availableOnly]);
   
   const handleClearFilters = () => {
     setSearchQuery('');
@@ -186,6 +213,9 @@ const Labs = () => {
     setSelectedSpecialty('all');
     setSortBy('rating');
     setCurrentPage(1);
+    setMinRating(0);
+    setMaxTurnaround(999);
+    setAvailableOnly(false);
   };
 
   const getPricingBadgeVariant = (tier: string) => {
@@ -293,6 +323,56 @@ const Labs = () => {
                     </SelectContent>
                   </Select>
                   
+                  {/* Min Rating */}
+                  <Select
+                    value={minRating.toString()}
+                    onValueChange={(value) => setMinRating(parseFloat(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Min Rating" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Any Rating</SelectItem>
+                      <SelectItem value="3">3+ Stars</SelectItem>
+                      <SelectItem value="4">4+ Stars</SelectItem>
+                      <SelectItem value="4.5">4.5+ Stars</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Second Filter Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {/* Max Turnaround */}
+                  <Select
+                    value={maxTurnaround.toString()}
+                    onValueChange={(value) => setMaxTurnaround(parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Max Turnaround" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="999">Any Turnaround</SelectItem>
+                      <SelectItem value="3">3 Days or Less</SelectItem>
+                      <SelectItem value="5">5 Days or Less</SelectItem>
+                      <SelectItem value="7">7 Days or Less</SelectItem>
+                      <SelectItem value="10">10 Days or Less</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Available Capacity */}
+                  <div className="flex items-center space-x-2 px-3 border rounded-md">
+                    <input
+                      type="checkbox"
+                      id="available"
+                      checked={availableOnly}
+                      onChange={(e) => setAvailableOnly(e.target.checked)}
+                      className="h-4 w-4 rounded border-border"
+                    />
+                    <label htmlFor="available" className="text-sm font-medium cursor-pointer">
+                      Available Capacity Only
+                    </label>
+                  </div>
+                  
                   {/* Clear Filters */}
                   <Button 
                     variant="outline" 
@@ -308,7 +388,7 @@ const Labs = () => {
                   <span>
                     Showing {paginatedLabs.length} of {filteredAndSortedLabs.length} labs
                   </span>
-                  {(searchQuery || selectedPricingTier || selectedSpecialty !== 'all') && (
+                  {(searchQuery || selectedPricingTier || selectedSpecialty !== 'all' || minRating > 0 || maxTurnaround < 999 || availableOnly) && (
                     <span className="text-xs">
                       Filters active
                     </span>
@@ -341,132 +421,137 @@ const Labs = () => {
                 const capacityPercentage = (lab.current_load / lab.max_capacity) * 100;
 
                 return (
-                  <Card key={lab.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-start gap-3 flex-1">
-                          {lab.logo_url ? (
-                            <img src={lab.logo_url} alt={lab.name} className="w-12 h-12 rounded-lg object-cover" />
-                          ) : (
-                            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                              <Building2 className="h-6 w-6 text-primary" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg mb-1 truncate">{lab.name}</CardTitle>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge variant={getPricingBadgeVariant(lab.pricing_tier)}>
-                                {lab.pricing_tier}
-                              </Badge>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                                <span className="font-medium">{lab.performance_score?.toFixed(1)}</span>
+                  <Link key={lab.id} to={`/labs/${lab.id}`}>
+                    <Card className="hover:shadow-lg transition-shadow h-full">
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-3 flex-1">
+                            {lab.logo_url ? (
+                              <img src={lab.logo_url} alt={lab.name} className="w-12 h-12 rounded-lg object-cover" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Building2 className="h-6 w-6 text-primary" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-lg mb-1 truncate">{lab.name}</CardTitle>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant={getPricingBadgeVariant(lab.pricing_tier)}>
+                                  {lab.pricing_tier}
+                                </Badge>
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                                  <span className="font-medium">{lab.performance_score?.toFixed(1)}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      {lab.description && (
-                        <CardDescription className="line-clamp-2 mt-2">
-                          {lab.description}
-                        </CardDescription>
-                      )}
-                    </CardHeader>
+                        {lab.description && (
+                          <CardDescription className="line-clamp-2 mt-2">
+                            {lab.description}
+                          </CardDescription>
+                        )}
+                      </CardHeader>
 
-                    <CardContent className="space-y-4">
-                      {/* SLA */}
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Standard SLA:</span>
+                      <CardContent className="space-y-4">
+                        {/* SLA */}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Standard SLA:</span>
+                          </div>
+                          <span className="font-medium">{lab.standard_sla_days} days</span>
                         </div>
-                        <span className="font-medium">{lab.standard_sla_days} days</span>
-                      </div>
 
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <Zap className="h-4 w-4 text-orange-500" />
-                          <span className="text-muted-foreground">Urgent SLA:</span>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <Zap className="h-4 w-4 text-orange-500" />
+                            <span className="text-muted-foreground">Urgent SLA:</span>
+                          </div>
+                          <span className="font-medium">{lab.urgent_sla_days} days</span>
                         </div>
-                        <span className="font-medium">{lab.urgent_sla_days} days</span>
-                      </div>
 
-                      {/* Capacity */}
-                      <div>
-                        <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-muted-foreground">Current Capacity:</span>
-                          <span className={`font-medium ${getCapacityColor(lab.current_load, lab.max_capacity)}`}>
-                            {lab.current_load}/{lab.max_capacity}
-                          </span>
-                        </div>
-                        <div className="w-full bg-secondary rounded-full h-2">
-                          <div
-                            className="bg-primary h-2 rounded-full transition-all"
-                            style={{ width: `${capacityPercentage}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Specializations */}
-                      {labSpecs.length > 0 && (
+                        {/* Capacity */}
                         <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Award className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Specializations:</span>
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span className="text-muted-foreground">Current Capacity:</span>
+                            <span className={`font-medium ${getCapacityColor(lab.current_load, lab.max_capacity)}`}>
+                              {lab.current_load}/{lab.max_capacity}
+                            </span>
                           </div>
-                          <div className="flex flex-wrap gap-1">
-                            {labSpecs.slice(0, 3).map((spec, idx) => (
-                              <Badge 
-                                key={idx} 
-                                variant={getExpertiseBadgeVariant(spec.expertise_level)}
-                                className="text-xs"
-                              >
-                                {spec.restoration_type}
-                              </Badge>
-                            ))}
-                            {labSpecs.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{labSpecs.length - 3} more
-                              </Badge>
-                            )}
+                          <div className="w-full bg-secondary rounded-full h-2">
+                            <div
+                              className="bg-primary h-2 rounded-full transition-all"
+                              style={{ width: `${capacityPercentage}%` }}
+                            />
                           </div>
                         </div>
-                      )}
 
-                      {/* Contact Info */}
-                      <div className="pt-3 border-t space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Mail className="h-3 w-3" />
-                          <span className="truncate">{lab.contact_email}</span>
+                        {/* Specializations */}
+                        {labSpecs.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Award className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Specializations:</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {labSpecs.slice(0, 3).map((spec, idx) => (
+                                <Badge 
+                                  key={idx} 
+                                  variant={getExpertiseBadgeVariant(spec.expertise_level)}
+                                  className="text-xs"
+                                >
+                                  {spec.restoration_type}
+                                </Badge>
+                              ))}
+                              {labSpecs.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{labSpecs.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Contact Info */}
+                        <div className="pt-3 border-t space-y-2">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            <span className="truncate">{lab.contact_email}</span>
+                          </div>
+                          {lab.contact_phone && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Phone className="h-3 w-3" />
+                              <span>{lab.contact_phone}</span>
+                            </div>
+                          )}
+                          {lab.address && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="h-3 w-3" />
+                              <span className="truncate">{lab.address}</span>
+                            </div>
+                          )}
                         </div>
-                        {lab.contact_phone && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Phone className="h-3 w-3" />
-                            <span>{lab.contact_phone}</span>
-                          </div>
-                        )}
-                        {lab.address && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            <span className="truncate">{lab.address}</span>
-                          </div>
-                        )}
-                      </div>
 
-                      {/* Actions */}
-                      {lab.website_url && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => window.open(lab.website_url!, '_blank')}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-2" />
-                          Visit Website
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
+                        {/* Actions */}
+                        {lab.website_url && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.open(lab.website_url!, '_blank');
+                            }}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-2" />
+                            Visit Website
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>
@@ -528,11 +613,11 @@ const Labs = () => {
                 <p className="text-muted-foreground mb-4">
                   {searchQuery 
                     ? `No labs match your search: "${searchQuery}"`
-                    : selectedPricingTier || selectedSpecialty !== 'all'
+                    : selectedPricingTier || selectedSpecialty !== 'all' || minRating > 0 || maxTurnaround < 999 || availableOnly
                     ? 'No labs match your selected filters.'
                     : 'No labs available at this time.'}
                 </p>
-                {(searchQuery || selectedPricingTier || selectedSpecialty !== 'all') && (
+                {(searchQuery || selectedPricingTier || selectedSpecialty !== 'all' || minRating > 0 || maxTurnaround < 999 || availableOnly) && (
                   <Button variant="outline" onClick={handleClearFilters}>
                     Clear All Filters
                   </Button>
