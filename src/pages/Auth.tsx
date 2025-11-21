@@ -38,6 +38,8 @@ const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [signUpEmail, setSignUpEmail] = useState("");
 
   const signUpForm = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -57,7 +59,6 @@ const Auth = () => {
   });
   
   const signUpPassword = signUpForm.watch("password");
-  const signUpEmail = signUpForm.watch("email");
   const signInEmail = signInForm.watch("email");
 
   useEffect(() => {
@@ -68,8 +69,13 @@ const Auth = () => {
 
   const handleSignUp = async (values: SignUpValues) => {
     setIsLoading(true);
-    await signUp(values.email, values.password, values.fullName);
+    const { error } = await signUp(values.email, values.password, values.fullName);
     setIsLoading(false);
+    
+    if (!error) {
+      setSignUpEmail(values.email);
+      setShowEmailConfirmation(true);
+    }
   };
 
   const handleSignIn = async (values: SignInValues) => {
@@ -83,6 +89,38 @@ const Auth = () => {
     await signInWithGoogle();
     // Don't set loading to false here as user will be redirected
   };
+
+  if (showEmailConfirmation) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
+          <Card className="w-full max-w-md shadow-lg">
+            <CardHeader className="text-center px-4 sm:px-6">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl">Check Your Email</CardTitle>
+              <CardDescription className="text-sm mt-2">
+                We've sent a confirmation email to <strong>{signUpEmail}</strong>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 sm:px-6 space-y-4">
+              <div className="text-center text-muted-foreground text-sm">
+                <p>Click the link in the email to verify your account.</p>
+                <p className="mt-2">Once verified, you can sign in to your account.</p>
+              </div>
+              <Button 
+                onClick={() => setShowEmailConfirmation(false)} 
+                variant="outline" 
+                className="w-full"
+              >
+                Back to Sign In
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <LandingFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -192,7 +230,7 @@ const Auth = () => {
                         <FormControl>
                           <div className="relative">
                             <Input type="email" placeholder="doctor@example.com" {...field} />
-                            {signUpEmail && z.string().email().safeParse(signUpEmail).success && (
+                            {field.value && z.string().email().safeParse(field.value).success && (
                               <Check className="absolute right-3 top-3 h-4 w-4 text-green-600" />
                             )}
                           </div>
