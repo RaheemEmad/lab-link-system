@@ -60,6 +60,16 @@ serve(async (req) => {
 
     console.log(`Role ${role} assigned to user ${user.id}`);
 
+    // Log the role assignment for audit trail
+    await supabaseClient.rpc('log_audit_event', {
+      action_type_param: 'role_assignment',
+      table_name_param: 'user_roles',
+      metadata_param: {
+        role: role,
+        timestamp: new Date().toISOString()
+      }
+    });
+
     return new Response(
       JSON.stringify({ 
         success: true, 
