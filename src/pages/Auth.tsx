@@ -63,9 +63,31 @@ const Auth = () => {
   const signInEmail = signInForm.watch("email");
 
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
+    const checkUserStatus = async () => {
+      if (!user) return;
+
+      // Check if user has completed onboarding
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", user.id)
+        .single();
+
+      // Check if user has a role
+      const { data: userRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!userRole || !profile?.onboarding_completed) {
+        navigate("/onboarding");
+      } else {
+        navigate("/dashboard");
+      }
+    };
+
+    checkUserStatus();
   }, [user, navigate]);
 
   const handleSignUp = async (values: SignUpValues) => {
@@ -82,23 +104,9 @@ const Auth = () => {
   const handleSignIn = async (values: SignInValues) => {
     setIsLoading(true);
     const { error } = await signIn(values.email, values.password);
-    
-    if (!error && user) {
-      // Check if profile is complete
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("onboarding_completed")
-        .eq("id", user.id)
-        .single();
-      
-      if (profile && !profile.onboarding_completed) {
-        navigate("/profile-completion");
-        setIsLoading(false);
-        return;
-      }
-    }
-    
     setIsLoading(false);
+    
+    // Navigation is handled by the useEffect hook above
   };
 
   const handleGoogleSignIn = async () => {

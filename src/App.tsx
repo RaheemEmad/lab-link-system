@@ -18,6 +18,7 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import ProfileCompletion from "./pages/ProfileCompletion";
+import Onboarding from "./pages/Onboarding";
 import About from "./pages/About";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -46,6 +47,7 @@ const AppContent = () => {
         <Route path="/lab-admin" element={<LabAdmin />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/profile-completion" element={<ProfileCompletion />} />
         <Route path="/new-order" element={<NewOrder />} />
         <Route path="/dashboard" element={<Dashboard />} />
