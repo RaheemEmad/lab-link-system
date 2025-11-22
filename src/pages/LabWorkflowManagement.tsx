@@ -48,6 +48,8 @@ interface Order {
   biological_notes: string | null;
   teeth_number: string;
   teeth_shade: string;
+  html_export: string | null;
+  screenshot_url: string | null;
 }
 
 const LabWorkflowManagement = () => {
@@ -420,8 +422,8 @@ const OrderWorkflowCard = ({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
             <CardTitle className="flex items-center gap-2">
               Order {order.order_number}
               {order.urgency === 'Urgent' && (
@@ -432,9 +434,26 @@ const OrderWorkflowCard = ({
               {order.patient_name} • Dr. {order.doctor_name} • {order.restoration_type}
             </CardDescription>
           </div>
-          <Badge variant={getStatusColor(order.status)}>
-            {order.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {order.html_export && (
+              <div className="relative w-16 h-16 rounded-md overflow-hidden border border-border bg-muted flex-shrink-0">
+                {order.screenshot_url ? (
+                  <img 
+                    src={order.screenshot_url} 
+                    alt="HTML Preview" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+            )}
+            <Badge variant={getStatusColor(order.status)}>
+              {order.status}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

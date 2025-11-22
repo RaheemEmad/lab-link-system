@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -51,6 +51,8 @@ interface Order {
   urgency: string;
   status: OrderStatus;
   timestamp: string;
+  html_export: string | null;
+  screenshot_url: string | null;
 }
 
 const statusColors: Record<OrderStatus, string> = {
@@ -164,10 +166,7 @@ const OrderDashboard = () => {
   };
 
   const handleEdit = (orderId: string) => {
-    // Navigate to edit page (you can create this later)
-    toast.info("Edit functionality coming soon", {
-      description: "Order ID: " + orderId,
-    });
+    navigate(`/edit-order/${orderId}`);
   };
 
   const handleStatusUpdate = (order: Order) => {
@@ -324,13 +323,14 @@ const OrderDashboard = () => {
                   <TableHead>Teeth</TableHead>
                   <TableHead>Urgency</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Preview</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDoctor ? 8 : 9} className="text-center text-muted-foreground">
+                    <TableCell colSpan={isDoctor ? 9 : 10} className="text-center text-muted-foreground">
                       No orders found
                     </TableCell>
                   </TableRow>
@@ -352,6 +352,23 @@ const OrderDashboard = () => {
                         <Badge variant="outline" className={statusColors[order.status]}>
                           {order.status}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {order.html_export && (
+                          <div className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted">
+                            {order.screenshot_url ? (
+                              <img 
+                                src={order.screenshot_url} 
+                                alt="HTML Preview" 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
