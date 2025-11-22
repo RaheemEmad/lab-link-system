@@ -461,6 +461,7 @@ export type Database = {
           photos_link: string | null
           price: number | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
+          screenshot_url: string | null
           shade_system: string | null
           shipment_tracking: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -490,6 +491,7 @@ export type Database = {
           photos_link?: string | null
           price?: number | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
+          screenshot_url?: string | null
           shade_system?: string | null
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -519,6 +521,7 @@ export type Database = {
           photos_link?: string | null
           price?: number | null
           restoration_type?: Database["public"]["Enums"]["restoration_type"]
+          screenshot_url?: string | null
           shade_system?: string | null
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]

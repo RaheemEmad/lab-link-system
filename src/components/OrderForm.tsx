@@ -284,6 +284,72 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     return uploadedPaths;
   };
 
+  const captureHtmlScreenshot = async (htmlContent: string): Promise<string | null> => {
+    try {
+      // Dynamically import html2canvas to avoid build issues
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Create a hidden iframe to render the HTML
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.left = '-9999px';
+      iframe.style.width = '1024px';
+      iframe.style.height = '768px';
+      document.body.appendChild(iframe);
+
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        throw new Error('Failed to access iframe document');
+      }
+
+      // Write HTML content to iframe
+      iframeDoc.open();
+      iframeDoc.write(htmlContent);
+      iframeDoc.close();
+
+      // Wait for content to load
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Capture screenshot using html2canvas
+      const canvas = await html2canvas(iframeDoc.body, {
+        width: 1024,
+        height: 768,
+        scale: 0.5, // Reduce size for thumbnail
+        logging: false,
+      });
+
+      // Remove iframe
+      document.body.removeChild(iframe);
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error('Failed to create blob'))),
+          'image/png',
+          0.8
+        );
+      });
+
+      // Upload to Supabase storage
+      const fileName = `${user!.id}/${Date.now()}_screenshot.png`;
+      const { data, error } = await supabase.storage
+        .from('order-screenshots')
+        .upload(fileName, blob);
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('order-screenshots')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Screenshot capture failed:', error);
+      return null;
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
     if (!user) {
       toast.error("You must be logged in to submit an order");
