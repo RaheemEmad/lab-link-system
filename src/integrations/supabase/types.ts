@@ -361,6 +361,48 @@ export type Database = {
           },
         ]
       }
+      order_edit_history: {
+        Row: {
+          change_summary: string | null
+          changed_at: string
+          changed_by: string
+          changed_fields: Json
+          id: string
+          order_id: string
+        }
+        Insert: {
+          change_summary?: string | null
+          changed_at?: string
+          changed_by: string
+          changed_fields: Json
+          id?: string
+          order_id: string
+        }
+        Update: {
+          change_summary?: string | null
+          changed_at?: string
+          changed_by?: string
+          changed_fields?: Json
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_changed_by"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_edit_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_notes: {
         Row: {
           created_at: string
