@@ -13,22 +13,28 @@ serve(async (req) => {
   }
 
   try {
+    // Get the authorization header first
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    // Create Supabase client with user's JWT token for RLS
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
         auth: {
           autoRefreshToken: false,
           persistSession: false,
         },
       }
     );
-
-    // Get the authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
 
     // Verify the user's JWT
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
