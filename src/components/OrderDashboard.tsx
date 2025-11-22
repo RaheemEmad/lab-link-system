@@ -240,7 +240,7 @@ const OrderDashboard = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4" data-tour="stats-cards">
         <Card>
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Total Orders</CardTitle>
@@ -284,7 +284,7 @@ const OrderDashboard = () => {
           <CardTitle>All Orders</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row" data-tour="search-filter">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -312,7 +312,7 @@ const OrderDashboard = () => {
           </div>
 
           {/* Orders Table - Scrollable on mobile */}
-          <div className="rounded-md border overflow-x-auto">
+          <div className="rounded-md border overflow-x-auto" data-tour="orders-table">
             <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow>

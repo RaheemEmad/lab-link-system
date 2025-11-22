@@ -739,6 +739,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -779,6 +803,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_and_award_achievement: {
+        Args: { achievement_id_param: string; user_id_param?: string }
+        Returns: boolean
+      }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       complete_doctor_onboarding: {
         Args: {
