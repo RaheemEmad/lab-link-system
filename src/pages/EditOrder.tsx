@@ -41,6 +41,7 @@ const EditOrder = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [originalData, setOriginalData] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -102,7 +103,7 @@ const EditOrder = () => {
         return;
       }
 
-      form.reset({
+      const formData = {
         doctorName: data.doctor_name,
         patientName: data.patient_name,
         restorationType: data.restoration_type as any,
@@ -113,7 +114,10 @@ const EditOrder = () => {
         urgency: data.urgency as any,
         assignedLabId: data.assigned_lab_id,
         htmlExport: data.html_export || "",
-      });
+      };
+      
+      form.reset(formData);
+      setOriginalData(formData);
     } catch (error: any) {
       console.error('Error fetching order:', error);
       toast.error("Failed to load order", {
@@ -127,6 +131,14 @@ const EditOrder = () => {
 
   const onSubmit = async (data: FormValues) => {
     if (!orderId) return;
+
+    // Check if any data has changed
+    if (originalData && JSON.stringify(data) === JSON.stringify(originalData)) {
+      toast.error("No changes detected", {
+        description: "Please modify at least one field before saving"
+      });
+      return;
+    }
 
     setIsSaving(true);
     try {
@@ -385,11 +397,34 @@ const EditOrder = () => {
                       <FormItem>
                         <FormLabel>HTML Export (Optional)</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Paste HTML content or URL..."
-                            className="min-h-[100px] font-mono text-xs"
-                            {...field}
-                          />
+                          <div className="space-y-2">
+                            <Textarea
+                              placeholder="Paste HTML content or URL..."
+                              className="min-h-[100px] font-mono text-xs"
+                              {...field}
+                            />
+                            {field.value && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const isUrl = field.value.startsWith('http://') || field.value.startsWith('https://');
+                                  if (isUrl) {
+                                    window.open(field.value, '_blank', 'noopener,noreferrer');
+                                  } else {
+                                    const previewWindow = window.open('', '_blank');
+                                    if (previewWindow) {
+                                      previewWindow.document.write(field.value);
+                                      previewWindow.document.close();
+                                    }
+                                  }
+                                }}
+                              >
+                                Preview HTML
+                              </Button>
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
