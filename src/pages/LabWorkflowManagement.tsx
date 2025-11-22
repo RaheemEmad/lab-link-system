@@ -436,7 +436,22 @@ const OrderWorkflowCard = ({
           </div>
           <div className="flex items-center gap-2">
             {order.html_export && (
-              <div className="relative w-16 h-16 rounded-md overflow-hidden border border-border bg-muted flex-shrink-0">
+              <button
+                onClick={() => {
+                  const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
+                  if (isUrl) {
+                    window.open(order.html_export!, '_blank', 'noopener,noreferrer');
+                  } else {
+                    const previewWindow = window.open('', '_blank');
+                    if (previewWindow && order.html_export) {
+                      previewWindow.document.write(order.html_export);
+                      previewWindow.document.close();
+                    }
+                  }
+                }}
+                className="relative w-16 h-16 rounded-md overflow-hidden border border-border bg-muted flex-shrink-0 hover:border-primary transition-colors cursor-pointer"
+                title="Click to preview HTML export"
+              >
                 {order.screenshot_url ? (
                   <img 
                     src={order.screenshot_url} 
@@ -448,7 +463,7 @@ const OrderWorkflowCard = ({
                     <FileText className="h-6 w-6 text-muted-foreground" />
                   </div>
                 )}
-              </div>
+              </button>
             )}
             <Badge variant={getStatusColor(order.status)}>
               {order.status}
