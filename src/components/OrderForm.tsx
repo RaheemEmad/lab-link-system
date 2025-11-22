@@ -597,34 +597,19 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                           // Check if it's a URL
                           const isUrl = /^https?:\/\/.+/i.test(content);
                           
-                          const previewWindow = window.open('', '_blank', 'width=1024,height=768');
-                          if (!previewWindow) {
-                            toast.error('Failed to open preview window. Please allow popups.');
-                            return;
-                          }
-                          
                           if (isUrl) {
-                            // For URLs, use an iframe to avoid CORS issues
-                            previewWindow.document.write(`
-                              <!DOCTYPE html>
-                              <html>
-                                <head>
-                                  <title>HTML Preview</title>
-                                  <style>
-                                    body { margin: 0; padding: 0; overflow: hidden; }
-                                    iframe { width: 100%; height: 100vh; border: none; }
-                                  </style>
-                                </head>
-                                <body>
-                                  <iframe src="${content}" sandbox="allow-scripts allow-same-origin"></iframe>
-                                </body>
-                              </html>
-                            `);
+                            // For URLs, open directly in a new tab
+                            window.open(content, '_blank', 'noopener,noreferrer');
                           } else {
-                            // For HTML content, display it directly
+                            // For HTML content, render in a new window
+                            const previewWindow = window.open('', '_blank', 'width=1024,height=768');
+                            if (!previewWindow) {
+                              toast.error('Failed to open preview window. Please allow popups.');
+                              return;
+                            }
                             previewWindow.document.write(content);
+                            previewWindow.document.close();
                           }
-                          previewWindow.document.close();
                         }}
                         className="text-xs"
                       >
@@ -640,7 +625,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                     />
                   </FormControl>
                   <FormDescription className="text-xs">
-                    Paste HTML content directly or provide a URL to preview before submitting
+                    Paste HTML content directly or provide a URL to open it in a new tab
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
