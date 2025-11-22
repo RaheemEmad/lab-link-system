@@ -13,8 +13,9 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { Progress } from "@/components/ui/progress";
 import { Building2, Stethoscope, ArrowRight } from "lucide-react";
+import WelcomeAnimation from "@/components/onboarding/WelcomeAnimation";
 
-type OnboardingStep = "role" | "profile";
+type OnboardingStep = "role" | "profile" | "welcome";
 
 const Onboarding = () => {
   const { user, session } = useAuth();
@@ -114,7 +115,7 @@ const Onboarding = () => {
     },
     onSuccess: () => {
       toast.success("Onboarding completed successfully!");
-      navigate('/dashboard');
+      setStep("welcome");
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to complete onboarding");
@@ -144,7 +145,17 @@ const Onboarding = () => {
     setLoading(false);
   };
 
-  const progress = step === "role" ? 50 : 100;
+  const progress = step === "role" ? 33 : step === "profile" ? 66 : 100;
+
+  // Show welcome animation after onboarding
+  if (step === "welcome" && selectedRole) {
+    return (
+      <WelcomeAnimation 
+        role={selectedRole} 
+        userName={user?.user_metadata?.full_name}
+      />
+    );
+  }
 
   return (
     <>

@@ -26,11 +26,12 @@ const RoleGuard = ({ children, allowedRoles, redirectTo = "/dashboard" }: RoleGu
       }
 
       try {
-        // Check user's role
-        const { data: userRoles, error } = await supabase
+        // Check user's role using maybeSingle to handle no results
+        const { data: userRole, error } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching user role:', error);
@@ -39,10 +40,14 @@ const RoleGuard = ({ children, allowedRoles, redirectTo = "/dashboard" }: RoleGu
           return;
         }
 
+        // If no role found, redirect to onboarding
+        if (!userRole) {
+          navigate('/onboarding');
+          return;
+        }
+
         // Check if user has any of the allowed roles
-        const userHasAllowedRole = userRoles?.some(
-          (ur) => allowedRoles.includes(ur.role as any)
-        );
+        const userHasAllowedRole = allowedRoles.includes(userRole.role as any);
 
         if (!userHasAllowedRole) {
           toast.error("You don't have permission to access this page");
