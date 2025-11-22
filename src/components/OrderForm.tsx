@@ -27,7 +27,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const formSchema = z.object({
   doctorName: z.string().min(2, "Doctor name is required").max(100),
   patientName: z.string().min(2, "Patient name is required").max(100),
-  restorationType: z.enum(["Crown", "Bridge", "Zirconia Layer", "Zirco-Max"]),
+  restorationType: z.enum(["Zirconia", "Zirconia Layer", "Zirco-Max", "PFM", "Acrylic", "E-max"]),
   teethShade: z.string().min(1, "Shade is required").max(50),
   shadeSystem: z.enum(["VITA Classical", "VITA 3D-Master"]),
   teethNumber: z.string().min(1, "At least one tooth must be selected").max(100),
@@ -39,7 +39,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const restorationTypes = ["Crown", "Bridge", "Zirconia Layer", "Zirco-Max"] as const;
+const restorationTypes = ["Zirconia", "Zirconia Layer", "Zirco-Max", "PFM", "Acrylic", "E-max"] as const;
 
 interface OrderFormProps {
   onSubmitSuccess?: () => void;
@@ -65,7 +65,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     defaultValues: {
       doctorName: "",
       patientName: "",
-      restorationType: "Crown",
+      restorationType: "Zirconia",
       teethShade: "",
       shadeSystem: "VITA Classical",
       teethNumber: "",
@@ -584,7 +584,26 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
               name="htmlExport"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>HTML Export (Optional)</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>HTML Export (Optional)</FormLabel>
+                    {field.value && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const previewWindow = window.open('', '_blank');
+                          if (previewWindow) {
+                            previewWindow.document.write(field.value);
+                            previewWindow.document.close();
+                          }
+                        }}
+                        className="text-xs"
+                      >
+                        Preview HTML
+                      </Button>
+                    )}
+                  </div>
                   <FormControl>
                     <Textarea
                       placeholder="Paste HTML export from lab's visual system or provide a link..."
@@ -592,6 +611,9 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription className="text-xs">
+                    Paste HTML content to preview it before submitting
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

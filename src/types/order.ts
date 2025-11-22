@@ -6,15 +6,12 @@ export type OrderStatus =
   | "Delivered";
 
 export type RestorationType = 
-  | "Crown"
-  | "Bridge"
+  | "Zirconia"
   | "Zirconia Layer"
   | "Zirco-Max"
-  | "Zirconia"
-  | "E-max"
   | "PFM"
-  | "Metal"
-  | "Acrylic";
+  | "Acrylic"
+  | "E-max";
 
 export type UrgencyLevel = "Normal" | "Urgent";
 
