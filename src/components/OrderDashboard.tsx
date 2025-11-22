@@ -355,7 +355,22 @@ const OrderDashboard = () => {
                       </TableCell>
                       <TableCell>
                         {order.html_export && (
-                          <div className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted">
+                          <button
+                            onClick={() => {
+                              const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
+                              if (isUrl) {
+                                window.open(order.html_export!, '_blank', 'noopener,noreferrer');
+                              } else {
+                                const previewWindow = window.open('', '_blank');
+                                if (previewWindow && order.html_export) {
+                                  previewWindow.document.write(order.html_export);
+                                  previewWindow.document.close();
+                                }
+                              }
+                            }}
+                            className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted hover:border-primary transition-colors cursor-pointer"
+                            title="Click to preview HTML export"
+                          >
                             {order.screenshot_url ? (
                               <img 
                                 src={order.screenshot_url} 
@@ -367,7 +382,7 @@ const OrderDashboard = () => {
                                 <FileText className="h-5 w-5 text-muted-foreground" />
                               </div>
                             )}
-                          </div>
+                          </button>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

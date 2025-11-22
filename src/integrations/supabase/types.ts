@@ -475,6 +475,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_changed_by_profile"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "order_status_history_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
