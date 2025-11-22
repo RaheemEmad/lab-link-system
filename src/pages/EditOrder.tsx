@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -58,6 +59,45 @@ const EditOrder = () => {
       htmlExport: "",
     },
   });
+
+  // Watch form values to detect changes
+  const currentValues = form.watch();
+
+  // Helper function to check if a field was modified
+  const isFieldModified = (fieldName: keyof FormValues): boolean => {
+    if (!originalData) return false;
+    return JSON.stringify(currentValues[fieldName]) !== JSON.stringify(originalData[fieldName]);
+  };
+
+  // Get modified fields summary
+  const getModifiedFields = (data: FormValues): Record<string, { old: any; new: any }> => {
+    if (!originalData) return {};
+    
+    const changes: Record<string, { old: any; new: any }> = {};
+    const fieldLabels: Record<keyof FormValues, string> = {
+      doctorName: "Doctor Name",
+      patientName: "Patient Name",
+      restorationType: "Restoration Type",
+      teethShade: "Teeth Shade",
+      shadeSystem: "Shade System",
+      teethNumber: "Teeth Number",
+      biologicalNotes: "Biological Notes",
+      urgency: "Urgency",
+      assignedLabId: "Assigned Lab",
+      htmlExport: "HTML Export",
+    };
+
+    (Object.keys(fieldLabels) as Array<keyof FormValues>).forEach((key) => {
+      if (JSON.stringify(data[key]) !== JSON.stringify(originalData[key])) {
+        changes[fieldLabels[key]] = {
+          old: originalData[key] || "Not set",
+          new: data[key] || "Not set",
+        };
+      }
+    });
+
+    return changes;
+  };
 
   useEffect(() => {
     if (!user) {
@@ -142,7 +182,12 @@ const EditOrder = () => {
 
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      // Get modified fields for history tracking
+      const modifiedFields = getModifiedFields(data);
+      const changeSummary = Object.keys(modifiedFields).join(", ");
+
+      // Update the order
+      const { error: updateError } = await supabase
         .from('orders')
         .update({
           doctor_name: data.doctorName,
@@ -159,7 +204,22 @@ const EditOrder = () => {
         })
         .eq('id', orderId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Log the edit to history
+      const { error: historyError } = await supabase
+        .from('order_edit_history')
+        .insert({
+          order_id: orderId,
+          changed_by: user!.id,
+          changed_fields: modifiedFields,
+          change_summary: `Updated: ${changeSummary}`,
+        });
+
+      if (historyError) {
+        console.error('Failed to log edit history:', historyError);
+        // Don't fail the whole operation if history logging fails
+      }
 
       toast.success("Order updated successfully!");
       navigate("/dashboard");
@@ -224,7 +284,12 @@ const EditOrder = () => {
                       name="doctorName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Doctor Name</FormLabel>
+                          <FormLabel className="flex items-center gap-2">
+                            Doctor Name
+                            {isFieldModified("doctorName") && (
+                              <Badge variant="secondary" className="text-xs">Modified</Badge>
+                            )}
+                          </FormLabel>
                           <FormControl>
                             <Input placeholder="Dr. Smith" {...field} />
                           </FormControl>
@@ -238,7 +303,12 @@ const EditOrder = () => {
                       name="patientName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Patient Name</FormLabel>
+                          <FormLabel className="flex items-center gap-2">
+                            Patient Name
+                            {isFieldModified("patientName") && (
+                              <Badge variant="secondary" className="text-xs">Modified</Badge>
+                            )}
+                          </FormLabel>
                           <FormControl>
                             <Input placeholder="John Doe" {...field} />
                           </FormControl>
@@ -253,7 +323,12 @@ const EditOrder = () => {
                     name="restorationType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Restoration Type</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          Restoration Type
+                          {isFieldModified("restorationType") && (
+                            <Badge variant="secondary" className="text-xs">Modified</Badge>
+                          )}
+                        </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -279,7 +354,12 @@ const EditOrder = () => {
                     name="teethNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Select Teeth</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          Select Teeth
+                          {isFieldModified("teethNumber") && (
+                            <Badge variant="secondary" className="text-xs">Modified</Badge>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <ToothSelector value={field.value} onChange={field.onChange} />
                         </FormControl>
@@ -293,7 +373,12 @@ const EditOrder = () => {
                     name="shadeSystem"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Shade System</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          Shade System
+                          {isFieldModified("shadeSystem") && (
+                            <Badge variant="secondary" className="text-xs">Modified</Badge>
+                          )}
+                        </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -315,7 +400,12 @@ const EditOrder = () => {
                     name="teethShade"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Teeth Shade</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          Teeth Shade
+                          {isFieldModified("teethShade") && (
+                            <Badge variant="secondary" className="text-xs">Modified</Badge>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <ShadeSelector
                             value={field.value}
@@ -333,7 +423,12 @@ const EditOrder = () => {
                     name="biologicalNotes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Biological Notes (Optional)</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          Biological Notes (Optional)
+                          {isFieldModified("biologicalNotes") && (
+                            <Badge variant="secondary" className="text-xs">Modified</Badge>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Any specific requirements or notes..."
@@ -352,7 +447,12 @@ const EditOrder = () => {
                       name="urgency"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Urgency Level</FormLabel>
+                          <FormLabel className="flex items-center gap-2">
+                            Urgency Level
+                            {isFieldModified("urgency") && (
+                              <Badge variant="secondary" className="text-xs">Modified</Badge>
+                            )}
+                          </FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -374,7 +474,12 @@ const EditOrder = () => {
                       name="assignedLabId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Assign to Lab (Optional)</FormLabel>
+                          <FormLabel className="flex items-center gap-2">
+                            Assign to Lab (Optional)
+                            {isFieldModified("assignedLabId") && (
+                              <Badge variant="secondary" className="text-xs">Modified</Badge>
+                            )}
+                          </FormLabel>
                           <FormControl>
                             <LabSelector
                               value={field.value}
@@ -395,7 +500,12 @@ const EditOrder = () => {
                     name="htmlExport"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>HTML Export (Optional)</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          HTML Export (Optional)
+                          {isFieldModified("htmlExport") && (
+                            <Badge variant="secondary" className="text-xs">Modified</Badge>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <div className="space-y-2">
                             <Textarea
