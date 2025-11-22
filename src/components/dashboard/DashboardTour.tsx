@@ -1,40 +1,25 @@
 import { useState, useEffect } from "react";
 import Joyride, { CallBackProps, STATUS, Step } from "react-joyride";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardTourProps {
   userRole: string;
+  run: boolean;
+  onComplete: () => void;
 }
 
-export function DashboardTour({ userRole }: DashboardTourProps) {
-  const [run, setRun] = useState(false);
+export function DashboardTour({ userRole, run, onComplete }: DashboardTourProps) {
   const { user } = useAuth();
-
-  useEffect(() => {
-    const checkTourStatus = async () => {
-      if (!user?.id) return;
-
-      // Check if user has seen the tour
-      const tourKey = `dashboard_tour_seen_${user.id}`;
-      const hasSeenTour = localStorage.getItem(tourKey);
-
-      if (!hasSeenTour) {
-        // Small delay to let dashboard render
-        setTimeout(() => setRun(true), 1000);
-      }
-    };
-
-    checkTourStatus();
-  }, [user]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    if (finishedStatuses.includes(status) && user?.id) {
-      localStorage.setItem(`dashboard_tour_seen_${user.id}`, "true");
-      setRun(false);
+    if (finishedStatuses.includes(status)) {
+      if (user?.id) {
+        localStorage.setItem(`dashboard_tour_seen_${user.id}`, "true");
+      }
+      onComplete();
     }
   };
 
@@ -178,27 +163,56 @@ export function DashboardTour({ userRole }: DashboardTourProps) {
       callback={handleJoyrideCallback}
       styles={{
         options: {
-          primaryColor: "hsl(221 100% 60%)",
-          textColor: "hsl(215 20% 24%)",
-          backgroundColor: "hsl(0 0% 100%)",
-          arrowColor: "hsl(0 0% 100%)",
-          zIndex: 10000,
+          primaryColor: "hsl(var(--primary))",
+          textColor: "hsl(var(--foreground))",
+          backgroundColor: "hsl(var(--background))",
+          arrowColor: "hsl(var(--background))",
+          zIndex: 100000,
+          overlayColor: "hsl(var(--background) / 0.85)",
+        },
+        overlay: {
+          backdropFilter: "blur(4px)",
         },
         tooltip: {
-          borderRadius: 12,
-          padding: 20,
+          borderRadius: 16,
+          padding: 24,
+          boxShadow: "0 20px 60px -15px hsl(var(--primary) / 0.3), 0 0 0 1px hsl(var(--border))",
+        },
+        tooltipContent: {
+          padding: "8px 0",
         },
         buttonNext: {
-          backgroundColor: "hsl(221 100% 60%)",
+          backgroundColor: "hsl(var(--primary))",
           borderRadius: 8,
-          padding: "8px 16px",
+          padding: "10px 20px",
+          fontSize: "14px",
+          fontWeight: 600,
+          transition: "all 0.2s ease",
         },
         buttonBack: {
-          color: "hsl(215 20% 50%)",
-          marginRight: 10,
+          color: "hsl(var(--muted-foreground))",
+          marginRight: 12,
+          fontSize: "14px",
         },
         buttonSkip: {
-          color: "hsl(215 20% 50%)",
+          color: "hsl(var(--muted-foreground))",
+          fontSize: "14px",
+        },
+      }}
+      locale={{
+        back: "← Back",
+        close: "Close",
+        last: "Finish Tour ✨",
+        next: "Next →",
+        skip: "Skip Tour",
+      }}
+      floaterProps={{
+        disableAnimation: false,
+        styles: {
+          arrow: {
+            length: 8,
+            spread: 16,
+          },
         },
       }}
     />

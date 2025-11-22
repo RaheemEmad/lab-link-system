@@ -45,6 +45,7 @@ export function AchievementToast() {
           spread: 70,
           origin: { y: 0.6 },
           colors: [achievementData.color, "#3269FF", "#1DCC6C"],
+          zIndex: 50000, // Lower than tour overlay
         });
 
         // Show toast notification
