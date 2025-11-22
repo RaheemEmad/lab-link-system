@@ -538,48 +538,60 @@ export type Database = {
       }
       profiles: {
         Row: {
+          business_address: string | null
           clinic_name: string | null
           created_at: string
           email: string
           email_notifications: boolean | null
           full_name: string | null
           id: string
+          lab_license_number: string | null
+          lab_name: string | null
           notification_new_notes: boolean | null
           notification_status_change: boolean | null
           onboarding_completed: boolean | null
           phone: string | null
           sms_notifications: boolean | null
           specialty: string | null
+          tax_id: string | null
           updated_at: string
         }
         Insert: {
+          business_address?: string | null
           clinic_name?: string | null
           created_at?: string
           email: string
           email_notifications?: boolean | null
           full_name?: string | null
           id: string
+          lab_license_number?: string | null
+          lab_name?: string | null
           notification_new_notes?: boolean | null
           notification_status_change?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
           sms_notifications?: boolean | null
           specialty?: string | null
+          tax_id?: string | null
           updated_at?: string
         }
         Update: {
+          business_address?: string | null
           clinic_name?: string | null
           created_at?: string
           email?: string
           email_notifications?: boolean | null
           full_name?: string | null
           id?: string
+          lab_license_number?: string | null
+          lab_name?: string | null
           notification_new_notes?: boolean | null
           notification_status_change?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
           sms_notifications?: boolean | null
           specialty?: string | null
+          tax_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -726,6 +738,26 @@ export type Database = {
     }
     Functions: {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      complete_doctor_onboarding: {
+        Args: {
+          clinic_name_param: string
+          phone_param: string
+          specialty_param: string
+          user_id_param: string
+        }
+        Returns: undefined
+      }
+      complete_lab_onboarding: {
+        Args: {
+          address_param: string
+          lab_license_param: string
+          lab_name_param: string
+          phone_param: string
+          tax_id_param: string
+          user_id_param: string
+        }
+        Returns: undefined
+      }
       complete_onboarding: {
         Args: {
           clinic_name_param: string
@@ -745,6 +777,13 @@ export type Database = {
       }
       initialize_qc_checklist: {
         Args: { order_id_param: string }
+        Returns: undefined
+      }
+      set_user_role: {
+        Args: {
+          role_param: Database["public"]["Enums"]["app_role"]
+          user_id_param: string
+        }
         Returns: undefined
       }
     }
