@@ -591,10 +591,47 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
+                        onClick={async () => {
+                          const content = field.value.trim();
+                          
+                          // Check if it's a URL
+                          const isUrl = /^https?:\/\/.+/i.test(content);
+                          
                           const previewWindow = window.open('', '_blank');
-                          if (previewWindow) {
-                            previewWindow.document.write(field.value);
+                          if (!previewWindow) {
+                            toast.error('Failed to open preview window');
+                            return;
+                          }
+                          
+                          if (isUrl) {
+                            // If it's a URL, fetch the HTML content
+                            try {
+                              previewWindow.document.write('<div style="padding: 20px; text-align: center;">Loading HTML from URL...</div>');
+                              
+                              const response = await fetch(content);
+                              if (!response.ok) {
+                                throw new Error('Failed to fetch HTML');
+                              }
+                              const html = await response.text();
+                              
+                              previewWindow.document.open();
+                              previewWindow.document.write(html);
+                              previewWindow.document.close();
+                            } catch (error) {
+                              previewWindow.document.open();
+                              previewWindow.document.write(`
+                                <div style="padding: 20px; text-align: center; color: red;">
+                                  <h2>Error Loading HTML</h2>
+                                  <p>Failed to fetch HTML from the provided URL. This might be due to CORS restrictions.</p>
+                                  <p>Try pasting the HTML content directly instead of the URL.</p>
+                                </div>
+                              `);
+                              previewWindow.document.close();
+                              toast.error('Failed to fetch HTML from URL');
+                            }
+                          } else {
+                            // If it's HTML content, display it directly
+                            previewWindow.document.write(content);
                             previewWindow.document.close();
                           }
                         }}
@@ -606,13 +643,13 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                   </div>
                   <FormControl>
                     <Textarea
-                      placeholder="Paste HTML export from lab's visual system or provide a link..."
+                      placeholder="Paste HTML content or provide a URL to HTML export from lab's system..."
                       className="resize-none min-h-[80px] font-mono text-xs"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription className="text-xs">
-                    Paste HTML content to preview it before submitting
+                    Paste HTML content directly or provide a URL to preview before submitting
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
