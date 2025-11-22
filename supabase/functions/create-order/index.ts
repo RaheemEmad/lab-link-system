@@ -29,7 +29,7 @@ interface ValidationError {
   message: string;
 }
 
-const VALID_RESTORATION_TYPES = ['Crown', 'Bridge', 'Zirconia Layer', 'Zirco-Max'];
+const VALID_RESTORATION_TYPES = ['Zirconia', 'Zirconia Layer', 'Zirco-Max', 'PFM', 'Acrylic', 'E-max'];
 const VALID_SHADE_SYSTEMS = ['VITA Classical', 'VITA 3D-Master'];
 const VALID_URGENCY_LEVELS = ['Normal', 'Urgent'];
 
