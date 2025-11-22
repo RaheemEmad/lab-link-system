@@ -62,28 +62,43 @@ const Auth = () => {
   const signUpPassword = signUpForm.watch("password");
   const signInEmail = signInForm.watch("email");
 
+  // Check onboarding and role status when user changes
   useEffect(() => {
     const checkUserStatus = async () => {
       if (!user) return;
 
-      // Check if user has completed onboarding
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("onboarding_completed")
-        .eq("id", user.id)
-        .single();
+      try {
+        // Check if user has completed onboarding
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("id", user.id)
+          .maybeSingle();
 
-      // Check if user has a role
-      const { data: userRole } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          return;
+        }
 
-      if (!userRole || !profile?.onboarding_completed) {
-        navigate("/onboarding");
-      } else {
-        navigate("/dashboard");
+        // Check if user has a role
+        const { data: userRole, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (roleError) {
+          console.error('Error fetching role:', roleError);
+        }
+
+        // Redirect based on status
+        if (!profile?.onboarding_completed || !userRole) {
+          navigate("/onboarding");
+        } else {
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error('Error in user status check:', error);
       }
     };
 
