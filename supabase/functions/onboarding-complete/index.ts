@@ -102,6 +102,17 @@ serve(async (req) => {
 
     console.log(`Onboarding completed for user ${user.id} with role ${role}`);
 
+    // Log onboarding completion for audit trail
+    await supabaseClient.rpc('log_audit_event', {
+      action_type_param: 'onboarding_completed',
+      table_name_param: 'profiles',
+      record_id_param: user.id,
+      metadata_param: {
+        role: role,
+        timestamp: new Date().toISOString()
+      }
+    });
+
     return new Response(
       JSON.stringify({ 
         success: true,

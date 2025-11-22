@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       lab_performance_metrics: {
         Row: {
           approval_rate: number | null
@@ -778,6 +820,17 @@ export type Database = {
       initialize_qc_checklist: {
         Args: { order_id_param: string }
         Returns: undefined
+      }
+      log_audit_event: {
+        Args: {
+          action_type_param: string
+          ip_address_param?: string
+          metadata_param?: Json
+          record_id_param?: string
+          table_name_param: string
+          user_agent_param?: string
+        }
+        Returns: string
       }
       set_user_role: {
         Args: {
