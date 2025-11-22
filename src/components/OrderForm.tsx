@@ -591,49 +591,40 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={async () => {
+                        onClick={() => {
                           const content = field.value.trim();
                           
                           // Check if it's a URL
                           const isUrl = /^https?:\/\/.+/i.test(content);
                           
-                          const previewWindow = window.open('', '_blank');
+                          const previewWindow = window.open('', '_blank', 'width=1024,height=768');
                           if (!previewWindow) {
-                            toast.error('Failed to open preview window');
+                            toast.error('Failed to open preview window. Please allow popups.');
                             return;
                           }
                           
                           if (isUrl) {
-                            // If it's a URL, fetch the HTML content
-                            try {
-                              previewWindow.document.write('<div style="padding: 20px; text-align: center;">Loading HTML from URL...</div>');
-                              
-                              const response = await fetch(content);
-                              if (!response.ok) {
-                                throw new Error('Failed to fetch HTML');
-                              }
-                              const html = await response.text();
-                              
-                              previewWindow.document.open();
-                              previewWindow.document.write(html);
-                              previewWindow.document.close();
-                            } catch (error) {
-                              previewWindow.document.open();
-                              previewWindow.document.write(`
-                                <div style="padding: 20px; text-align: center; color: red;">
-                                  <h2>Error Loading HTML</h2>
-                                  <p>Failed to fetch HTML from the provided URL. This might be due to CORS restrictions.</p>
-                                  <p>Try pasting the HTML content directly instead of the URL.</p>
-                                </div>
-                              `);
-                              previewWindow.document.close();
-                              toast.error('Failed to fetch HTML from URL');
-                            }
+                            // For URLs, use an iframe to avoid CORS issues
+                            previewWindow.document.write(`
+                              <!DOCTYPE html>
+                              <html>
+                                <head>
+                                  <title>HTML Preview</title>
+                                  <style>
+                                    body { margin: 0; padding: 0; overflow: hidden; }
+                                    iframe { width: 100%; height: 100vh; border: none; }
+                                  </style>
+                                </head>
+                                <body>
+                                  <iframe src="${content}" sandbox="allow-scripts allow-same-origin"></iframe>
+                                </body>
+                              </html>
+                            `);
                           } else {
-                            // If it's HTML content, display it directly
+                            // For HTML content, display it directly
                             previewWindow.document.write(content);
-                            previewWindow.document.close();
                           }
+                          previewWindow.document.close();
                         }}
                         className="text-xs"
                       >
