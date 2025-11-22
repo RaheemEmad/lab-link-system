@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell, Package } from "lucide-react";
+import { Plus, Bell, Package, Compass } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -22,6 +22,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
+  const [runTour, setRunTour] = useState(false);
   const { playUrgentNotification } = useNotificationSound();
   const { 
     requestPermission, 
@@ -61,7 +62,7 @@ const Dashboard = () => {
   const unreadCount = notificationData?.count || 0;
   const hasUrgent = notificationData?.hasUrgent || false;
 
-  // Fetch user role
+  // Fetch user role and check if should show tour
   useEffect(() => {
     const fetchUserRole = async () => {
       if (!user?.id) return;
@@ -74,6 +75,13 @@ const Dashboard = () => {
 
       if (data?.role) {
         setUserRole(data.role);
+        
+        // Auto-start tour for first-time users
+        const tourKey = `dashboard_tour_seen_${user.id}`;
+        const hasSeenTour = localStorage.getItem(tourKey);
+        if (!hasSeenTour) {
+          setTimeout(() => setRunTour(true), 1500);
+        }
       }
     };
 
@@ -142,7 +150,7 @@ const Dashboard = () => {
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <FirstTimeModal open={showOnboarding} onClose={() => setShowOnboarding(false)} />
-        <DashboardTour userRole={userRole} />
+        <DashboardTour userRole={userRole} run={runTour} onComplete={() => setRunTour(false)} />
         <AchievementToast />
         <LandingNav />
         <TooltipProvider delayDuration={200}>
@@ -152,6 +160,24 @@ const Dashboard = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold">Order Dashboard</h1>
               
               <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setRunTour(true)}
+                      className="relative group overflow-hidden bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <Compass className="h-4 w-4 relative z-10 animate-pulse" />
+                      <span className="ml-2 relative z-10 font-semibold">Start Tour</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Take an interactive tour of the dashboard features</p>
+                  </TooltipContent>
+                </Tooltip>
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
