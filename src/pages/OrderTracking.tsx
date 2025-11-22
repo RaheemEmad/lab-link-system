@@ -21,7 +21,8 @@ import {
   AlertCircle,
   ExternalLink,
   ArrowLeft,
-  MessageSquare
+  MessageSquare,
+  FileText
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,6 +38,8 @@ interface Order {
   actual_delivery_date: string | null;
   shipment_tracking: string | null;
   assigned_lab_id: string | null;
+  html_export: string | null;
+  screenshot_url: string | null;
   labs: {
     name: string;
     contact_email: string;
@@ -106,6 +109,8 @@ const OrderTracking = () => {
           actual_delivery_date,
           shipment_tracking,
           assigned_lab_id,
+          html_export,
+          screenshot_url,
           labs (
             name,
             contact_email,
@@ -241,8 +246,8 @@ const OrderTracking = () => {
                 return (
                   <Card key={order.id} className={isUrgent ? 'border-destructive' : ''}>
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
                           <CardTitle className="flex items-center gap-2">
                             {getStatusIcon(order.status)}
                             Order {order.order_number}
@@ -254,9 +259,26 @@ const OrderTracking = () => {
                             {order.patient_name} • {order.restoration_type}
                           </CardDescription>
                         </div>
-                        <Badge variant={getStatusColor(order.status)}>
-                          {order.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          {order.html_export && (
+                            <div className="relative w-16 h-16 rounded-md overflow-hidden border border-border bg-muted flex-shrink-0">
+                              {order.screenshot_url ? (
+                                <img 
+                                  src={order.screenshot_url} 
+                                  alt="HTML Preview" 
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <FileText className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <Badge variant={getStatusColor(order.status)}>
+                            {order.status}
+                          </Badge>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
