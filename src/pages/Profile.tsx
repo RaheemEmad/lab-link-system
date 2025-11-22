@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Save, KeyRound, Bell } from "lucide-react";
+import { Save, KeyRound, Bell, Award } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,7 @@ import { SkeletonForm } from "@/components/ui/skeleton-card";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { z } from "zod";
+import { AchievementList } from "@/components/dashboard/AchievementBadge";
 
 const profileSchema = z.object({
   full_name: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
@@ -91,6 +92,24 @@ const Profile = () => {
 
       if (error) throw error;
       return data.role;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch user achievements
+  const { data: achievements = [] } = useQuery({
+    queryKey: ["user-achievements", user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("No user");
+
+      const { data, error } = await supabase
+        .from("user_achievements")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("earned_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user?.id,
   });
@@ -521,6 +540,22 @@ const Profile = () => {
                     <Save className="mr-2 h-4 w-4" />
                     {updateProfileMutation.isPending ? "Saving..." : "Save Preferences"}
                   </Button>
+                </CardContent>
+              </Card>
+
+              {/* Achievements Section */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Award className="h-5 w-5 text-primary" />
+                    <CardTitle>Your Achievements</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Track your milestones and accomplishments on LabLink
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AchievementList achievements={achievements} />
                 </CardContent>
               </Card>
             </div>

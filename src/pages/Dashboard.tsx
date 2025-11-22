@@ -15,10 +15,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
+import { DashboardTour } from "@/components/dashboard/DashboardTour";
+import { AchievementToast } from "@/components/dashboard/AchievementToast";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
   const { playUrgentNotification } = useNotificationSound();
   const { 
     requestPermission, 
@@ -57,6 +60,25 @@ const Dashboard = () => {
 
   const unreadCount = notificationData?.count || 0;
   const hasUrgent = notificationData?.hasUrgent || false;
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (!user?.id) return;
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (data?.role) {
+        setUserRole(data.role);
+      }
+    };
+
+    fetchUserRole();
+  }, [user]);
 
   // Check if this is first login and show onboarding modal
   useEffect(() => {
@@ -120,6 +142,8 @@ const Dashboard = () => {
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <FirstTimeModal open={showOnboarding} onClose={() => setShowOnboarding(false)} />
+        <DashboardTour userRole={userRole} />
+        <AchievementToast />
         <LandingNav />
         <TooltipProvider delayDuration={200}>
           <div className="flex-1 bg-secondary/30 py-6 sm:py-12">
@@ -130,7 +154,13 @@ const Dashboard = () => {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={() => navigate("/order-tracking")} className="flex-1 sm:flex-none">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/order-tracking")} 
+                      className="flex-1 sm:flex-none"
+                      data-tour="track-orders-btn"
+                    >
                       <Package className="h-4 w-4" />
                       <span className="ml-2">Track Orders</span>
                     </Button>
@@ -142,7 +172,13 @@ const Dashboard = () => {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => navigate("/notifications")} className="relative flex-1 sm:flex-none">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => navigate("/notifications")} 
+                      className="relative flex-1 sm:flex-none"
+                      data-tour="notifications-btn"
+                    >
                       <Bell className="h-4 w-4" />
                       <span className="ml-2">Notifications</span>
                       {unreadCount > 0 && <Badge variant={hasUrgent ? "destructive" : "default"} className={`absolute -top-1 -right-1 h-5 min-w-5 rounded-full flex items-center justify-center text-xs px-1.5 ${hasUrgent ? "animate-pulse" : ""}`}>
@@ -159,7 +195,11 @@ const Dashboard = () => {
                 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button onClick={() => navigate("/new-order")} className="flex-1 sm:flex-none">
+                    <Button 
+                      onClick={() => navigate("/new-order")} 
+                      className="flex-1 sm:flex-none"
+                      data-tour="new-order-btn"
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       New Order
                     </Button>
