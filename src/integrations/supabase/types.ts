@@ -89,6 +89,47 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_ai_generated: boolean | null
+          message_text: string
+          order_id: string
+          sender_id: string
+          sender_role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          message_text: string
+          order_id: string
+          sender_id: string
+          sender_role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          message_text?: string
+          order_id?: string
+          sender_id?: string
+          sender_role?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_application_audit: {
         Row: {
           action: string
