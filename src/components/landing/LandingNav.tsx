@@ -315,12 +315,26 @@ const LandingNav = () => {
                       )}
                       {link.label === "Marketplace" && userRole === 'lab_staff' && newOrdersCount && newOrdersCount > 0 && (
                         <motion.span 
-                          className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-gradient-to-r from-ocean-blue to-dark-teal rounded-full shadow-glow"
+                          className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-[10px] font-bold text-white bg-gradient-to-r from-ocean-blue to-dark-teal rounded-full shadow-lg border-2 border-background"
                           initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                          animate={{ 
+                            scale: 1,
+                            boxShadow: [
+                              "0 0 0 0 hsl(var(--primary) / 0.7)",
+                              "0 0 0 8px hsl(var(--primary) / 0)",
+                              "0 0 0 0 hsl(var(--primary) / 0)"
+                            ]
+                          }}
+                          transition={{ 
+                            scale: { type: "spring", stiffness: 500, damping: 25 },
+                            boxShadow: {
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: "easeOut"
+                            }
+                          }}
                         >
-                          {newOrdersCount}
+                          {newOrdersCount > 99 ? "99+" : newOrdersCount}
                         </motion.span>
                       )}
                     </button>
@@ -447,16 +461,32 @@ const LandingNav = () => {
                         <Bell className={`h-4 w-4 relative z-10 transition-all duration-300 ${hasUrgent ? 'animate-pulse text-destructive' : 'group-hover:scale-110 group-hover:text-ocean-blue'}`} />
                         {unreadCount > 0 && (
                           <motion.span 
-                            className={`absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs flex items-center justify-center font-medium shadow-md ${
+                            className={`absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg border-2 border-background ${
                               hasUrgent 
-                                ? 'bg-destructive text-destructive-foreground animate-pulse' 
+                                ? 'bg-destructive text-destructive-foreground' 
                                 : 'bg-ocean-blue text-white'
                             }`}
                             initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                            animate={{ 
+                              scale: 1,
+                              ...(hasUrgent && {
+                                boxShadow: [
+                                  "0 0 0 0 hsl(var(--destructive) / 0.7)",
+                                  "0 0 0 8px hsl(var(--destructive) / 0)",
+                                  "0 0 0 0 hsl(var(--destructive) / 0)"
+                                ]
+                              })
+                            }}
+                            transition={{ 
+                              scale: { type: "spring", stiffness: 500, damping: 25 },
+                              boxShadow: hasUrgent ? {
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeOut"
+                              } : {}
+                            }}
                           >
-                            {unreadCount}
+                            {unreadCount > 99 ? "99+" : unreadCount}
                           </motion.span>
                         )}
                       </Button>
@@ -485,13 +515,16 @@ const LandingNav = () => {
                           <p>{userRole === 'lab_staff' || userRole === 'admin' ? 'Lab Tools' : 'Lab Management'}</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="min-w-[200px] bg-background">
                         {doctorMenuItems.map((item) => (
                           <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href} className="flex items-center justify-between w-full">
+                            <Link to={item.href} className="flex items-center justify-between w-full cursor-pointer">
                               <span>{item.label}</span>
                               {item.badge && (
-                                <Badge variant="default" className="ml-2">
+                                <Badge 
+                                  variant="default" 
+                                  className="ml-2 min-w-[1.5rem] h-5 flex items-center justify-center px-1.5 bg-ocean-blue text-white font-bold text-xs"
+                                >
                                   {item.badge}
                                 </Badge>
                               )}
@@ -500,7 +533,7 @@ const LandingNav = () => {
                         ))}
                         {labStaffMenuItems.map((item) => (
                           <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href}>{item.label}</Link>
+                            <Link to={item.href} className="cursor-pointer">{item.label}</Link>
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
@@ -610,8 +643,8 @@ const LandingNav = () => {
                       >
                         <span>{link.label}</span>
                         {link.label === "Marketplace" && userRole === 'lab_staff' && newOrdersCount && newOrdersCount > 0 && (
-                          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-primary-foreground bg-primary rounded-full">
-                            {newOrdersCount}
+                          <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-[10px] font-bold text-white bg-ocean-blue rounded-full border-2 border-background">
+                            {newOrdersCount > 99 ? "99+" : newOrdersCount}
                           </span>
                         )}
                       </button>
@@ -637,9 +670,12 @@ const LandingNav = () => {
                           {unreadCount > 0 && (
                             <Badge 
                               variant={hasUrgent ? "destructive" : "default"}
-                              className={`h-5 min-w-5 rounded-full flex items-center justify-center text-xs px-1.5 ${
-                                hasUrgent ? "animate-pulse" : ""
+                              className={`h-5 min-w-[1.25rem] rounded-full flex items-center justify-center text-[10px] font-bold px-1.5 border-2 border-background ${
+                                hasUrgent ? "shadow-lg" : ""
                               }`}
+                              style={hasUrgent ? {
+                                animation: "pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+                              } : {}}
                             >
                               {unreadCount > 99 ? "99+" : unreadCount}
                             </Badge>
