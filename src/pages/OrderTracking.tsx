@@ -286,6 +286,7 @@ const OrderTracking = () => {
   }
 
   // Lab staff view - different UI
+  // Lab staff view with full timeline
   if (userRole === 'lab_staff') {
     return (
       <div className="min-h-screen flex flex-col">
@@ -431,6 +432,19 @@ const OrderTracking = () => {
         </div>
         <LandingFooter />
         <ScrollToTop />
+        
+        {/* Notes Dialog for Lab Staff */}
+        {selectedOrderForNotes && (
+          <OrderNotesDialog
+            orderId={selectedOrderForNotes}
+            orderNumber={orders.find(o => o.id === selectedOrderForNotes)?.order_number || ''}
+            open={notesDialogOpen}
+            onOpenChange={(open) => {
+              setNotesDialogOpen(open);
+              if (!open) setSelectedOrderForNotes(null);
+            }}
+          />
+        )}
       </div>
     );
   }
