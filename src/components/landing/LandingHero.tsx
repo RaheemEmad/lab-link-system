@@ -2,10 +2,26 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap, Building2, Stethoscope } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+
 
 const LandingHero = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const heroRef = useRef<HTMLElement>(null);
+  
+  // Parallax scroll animations
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  
+  // Different parallax speeds for depth
+  const orbY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const gridY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const floatingY = useTransform(scrollYProgress, [0, 1], ["0%", "80%"]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
   
   const stats = [
     { value: "2 min", label: "Setup Time" },
@@ -19,23 +35,40 @@ const LandingHero = () => {
     "Connect dentists with qualified labs instantly"
   ];
   return (
-    <section className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20">
-      {/* Animated gradient orbs */}
-      <div className="hidden sm:block absolute top-20 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-      <div className="hidden sm:block absolute bottom-20 right-10 w-64 h-64 sm:w-96 sm:h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+    <section ref={heroRef} className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20">
+      {/* Animated gradient orbs with parallax */}
+      <motion.div 
+        style={{ y: orbY }}
+        className="hidden sm:block absolute top-20 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" 
+        transition={{ type: "spring", stiffness: 50 }}
+      />
+      <motion.div 
+        style={{ y: orbY }}
+        className="hidden sm:block absolute bottom-20 right-10 w-64 h-64 sm:w-96 sm:h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" 
+        transition={{ type: "spring", stiffness: 50 }}
+      />
       
-      {/* Animated grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.03)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[size:32px_32px] sm:bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)] animate-fade-in" />
+      {/* Animated grid with parallax */}
+      <motion.div 
+        style={{ y: gridY }}
+        className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.03)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[size:32px_32px] sm:bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)] animate-fade-in" 
+      />
       
-      {/* Floating elements */}
-      <div className="hidden md:block absolute top-1/4 right-1/4 animate-[float_6s_ease-in-out_infinite]">
+      {/* Floating elements with parallax */}
+      <motion.div 
+        style={{ y: floatingY }}
+        className="hidden md:block absolute top-1/4 right-1/4 animate-[float_6s_ease-in-out_infinite]"
+      >
         <CheckCircle2 className="w-8 h-8 text-primary/30" />
-      </div>
-      <div className="hidden md:block absolute bottom-1/3 left-1/4 animate-[float_5s_ease-in-out_infinite]" style={{ animationDelay: '1s' }}>
+      </motion.div>
+      <motion.div 
+        style={{ y: floatingY }}
+        className="hidden md:block absolute bottom-1/3 left-1/4 animate-[float_5s_ease-in-out_infinite]" 
+      >
         <Zap className="w-6 h-6 text-accent/40" />
-      </div>
+      </motion.div>
       
-      <div className="container relative z-10 px-4 mx-auto">
+      <motion.div style={{ y: contentY }} className="container relative z-10 px-4 mx-auto">
         <div className="max-w-5xl mx-auto">
           <div className="text-center space-y-6 sm:space-y-8 md:space-y-10">
             
@@ -105,7 +138,7 @@ const LandingHero = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };
