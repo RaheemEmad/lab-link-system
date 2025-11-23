@@ -119,7 +119,18 @@ const NotificationHistory = () => {
     if (!notification.read) {
       await markAsReadMutation.mutateAsync(notification.id);
     }
-    navigate(`/dashboard?orderId=${notification.order_id}`);
+    
+    // Navigate based on notification type
+    if (notification.type === 'new_marketplace_order') {
+      // Marketplace notifications should open marketplace
+      navigate('/orders-marketplace');
+    } else if (notification.type === 'lab_request') {
+      // Lab application notifications should open lab requests page
+      navigate('/lab-requests');
+    } else {
+      // All other notifications open dashboard
+      navigate(`/dashboard?orderId=${notification.order_id}`);
+    }
   };
 
   const getNotificationIcon = (type: string) => {
@@ -130,6 +141,14 @@ const NotificationHistory = () => {
         return "📝";
       case "assignment":
         return "👤";
+      case "new_marketplace_order":
+        return "🏪";
+      case "lab_request":
+        return "📋";
+      case "request_accepted":
+        return "✅";
+      case "request_refused":
+        return "❌";
       default:
         return "🔔";
     }
