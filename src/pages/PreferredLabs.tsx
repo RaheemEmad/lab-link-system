@@ -19,7 +19,8 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
-import { PreferredLabsStack } from "@/components/preferred-labs/PreferredLabsStack";
+import { PreferredLabsList } from "@/components/preferred-labs/PreferredLabsList";
+import { AvailableLabsList } from "@/components/preferred-labs/AvailableLabsList";
 
 interface Lab {
   id: string;
@@ -161,7 +162,7 @@ const PreferredLabs = () => {
 
             <div className="grid gap-6 lg:grid-cols-2">
               
-              {/* Preferred Labs Stack */}
+              {/* Preferred Labs List */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -169,7 +170,7 @@ const PreferredLabs = () => {
                     My Preferred Labs
                   </CardTitle>
                   <CardDescription>
-                    Swipe or click arrows to browse (1 = highest priority)
+                    Your bookmarked labs ordered by priority
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -178,7 +179,7 @@ const PreferredLabs = () => {
                       Loading...
                     </div>
                   ) : preferredLabs && preferredLabs.length > 0 ? (
-                    <PreferredLabsStack
+                    <PreferredLabsList
                       preferredLabs={preferredLabs}
                       onRemove={(id) => removePreferredMutation.mutate(id)}
                     />
@@ -202,57 +203,15 @@ const PreferredLabs = () => {
                     Available Labs
                   </CardTitle>
                   <CardDescription>
-                    Select a lab to add to your preferred list
+                    Tap a lab to add it to your bookmarks
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {availableLabs && availableLabs.length > 0 ? (
-                    <div className="space-y-2">
-                      {availableLabs.map((lab) => (
-                        <Card 
-                          key={lab.id}
-                          className={`cursor-pointer transition-colors ${
-                            selectedLab === lab.id ? 'border-primary bg-primary/5' : 'hover:bg-accent/50'
-                          }`}
-                          onClick={() => setSelectedLab(lab.id)}
-                        >
-                          <CardContent className="p-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <p className="font-medium text-sm mb-1">{lab.name}</p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Badge variant="secondary" className="text-xs">
-                                    {lab.pricing_tier}
-                                  </Badge>
-                                  <div className="flex items-center gap-1">
-                                    <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                                    <span>{lab.performance_score?.toFixed(1)}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              {selectedLab === lab.id && (
-                                <Button
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    addPreferredMutation.mutate(lab.id);
-                                  }}
-                                  disabled={addPreferredMutation.isPending}
-                                >
-                                  <Plus className="h-3 w-3 mr-1" />
-                                  Add
-                                </Button>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <p>All available labs have been added to your preferred list</p>
-                    </div>
-                  )}
+                  <AvailableLabsList
+                    availableLabs={availableLabs || []}
+                    onAdd={(labId) => addPreferredMutation.mutate(labId)}
+                    isAdding={addPreferredMutation.isPending}
+                  />
                 </CardContent>
               </Card>
             </div>
