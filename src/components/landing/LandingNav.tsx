@@ -234,8 +234,8 @@ const LandingNav = () => {
   return (
     <TooltipProvider delayDuration={200}>
       <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm transition-all duration-300">
-        <div className="container px-4 mx-auto">
-          <div className="flex items-center justify-between h-16">
+        <div className="container px-3 sm:px-4 lg:px-6 mx-auto">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo with animation */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -255,7 +255,7 @@ const LandingNav = () => {
                   <motion.img 
                     src={lablinkLogo} 
                     alt="LabLink Logo" 
-                    className="h-10 w-auto object-contain"
+                    className="h-8 sm:h-10 w-auto object-contain"
                     initial={{ opacity: 0, rotate: -10 }}
                     animate={{ opacity: 1, rotate: 0 }}
                     transition={{ 
@@ -265,7 +265,7 @@ const LandingNav = () => {
                     }}
                   />
                   <motion.span 
-                    className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] transition-all duration-500 group-hover:bg-[length:100%_auto]"
+                    className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] transition-all duration-500 group-hover:bg-[length:100%_auto] hidden xs:inline"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ 
