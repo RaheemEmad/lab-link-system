@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Chrome, Check } from "lucide-react";
+import { Chrome, Check, Eye, EyeOff } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,6 +45,8 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [signUpEmail, setSignUpEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const signUpForm = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -218,7 +220,20 @@ const Auth = () => {
                           </Link>
                         </div>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
+                          <div className="relative">
+                            <Input 
+                              type={showPassword ? "text" : "password"} 
+                              placeholder="••••••••" 
+                              {...field} 
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -293,7 +308,20 @@ const Auth = () => {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
+                          <div className="relative">
+                            <Input 
+                              type={showPassword ? "text" : "password"} 
+                              placeholder="••••••••" 
+                              {...field} 
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
                         </FormControl>
                         <PasswordStrengthIndicator password={signUpPassword || ""} />
                         <FormMessage />
@@ -309,10 +337,23 @@ const Auth = () => {
                         <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input type="password" placeholder="••••••••" {...field} />
-                            {signUpConfirmPassword && signUpPassword && signUpPassword === signUpConfirmPassword && (
-                              <Check className="absolute right-3 top-3 h-4 w-4 text-green-600" />
-                            )}
+                            <Input 
+                              type={showConfirmPassword ? "text" : "password"} 
+                              placeholder="••••••••" 
+                              {...field} 
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                              {signUpConfirmPassword && signUpPassword && signUpPassword === signUpConfirmPassword && (
+                                <Check className="h-4 w-4 text-green-600" />
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="text-muted-foreground hover:text-foreground"
+                              >
+                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
                           </div>
                         </FormControl>
                         <FormMessage />

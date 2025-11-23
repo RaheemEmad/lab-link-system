@@ -247,7 +247,10 @@ const Onboarding = () => {
                   {selectedRole === "doctor" ? "Clinic Information" : "Lab Information"}
                 </CardTitle>
                 <CardDescription>
-                  Complete your profile details
+                  {selectedRole === "doctor" 
+                    ? "Complete your clinic profile to start ordering lab work. Your account is secured with advanced password protection including breach detection."
+                    : "Complete your lab profile to start receiving orders. Your account is secured with advanced password protection including breach detection."
+                  }
                 </CardDescription>
               </CardHeader>
               <CardContent>
