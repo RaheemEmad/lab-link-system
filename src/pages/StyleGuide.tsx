@@ -2,15 +2,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { StatusBadgeShowcase } from "@/components/ui/status-badge-showcase";
 
 const StyleGuide = () => {
   const colors = [
-    { name: "Navy/Slate", var: "--navy-slate", value: "215 25% 27%" },
-    { name: "Periwinkle Blue", var: "--periwinkle-blue", value: "225 73% 70%" },
-    { name: "Periwinkle Light", var: "--periwinkle-light", value: "225 73% 80%" },
+    { name: "Navy Blue", var: "--navy-blue", value: "220 60% 25%" },
+    { name: "Ocean Blue", var: "--ocean-blue", value: "210 85% 45%" },
+    { name: "Sky Blue", var: "--sky-blue", value: "210 90% 55%" },
+    { name: "Light Blue", var: "--light-blue", value: "210 95% 70%" },
+    { name: "Dark Teal", var: "--dark-teal", value: "180 45% 30%" },
+    { name: "Forest Green", var: "--forest-green", value: "160 50% 35%" },
+    { name: "Mint Green", var: "--mint-green", value: "160 60% 45%" },
     { name: "Dental Slate", var: "--dental-slate", value: "215 20% 24%" },
     { name: "Soft Gray", var: "--soft-gray", value: "210 33% 96%" },
-    { name: "Success Green", var: "--success-green", value: "152 69% 31%" },
     { name: "Urgent Red", var: "--urgent-red", value: "6 87% 63%" },
   ];
 
@@ -73,12 +77,20 @@ const StyleGuide = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">LabLink Design System</h1>
-          <p className="text-lg text-muted-foreground">
-            Clean, professional, dental-grade aesthetics with Navy/Slate & Periwinkle Blue palette
-          </p>
-        </div>
+          <div className="mb-12">
+            <h1 className="text-4xl font-bold text-foreground mb-4">LabLink Design System</h1>
+            <p className="text-lg text-muted-foreground">
+              Clean, professional, dental-grade aesthetics with Blue & Dark Green palette
+            </p>
+          </div>
+
+          {/* Status Badges Showcase */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Status Badges</h2>
+            <StatusBadgeShowcase />
+          </div>
+
+          <Separator className="my-12" />
 
         {/* Brand Colors */}
         <Card className="mb-8">
