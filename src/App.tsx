@@ -41,6 +41,7 @@ import DoctorAchievements from "./pages/DoctorAchievements";
 import LabAchievements from "./pages/LabAchievements";
 import StyleGuide from "./pages/StyleGuide";
 import AutosaveDemo from "./pages/AutosaveDemo";
+import DraftsManager from "./pages/DraftsManager";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,7 @@ const AppContent = () => {
           <Route path="/notifications" element={<PageTransition><NotificationHistory /></PageTransition>} />
           <Route path="/style-guide" element={<PageTransition><StyleGuide /></PageTransition>} />
           <Route path="/autosave-demo" element={<PageTransition><AutosaveDemo /></PageTransition>} />
+          <Route path="/drafts" element={<PageTransition><DraftsManager /></PageTransition>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
         </Routes>

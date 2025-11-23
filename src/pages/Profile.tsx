@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,9 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { z } from "zod";
 import { AchievementList } from "@/components/dashboard/AchievementBadge";
+import { useFormAutosave } from "@/hooks/useFormAutosave";
+import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
+import { useDraftCleanup } from "@/hooks/useDraftCleanup";
 
 const profileSchema = z.object({
   full_name: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
@@ -52,7 +55,10 @@ const Profile = () => {
   const [notificationStatusChange, setNotificationStatusChange] = useState(true);
   const [notificationNewNotes, setNotificationNewNotes] = useState(true);
 
-  // Fetch profile data
+  // Cleanup old drafts on mount (7 days)
+  useDraftCleanup({ maxAgeDays: 7 });
+
+  // Fetch profile data FIRST (before autosave setup)
   const { isLoading } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
@@ -77,6 +83,41 @@ const Profile = () => {
     },
     enabled: !!user?.id,
   });
+
+  // Autosave profile changes
+  const { saveData, clearSavedData, autosaveState } = useFormAutosave({
+    storageKey: `profile-${user?.id}`,
+    debounceMs: 2000,
+    onRecover: (data) => {
+      if (data.fullName !== undefined) setFullName(data.fullName);
+      if (data.phone !== undefined) setPhone(data.phone);
+      if (data.emailNotifications !== undefined) setEmailNotifications(data.emailNotifications);
+      if (data.smsNotifications !== undefined) setSmsNotifications(data.smsNotifications);
+      if (data.notificationStatusChange !== undefined) setNotificationStatusChange(data.notificationStatusChange);
+      if (data.notificationNewNotes !== undefined) setNotificationNewNotes(data.notificationNewNotes);
+      
+      toast({
+        title: "📝 Draft Recovered",
+        description: "Your unsaved profile changes have been restored.",
+      });
+    },
+    enabled: !!user?.id,
+  });
+
+  // Watch for profile changes and trigger autosave
+  useEffect(() => {
+    if (!isLoading && user?.id) {
+      saveData({
+        fullName,
+        phone,
+        emailNotifications,
+        smsNotifications,
+        notificationStatusChange,
+        notificationNewNotes,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [fullName, phone, emailNotifications, smsNotifications, notificationStatusChange, notificationNewNotes, saveData, isLoading, user?.id]);
 
   // Fetch user role
   const { data: userRole } = useQuery({
@@ -162,6 +203,10 @@ const Profile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+      
+      // Clear autosaved draft after successful save
+      clearSavedData();
+      
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully",
@@ -302,10 +347,27 @@ const Profile = () => {
               {/* Profile Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>
-                    Update your personal information and contact details
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Profile Information</CardTitle>
+                      <CardDescription>
+                        Update your personal information and contact details
+                      </CardDescription>
+                    </div>
+                    <AutosaveIndicator 
+                      isSaving={autosaveState.isSaving}
+                      lastSaved={autosaveState.lastSaved}
+                      hasRecoveredData={autosaveState.hasRecoveredData}
+                      className="hidden sm:flex"
+                    />
+                  </div>
+                  {/* Mobile autosave indicator */}
+                  <AutosaveIndicator 
+                    isSaving={autosaveState.isSaving}
+                    lastSaved={autosaveState.lastSaved}
+                    hasRecoveredData={autosaveState.hasRecoveredData}
+                    className="flex sm:hidden mt-2"
+                  />
                 </CardHeader>
                 <CardContent className="space-y-4">
                 <div className="space-y-2">
