@@ -4,9 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, Package, Activity, MessageSquare } from "lucide-react";
+import { Shield, Users, Package, Activity, MessageSquare, BarChart3 } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import AdminDashboardTab from "@/components/admin/AdminDashboardTab";
 import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import AdminOrdersTab from "@/components/admin/AdminOrdersTab";
 import AdminActivityTab from "@/components/admin/AdminActivityTab";
@@ -85,8 +86,12 @@ const Admin = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+          <Tabs defaultValue="dashboard" className="w-full">
+            <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+              <TabsTrigger value="dashboard" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </TabsTrigger>
               <TabsTrigger value="users" className="gap-2">
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Users</span>
@@ -104,6 +109,10 @@ const Admin = () => {
                 <span className="hidden sm:inline">Communication</span>
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="dashboard" className="mt-6">
+              <AdminDashboardTab />
+            </TabsContent>
 
             <TabsContent value="users" className="mt-6">
               <AdminUsersTab />

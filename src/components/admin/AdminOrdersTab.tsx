@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Eye, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Order {
@@ -24,6 +25,8 @@ interface Order {
 const AdminOrdersTab = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,6 +69,18 @@ const AdminOrdersTab = () => {
     }
   };
 
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch =
+      order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.doctor_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.restoration_type.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
   if (loading) {
     return (
       <Card>
@@ -87,6 +102,30 @@ const AdminOrdersTab = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="flex gap-4 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by order #, doctor, patient, or type..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-input rounded-md bg-background"
+          >
+            <option value="all">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Ready for QC">Ready for QC</option>
+            <option value="Ready for Delivery">Ready for Delivery</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+        </div>
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -104,7 +143,7 @@ const AdminOrdersTab = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">
                     {order.order_number}

@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
-import { MessageSquare, ThumbsUp } from "lucide-react";
+import { MessageSquare, ThumbsUp, Search } from "lucide-react";
 
 interface Note {
   id: string;
@@ -21,6 +22,7 @@ interface Note {
 const AdminCommunicationTab = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchNotes();
@@ -77,6 +79,12 @@ const AdminCommunicationTab = () => {
     }
   };
 
+  const filteredNotes = notes.filter((note) =>
+    note.note_text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    note.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    note.author_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <Card>
@@ -98,6 +106,18 @@ const AdminCommunicationTab = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by order #, author, or note content..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -110,7 +130,7 @@ const AdminCommunicationTab = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {notes.map((note) => (
+              {filteredNotes.map((note) => (
                 <TableRow key={note.id}>
                   <TableCell className="whitespace-nowrap">
                     {format(new Date(note.created_at), "MMM dd, HH:mm")}
