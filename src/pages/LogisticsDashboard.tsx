@@ -59,7 +59,7 @@ interface OrderShipment {
 
 const LogisticsDashboard = () => {
   const { user } = useAuth();
-  const { role, isLoading: roleLoading, hasAnyRole } = useUserRole();
+  const { role, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [labCapacity, setLabCapacity] = useState<LabCapacity[]>([]);
@@ -67,17 +67,13 @@ const LogisticsDashboard = () => {
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
   
-  // Check access permissions
-  useEffect(() => {
-    if (!roleLoading && !hasAnyRole(["admin", "lab_staff", "doctor"])) {
-      toast.error("Access denied");
-      navigate("/dashboard");
-    }
-  }, [roleLoading, hasAnyRole, navigate]);
-  
   useEffect(() => {
     const fetchData = async () => {
-      if (!user || !role) return;
+      if (!user) return;
+      
+      // Wait for role to load
+      if (roleLoading) return;
+      
       try {
         setLoading(true);
 
@@ -118,13 +114,15 @@ const LogisticsDashboard = () => {
         if (role === "lab_staff") {
           const {
             data: roleData
-          } = await supabase.from("user_roles").select("lab_id").eq("user_id", user.id).single();
+          } = await supabase.from("user_roles").select("lab_id").eq("user_id", user.id).maybeSingle();
           if (roleData?.lab_id) {
             shipmentQuery = shipmentQuery.eq("assigned_lab_id", roleData.lab_id);
           }
         } else if (role === "doctor") {
           shipmentQuery = shipmentQuery.eq("doctor_id", user.id);
         }
+        // Admins can see all shipments
+        
         const {
           data: orders,
           error: orderError
@@ -155,7 +153,7 @@ const LogisticsDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, role]);
+  }, [user, role, roleLoading]);
   
   const getStatusColor = (status: string) => {
     switch (status) {
