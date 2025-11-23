@@ -17,6 +17,7 @@ import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
 import { DashboardTour } from "@/components/dashboard/DashboardTour";
 import { AchievementToast } from "@/components/dashboard/AchievementToast";
+import { AchievementProgressNotification } from "@/components/dashboard/AchievementProgressNotification";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -145,6 +146,7 @@ const Dashboard = () => {
         <FirstTimeModal open={showOnboarding} onClose={() => setShowOnboarding(false)} />
         <DashboardTour userRole={userRole} run={runTour} onComplete={() => setRunTour(false)} />
         <AchievementToast />
+        <AchievementProgressNotification />
         <LandingNav />
         <TooltipProvider delayDuration={200}>
           <div className="flex-1 bg-secondary/30 py-6 sm:py-12">
