@@ -23,7 +23,7 @@ export default function LabRequestsManagement() {
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [acceptedRequest, setAcceptedRequest] = useState<{ id: string; orderId: string; orderNumber: string } | null>(null);
   const [showChat, setShowChat] = useState(false);
-  const [currentUserRole] = useState<'doctor' | 'lab_staff'>('doctor');
+  const currentUserRole = 'doctor' as const;
 
   // Fetch all requests for this doctor's orders with full lab details
   const { data: requests, isLoading, refetch } = useQuery({
