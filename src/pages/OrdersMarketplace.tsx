@@ -57,9 +57,11 @@ export default function OrdersMarketplace() {
       
       if (error) throw error;
 
-      // Filter out orders where this lab has been refused
-      if (!labId || !ordersData) return ordersData;
+      // If no labId (new lab staff without lab assignment), show all marketplace orders
+      // They can apply but won't be accepted until they're assigned to a lab
+      if (!labId) return ordersData;
 
+      // Filter out orders where this lab has been refused
       const { data: refusedRequests } = await supabase
         .from("lab_work_requests")
         .select("order_id")
@@ -70,12 +72,12 @@ export default function OrdersMarketplace() {
       
       return ordersData.filter(order => !refusedOrderIds.has(order.id));
     },
-    enabled: !!labId,
+    enabled: !!user?.id, // Enable if user exists, not just labId
   });
 
   // Set up realtime subscription for new orders
   useEffect(() => {
-    if (!labId) return;
+    if (!user?.id) return;
 
     const channel = supabase
       .channel('marketplace-orders-changes')
@@ -107,7 +109,7 @@ export default function OrdersMarketplace() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [labId, queryClient]);
+  }, [user?.id, labId, queryClient]);
 
   // Fetch existing requests for this lab
   const { data: existingRequests } = useQuery({
@@ -203,6 +205,13 @@ export default function OrdersMarketplace() {
               <p className="text-muted-foreground">
                 Apply to available orders from doctors. Once approved, you'll unlock full details and can start working.
               </p>
+              {!labId && (
+                <div className="mt-4 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                  <p className="text-sm text-warning-foreground">
+                    <strong>Note:</strong> You are not currently assigned to a lab. You can browse orders but applications will require lab assignment by an administrator.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Filters */}
