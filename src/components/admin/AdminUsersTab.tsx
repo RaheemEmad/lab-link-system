@@ -75,7 +75,6 @@ const AdminUsersTab = () => {
 
       setUsers(usersWithRoles);
     } catch (error) {
-      console.error("Error fetching users:", error);
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
@@ -85,7 +84,10 @@ const AdminUsersTab = () => {
   const handleDeleteUser = async (userId: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
+      if (!session) {
+        toast.error('Not authenticated');
+        return;
+      }
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delete-user`, {
         method: 'POST',
@@ -105,8 +107,8 @@ const AdminUsersTab = () => {
       toast.success("User deleted successfully");
       fetchUsers();
     } catch (error: any) {
-      console.error("Error deleting user:", error);
-      toast.error(error.message || "Failed to delete user");
+      const message = error instanceof Error ? error.message : 'Failed to delete user';
+      toast.error(message);
     } finally {
       setDeleteUserId(null);
     }
@@ -192,8 +194,8 @@ const AdminUsersTab = () => {
       setBulkAction("");
       fetchUsers();
     } catch (error: any) {
-      console.error("Bulk action error:", error);
-      toast.error(error.message || "Bulk action failed");
+      const message = error instanceof Error ? error.message : "Bulk action failed";
+      toast.error(message);
     }
   };
 

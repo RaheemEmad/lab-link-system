@@ -76,7 +76,6 @@ const AdminOrdersTab = () => {
       if (error) throw error;
       setOrders(data || []);
     } catch (error) {
-      console.error("Error fetching orders:", error);
       toast.error("Failed to load orders");
     } finally {
       setLoading(false);
@@ -87,6 +86,25 @@ const AdminOrdersTab = () => {
     if (!orderToDelete) return;
 
     try {
+      // Verify admin access before deletion
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Unauthorized");
+        return;
+      }
+
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .single();
+
+      if (roleError || !roleData) {
+        toast.error("Admin access required");
+        return;
+      }
+
       const { error } = await supabase
         .from("orders")
         .delete()
@@ -99,8 +117,8 @@ const AdminOrdersTab = () => {
       setOrderToDelete(null);
       fetchOrders();
     } catch (error: any) {
-      console.error("Error deleting order:", error);
-      toast.error(error.message || "Failed to delete order");
+      const message = error instanceof Error ? error.message : "Failed to delete order";
+      toast.error(message);
     }
   };
 
@@ -183,8 +201,8 @@ const AdminOrdersTab = () => {
       setBulkAction("");
       fetchOrders();
     } catch (error: any) {
-      console.error("Bulk update error:", error);
-      toast.error(error.message || "Bulk update failed");
+      const message = error instanceof Error ? error.message : "Bulk update failed";
+      toast.error(message);
     }
   };
 
