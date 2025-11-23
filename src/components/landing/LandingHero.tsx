@@ -44,7 +44,7 @@ const LandingHero = () => {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-b from-background via-primary/5 to-background">
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-primary/10 via-accent/5 to-background">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Gradient orbs */}
@@ -78,7 +78,7 @@ const LandingHero = () => {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.05)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,black,transparent)]" />
       </div>
       
-      <div className="container relative z-10 px-4 mx-auto py-20">
+      <div className="container relative z-10 px-4 mx-auto py-20 pt-32">
         <motion.div 
           variants={containerVariants}
           initial="hidden"
@@ -86,14 +86,6 @@ const LandingHero = () => {
           className="max-w-5xl mx-auto"
         >
           <div className="text-center space-y-8">
-            
-            {/* Badge */}
-            <motion.div variants={itemVariants} className="flex justify-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary font-medium">
-                <Sparkles className="w-4 h-4" />
-                <span>Precision for labs. Clarity for dentists.</span>
-              </div>
-            </motion.div>
             
             {/* Main headline */}
             <motion.h1 
