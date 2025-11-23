@@ -23,6 +23,14 @@ const LandingHero = () => {
   const floatingY = useTransform(scrollYProgress, [0, 1], ["0%", "80%"]);
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
   
+  // Fade-out effect for hero section
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  
+  // Wave animations responding to scroll
+  const wave1Y = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const wave2Y = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const wave3Y = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  
   const stats = [
     { value: "2 min", label: "Setup Time" },
     { value: "Zero", label: "Training Required" },
@@ -35,7 +43,78 @@ const LandingHero = () => {
     "Connect dentists with qualified labs instantly"
   ];
   return (
-    <section ref={heroRef} className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20">
+    <motion.section 
+      ref={heroRef} 
+      style={{ opacity: heroOpacity }}
+      className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20"
+    >
+      {/* Animated wave patterns responding to scroll */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Wave 1 */}
+        <motion.div
+          style={{ y: wave1Y }}
+          className="absolute -bottom-32 left-0 right-0"
+        >
+          <svg
+            className="w-full h-64 opacity-[0.03]"
+            viewBox="0 0 1440 320"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill="hsl(var(--primary))"
+              d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,101.3C1248,85,1344,75,1392,69.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </svg>
+        </motion.div>
+        
+        {/* Wave 2 */}
+        <motion.div
+          style={{ y: wave2Y }}
+          className="absolute -bottom-20 left-0 right-0"
+        >
+          <svg
+            className="w-full h-48 opacity-[0.02]"
+            viewBox="0 0 1440 320"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill="hsl(var(--accent))"
+              d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </svg>
+        </motion.div>
+        
+        {/* Wave 3 */}
+        <motion.div
+          style={{ y: wave3Y }}
+          className="absolute -bottom-10 left-0 right-0"
+        >
+          <svg
+            className="w-full h-32 opacity-[0.04]"
+            viewBox="0 0 1440 320"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill="hsl(var(--primary))"
+              d="M0,32L48,58.7C96,85,192,139,288,149.3C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </svg>
+        </motion.div>
+        
+        {/* Abstract geometric shapes */}
+        <motion.div
+          style={{ y: wave1Y, rotate: useTransform(scrollYProgress, [0, 1], [0, 45]) }}
+          className="absolute top-1/3 -right-20 w-96 h-96 border-2 border-primary/5 rounded-full"
+        />
+        <motion.div
+          style={{ y: wave2Y, rotate: useTransform(scrollYProgress, [0, 1], [0, -30]) }}
+          className="absolute bottom-1/4 -left-32 w-64 h-64 border-2 border-accent/5"
+        />
+      </div>
+      
       {/* Animated gradient orbs with parallax */}
       <motion.div 
         style={{ y: orbY }}
@@ -139,7 +218,7 @@ const LandingHero = () => {
           </div>
         </div>
       </motion.div>
-    </section>
+    </motion.section>
   );
 };
 
