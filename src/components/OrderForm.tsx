@@ -387,11 +387,15 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
 
       const orderData = result.order;
 
-      // Success message based on whether lab was manually selected or will go to marketplace
+      // Success message based on workflow
       if (data.assignedLabId) {
-        toast.success("Order submitted to lab successfully!");
+        toast.success("Order submitted to lab successfully!", {
+          description: "The assigned lab has been notified and can now view your order."
+        });
       } else {
-        toast.success("Order created! Available in marketplace for labs to apply.");
+        toast.success("Order published to marketplace!", {
+          description: "Labs can now apply. You'll review and approve applications."
+        });
       }
 
       setOrderId(orderData.orderNumber);
@@ -551,20 +555,28 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
               )}
             />
 
-            {/* Only show lab selector for doctors, not lab staff */}
+            {/* Only show lab selector for doctors */}
             {userRole === 'doctor' && (
               <FormField
                 control={form.control}
                 name="assignedLabId"
                 render={({ field }) => (
                   <FormItem>
-                    <LabSelector
-                      value={field.value}
-                      onChange={field.onChange}
-                      restorationType={form.watch("restorationType")}
-                      urgency={form.watch("urgency")}
-                      userId={user?.id || ""}
-                    />
+                    <div className="space-y-2">
+                      <LabSelector
+                        value={field.value}
+                        onChange={field.onChange}
+                        restorationType={form.watch("restorationType")}
+                        urgency={form.watch("urgency")}
+                        userId={user?.id || ""}
+                      />
+                      <FormDescription className="text-xs">
+                        💡 <strong>Auto-Assign (Recommended):</strong> Leave blank to publish this order to the marketplace. 
+                        Labs will apply with their profiles, and you'll approve the best match. 
+                        <br/>
+                        <strong>Direct Assignment:</strong> Select a specific lab to send the order directly.
+                      </FormDescription>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
