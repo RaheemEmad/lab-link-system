@@ -297,8 +297,8 @@ const LandingNav = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <Truck className="h-5 w-5" />
+                            <Button variant="ghost" size="icon" className="group">
+                              <Truck className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                             </Button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
@@ -323,8 +323,8 @@ const LandingNav = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <Truck className="h-5 w-5" />
+                            <Button variant="ghost" size="icon" className="group">
+                              <Truck className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                             </Button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
