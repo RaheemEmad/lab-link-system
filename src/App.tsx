@@ -34,6 +34,8 @@ import OrdersMarketplace from "./pages/OrdersMarketplace";
 import LabRequestsManagement from "./pages/LabRequestsManagement";
 import LogisticsDashboard from "./pages/LogisticsDashboard";
 import Achievements from "./pages/Achievements";
+import DoctorAchievements from "./pages/DoctorAchievements";
+import LabAchievements from "./pages/LabAchievements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,7 +67,9 @@ const AppContent = () => {
         <Route path="/orders-marketplace" element={<OrdersMarketplace />} />
         <Route path="/lab-requests" element={<LabRequestsManagement />} />
         <Route path="/logistics" element={<LogisticsDashboard />} />
-        <Route path="/achievements" element={<Achievements />} />
+          <Route path="/achievements" element={<Achievements />} />
+          <Route path="/doctor-achievements" element={<DoctorAchievements />} />
+          <Route path="/lab-achievements" element={<LabAchievements />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
