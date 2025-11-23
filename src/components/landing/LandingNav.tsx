@@ -113,8 +113,9 @@ const LandingNav = () => {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Fetch user role
+  // Fetch user role and lab ID
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [labId, setLabId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -122,17 +123,51 @@ const LandingNav = () => {
       
       const { data } = await supabase
         .from('user_roles')
-        .select('role')
+        .select('role, lab_id')
         .eq('user_id', user.id)
         .single();
       
       if (data) {
         setUserRole(data.role);
+        setLabId(data.lab_id);
       }
     };
     
     fetchUserRole();
   }, [user]);
+
+  // Fetch count of new unassigned orders for today (for marketplace badge)
+  const { data: newOrdersCount } = useQuery({
+    queryKey: ["new-marketplace-orders-count", labId],
+    queryFn: async () => {
+      if (!labId) return 0;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const { data: ordersData, error } = await supabase
+        .from("orders")
+        .select("id, created_at")
+        .is("assigned_lab_id", null)
+        .gte("created_at", today.toISOString());
+      
+      if (error) return 0;
+
+      // Filter out orders where this lab has been refused
+      const { data: refusedRequests } = await supabase
+        .from("lab_work_requests")
+        .select("order_id")
+        .eq("lab_id", labId)
+        .eq("status", "refused");
+
+      const refusedOrderIds = new Set(refusedRequests?.map(r => r.order_id) || []);
+      const filteredOrders = ordersData?.filter(order => !refusedOrderIds.has(order.id)) || [];
+      
+      return filteredOrders.length;
+    },
+    enabled: !!labId && userRole === 'lab_staff',
+    refetchInterval: 60000, // Refetch every minute
+  });
 
   // Left navigation links - role-based and cleaner
   const leftNavLinks = [
@@ -204,13 +239,18 @@ const LandingNav = () => {
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => handleNavClick(link)}
-                      className={`text-sm font-medium transition-colors ${
+                      className={`inline-flex items-center gap-1 text-sm font-medium transition-colors ${
                         isLinkActive(link)
                           ? "text-primary font-semibold border-b-2 border-primary"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {link.label}
+                      {link.label === "Marketplace" && userRole === 'lab_staff' && newOrdersCount && newOrdersCount > 0 && (
+                        <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-primary-foreground bg-primary rounded-full">
+                          {newOrdersCount}
+                        </span>
+                      )}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -359,13 +399,18 @@ const LandingNav = () => {
                       <button
                         key={link.href}
                         onClick={() => handleNavClick(link)}
-                        className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                           isLinkActive(link)
                             ? "bg-primary/10 text-primary font-semibold"
                             : "text-muted-foreground hover:text-foreground hover:bg-accent"
                         }`}
                       >
-                        {link.label}
+                        <span>{link.label}</span>
+                        {link.label === "Marketplace" && userRole === 'lab_staff' && newOrdersCount && newOrdersCount > 0 && (
+                          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-primary-foreground bg-primary rounded-full">
+                            {newOrdersCount}
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
