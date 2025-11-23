@@ -137,6 +137,38 @@ export default {
           "0%, 100%": { opacity: "1", transform: "scale(1)" },
           "50%": { opacity: "0.8", transform: "scale(1.05)" },
         },
+        "morph-blob": {
+          "0%, 100%": {
+            borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
+            transform: "translate(0, 0) rotate(0deg)",
+          },
+          "25%": {
+            borderRadius: "30% 60% 70% 40% / 50% 60% 30% 60%",
+            transform: "translate(5%, -5%) rotate(90deg)",
+          },
+          "50%": {
+            borderRadius: "50% 60% 30% 60% / 30% 60% 70% 40%",
+            transform: "translate(-5%, 5%) rotate(180deg)",
+          },
+          "75%": {
+            borderRadius: "60% 40% 60% 40% / 70% 30% 50% 60%",
+            transform: "translate(5%, 5%) rotate(270deg)",
+          },
+        },
+        "morph-blob-alt": {
+          "0%, 100%": {
+            borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
+            transform: "translate(0, 0) rotate(0deg) scale(1)",
+          },
+          "33%": {
+            borderRadius: "70% 30% 50% 50% / 60% 40% 60% 40%",
+            transform: "translate(-3%, 3%) rotate(120deg) scale(1.1)",
+          },
+          "66%": {
+            borderRadius: "50% 50% 30% 70% / 50% 70% 30% 50%",
+            transform: "translate(3%, -3%) rotate(240deg) scale(0.9)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.3s ease-out",
@@ -150,6 +182,8 @@ export default {
         "gradient": "gradient 3s ease infinite",
         "shimmer": "shimmer 2s infinite",
         "pulse-medical": "pulse-medical 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "morph-blob": "morph-blob 20s ease-in-out infinite",
+        "morph-blob-alt": "morph-blob-alt 15s ease-in-out infinite",
       },
       backgroundSize: {
         "size-200": "200% 200%",

@@ -287,6 +287,40 @@
   }
 }
 
+@keyframes morphBlob {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    transform: translate(5%, -5%) rotate(90deg);
+  }
+  50% {
+    border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%;
+    transform: translate(-5%, 5%) rotate(180deg);
+  }
+  75% {
+    border-radius: 60% 40% 60% 40% / 70% 30% 50% 60%;
+    transform: translate(5%, 5%) rotate(270deg);
+  }
+}
+
+@keyframes morphBlobAlt {
+  0%, 100% {
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    border-radius: 70% 30% 50% 50% / 60% 40% 60% 40%;
+    transform: translate(-3%, 3%) rotate(120deg) scale(1.1);
+  }
+  66% {
+    border-radius: 50% 50% 30% 70% / 50% 70% 30% 50%;
+    transform: translate(3%, -3%) rotate(240deg) scale(0.9);
+  }
+}
+
 /* Responsive Components */
 @layer components {
   .responsive-container {

@@ -48,6 +48,41 @@ const LandingHero = () => {
       style={{ opacity: heroOpacity }}
       className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20"
     >
+      {/* SVG Filters for morphing blobs */}
+      <svg className="absolute w-0 h-0">
+        <defs>
+          <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo" />
+            <feBlend in="SourceGraphic" in2="goo" />
+          </filter>
+          <filter id="blur">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Morphing blob animations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Primary blob - blue */}
+        <div
+          className="absolute top-1/4 -left-32 w-96 h-96 bg-gradient-to-br from-primary/30 to-primary/10 animate-morph-blob"
+          style={{ filter: "url(#goo) blur(40px)" }}
+        />
+        
+        {/* Secondary blob - teal */}
+        <div
+          className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-gradient-to-br from-accent/30 to-accent/10 animate-morph-blob-alt"
+          style={{ filter: "url(#goo) blur(40px)", animationDelay: "2s" }}
+        />
+        
+        {/* Tertiary blob - blue variant */}
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-primary/20 to-accent/20 animate-morph-blob"
+          style={{ filter: "url(#blur)", animationDelay: "5s", animationDuration: "25s" }}
+        />
+      </div>
+
       {/* Animated wave patterns responding to scroll */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Wave 1 */}
