@@ -146,8 +146,19 @@ const PreferredLabs = () => {
     mutationFn: async (reorderedLabs: PreferredLab[]) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      // Update each lab's priority individually
-      const updates = reorderedLabs.map((lab, index) =>
+      // Step 1: Set all to temporary negative values to avoid conflicts
+      const tempUpdates = reorderedLabs.map((lab, index) =>
+        supabase
+          .from("preferred_labs")
+          .update({ priority_order: -(index + 1000) })
+          .eq("id", lab.id)
+          .eq("dentist_id", user.id)
+      );
+
+      await Promise.all(tempUpdates);
+
+      // Step 2: Set to final values
+      const finalUpdates = reorderedLabs.map((lab, index) =>
         supabase
           .from("preferred_labs")
           .update({ priority_order: index + 1 })
@@ -155,7 +166,7 @@ const PreferredLabs = () => {
           .eq("dentist_id", user.id)
       );
 
-      const results = await Promise.all(updates);
+      const results = await Promise.all(finalUpdates);
       
       // Check if any updates failed
       const errors = results.filter(result => result.error);
