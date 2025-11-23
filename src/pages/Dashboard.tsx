@@ -212,7 +212,7 @@ const Dashboard = () => {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => navigate("/achievements")} 
+                        onClick={() => navigate("/doctor-achievements")} 
                         className="flex-1 sm:flex-none"
                       >
                         <Trophy className="h-4 w-4" />
@@ -224,6 +224,26 @@ const Dashboard = () => {
                     </TooltipContent>
                   </Tooltip>
                 )}
+
+                {userRole === "lab_staff" && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate("/lab-achievements")} 
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Trophy className="h-4 w-4" />
+                        <span className="ml-2">Achievements</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View your lab achievements and performance</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+
 
                 <Tooltip>
                   <TooltipTrigger asChild>
