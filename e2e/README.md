@@ -1,3 +1,23 @@
+# E2E Testing Suite
+
+## Overview
+
+This directory contains comprehensive end-to-end (E2E) and load testing for the LabLink dental lab management system.
+
+## Test Categories
+
+### Functional Tests
+- `order-creation.spec.ts` - Order form validation and submission
+- `order-workflow.spec.ts` - Complete order lifecycle from creation to delivery
+- `chat-functionality.spec.ts` - Real-time messaging, typing indicators, file sharing
+- `error-cases.spec.ts` - Error handling, validation, and edge cases
+- `invoicing.spec.ts` - Invoice generation and price management
+- `auto-assign-workflow.spec.ts` - Automated lab assignment workflow
+
+### Performance & Load Tests
+- `load-testing.spec.ts` - Stress testing with 10-1000+ concurrent users
+- See `load-testing-README.md` for detailed load testing guide
+
 # Auto-Assign Workflow E2E Tests
 
 Comprehensive end-to-end tests for the Auto-Assign order marketplace workflow using Playwright.
