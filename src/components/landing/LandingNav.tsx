@@ -166,7 +166,26 @@ const LandingNav = () => {
       return filteredOrders.length;
     },
     enabled: !!labId && userRole === 'lab_staff',
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 60000,
+  });
+
+  // Fetch pending lab applications count for doctors
+  const { data: pendingRequestsCount = 0 } = useQuery({
+    queryKey: ["pending-lab-requests", user?.id],
+    queryFn: async () => {
+      if (!user?.id || userRole !== 'doctor') return 0;
+      
+      const { data, error } = await supabase
+        .from("lab_work_requests")
+        .select("id, orders!inner(doctor_id)")
+        .eq("orders.doctor_id", user.id)
+        .eq("status", "pending");
+      
+      if (error) throw error;
+      return data?.length || 0;
+    },
+    enabled: !!user?.id && userRole === 'doctor',
+    refetchInterval: 30000,
   });
 
   // Left navigation links - role-based and cleaner
@@ -182,7 +201,11 @@ const LandingNav = () => {
   const doctorMenuItems = user && userRole === 'doctor' ? [
     { label: "Track Orders", href: "/order-tracking" },
     { label: "Preferred Labs", href: "/preferred-labs" },
-    { label: "Lab Requests", href: "/lab-requests" },
+    { 
+      label: "Lab Applications", 
+      href: "/lab-requests",
+      badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined
+    },
   ] : [];
 
   const labStaffMenuItems = (userRole === 'lab_staff' || userRole === 'admin') ? [

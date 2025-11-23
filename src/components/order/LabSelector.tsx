@@ -180,7 +180,9 @@ export const LabSelector = ({
           <h3 className="text-lg font-semibold">Select Lab</h3>
         </div>
         <CardDescription>
-          Choose a lab for this order or let the system auto-assign based on specialization and availability
+          <strong>Auto-Assign:</strong> Order goes to marketplace → Labs apply → You approve the best match.
+          <br/>
+          <strong>Manual:</strong> Send directly to a specific lab below.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -194,7 +196,7 @@ export const LabSelector = ({
                 <span className="font-medium">Auto-Assign (Recommended)</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                System will select the best available lab based on specialization, capacity, and your preferences
+                Order will be published to marketplace. Labs can apply, and you'll review their profiles before approving.
               </p>
             </Label>
           </div>

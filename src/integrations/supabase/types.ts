@@ -56,6 +56,51 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_application_audit: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          lab_id: string
+          metadata: Json | null
+          order_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          lab_id: string
+          metadata?: Json | null
+          order_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          lab_id?: string
+          metadata?: Json | null
+          order_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_application_audit_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_application_audit_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_performance_metrics: {
         Row: {
           approval_rate: number | null

@@ -200,7 +200,7 @@ export default function OrdersMarketplace() {
             <div className="mb-8">
               <h1 className="text-3xl font-bold mb-2">Orders Marketplace</h1>
               <p className="text-muted-foreground">
-                Browse available orders from doctors looking for lab partners
+                Apply to available orders from doctors. Once approved, you'll unlock full details and can start working.
               </p>
             </div>
 
@@ -272,8 +272,11 @@ export default function OrdersMarketplace() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">
-                    {filteredOrders && filteredOrders.length > 0 ? "No orders match your filters" : "No available orders at the moment"}
+                  <p className="text-lg font-medium mb-2">
+                    {filteredOrders && filteredOrders.length > 0 ? "No orders match your filters" : "No available orders"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Orders will appear here when doctors submit new cases with auto-assign enabled.
                   </p>
                 </CardContent>
               </Card>
@@ -287,12 +290,12 @@ export default function OrdersMarketplace() {
                       <Card key={order.id} className="hover:shadow-lg transition-shadow">
                         <CardHeader>
                           <div className="flex items-start justify-between">
-                            <div>
-                              <CardTitle className="text-lg">
-                                {order.order_number}
+                            <div className="flex-1">
+                              <CardTitle className="text-lg mb-1">
+                                {order.restoration_type}
                               </CardTitle>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {order.patient_name}
+                              <p className="text-sm text-muted-foreground">
+                                Patient: {order.patient_name.split(' ').map((n: string) => n[0]).join('.')}. • Order: {order.order_number}
                               </p>
                             </div>
                             <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>
@@ -301,21 +304,23 @@ export default function OrdersMarketplace() {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <div className="flex items-center gap-2 text-sm">
-                              <User className="h-4 w-4 text-muted-foreground" />
+                              <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               <span>Dr. {order.doctor_name}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                              <Package className="h-4 w-4 text-muted-foreground" />
-                              <span>{order.restoration_type}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               <span>
-                                {new Date(order.created_at).toLocaleDateString()}
+                                Submitted: {new Date(order.created_at).toLocaleDateString()}
                               </span>
                             </div>
+                            {order.biological_notes && (
+                              <div className="bg-muted/50 rounded p-2 mt-2">
+                                <p className="text-xs text-muted-foreground mb-1">Notes Preview:</p>
+                                <p className="text-sm line-clamp-2">{order.biological_notes}</p>
+                              </div>
+                            )}
                           </div>
 
                           {requestStatus ? (
@@ -339,7 +344,7 @@ export default function OrdersMarketplace() {
                               className="w-full"
                             >
                               <Send className="h-4 w-4 mr-2" />
-                              Send Request
+                              Apply to this Order
                             </Button>
                           )}
                         </CardContent>
