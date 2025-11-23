@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit } from "lucide-react";
+import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -212,7 +212,18 @@ const LogisticsDashboard = () => {
         <div className="flex-1 bg-secondary/30 py-12">
           <div className="container px-4">
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-3xl font-bold">Logistics Dashboard</h1>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/dashboard")}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+                <h1 className="text-3xl font-bold">Logistics Dashboard</h1>
+              </div>
               <Badge variant="outline" className="text-sm">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 Real-time Updates
