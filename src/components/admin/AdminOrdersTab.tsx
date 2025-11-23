@@ -6,8 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { OrderDetailsModal } from "@/components/order/OrderDetailsModal";
 
 interface Order {
   id: string;
@@ -20,6 +31,17 @@ interface Order {
   created_at: string;
   assigned_lab_id: string | null;
   expected_delivery_date: string | null;
+  doctor_id: string | null;
+  desired_delivery_date: string | null;
+  biological_notes: string | null;
+  teeth_number: string;
+  teeth_shade: string;
+  shade_system: string | null;
+  assigned_lab?: { name: string } | null;
+  driver_name: string | null;
+  driver_phone_whatsapp: string | null;
+  carrier_name: string | null;
+  carrier_phone: string | null;
 }
 
 const AdminOrdersTab = () => {
@@ -29,6 +51,10 @@ const AdminOrdersTab = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [orderToView, setOrderToView] = useState<Order | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,7 +66,10 @@ const AdminOrdersTab = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select(`
+          *,
+          assigned_lab:labs(name)
+        `)
         .order("created_at", { ascending: false })
         .limit(100);
 
@@ -52,6 +81,41 @@ const AdminOrdersTab = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", orderToDelete.id);
+
+      if (error) throw error;
+
+      toast.success(`Order ${orderToDelete.order_number} deleted successfully`);
+      setDeleteDialogOpen(false);
+      setOrderToDelete(null);
+      fetchOrders();
+    } catch (error: any) {
+      console.error("Error deleting order:", error);
+      toast.error(error.message || "Failed to delete order");
+    }
+  };
+
+  const handleViewOrder = (order: Order) => {
+    setOrderToView(order);
+    setViewDialogOpen(true);
+  };
+
+  const handleEditOrder = (order: Order) => {
+    navigate(`/edit-order/${order.id}`);
+  };
+
+  const confirmDelete = (order: Order) => {
+    setOrderToDelete(order);
+    setDeleteDialogOpen(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -266,19 +330,77 @@ const AdminOrdersTab = () => {
                     {new Date(order.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/orders/${order.id}`)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewOrder(order)}
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditOrder(order)}
+                        title="Edit Order"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => confirmDelete(order)}
+                        className="text-destructive hover:text-destructive"
+                        title="Delete Order"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
+
+        {/* View Order Details Dialog */}
+        {orderToView && (
+          <OrderDetailsModal
+            open={viewDialogOpen}
+            onOpenChange={setViewDialogOpen}
+            order={{
+              ...orderToView,
+              assigned_lab: orderToView.assigned_lab || null,
+            }}
+          />
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Order?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete order{" "}
+                <span className="font-semibold">{orderToDelete?.order_number}</span> for patient{" "}
+                <span className="font-semibold">{orderToDelete?.patient_name}</span>?
+                <br />
+                <br />
+                This action cannot be undone. All associated notes, attachments, and history will be permanently removed.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteOrder}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Order
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );
