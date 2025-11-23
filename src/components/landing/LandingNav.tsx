@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2 } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, PackageSearch } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
@@ -291,6 +291,44 @@ const LandingNav = () => {
             <div className="hidden lg:flex items-center gap-2">
               {user ? (
                 <>
+                  {/* Logistics Icon - Doctor */}
+                  {userRole === 'doctor' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate("/logistics")}
+                          className="relative"
+                        >
+                          <PackageSearch className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Track orders & logistics</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
+                  {/* Logistics Icon - Lab Staff */}
+                  {userRole === 'lab_staff' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate("/logistics")}
+                          className="relative"
+                        >
+                          <PackageSearch className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Track orders & logistics</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
                   {/* Achievements Icon - Doctor */}
                   {userRole === 'doctor' && (
                     <Tooltip>
