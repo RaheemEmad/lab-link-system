@@ -228,6 +228,51 @@ export type Database = {
           },
         ]
       }
+      lab_work_requests: {
+        Row: {
+          created_at: string
+          id: string
+          lab_id: string
+          order_id: string
+          requested_by_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lab_id: string
+          order_id: string
+          requested_by_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lab_id?: string
+          order_id?: string
+          requested_by_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_work_requests_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_work_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       labs: {
         Row: {
           address: string | null

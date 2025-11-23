@@ -59,6 +59,26 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   const uploadAbortController = useRef<AbortController | null>(null);
   const { user } = useAuth();
   const [doctorName, setDoctorName] = useState("");
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data) {
+        setUserRole(data.role);
+      }
+    };
+    
+    fetchUserRole();
+  }, [user]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -545,22 +565,25 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="assignedLabId"
-              render={({ field }) => (
-                <FormItem>
-                  <LabSelector
-                    value={field.value}
-                    onChange={field.onChange}
-                    restorationType={form.watch("restorationType")}
-                    urgency={form.watch("urgency")}
-                    userId={user?.id || ""}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Only show lab selector for doctors, not lab staff */}
+            {userRole === 'doctor' && (
+              <FormField
+                control={form.control}
+                name="assignedLabId"
+                render={({ field }) => (
+                  <FormItem>
+                    <LabSelector
+                      value={field.value}
+                      onChange={field.onChange}
+                      restorationType={form.watch("restorationType")}
+                      urgency={form.watch("urgency")}
+                      userId={user?.id || ""}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
