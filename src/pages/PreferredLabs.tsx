@@ -10,6 +10,7 @@ import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { 
   Building2, 
   Star, 
@@ -43,7 +44,7 @@ const PreferredLabs = () => {
   const [selectedLab, setSelectedLab] = useState<string | null>(null);
 
   // Fetch user's preferred labs
-  const { data: preferredLabs, isLoading: preferredLoading } = useQuery({
+  const { data: preferredLabs, isLoading: preferredLoading, refetch: refetchPreferred } = useQuery({
     queryKey: ["preferred-labs", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -68,10 +69,12 @@ const PreferredLabs = () => {
       return data as PreferredLab[];
     },
     enabled: !!user?.id,
+    staleTime: 0, // Always refetch when component mounts
+    refetchOnMount: 'always',
   });
 
   // Fetch all available labs (not already in preferred)
-  const { data: availableLabs } = useQuery({
+  const { data: availableLabs, refetch: refetchAvailable } = useQuery({
     queryKey: ["available-labs-for-preference", user?.id, preferredLabs],
     queryFn: async () => {
       const preferredLabIds = preferredLabs?.map(p => p.lab_id) || [];
@@ -91,6 +94,8 @@ const PreferredLabs = () => {
       return data as Lab[];
     },
     enabled: !!user?.id && preferredLabs !== undefined,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Add preferred lab mutation
@@ -175,6 +180,14 @@ const PreferredLabs = () => {
     },
   });
 
+  if (preferredLoading) {
+    return (
+      <ProtectedRoute>
+        <LoadingScreen message="Loading preferred labs..." />
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
@@ -208,11 +221,7 @@ const PreferredLabs = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {preferredLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Loading...
-                    </div>
-                  ) : preferredLabs && preferredLabs.length > 0 ? (
+                  {preferredLabs && preferredLabs.length > 0 ? (
                     <PreferredLabsList
                       preferredLabs={preferredLabs}
                       onRemove={(id) => removePreferredMutation.mutate(id)}
