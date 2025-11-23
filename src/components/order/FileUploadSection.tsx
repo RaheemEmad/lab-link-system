@@ -32,7 +32,7 @@ interface FileUploadSectionProps {
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const ACCEPTED_STL_TYPES = ["model/stl", "application/sla", "application/octet-stream"];
+const ACCEPTED_STL_TYPES = ["model/stl", "application/sla", "application/octet-stream", "model/obj", "application/obj"];
 const ACCEPTED_DOCUMENT_TYPES = ["application/pdf"];
 
 export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }: FileUploadSectionProps) {
@@ -217,13 +217,13 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
             />
           </Card>
 
-          {/* STL Files */}
+          {/* 3D Model Files */}
           <Card className="p-4 border-2 border-dashed hover:border-primary/50 transition-colors">
             <Label htmlFor="stl-upload" className="cursor-pointer">
               <div className="flex flex-col items-center gap-2 text-center">
                 <FileIcon className="h-8 w-8 text-muted-foreground" />
-                <span className="text-sm font-medium">STL Files</span>
-                <span className="text-xs text-muted-foreground">STL, SLA</span>
+                <span className="text-sm font-medium">3D Model Files</span>
+                <span className="text-xs text-muted-foreground">STL, OBJ</span>
               </div>
             </Label>
             <input
