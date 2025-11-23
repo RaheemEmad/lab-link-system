@@ -30,6 +30,7 @@ import {
   Download
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Card as CardComponent } from "@/components/ui/card";
 
 interface Order {
   id: string;
@@ -313,18 +314,50 @@ const LabWorkflowManagement = () => {
                 </Card>
               ) : (
                 orders.filter(o => o.status !== 'Delivered').map((order) => (
-                  <OrderWorkflowCard
-                    key={order.id}
-                    order={order}
-                    onStatusUpdate={handleStatusUpdate}
-                    onFileUpload={handleFileUpload}
-                    onDeliveryDateUpdate={handleDeliveryDateUpdate}
-                    onShipmentUpdate={handleShipmentUpdate}
-                    isUpdating={isUpdating}
-                    isUploadingFile={isUploadingFile}
-                    getStatusColor={getStatusColor}
-                    formatDate={formatDate}
-                  />
+                  <Card key={order.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-2">
+                            Order {order.order_number}
+                            {order.urgency === 'Urgent' && (
+                              <Badge variant="destructive">Urgent</Badge>
+                            )}
+                          </CardTitle>
+                          <CardDescription>
+                            {order.patient_name} • Dr. {order.doctor_name}
+                          </CardDescription>
+                        </div>
+                        <Badge variant={getStatusColor(order.status)}>
+                          {order.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="grid gap-2 sm:grid-cols-3">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Restoration</Label>
+                            <p className="text-sm font-medium">{order.restoration_type}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Teeth</Label>
+                            <p className="text-sm font-medium">{order.teeth_number}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Expected Delivery</Label>
+                            <p className="text-sm font-medium">{formatDate(order.expected_delivery_date)}</p>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => navigate(`/lab-order/${order.id}`)}
+                          className="w-full"
+                        >
+                          Manage Order
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))
               )}
             </TabsContent>
@@ -342,18 +375,35 @@ const LabWorkflowManagement = () => {
                 </Card>
               ) : (
                 orders.filter(o => o.status === 'Delivered').map((order) => (
-                  <OrderWorkflowCard
-                    key={order.id}
-                    order={order}
-                    onStatusUpdate={handleStatusUpdate}
-                    onFileUpload={handleFileUpload}
-                    onDeliveryDateUpdate={handleDeliveryDateUpdate}
-                    onShipmentUpdate={handleShipmentUpdate}
-                    isUpdating={isUpdating}
-                    isUploadingFile={isUploadingFile}
-                    getStatusColor={getStatusColor}
-                    formatDate={formatDate}
-                  />
+                  <Card key={order.id} className="opacity-75">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <CardTitle>Order {order.order_number}</CardTitle>
+                          <CardDescription>
+                            {order.patient_name} • Dr. {order.doctor_name}
+                          </CardDescription>
+                        </div>
+                        <Badge>{order.status}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-2 sm:grid-cols-3 text-sm">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Restoration</Label>
+                          <p className="font-medium">{order.restoration_type}</p>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Delivered</Label>
+                          <p className="font-medium">{formatDate(order.actual_delivery_date)}</p>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Tracking</Label>
+                          <p className="font-medium">{order.shipment_tracking || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))
               )}
             </TabsContent>

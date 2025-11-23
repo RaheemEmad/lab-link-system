@@ -27,6 +27,7 @@ import Install from "./pages/Install";
 import NotificationHistory from "./pages/NotificationHistory";
 import OrderTracking from "./pages/OrderTracking";
 import LabWorkflowManagement from "./pages/LabWorkflowManagement";
+import LabOrderDetail from "./pages/LabOrderDetail";
 import DesignApprovalWorkflow from "./pages/DesignApprovalWorkflow";
 import EditOrder from "./pages/EditOrder";
 import NotFound from "./pages/NotFound";
@@ -54,6 +55,7 @@ const AppContent = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/order-tracking" element={<OrderTracking />} />
         <Route path="/lab-workflow" element={<LabWorkflowManagement />} />
+        <Route path="/lab-order/:orderId" element={<LabOrderDetail />} />
         <Route path="/design-approval" element={<DesignApprovalWorkflow />} />
         <Route path="/edit-order/:orderId" element={<EditOrder />} />
         <Route path="/profile" element={<Profile />} />
