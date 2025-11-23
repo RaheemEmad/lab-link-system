@@ -77,6 +77,10 @@ export function ShipmentDetailsDialog({
   const onSubmit = async (values: ShipmentFormValues) => {
     setLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Update shipment details
       const { error } = await supabase
         .from('orders')
         .update({
@@ -89,6 +93,50 @@ export function ShipmentDetailsDialog({
         .eq('id', order.id);
 
       if (error) throw error;
+
+      // Create a note about the shipment update
+      const noteText = `Shipment details updated:\n` +
+        `📦 Carrier: ${values.carrierName}\n` +
+        `📞 Carrier Phone: ${values.carrierPhone}\n` +
+        (values.proposedDeliveryDate ? `📅 Proposed Delivery: ${format(values.proposedDeliveryDate, 'PPP')}\n` : '') +
+        (values.deliveryDateComment ? `💬 Comment: ${values.deliveryDateComment}\n` : '') +
+        (values.shipmentTracking ? `🔍 Tracking: ${values.shipmentTracking}` : '');
+
+      const { error: noteError } = await supabase
+        .from('order_notes')
+        .insert({
+          order_id: order.id,
+          user_id: user.id,
+          note_text: noteText,
+        });
+
+      if (noteError) {
+        console.error('Error creating note:', noteError);
+      }
+
+      // Send notification to the doctor
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('doctor_id')
+        .eq('id', order.id)
+        .single();
+
+      if (orderData?.doctor_id) {
+        const notificationMessage = `Shipment details have been updated for order ${order.order_number}. Carrier: ${values.carrierName}${values.proposedDeliveryDate ? `, Delivery: ${format(values.proposedDeliveryDate, 'PPP')}` : ''}`;
+        
+        // Call the send-push-notification edge function
+        try {
+          await supabase.functions.invoke('send-push-notification', {
+            body: {
+              orderId: order.id,
+              type: 'shipment_update',
+              message: notificationMessage,
+            },
+          });
+        } catch (notifError) {
+          console.error('Error sending notification:', notifError);
+        }
+      }
 
       toast.success("Shipment details updated successfully");
       onUpdate?.();
