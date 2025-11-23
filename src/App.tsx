@@ -39,6 +39,7 @@ import TrackOrders from "./pages/TrackOrders";
 import Achievements from "./pages/Achievements";
 import DoctorAchievements from "./pages/DoctorAchievements";
 import LabAchievements from "./pages/LabAchievements";
+import StyleGuide from "./pages/StyleGuide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ const AppContent = () => {
           <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
           <Route path="/install" element={<PageTransition><Install /></PageTransition>} />
           <Route path="/notifications" element={<PageTransition><NotificationHistory /></PageTransition>} />
+          <Route path="/style-guide" element={<PageTransition><StyleGuide /></PageTransition>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
         </Routes>
