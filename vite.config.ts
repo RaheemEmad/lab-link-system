@@ -28,15 +28,15 @@ export default defineConfig(({ mode }) => ({
         start_url: "/",
         icons: [
           {
-            src: "https://storage.googleapis.com/gpt-engineer-file-uploads/tmNyuY2x94WjbQ35tw5Dp9Bj0lD3/uploads/1763467585853-unnamed.jpg",
+            src: "/lablink-icon.png",
             sizes: "192x192",
-            type: "image/jpeg",
+            type: "image/png",
             purpose: "any maskable"
           },
           {
-            src: "https://storage.googleapis.com/gpt-engineer-file-uploads/tmNyuY2x94WjbQ35tw5Dp9Bj0lD3/uploads/1763467585853-unnamed.jpg",
+            src: "/lablink-icon.png",
             sizes: "512x512",
-            type: "image/jpeg",
+            type: "image/png",
             purpose: "any maskable"
           }
         ],
