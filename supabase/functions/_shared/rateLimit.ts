@@ -60,8 +60,28 @@ export async function checkRateLimit(
     if (currentCount >= maxRequests) {
       const retryAfter = Math.ceil((resetAt.getTime() - now.getTime()) / 1000);
       
-      // Log rate limit violation (simplified without RPC call)
+      // Log rate limit violation
       console.warn(`Rate limit exceeded for ${identifier} on ${endpoint}`);
+
+      // Create admin notification for rate limit exceeded
+      try {
+        await supabaseClient.rpc('create_admin_notification', {
+          title_param: 'Rate Limit Exceeded',
+          message_param: `Rate limit exceeded on ${endpoint}. Identifier: ${identifier.substring(0, 20)}...`,
+          severity_param: 'warning',
+          category_param: 'rate_limiting',
+          metadata_param: {
+            endpoint,
+            identifier: identifier.substring(0, 50),
+            currentCount,
+            maxRequests,
+            retryAfter,
+            timestamp: now.toISOString()
+          }
+        });
+      } catch (notifError) {
+        console.error('Failed to create admin notification:', notifError);
+      }
 
       return {
         allowed: false,
