@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Award, Zap, Target, Clock, Star, TrendingUp, CheckCircle } from "lucide-react";
+import { Trophy, Award, Zap, Target, Clock, Star, TrendingUp, CheckCircle, Database, Shield, FileText, MessageSquare, Medal } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -11,105 +11,200 @@ import { Progress } from "@/components/ui/progress";
 
 // Achievement definitions with icons and descriptions
 const ACHIEVEMENTS = {
-  // Order milestones
+  // Doctor - Order milestones
   first_order: {
     name: "First Steps",
     description: "Submitted your first order",
     icon: Award,
     color: "text-blue-500",
-    category: "Milestones"
+    category: "Doctor - Milestones"
   },
   five_orders: {
     name: "Getting Started",
     description: "Completed 5 orders",
     icon: Trophy,
     color: "text-green-500",
-    category: "Milestones"
+    category: "Doctor - Milestones"
   },
   ten_orders: {
     name: "Professional",
     description: "Completed 10 orders",
     icon: Trophy,
     color: "text-yellow-500",
-    category: "Milestones"
+    category: "Doctor - Milestones"
   },
   twenty_five_orders: {
     name: "Expert",
     description: "Completed 25 orders",
     icon: Trophy,
     color: "text-orange-500",
-    category: "Milestones"
+    category: "Doctor - Milestones"
   },
   fifty_orders: {
     name: "Master",
     description: "Completed 50 orders",
     icon: Trophy,
     color: "text-purple-500",
-    category: "Milestones"
+    category: "Doctor - Milestones"
   },
   
-  // Delivery achievements
+  // Doctor - Patient Care
+  the_consult: {
+    name: "The Consult",
+    description: "Reviewed 15 patient results",
+    icon: CheckCircle,
+    color: "text-green-500",
+    category: "Doctor - Patient Care"
+  },
   first_delivery: {
     name: "First Success",
     description: "Received your first delivery",
     icon: CheckCircle,
     color: "text-green-500",
-    category: "Delivery"
+    category: "Doctor - Patient Care"
   },
   ten_deliveries: {
     name: "Reliable Partner",
     description: "Received 10 deliveries",
     icon: CheckCircle,
     color: "text-blue-500",
-    category: "Delivery"
+    category: "Doctor - Patient Care"
   },
   perfect_timing: {
     name: "Perfect Timing",
     description: "10 consecutive on-time deliveries",
     icon: Clock,
     color: "text-emerald-500",
-    category: "Delivery"
+    category: "Doctor - Patient Care"
   },
   
-  // Speed achievements
+  // Doctor - Communication
+  feedback_flow: {
+    name: "Feedback Flow",
+    description: "Sent 5 notes to the lab",
+    icon: MessageSquare,
+    color: "text-blue-500",
+    category: "Doctor - Communication"
+  },
+  
+  // Doctor - Speed
   fast_approver: {
     name: "Quick Decider",
     description: "Approved a design within 24 hours",
     icon: Zap,
     color: "text-yellow-500",
-    category: "Speed"
+    category: "Doctor - Speed"
+  },
+  rapid_reviewer: {
+    name: "Rapid Reviewer",
+    description: "Reviewed STAT result within 30 minutes",
+    icon: Zap,
+    color: "text-yellow-500",
+    category: "Doctor - Speed"
   },
   
-  // Streak achievements
+  // Doctor - Consistency
   four_week_streak: {
     name: "Consistent User",
     description: "Placed orders for 4 consecutive weeks",
     icon: TrendingUp,
     color: "text-blue-500",
-    category: "Consistency"
+    category: "Doctor - Consistency"
   },
   eight_week_streak: {
     name: "Dedicated Professional",
     description: "Placed orders for 8 consecutive weeks",
     icon: TrendingUp,
     color: "text-purple-500",
-    category: "Consistency"
+    category: "Doctor - Consistency"
   },
   
-  // Urgent order achievements
+  // Doctor - Urgent
   urgent_master: {
     name: "Urgent Master",
     description: "Completed 5 urgent orders",
     icon: Target,
     color: "text-red-500",
-    category: "Urgent"
+    category: "Doctor - Urgent"
   },
   urgent_expert: {
     name: "Urgent Expert",
     description: "Completed 20 urgent orders",
     icon: Target,
     color: "text-red-600",
-    category: "Urgent"
+    category: "Doctor - Urgent"
+  },
+  
+  // Lab Staff - Data Entry
+  data_dynamo: {
+    name: "Data Dynamo",
+    description: "Processed 10 test results in one day",
+    icon: Database,
+    color: "text-blue-500",
+    category: "Lab - Data Entry"
+  },
+  
+  // Lab Staff - Quality Control
+  precision_pointer: {
+    name: "Precision Pointer",
+    description: "Completed 5 quality checks without issues",
+    icon: Shield,
+    color: "text-green-500",
+    category: "Lab - Quality Control"
+  },
+  
+  // Lab Staff - Speed & Efficiency
+  rush_hour_hero: {
+    name: "Rush Hour Hero",
+    description: "Started STAT order within 1 hour",
+    icon: Zap,
+    color: "text-red-500",
+    category: "Lab - Speed & Efficiency"
+  },
+  
+  // Lab Staff - Digital Pioneer
+  paperless_pro: {
+    name: "Paperless Pro",
+    description: "Uploaded 25 digital records",
+    icon: FileText,
+    color: "text-green-500",
+    category: "Lab - Digital Pioneer"
+  }
+};
+
+// Badge tier definitions
+const BADGE_TIERS = {
+  bronze: {
+    name: "Bronze",
+    color: "text-amber-600",
+    bgColor: "bg-amber-100",
+    borderColor: "border-amber-300",
+    icon: Medal,
+    requirement: "Complete 5 achievements"
+  },
+  silver: {
+    name: "Silver",
+    color: "text-gray-400",
+    bgColor: "bg-gray-100",
+    borderColor: "border-gray-300",
+    icon: Medal,
+    requirement: "Complete 20 achievements"
+  },
+  gold: {
+    name: "Gold",
+    color: "text-yellow-500",
+    bgColor: "bg-yellow-100",
+    borderColor: "border-yellow-300",
+    icon: Medal,
+    requirement: "Complete a difficult milestone"
+  },
+  platinum: {
+    name: "Platinum",
+    color: "text-blue-300",
+    bgColor: "bg-blue-100",
+    borderColor: "border-blue-300",
+    icon: Medal,
+    requirement: "Complete all achievements in a category"
   }
 };
 
@@ -123,6 +218,21 @@ export default function Achievements() {
       const { data, error } = await supabase
         .from("user_achievements")
         .select("achievement_id, earned_at")
+        .eq("user_id", user?.id!);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch user badges
+  const { data: earnedBadges } = useQuery({
+    queryKey: ["user-badges", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_badges")
+        .select("*")
         .eq("user_id", user?.id!);
       
       if (error) throw error;
@@ -211,6 +321,43 @@ export default function Achievements() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Badge Tiers */}
+            {earnedBadges && earnedBadges.length > 0 && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Medal className="h-5 w-5 text-primary" />
+                    Earned Badges
+                  </CardTitle>
+                  <CardDescription>
+                    Unlock badge tiers by earning achievements
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {earnedBadges.map((badge) => {
+                      const tierInfo = BADGE_TIERS[badge.tier as keyof typeof BADGE_TIERS];
+                      const BadgeIcon = tierInfo.icon;
+                      return (
+                        <div
+                          key={badge.id}
+                          className={`p-4 rounded-lg border-2 ${tierInfo.borderColor} ${tierInfo.bgColor}`}
+                        >
+                          <div className="flex flex-col items-center gap-2">
+                            <BadgeIcon className={`h-12 w-12 ${tierInfo.color}`} />
+                            <h3 className="font-semibold">{tierInfo.name} Badge</h3>
+                            <p className="text-xs text-center text-muted-foreground">
+                              Earned {new Date(badge.earned_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Achievement Categories */}
             {Object.entries(groupedAchievements).map(([category, achievements]) => (

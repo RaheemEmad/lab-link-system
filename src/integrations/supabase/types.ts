@@ -1016,6 +1016,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          tier: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          tier: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          tier?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1059,6 +1083,15 @@ export type Database = {
       check_and_award_achievement: {
         Args: { achievement_id_param: string; user_id_param?: string }
         Returns: boolean
+      }
+      check_and_award_badge: {
+        Args: {
+          p_badge_id: string
+          p_required_count: number
+          p_tier: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       complete_doctor_onboarding: {
