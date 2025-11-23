@@ -97,7 +97,7 @@ export default function OrderNotesDialog({
           note_text,
           created_at,
           user_id,
-          profiles (
+          profiles!order_notes_user_id_fkey (
             full_name,
             email
           )
