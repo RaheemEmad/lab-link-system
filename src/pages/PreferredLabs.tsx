@@ -19,7 +19,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
-import { PreferredLabsCarousel } from "@/components/preferred-labs/PreferredLabsCarousel";
+import { PreferredLabsStack } from "@/components/preferred-labs/PreferredLabsStack";
 
 interface Lab {
   id: string;
@@ -161,7 +161,7 @@ const PreferredLabs = () => {
 
             <div className="grid gap-6 lg:grid-cols-2">
               
-              {/* Preferred Labs Carousel */}
+              {/* Preferred Labs Stack */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -169,7 +169,7 @@ const PreferredLabs = () => {
                     My Preferred Labs
                   </CardTitle>
                   <CardDescription>
-                    Navigate through your bookmarked labs (1 = highest priority)
+                    Swipe or click arrows to browse (1 = highest priority)
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -178,7 +178,7 @@ const PreferredLabs = () => {
                       Loading...
                     </div>
                   ) : preferredLabs && preferredLabs.length > 0 ? (
-                    <PreferredLabsCarousel
+                    <PreferredLabsStack
                       preferredLabs={preferredLabs}
                       onRemove={(id) => removePreferredMutation.mutate(id)}
                     />
