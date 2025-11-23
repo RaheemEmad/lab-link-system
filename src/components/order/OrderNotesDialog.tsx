@@ -15,6 +15,7 @@ import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";
 import { SkeletonNote } from "@/components/ui/skeleton-card";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,6 +73,7 @@ export default function OrderNotesDialog({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const previousNoteCountRef = useRef<number>(0);
   const { playNormalNotification } = useNotificationSound();
+  const { requestPermission, showNotification, isGranted, isSupported } = useBrowserNotifications();
 
   useEffect(() => {
     const getUserId = async () => {
@@ -79,7 +81,12 @@ export default function OrderNotesDialog({
       setCurrentUserId(user?.id || null);
     };
     getUserId();
-  }, []);
+
+    // Request browser notification permission on first load
+    if (isSupported && !isGranted) {
+      requestPermission();
+    }
+  }, [isSupported, isGranted, requestPermission]);
 
   useEffect(() => {
     if (open && orderId) {
@@ -106,6 +113,13 @@ export default function OrderNotesDialog({
                 if (soundEnabled) {
                   playNormalNotification();
                 }
+                
+                // Show browser notification (works even when tab is not focused)
+                showNotification("📝 New Note Added", {
+                  body: `A new note has been added to order ${orderNumber}`,
+                  tag: `note-${orderId}`,
+                  requireInteraction: false,
+                });
                 
                 // Show toast notification
                 toast.info("New note added", {
