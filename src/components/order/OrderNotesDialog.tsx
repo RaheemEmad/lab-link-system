@@ -10,10 +10,20 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Pencil, Trash2, Heart } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";
 import { SkeletonNote } from "@/components/ui/skeleton-card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const NOTE_MAX_LENGTH = 2000;
 
@@ -33,6 +43,8 @@ interface OrderNote {
     full_name: string | null;
     email: string;
   };
+  like_count?: number;
+  user_has_liked?: boolean;
 }
 
 interface OrderNotesDialogProps {
@@ -52,6 +64,18 @@ export default function OrderNotesDialog({
   const [newNote, setNewNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getUserId();
+  }, []);
 
   useEffect(() => {
     if (open && orderId) {
@@ -64,6 +88,8 @@ export default function OrderNotesDialog({
 
     setIsLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from("order_notes")
         .select(`
@@ -80,7 +106,31 @@ export default function OrderNotesDialog({
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setNotes(data || []);
+
+      // Fetch like counts and user's like status for each note
+      const notesWithLikes = await Promise.all(
+        (data || []).map(async (note) => {
+          const { count } = await supabase
+            .from("note_likes")
+            .select("*", { count: "exact", head: true })
+            .eq("note_id", note.id);
+
+          const { data: userLike } = await supabase
+            .from("note_likes")
+            .select("id")
+            .eq("note_id", note.id)
+            .eq("user_id", user?.id || "")
+            .maybeSingle();
+
+          return {
+            ...note,
+            like_count: count || 0,
+            user_has_liked: !!userLike,
+          };
+        })
+      );
+
+      setNotes(notesWithLikes);
     } catch (error) {
       console.error("Error fetching notes:", error);
       toast.error("Failed to load notes");
@@ -124,6 +174,82 @@ export default function OrderNotesDialog({
       toast.error("Failed to add note");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditNote = async (noteId: string) => {
+    const validation = noteSchema.safeParse({ note_text: editText });
+    
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("order_notes")
+        .update({ note_text: editText.trim() })
+        .eq("id", noteId);
+
+      if (error) throw error;
+
+      toast.success("Note updated successfully");
+      setEditingNoteId(null);
+      setEditText("");
+      fetchNotes();
+    } catch (error) {
+      console.error("Error updating note:", error);
+      toast.error("Failed to update note");
+    }
+  };
+
+  const handleDeleteNote = async () => {
+    if (!deleteNoteId) return;
+
+    try {
+      const { error } = await supabase
+        .from("order_notes")
+        .delete()
+        .eq("id", deleteNoteId);
+
+      if (error) throw error;
+
+      toast.success("Note deleted successfully");
+      setDeleteNoteId(null);
+      fetchNotes();
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast.error("Failed to delete note");
+    }
+  };
+
+  const handleToggleLike = async (noteId: string, currentlyLiked: boolean) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      if (currentlyLiked) {
+        // Unlike
+        const { error } = await supabase
+          .from("note_likes")
+          .delete()
+          .eq("note_id", noteId)
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+      } else {
+        // Like
+        const { error } = await supabase
+          .from("note_likes")
+          .insert({ note_id: noteId, user_id: user.id });
+
+        if (error) throw error;
+      }
+
+      fetchNotes();
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast.error("Failed to update like");
     }
   };
 
@@ -182,34 +308,139 @@ export default function OrderNotesDialog({
             ) : (
               <ScrollArea className="h-[400px] rounded-md border">
                 <div className="p-4 space-y-4">
-                  {notes.map((note) => (
-                    <div
-                      key={note.id}
-                      className="bg-secondary/30 rounded-lg p-4 space-y-2"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">
-                            {note.profiles.full_name || note.profiles.email}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(note.created_at), {
-                              addSuffix: true,
-                            })}
-                          </p>
+                  {notes.map((note) => {
+                    const isAuthor = currentUserId === note.user_id;
+                    const isEditing = editingNoteId === note.id;
+
+                    return (
+                      <div
+                        key={note.id}
+                        className="bg-secondary/30 rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">
+                              {note.profiles.full_name || note.profiles.email}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(note.created_at), {
+                                addSuffix: true,
+                              })}
+                            </p>
+                          </div>
+                          {isAuthor && !isEditing && (
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingNoteId(note.id);
+                                  setEditText(note.note_text);
+                                }}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeleteNoteId(note.id)}
+                                className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
+
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              className="min-h-[80px]"
+                              maxLength={NOTE_MAX_LENGTH}
+                            />
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingNoteId(null);
+                                  setEditText("");
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleEditNote(note.id)}
+                                disabled={!editText.trim()}
+                              >
+                                Save
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-sm whitespace-pre-wrap">
+                              {note.note_text}
+                            </p>
+                            <div className="flex items-center gap-2 pt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleToggleLike(note.id, note.user_has_liked || false)
+                                }
+                                className={`h-8 gap-1.5 ${
+                                  note.user_has_liked
+                                    ? "text-red-500 hover:text-red-600"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                <Heart
+                                  className={`h-4 w-4 ${
+                                    note.user_has_liked ? "fill-current" : ""
+                                  }`}
+                                />
+                                <span className="text-xs">
+                                  {note.like_count || 0}
+                                </span>
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      <p className="text-sm whitespace-pre-wrap">
-                        {note.note_text}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
             )}
           </div>
         </div>
       </DialogContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteNoteId} onOpenChange={() => setDeleteNoteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Note?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your note.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteNote}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
