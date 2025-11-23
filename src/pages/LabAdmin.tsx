@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -127,7 +127,7 @@ const LabAdmin = () => {
   });
 
   // Update form when lab data loads
-  useState(() => {
+  useEffect(() => {
     if (lab) {
       form.reset({
         name: lab.name,
@@ -142,7 +142,7 @@ const LabAdmin = () => {
         website_url: lab.website_url || "",
       });
     }
-  });
+  }, [lab, form]);
 
   // Update lab profile mutation
   const updateLabMutation = useMutation({
