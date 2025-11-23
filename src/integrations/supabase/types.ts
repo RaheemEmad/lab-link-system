@@ -1040,6 +1040,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_challenges: {
+        Row: {
+          challenge_id: string
+          challenge_type: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          progress: number
+          target: number
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          challenge_type: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          progress?: number
+          target: number
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          challenge_type?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          progress?: number
+          target?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1123,6 +1162,9 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_daily_challenges: { Args: never; Returns: undefined }
+      create_monthly_challenges: { Args: never; Returns: undefined }
+      create_weekly_challenges: { Args: never; Returns: undefined }
       generate_order_number: { Args: never; Returns: string }
       has_role: {
         Args: {
