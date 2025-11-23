@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Users, Package, Activity, MessageSquare, BarChart3 } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import AdminNotifications from "@/components/admin/AdminNotifications";
 import AdminDashboardTab from "@/components/admin/AdminDashboardTab";
 import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import AdminOrdersTab from "@/components/admin/AdminOrdersTab";
@@ -77,9 +78,12 @@ const Admin = () => {
       <div className="flex-1 bg-secondary/30 py-8">
         <div className="container px-4">
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Admin Panel</h1>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <Shield className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl font-bold">Admin Panel</h1>
+              </div>
+              <AdminNotifications />
             </div>
             <p className="text-muted-foreground">
               Manage users, orders, and monitor all system activities

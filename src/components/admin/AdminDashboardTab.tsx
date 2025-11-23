@@ -32,7 +32,47 @@ const AdminDashboardTab = () => {
 
   useEffect(() => {
     fetchStats();
+    setupRealtimeSubscriptions();
   }, []);
+
+  const setupRealtimeSubscriptions = () => {
+    // Subscribe to order changes
+    const ordersChannel = supabase
+      .channel("orders-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+        },
+        () => {
+          fetchStats();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to profile changes
+    const profilesChannel = supabase
+      .channel("profiles-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+        },
+        () => {
+          fetchStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(profilesChannel);
+    };
+  };
 
   const fetchStats = async () => {
     try {

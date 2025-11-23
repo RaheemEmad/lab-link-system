@@ -39,6 +39,8 @@ const AdminUsersTab = () => {
   const [editUserId, setEditUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<string>("");
 
   useEffect(() => {
     fetchUsers();
@@ -122,6 +124,58 @@ const AdminUsersTab = () => {
     return matchesSearch && matchesRole;
   });
 
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUsers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.size === filteredUsers.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(filteredUsers.map((u) => u.id)));
+    }
+  };
+
+  const handleBulkAction = async () => {
+    if (selectedUsers.size === 0 || !bulkAction) return;
+
+    try {
+      if (bulkAction === "delete") {
+        const confirmed = window.confirm(
+          `Are you sure you want to delete ${selectedUsers.size} user(s)?`
+        );
+        if (!confirmed) return;
+
+        for (const userId of Array.from(selectedUsers)) {
+          await supabase.auth.admin.deleteUser(userId);
+        }
+        toast.success(`Deleted ${selectedUsers.size} user(s)`);
+      }
+
+      setSelectedUsers(new Set());
+      setBulkAction("");
+      fetchUsers();
+    } catch (error: any) {
+      console.error("Bulk action error:", error);
+      toast.error(error.message || "Bulk action failed");
+    }
+  };
+
+  const exportUsers = async () => {
+    const { exportToCSV, prepareUsersForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareUsersForExport(filteredUsers);
+    exportToCSV(exportData, `users-export-${new Date().toISOString().split("T")[0]}`);
+    toast.success("Users exported successfully");
+  };
+
   if (loading) {
     return (
       <Card>
@@ -144,8 +198,8 @@ const AdminUsersTab = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-4">
-            <div className="relative flex-1">
+          <div className="flex gap-4 mb-4 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name, email, clinic, or lab..."
@@ -165,12 +219,40 @@ const AdminUsersTab = () => {
               <option value="lab_staff">Lab Staff</option>
               <option value="none">No Role</option>
             </select>
+            <Button onClick={exportUsers} variant="outline">
+              Export CSV
+            </Button>
           </div>
+
+          {selectedUsers.size > 0 && (
+            <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-md">
+              <span className="text-sm font-medium">{selectedUsers.size} selected</span>
+              <select
+                value={bulkAction}
+                onChange={(e) => setBulkAction(e.target.value)}
+                className="px-3 py-1 border border-input rounded-md bg-background text-sm"
+              >
+                <option value="">Bulk Actions...</option>
+                <option value="delete">Delete Selected</option>
+              </select>
+              <Button size="sm" onClick={handleBulkAction} disabled={!bulkAction}>
+                Apply
+              </Button>
+            </div>
+          )}
 
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.size === filteredUsers.length && filteredUsers.length > 0}
+                      onChange={toggleSelectAll}
+                      className="rounded border-gray-300"
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
@@ -184,6 +266,14 @@ const AdminUsersTab = () => {
               <TableBody>
                 {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.has(user.id)}
+                        onChange={() => toggleUserSelection(user.id)}
+                        className="rounded border-gray-300"
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">
                       {user.full_name || "—"}
                     </TableCell>

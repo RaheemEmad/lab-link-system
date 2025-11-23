@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          read: boolean
+          severity: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          read?: boolean
+          severity: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean
+          severity?: string
+          title?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action_type: string
@@ -1204,6 +1237,16 @@ export type Database = {
           user_id_param: string
         }
         Returns: undefined
+      }
+      create_admin_notification: {
+        Args: {
+          category_param: string
+          message_param: string
+          metadata_param?: Json
+          severity_param: string
+          title_param: string
+        }
+        Returns: string
       }
       create_daily_challenges: { Args: never; Returns: undefined }
       create_monthly_challenges: { Args: never; Returns: undefined }
