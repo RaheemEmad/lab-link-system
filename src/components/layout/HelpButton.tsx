@@ -14,9 +14,9 @@ export const HelpButton: React.FC = () => {
         <Button
           variant="outline"
           size="icon"
-          className="fixed top-4 right-4 z-50 rounded-full shadow-lg hover:shadow-xl transition-all"
+          className="fixed bottom-6 right-6 z-[9999] rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-background border-2 border-primary/20 hover:border-primary"
         >
-          <HelpCircle className="h-5 w-5" />
+          <HelpCircle className="h-5 w-5 text-primary" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">
