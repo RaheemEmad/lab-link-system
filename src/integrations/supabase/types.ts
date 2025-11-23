@@ -565,6 +565,47 @@ export type Database = {
           },
         ]
       }
+      notification_logs: {
+        Row: {
+          attempt_number: number | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          notification_id: string | null
+          retry_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_number?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          notification_id?: string | null
+          retry_at?: string | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_number?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          notification_id?: string | null
+          retry_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1471,6 +1512,15 @@ export type Database = {
           record_id_param?: string
           table_name_param: string
           user_agent_param?: string
+        }
+        Returns: string
+      }
+      log_notification_status: {
+        Args: {
+          error_message_param?: string
+          notification_id_param: string
+          retry_at_param?: string
+          status_param: string
         }
         Returns: string
       }

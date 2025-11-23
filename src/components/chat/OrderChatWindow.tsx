@@ -49,6 +49,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   const { toast } = useToast();
   const messageSound = useRef<HTMLAudioElement | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [retryQueue, setRetryQueue] = useState<Map<string, { message: string; retries: number }>>(new Map());
 
   useEffect(() => {
     // Create notification sound
@@ -292,10 +293,11 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
     }
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (retryAttempt = 0) => {
     if (!inputMessage.trim() || isLoading) return;
 
     const messageText = inputMessage.trim();
+    const tempMessageId = `temp_${Date.now()}`;
     setInputMessage('');
     setIsLoading(true);
     updateTypingStatus(false);
@@ -315,14 +317,39 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
           is_ai_generated: false,
         });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Retry with exponential backoff
+        if (retryAttempt < 3) {
+          const delay = Math.min(1000 * Math.pow(2, retryAttempt), 10000);
+          console.log(`Retrying message send in ${delay}ms (attempt ${retryAttempt + 1})`);
+          
+          toast({
+            title: 'Retrying...',
+            description: `Attempting to send message (${retryAttempt + 1}/3)`,
+          });
+
+          await new Promise(resolve => setTimeout(resolve, delay));
+          setInputMessage(messageText);
+          setIsLoading(false);
+          return handleSendMessage(retryAttempt + 1);
+        }
+        throw insertError;
+      }
 
       await streamAIResponse(messageText);
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      if (retryAttempt >= 3) {
+        // Restore message for manual retry
+        setInputMessage(messageText);
+      }
+      
       toast({
-        title: 'Error',
-        description: 'Failed to send message',
+        title: retryAttempt >= 3 ? 'Message Failed' : 'Error',
+        description: retryAttempt >= 3 
+          ? 'Failed to send after 3 attempts. Message restored for manual retry.' 
+          : 'Failed to send message',
         variant: 'destructive',
       });
     } finally {
@@ -568,7 +595,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
             disabled={isLoading}
           />
           <Button
-            onClick={handleSendMessage}
+            onClick={() => handleSendMessage()}
             disabled={isLoading || !inputMessage.trim()}
             size="icon"
             className="h-[60px] w-[60px]"
