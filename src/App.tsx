@@ -33,6 +33,7 @@ import EditOrder from "./pages/EditOrder";
 import OrdersMarketplace from "./pages/OrdersMarketplace";
 import LabRequestsManagement from "./pages/LabRequestsManagement";
 import LogisticsDashboard from "./pages/LogisticsDashboard";
+import TrackOrders from "./pages/TrackOrders";
 import Achievements from "./pages/Achievements";
 import DoctorAchievements from "./pages/DoctorAchievements";
 import LabAchievements from "./pages/LabAchievements";
@@ -67,6 +68,7 @@ const AppContent = () => {
         <Route path="/orders-marketplace" element={<OrdersMarketplace />} />
         <Route path="/lab-requests" element={<LabRequestsManagement />} />
         <Route path="/logistics" element={<LogisticsDashboard />} />
+        <Route path="/track-orders" element={<TrackOrders />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/doctor-achievements" element={<DoctorAchievements />} />
           <Route path="/lab-achievements" element={<LabAchievements />} />
