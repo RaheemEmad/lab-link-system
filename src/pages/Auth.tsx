@@ -23,7 +23,11 @@ const signUpSchema = z.object({
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
   fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 const signInSchema = z.object({
@@ -47,6 +51,7 @@ const Auth = () => {
     defaultValues: {
       email: "",
       password: "",
+      confirmPassword: "",
       fullName: "",
     },
   });
@@ -60,6 +65,7 @@ const Auth = () => {
   });
   
   const signUpPassword = signUpForm.watch("password");
+  const signUpConfirmPassword = signUpForm.watch("confirmPassword");
   const signInEmail = signInForm.watch("email");
 
   // Check onboarding and role status when user changes
@@ -290,6 +296,25 @@ const Auth = () => {
                           <Input type="password" placeholder="••••••••" {...field} />
                         </FormControl>
                         <PasswordStrengthIndicator password={signUpPassword || ""} />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={signUpForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm Password</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input type="password" placeholder="••••••••" {...field} />
+                            {signUpConfirmPassword && signUpPassword && signUpPassword === signUpConfirmPassword && (
+                              <Check className="absolute right-3 top-3 h-4 w-4 text-green-600" />
+                            )}
+                          </div>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
