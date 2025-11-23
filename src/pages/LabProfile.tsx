@@ -187,8 +187,8 @@ export default function LabProfile() {
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-muted-foreground">Lab not found</p>
-            <Button onClick={() => navigate("/labs")} className="mt-4">
-              Back to Labs
+            <Button onClick={() => navigate(-1)} className="mt-4">
+              Back
             </Button>
           </CardContent>
         </Card>
@@ -204,9 +204,9 @@ export default function LabProfile() {
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate("/labs")}>
+        <Button variant="ghost" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Labs
+          Back
         </Button>
         {user && (
           <Button

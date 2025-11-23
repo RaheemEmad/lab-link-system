@@ -432,47 +432,34 @@ const OrderDashboard = () => {
                       </TableCell>
                       <TableCell>
                         {order.html_export && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => {
-                                    const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
-                                    if (isUrl) {
-                                      window.open(order.html_export!, '_blank', 'noopener,noreferrer');
-                                    } else {
-                                      const previewWindow = window.open('', '_blank');
-                                      if (previewWindow && order.html_export) {
-                                        previewWindow.document.write(order.html_export);
-                                        previewWindow.document.close();
-                                      }
-                                    }
-                                  }}
-                                  className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted hover:border-primary transition-colors cursor-pointer"
-                                >
-                                  {order.screenshot_url ? (
-                                    <img 
-                                      src={order.screenshot_url} 
-                                      alt="HTML Preview" 
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <FileText className="h-5 w-5 text-muted-foreground" />
-                                    </div>
-                                  )}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="left" className="max-w-xs">
-                                <div className="space-y-1">
-                                  <p className="font-semibold">{order.patient_name}</p>
-                                  <p className="text-sm text-muted-foreground">{order.restoration_type}</p>
-                                  <p className="text-xs text-muted-foreground">Teeth: {order.teeth_number}</p>
-                                  <p className="text-xs text-muted-foreground">Shade: {order.teeth_shade}</p>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <button
+                            onClick={() => {
+                              const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
+                              if (isUrl) {
+                                window.open(order.html_export!, '_blank', 'noopener,noreferrer');
+                              } else {
+                                const previewWindow = window.open('', '_blank');
+                                if (previewWindow && order.html_export) {
+                                  previewWindow.document.write(order.html_export);
+                                  previewWindow.document.close();
+                                }
+                              }
+                            }}
+                            className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted hover:border-primary hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
+                            title="Click to preview HTML export"
+                          >
+                            {order.screenshot_url ? (
+                              <img 
+                                src={order.screenshot_url} 
+                                alt="HTML Preview" 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                            )}
+                          </button>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
