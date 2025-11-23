@@ -31,26 +31,26 @@ const Hero = () => {
             <span className="text-sm font-medium text-white">Digital Order Management</span>
           </div>
           
-          <h1 className="mb-6 text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+          <h1 className="mb-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Dental Lab
             <span className="block bg-gradient-to-r from-white to-accent-foreground bg-clip-text text-transparent">
               Order System
             </span>
           </h1>
           
-          <p className="mb-10 text-lg text-white/90 sm:text-xl">
-            Streamline your dental lab workflow with our professional digital order management platform. 
-            Track cases from intake to delivery with ease.
+          <p className="mb-8 text-base text-white/90 sm:text-lg">
+            Streamline your workflow with professional order management. 
+            Track cases from intake to delivery.
           </p>
           
-          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button
               size="lg"
               variant="secondary"
               onClick={() => navigate("/new-order")}
-              className="group relative overflow-hidden bg-white text-primary hover:bg-white/90"
+              className="group bg-white text-primary hover:bg-white/90"
             >
-              <FileText className="mr-2 h-5 w-5" />
+              <FileText className="mr-2 h-4 w-4" />
               Submit New Order
             </Button>
             
@@ -60,7 +60,7 @@ const Hero = () => {
               onClick={() => navigate("/dashboard")}
               className="border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
             >
-              <LayoutDashboard className="mr-2 h-5 w-5" />
+              <LayoutDashboard className="mr-2 h-4 w-4" />
               View Dashboard
             </Button>
           </div>

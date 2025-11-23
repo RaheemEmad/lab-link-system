@@ -16,40 +16,43 @@ const FinalCTA = () => {
       
       <div className="container px-4 mx-auto relative z-10">
         <ScrollReveal>
-          <div className="max-w-4xl mx-auto text-center space-y-8 sm:space-y-10">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              Ready to Transform Your Dental Workflow?
+          <div className="max-w-4xl mx-auto text-center space-y-6 sm:space-y-8">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+              Ready to Transform Your Workflow?
             </h2>
             
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Join dentists and labs already using LabLink. Get started in 2 minutes with zero cost and zero risk.
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Join dentists and labs using LabLink. Get started in 2 minutes.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center px-4">
               <Button 
+                variant="gradient"
                 size="lg"
-                className="text-base sm:text-lg px-8 py-6 h-auto hover-scale hover-glow shadow-lg group"
+                className="group"
                 onClick={() => navigate(user ? "/new-order" : "/auth")}
               >
-                <Stethoscope className="mr-2 h-5 w-5" />
-                Start as Dentist
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <span className="relative z-10 flex items-center">
+                  <Stethoscope className="mr-2 h-4 w-4" />
+                  Start as Dentist
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </span>
               </Button>
               
               <Button 
                 size="lg"
                 variant="outline"
-                className="text-base sm:text-lg px-8 py-6 h-auto hover-scale border-2 group"
+                className="group"
                 onClick={() => navigate(user ? "/lab-admin" : "/auth")}
               >
-                <Building2 className="mr-2 h-5 w-5" />
+                <Building2 className="mr-2 h-4 w-4" />
                 Join as Lab
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
             
-            <p className="text-sm text-muted-foreground">
-              No credit card required • Free to start • Launch in minutes
+            <p className="text-xs text-muted-foreground">
+              Free to start • No credit card • 2 minute setup
             </p>
           </div>
         </ScrollReveal>
