@@ -84,10 +84,23 @@ const AdminUsersTab = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      // Delete from auth.users (cascades to profiles and user_roles)
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No session');
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delete-user`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const result = await response.json();
       
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
 
       toast.success("User deleted successfully");
       fetchUsers();
@@ -154,8 +167,23 @@ const AdminUsersTab = () => {
         );
         if (!confirmed) return;
 
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('No session');
+
         for (const userId of Array.from(selectedUsers)) {
-          await supabase.auth.admin.deleteUser(userId);
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delete-user`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+          });
+
+          if (!response.ok) {
+            const result = await response.json();
+            throw new Error(result.error || 'Failed to delete user');
+          }
         }
         toast.success(`Deleted ${selectedUsers.size} user(s)`);
       }
