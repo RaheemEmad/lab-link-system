@@ -1,5 +1,8 @@
-import { Check, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, X, AlertCircle, ShieldAlert, ShieldCheck } from "lucide-react";
+import { validatePasswordStrength, isPasswordCompromised } from "@/lib/passwordSecurity";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PasswordStrengthIndicatorProps {
   password: string;
@@ -11,6 +14,36 @@ interface PasswordCriteria {
 }
 
 export const PasswordStrengthIndicator = ({ password }: PasswordStrengthIndicatorProps) => {
+  const [strengthResult, setStrengthResult] = useState(validatePasswordStrength(""));
+  const [isChecking, setIsChecking] = useState(false);
+  const [isCompromised, setIsCompromised] = useState(false);
+  const [hasCheckedBreach, setHasCheckedBreach] = useState(false);
+
+  useEffect(() => {
+    // Validate strength immediately
+    const result = validatePasswordStrength(password);
+    setStrengthResult(result);
+
+    // Check for breaches with debounce
+    if (password.length >= 8 && result.isValid) {
+      setIsChecking(true);
+      setHasCheckedBreach(false);
+      
+      const timer = setTimeout(async () => {
+        const compromised = await isPasswordCompromised(password);
+        setIsCompromised(compromised);
+        setHasCheckedBreach(true);
+        setIsChecking(false);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    } else {
+      setIsCompromised(false);
+      setHasCheckedBreach(false);
+      setIsChecking(false);
+    }
+  }, [password]);
+
   const calculateStrength = (): number => {
     let score = 0;
     
@@ -90,6 +123,41 @@ export const PasswordStrengthIndicator = ({ password }: PasswordStrengthIndicato
           </div>
         ))}
       </div>
+
+      {/* Breach Check Status */}
+      {strengthResult.isValid && (
+        <>
+          {isChecking && (
+            <Alert className="bg-muted border-muted">
+              <AlertCircle className="h-4 w-4 animate-pulse" />
+              <AlertDescription className="text-xs">
+                <div className="font-medium">Checking security...</div>
+                <div className="text-muted-foreground/80">Verifying against known data breaches</div>
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {!isChecking && isCompromised && (
+            <Alert variant="destructive">
+              <ShieldAlert className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                <div className="font-medium">Password found in data breach</div>
+                <div className="mt-0.5">This password has been exposed in a security breach. Please choose a different password.</div>
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {!isChecking && !isCompromised && hasCheckedBreach && (
+            <Alert className="bg-green-50 border-green-200 text-green-900">
+              <ShieldCheck className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-xs">
+                <div className="font-medium">Password is secure</div>
+                <div className="text-green-700 mt-0.5">Not found in known data breaches</div>
+              </AlertDescription>
+            </Alert>
+          )}
+        </>
+      )}
     </div>
   );
 };

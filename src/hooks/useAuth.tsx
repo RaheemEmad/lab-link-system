@@ -60,7 +60,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (error) {
-      toast.error(error.message);
+      // Enhanced error messages for signup
+      let errorMessage = error.message;
+      if (error.message.includes("already registered")) {
+        errorMessage = "An account with this email already exists";
+      } else if (error.message.includes("password")) {
+        errorMessage = "Password does not meet security requirements";
+      }
+      toast.error(errorMessage);
       return { error };
     }
 
