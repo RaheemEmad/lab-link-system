@@ -1,31 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useSearchParams, Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Building2, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Star, 
-  Clock, 
-  Zap,
-  TrendingUp,
-  Award,
-  ExternalLink,
   Search,
   Filter,
-  ArrowUpDown
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LabCard } from "@/components/labs/LabCard";
 
 interface Lab {
   id: string;
@@ -96,7 +86,7 @@ const Labs = () => {
     setSearchParams(params, { replace: true });
   }, [searchQuery, selectedPricingTier, selectedSpecialty, sortBy, currentPage, minRating, maxTurnaround, availableOnly, setSearchParams]);
 
-  // Fetch all active labs (no server-side filtering for search/specialty - we'll do client-side)
+  // Fetch all active labs
   const { data: allLabs, isLoading } = useQuery({
     queryKey: ["labs"],
     queryFn: async () => {
@@ -110,6 +100,44 @@ const Labs = () => {
     },
   });
 
+  // Fetch user roles to check which labs have completed profiles
+  const { data: labUserRoles } = useQuery({
+    queryKey: ["lab-user-roles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("lab_id, user_id, profiles!inner(onboarding_completed)")
+        .eq("role", "lab_staff")
+        .not("lab_id", "is", null);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Set up realtime subscription for labs
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel('labs-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'labs'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["labs"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   // Fetch specializations for all labs
   const { data: specializations } = useQuery({
     queryKey: ["lab-specializations"],
@@ -122,6 +150,13 @@ const Labs = () => {
     },
   });
 
+  // Check if a lab has completed profile
+  const hasCompletedProfile = (labId: string) => {
+    const labUsers = labUserRoles?.filter(role => role.lab_id === labId);
+    if (!labUsers || labUsers.length === 0) return false;
+    return labUsers.some(user => (user.profiles as any)?.onboarding_completed === true);
+  };
+
   const getLabSpecializations = (labId: string) => {
     return specializations?.filter(s => s.lab_id === labId) || [];
   };
@@ -133,9 +168,9 @@ const Labs = () => {
     return Array.from(unique).sort();
   }, [specializations]);
   
-  // Filter, search, and sort labs
-  const filteredAndSortedLabs = useMemo(() => {
-    if (!allLabs) return [];
+  // Separate labs into verified and unverified
+  const { verifiedLabs, unverifiedLabs } = useMemo(() => {
+    if (!allLabs) return { verifiedLabs: [], unverifiedLabs: [] };
     
     let filtered = [...allLabs];
     
@@ -192,8 +227,16 @@ const Labs = () => {
       }
     });
     
-    return filtered;
-  }, [allLabs, searchQuery, selectedPricingTier, selectedSpecialty, sortBy, minRating, maxTurnaround, availableOnly, specializations]);
+    // Separate verified and unverified
+    const verified = filtered.filter(lab => hasCompletedProfile(lab.id));
+    const unverified = filtered.filter(lab => !hasCompletedProfile(lab.id));
+    
+    return { verifiedLabs: verified, unverifiedLabs: unverified };
+  }, [allLabs, searchQuery, selectedPricingTier, selectedSpecialty, sortBy, minRating, maxTurnaround, availableOnly, specializations, labUserRoles]);
+
+  const filteredAndSortedLabs = useMemo(() => {
+    return [...verifiedLabs, ...unverifiedLabs];
+  }, [verifiedLabs, unverifiedLabs]);
   
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedLabs.length / ITEMS_PER_PAGE);
@@ -201,6 +244,15 @@ const Labs = () => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredAndSortedLabs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedLabs, currentPage]);
+
+  // Separate paginated labs into verified and unverified
+  const paginatedVerified = useMemo(() => {
+    return paginatedLabs.filter(lab => verifiedLabs.some(v => v.id === lab.id));
+  }, [paginatedLabs, verifiedLabs]);
+
+  const paginatedUnverified = useMemo(() => {
+    return paginatedLabs.filter(lab => unverifiedLabs.some(u => u.id === lab.id));
+  }, [paginatedLabs, unverifiedLabs]);
   
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -216,31 +268,6 @@ const Labs = () => {
     setMinRating(0);
     setMaxTurnaround(999);
     setAvailableOnly(false);
-  };
-
-  const getPricingBadgeVariant = (tier: string) => {
-    switch (tier) {
-      case 'premium': return 'default';
-      case 'standard': return 'secondary';
-      case 'budget': return 'outline';
-      default: return 'secondary';
-    }
-  };
-
-  const getExpertiseBadgeVariant = (level: string) => {
-    switch (level) {
-      case 'expert': return 'default';
-      case 'intermediate': return 'secondary';
-      case 'basic': return 'outline';
-      default: return 'secondary';
-    }
-  };
-
-  const getCapacityColor = (currentLoad: number, maxCapacity: number) => {
-    const percentage = (currentLoad / maxCapacity) * 100;
-    if (percentage < 50) return 'text-green-600';
-    if (percentage < 80) return 'text-orange-600';
-    return 'text-red-600';
   };
 
   return (
@@ -403,232 +430,100 @@ const Labs = () => {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i}>
-                  <CardHeader>
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-full" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-20 w-full" />
+                  <CardContent className="pt-6">
+                    <Skeleton className="h-40 w-full" />
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : paginatedLabs.length > 0 ? (
             <>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {paginatedLabs.map((lab) => {
-                const labSpecs = getLabSpecializations(lab.id);
-                const capacityPercentage = (lab.current_load / lab.max_capacity) * 100;
-
-                return (
-                  <Link key={lab.id} to={`/labs/${lab.id}`}>
-                    <Card className="hover:shadow-lg transition-shadow h-full">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-3 flex-1">
-                            {lab.logo_url ? (
-                              <img src={lab.logo_url} alt={lab.name} className="w-12 h-12 rounded-lg object-cover" />
-                            ) : (
-                              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <Building2 className="h-6 w-6 text-primary" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <CardTitle className="text-lg mb-1 truncate">{lab.name}</CardTitle>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <Badge variant={getPricingBadgeVariant(lab.pricing_tier)}>
-                                  {lab.pricing_tier}
-                                </Badge>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                                  <span className="font-medium">{lab.performance_score?.toFixed(1)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {lab.description && (
-                          <CardDescription className="line-clamp-2 mt-2">
-                            {lab.description}
-                          </CardDescription>
-                        )}
-                      </CardHeader>
-
-                      <CardContent className="space-y-4">
-                        {/* SLA */}
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-muted-foreground">Standard SLA:</span>
-                          </div>
-                          <span className="font-medium">{lab.standard_sla_days} days</span>
-                        </div>
-
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <Zap className="h-4 w-4 text-orange-500" />
-                            <span className="text-muted-foreground">Urgent SLA:</span>
-                          </div>
-                          <span className="font-medium">{lab.urgent_sla_days} days</span>
-                        </div>
-
-                        {/* Capacity */}
-                        <div>
-                          <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="text-muted-foreground">Current Capacity:</span>
-                            <span className={`font-medium ${getCapacityColor(lab.current_load, lab.max_capacity)}`}>
-                              {lab.current_load}/{lab.max_capacity}
-                            </span>
-                          </div>
-                          <div className="w-full bg-secondary rounded-full h-2">
-                            <div
-                              className="bg-primary h-2 rounded-full transition-all"
-                              style={{ width: `${capacityPercentage}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Specializations */}
-                        {labSpecs.length > 0 && (
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Award className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Specializations:</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {labSpecs.slice(0, 3).map((spec, idx) => (
-                                <Badge 
-                                  key={idx} 
-                                  variant={getExpertiseBadgeVariant(spec.expertise_level)}
-                                  className="text-xs"
-                                >
-                                  {spec.restoration_type}
-                                </Badge>
-                              ))}
-                              {labSpecs.length > 3 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{labSpecs.length - 3} more
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Contact Info */}
-                        <div className="pt-3 border-t space-y-2">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Mail className="h-3 w-3" />
-                            <span className="truncate">{lab.contact_email}</span>
-                          </div>
-                          {lab.contact_phone && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Phone className="h-3 w-3" />
-                              <span>{lab.contact_phone}</span>
-                            </div>
-                          )}
-                          {lab.address && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="h-3 w-3" />
-                              <span className="truncate">{lab.address}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        {lab.website_url && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              window.open(lab.website_url!, '_blank');
-                            }}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-2" />
-                            Visit Website
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-            
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                    // Show first, last, current, and adjacent pages
-                    if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
-                      return (
-                        <Button
-                          key={page}
-                          variant={currentPage === page ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCurrentPage(page)}
-                          className="w-10"
-                        >
-                          {page}
-                        </Button>
-                      );
-                    } else if (page === currentPage - 2 || page === currentPage + 2) {
-                      return <span key={page} className="px-2">...</span>;
-                    }
-                    return null;
-                  })}
+              {/* Verified Labs Section */}
+              {paginatedVerified.length > 0 && (
+                <div className="mb-12">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Badge variant="default" className="text-sm">Verified</Badge>
+                    <h2 className="text-xl font-semibold">Verified Labs ({verifiedLabs.length})</h2>
+                  </div>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {paginatedVerified.map((lab) => (
+                      <LabCard 
+                        key={lab.id} 
+                        lab={lab} 
+                        specializations={getLabSpecializations(lab.id)}
+                        isVerified={true}
+                      />
+                    ))}
+                  </div>
                 </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </>
+              )}
+
+              {/* Unverified Labs Section */}
+              {paginatedUnverified.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Badge variant="outline" className="text-sm">Pending Verification</Badge>
+                    <h2 className="text-xl font-semibold">Other Labs ({unverifiedLabs.length})</h2>
+                  </div>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {paginatedUnverified.map((lab) => (
+                      <LabCard 
+                        key={lab.id} 
+                        lab={lab} 
+                        specializations={getLabSpecializations(lab.id)}
+                        isVerified={false}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-10"
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">No Labs Found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchQuery 
-                    ? `No labs match your search: "${searchQuery}"`
-                    : selectedPricingTier || selectedSpecialty !== 'all' || minRating > 0 || maxTurnaround < 999 || availableOnly
-                    ? 'No labs match your selected filters.'
-                    : 'No labs available at this time.'}
+                <p className="text-muted-foreground">
+                  No labs found matching your criteria. Try adjusting your filters.
                 </p>
-                {(searchQuery || selectedPricingTier || selectedSpecialty !== 'all' || minRating > 0 || maxTurnaround < 999 || availableOnly) && (
-                  <Button variant="outline" onClick={handleClearFilters}>
-                    Clear All Filters
-                  </Button>
-                )}
               </CardContent>
             </Card>
           )}
         </div>
+        <ScrollToTop />
       </div>
       <LandingFooter />
-      <ScrollToTop />
     </div>
   );
 };
