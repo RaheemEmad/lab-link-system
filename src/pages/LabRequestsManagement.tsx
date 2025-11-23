@@ -70,16 +70,8 @@ export default function LabRequestsManagement() {
     staleTime: 0,
     refetchOnMount: 'always',
   });
-  
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <LoadingScreen message="Loading lab applications..." />
-      </ProtectedRoute>
-    );
-  }
 
-  // Update request status
+  // Update request status - MUST be before any conditional returns
   const updateRequestStatus = useMutation({
     mutationFn: async ({ requestId, status, orderId, orderNumber }: { requestId: string; status: string; orderId?: string; orderNumber?: string }) => {
       const { error } = await supabase
@@ -114,6 +106,15 @@ export default function LabRequestsManagement() {
       });
     },
   });
+
+  // Loading state check AFTER all hooks
+  if (isLoading) {
+    return (
+      <ProtectedRoute>
+        <LoadingScreen message="Loading lab applications..." />
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>
