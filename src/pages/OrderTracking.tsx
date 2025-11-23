@@ -48,6 +48,10 @@ interface Order {
   assigned_lab_id: string | null;
   html_export: string | null;
   screenshot_url: string | null;
+  driver_name: string | null;
+  driver_phone_whatsapp: string | null;
+  carrier_name: string | null;
+  carrier_phone: string | null;
   labs: {
     id: string;
     name: string;
@@ -162,6 +166,10 @@ const OrderTracking = () => {
           assigned_lab_id,
           html_export,
           screenshot_url,
+          driver_name,
+          driver_phone_whatsapp,
+          carrier_name,
+          carrier_phone,
           labs:assigned_lab_id (
             id,
             name,
@@ -343,7 +351,32 @@ const OrderTracking = () => {
                               <p className="text-muted-foreground">Type</p>
                               <p className="font-medium">{order.restoration_type}</p>
                             </div>
-                            <div>
+                            
+                            {/* Driver Details */}
+                            {order.driver_name && (
+                              <div className="pt-2 border-t">
+                                <p className="text-muted-foreground mb-1">Driver</p>
+                                <p className="font-medium">{order.driver_name}</p>
+                                {order.driver_phone_whatsapp && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    📱 {order.driver_phone_whatsapp}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            {order.carrier_name && (
+                              <div className={order.driver_name ? '' : 'pt-2 border-t'}>
+                                <p className="text-muted-foreground mb-1">Carrier</p>
+                                <p className="font-medium">{order.carrier_name}</p>
+                                {order.carrier_phone && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    📱 {order.carrier_phone}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            
+                            <div className={order.driver_name || order.carrier_name ? 'pt-2 border-t' : ''}>
                               <p className="text-muted-foreground">Expected Delivery</p>
                               <p className="font-medium">{formatDate(order.expected_delivery_date)}</p>
                               {(() => {
