@@ -1067,6 +1067,93 @@ export type Database = {
         }
         Relationships: []
       }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          description: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          title: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          description: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          title: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          title?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      sensitive_data_access_log: {
+        Row: {
+          access_type: string
+          accessed_record_id: string | null
+          accessed_table: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          query_details: Json | null
+          records_count: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_record_id?: string | null
+          accessed_table: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          query_details?: Json | null
+          records_count?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_record_id?: string | null
+          accessed_table?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          query_details?: Json | null
+          records_count?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -1250,7 +1337,24 @@ export type Database = {
       }
       create_daily_challenges: { Args: never; Returns: undefined }
       create_monthly_challenges: { Args: never; Returns: undefined }
+      create_security_alert: {
+        Args: {
+          alert_type_param: string
+          description_param: string
+          ip_address_param?: string
+          metadata_param?: Json
+          severity_param: Database["public"]["Enums"]["alert_severity"]
+          title_param: string
+          user_agent_param?: string
+          user_id_param?: string
+        }
+        Returns: string
+      }
       create_weekly_challenges: { Args: never; Returns: undefined }
+      detect_suspicious_login_pattern: {
+        Args: { ip_address_param: string; user_email_param: string }
+        Returns: boolean
+      }
       generate_order_number: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -1279,6 +1383,18 @@ export type Database = {
         }
         Returns: string
       }
+      log_sensitive_access: {
+        Args: {
+          access_type_param: string
+          accessed_record_id_param?: string
+          accessed_table_param: string
+          ip_address_param?: string
+          query_details_param?: Json
+          records_count_param?: number
+          user_agent_param?: string
+        }
+        Returns: string
+      }
       set_user_role: {
         Args: {
           role_param: Database["public"]["Enums"]["app_role"]
@@ -1292,6 +1408,7 @@ export type Database = {
       }
     }
     Enums: {
+      alert_severity: "low" | "medium" | "high" | "critical"
       app_role: "admin" | "lab_staff" | "doctor"
       expertise_level: "basic" | "intermediate" | "expert"
       order_status:
@@ -1439,6 +1556,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_severity: ["low", "medium", "high", "critical"],
       app_role: ["admin", "lab_staff", "doctor"],
       expertise_level: ["basic", "intermediate", "expert"],
       order_status: [
