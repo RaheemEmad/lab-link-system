@@ -15,24 +15,11 @@ import {
   Star, 
   Heart,
   HeartOff,
-  ArrowUp,
-  ArrowDown,
-  Trash2,
   Plus,
   ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { PreferredLabsCarousel } from "@/components/preferred-labs/PreferredLabsCarousel";
 
 interface Lab {
   id: string;
@@ -153,43 +140,6 @@ const PreferredLabs = () => {
     },
   });
 
-  // Update priority mutation
-  const updatePriorityMutation = useMutation({
-    mutationFn: async ({ id, newPriority }: { id: string; newPriority: number }) => {
-      const { error } = await supabase
-        .from("preferred_labs")
-        .update({ priority_order: newPriority })
-        .eq("id", id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["preferred-labs"] });
-      toast.success("Priority updated");
-    },
-  });
-
-  const movePriority = async (index: number, direction: 'up' | 'down') => {
-    if (!preferredLabs) return;
-    
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= preferredLabs.length) return;
-
-    const currentItem = preferredLabs[index];
-    const swapItem = preferredLabs[newIndex];
-
-    await Promise.all([
-      updatePriorityMutation.mutateAsync({ 
-        id: currentItem.id, 
-        newPriority: swapItem.priority_order 
-      }),
-      updatePriorityMutation.mutateAsync({ 
-        id: swapItem.id, 
-        newPriority: currentItem.priority_order 
-      }),
-    ]);
-  };
-
   return (
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
@@ -211,7 +161,7 @@ const PreferredLabs = () => {
 
             <div className="grid gap-6 lg:grid-cols-2">
               
-              {/* Preferred Labs List */}
+              {/* Preferred Labs Carousel */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -219,7 +169,7 @@ const PreferredLabs = () => {
                     My Preferred Labs
                   </CardTitle>
                   <CardDescription>
-                    Drag to reorder priority (1 = highest priority)
+                    Navigate through your bookmarked labs (1 = highest priority)
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -228,81 +178,10 @@ const PreferredLabs = () => {
                       Loading...
                     </div>
                   ) : preferredLabs && preferredLabs.length > 0 ? (
-                    <div className="space-y-3">
-                      {preferredLabs.map((pref, index) => (
-                        <Card key={pref.id} className="border-l-4 border-l-primary">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge variant="outline" className="text-xs">
-                                    Priority {index + 1}
-                                  </Badge>
-                                  <span className="font-medium">{pref.labs.name}</span>
-                                </div>
-                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                  <Badge variant="secondary" className="text-xs">
-                                    {pref.labs.pricing_tier}
-                                  </Badge>
-                                  <div className="flex items-center gap-1">
-                                    <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                                    <span>{pref.labs.performance_score?.toFixed(1)}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex flex-col gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => movePriority(index, 'up')}
-                                  disabled={index === 0}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <ArrowUp className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => movePriority(index, 'down')}
-                                  disabled={index === preferredLabs.length - 1}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <ArrowDown className="h-3 w-3" />
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Remove Preferred Lab</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Are you sure you want to remove {pref.labs.name} from your preferred labs?
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => removePreferredMutation.mutate(pref.id)}
-                                      >
-                                        Remove
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                    <PreferredLabsCarousel
+                      preferredLabs={preferredLabs}
+                      onRemove={(id) => removePreferredMutation.mutate(id)}
+                    />
                   ) : (
                     <div className="text-center py-12">
                       <HeartOff className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
