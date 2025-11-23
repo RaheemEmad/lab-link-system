@@ -11,15 +11,21 @@ interface OrderDetailsModalProps {
     id: string;
     order_number: string;
     patient_name: string;
+    doctor_name: string;
     status: string;
     urgency: string;
     created_at: string;
     restoration_type: string;
     teeth_number: string;
     teeth_shade: string;
+    shade_system: string | null;
     biological_notes: string | null;
     desired_delivery_date: string | null;
     assigned_lab: { name: string } | null;
+    driver_name: string | null;
+    driver_phone_whatsapp: string | null;
+    carrier_name: string | null;
+    carrier_phone: string | null;
   };
 }
 
@@ -145,6 +151,37 @@ export function OrderDetailsModal({ open, onOpenChange, order }: OrderDetailsMod
                 </div>
               )}
             </div>
+            
+            {/* Driver & Carrier Information */}
+            {(order.driver_name || order.carrier_name) && (
+              <>
+                <Separator className="my-2" />
+                <div className="space-y-3">
+                  {order.driver_name && (
+                    <div>
+                      <span className="text-muted-foreground">Driver:</span>
+                      <p className="font-medium">{order.driver_name}</p>
+                      {order.driver_phone_whatsapp && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          📱 {order.driver_phone_whatsapp}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {order.carrier_name && (
+                    <div>
+                      <span className="text-muted-foreground">Carrier:</span>
+                      <p className="font-medium">{order.carrier_name}</p>
+                      {order.carrier_phone && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          📱 {order.carrier_phone}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </DialogContent>

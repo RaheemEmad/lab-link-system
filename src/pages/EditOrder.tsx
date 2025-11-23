@@ -223,6 +223,42 @@ const EditOrder = () => {
         // Don't fail the whole operation if history logging fails
       }
 
+      // Get the order's assigned lab to send notification
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('assigned_lab_id')
+        .eq('id', orderId)
+        .single();
+
+      // If order is assigned to a lab, notify lab staff
+      if (orderData?.assigned_lab_id) {
+        // Get lab staff users for this lab
+        const { data: labStaffUsers } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('lab_id', orderData.assigned_lab_id)
+          .eq('role', 'lab_staff');
+
+        if (labStaffUsers && labStaffUsers.length > 0) {
+          // Create notifications for all lab staff
+          const notifications = labStaffUsers.map(staff => ({
+            user_id: staff.user_id,
+            order_id: orderId,
+            type: 'Order Edit',
+            title: 'Order Updated by Doctor',
+            message: `Doctor made changes: ${changeSummary}`,
+          }));
+
+          const { error: notifError } = await supabase
+            .from('notifications')
+            .insert(notifications);
+
+          if (notifError) {
+            console.error('Failed to create notifications:', notifError);
+          }
+        }
+      }
+
       toast.success("Order updated successfully!");
       navigate("/dashboard");
     } catch (error: any) {
