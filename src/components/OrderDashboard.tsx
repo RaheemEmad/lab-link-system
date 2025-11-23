@@ -90,8 +90,14 @@ const OrderDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchOrders();
     fetchUserRole();
+  }, [user]);
+
+  useEffect(() => {
+    // Only fetch orders once userRole is determined
+    if (userRole) {
+      fetchOrders();
+    }
     
     // Set up realtime subscription for order updates
     const channel = supabase
@@ -113,7 +119,7 @@ const OrderDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, userRole]);
 
   const fetchUserRole = async () => {
     if (!user) return;
@@ -136,7 +142,9 @@ const OrderDashboard = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // For lab staff: only show ASSIGNED orders (not marketplace orders)
+      // For doctors: show all their orders
+      let query = supabase
         .from("orders")
         .select(`
           *,
@@ -147,8 +155,14 @@ const OrderDashboard = () => {
             contact_phone,
             description
           )
-        `)
-        .order("timestamp", { ascending: false });
+        `);
+
+      // Lab staff should only see orders assigned to them (not marketplace orders)
+      if (userRole === 'lab_staff') {
+        query = query.not('assigned_lab_id', 'is', null);
+      }
+
+      const { data, error } = await query.order("timestamp", { ascending: false });
 
       if (error) throw error;
 
