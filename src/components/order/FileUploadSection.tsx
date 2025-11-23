@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload, X, FileIcon, Image, Loader2, Box, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,9 @@ import { toast } from "sonner";
 import { compressImage, validateImageType, formatFileSize } from "@/lib/imageCompression";
 import { validateUploadFile } from "@/lib/fileValidation";
 import { validate3DModelFile, getValidationSummary } from "@/lib/modelFileValidation";
-import { optimizedBatchUpload, parallelCompression, UploadTask } from "@/lib/batchUpload";
+import { parallelCompression } from "@/lib/batchUpload";
+import { UploadQueue } from "@/lib/uploadQueue";
+import { UploadQueueVisualization } from "./UploadQueueVisualization";
 
 interface FileUpload {
   id: string;
@@ -43,8 +45,20 @@ const ACCEPTED_DOCUMENT_TYPES = ["application/pdf"];
 export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }: FileUploadSectionProps) {
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
-  const uploadControllers = useRef<Record<string, AbortController>>({});
+  const uploadQueue = useRef(new UploadQueue({
+    maxRetries: 3,
+    initialRetryDelay: 1000,
+    autoThrottle: true
+  }));
+
+  useEffect(() => {
+    // Detect network speed on mount
+    uploadQueue.current.detectNetworkSpeed().then(stats => {
+      toast.info(`Network detected: ${stats.quality}`, {
+        description: `Optimized for ${stats.recommendedConcurrency} concurrent uploads`
+      });
+    });
+  }, []);
 
   const getCategoryIcon = (category: string, fileName?: string) => {
     switch (category) {
@@ -200,9 +214,6 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
       const imageFiles = files.filter(f => 
         ACCEPTED_IMAGE_TYPES.includes(f.file.type) && validateImageType(f.file)
       );
-      const nonImageFiles = files.filter(f => 
-        !ACCEPTED_IMAGE_TYPES.includes(f.file.type) || !validateImageType(f.file)
-      );
 
       let processedFiles = [...files];
 
@@ -232,60 +243,40 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
         });
       }
 
-      // Step 2: Parallel batch upload with progress tracking
-      toast.info(`Uploading ${totalFiles} file(s) in parallel...`);
+      // Step 2: Add to upload queue
+      uploadQueue.current.addToQueue(
+        processedFiles.map(fileUpload => ({
+          id: fileUpload.id,
+          file: fileUpload.file,
+          orderId,
+          userId: user.id,
+          category: fileUpload.category
+        }))
+      );
 
-      const uploadTasks: UploadTask[] = processedFiles.map(fileUpload => ({
-        id: fileUpload.id,
-        file: fileUpload.file,
-        orderId,
-        userId: user.id,
-        category: fileUpload.category,
-        onProgress: (progress) => {
-          setUploadProgress(prev => ({
-            ...prev,
-            [fileUpload.id]: progress
-          }));
-        }
-      }));
+      // Step 3: Process queue with retry logic
+      await uploadQueue.current.processQueue(supabase);
 
-      const results = await optimizedBatchUpload(supabase, uploadTasks);
+      // Step 4: Check results
+      const queueStats = uploadQueue.current.getStats();
 
-      // Check results
-      const successCount = results.filter(r => r.success).length;
-      const failedCount = results.filter(r => !r.success).length;
-
-      if (successCount > 0) {
-        toast.success(`Successfully uploaded ${successCount} file(s)`);
-      }
-
-      if (failedCount > 0) {
-        const failedFiles = results
-          .filter(r => !r.success)
-          .map(r => processedFiles.find(f => f.id === r.id)?.file.name)
-          .filter(Boolean);
-        
-        toast.error(`Failed to upload ${failedCount} file(s)`, {
-          description: failedFiles.join(', ')
-        });
-      }
-
-      // Clear successfully uploaded files
-      const successfulIds = results.filter(r => r.success).map(r => r.id);
-      setFiles(prev => prev.filter(f => !successfulIds.includes(f.id)));
-      setUploadProgress({});
-      
-      if (successCount === totalFiles) {
+      if (queueStats.completed > 0) {
+        toast.success(`Successfully uploaded ${queueStats.completed} file(s)`);
+        // Clear local file list
+        setFiles([]);
         onFilesChange?.([]);
-      } else {
-        onFilesChange?.(files.filter(f => !successfulIds.includes(f.id)));
+      }
+
+      if (queueStats.failed > 0) {
+        toast.error(`${queueStats.failed} file(s) failed to upload`, {
+          description: 'Check the upload queue for details and retry options'
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error("Failed to upload files");
     } finally {
       setUploading(false);
-      uploadControllers.current = {};
     }
   };
 
@@ -311,6 +302,9 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
 
   return (
     <div className="space-y-6">
+      {/* Upload Queue Visualization */}
+      <UploadQueueVisualization queue={uploadQueue.current} />
+      
       {/* Upload Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -444,9 +438,6 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
                           <span className="text-xs text-muted-foreground">{file.modelInfo}</span>
                         )}
                       </div>
-                      {uploadProgress[file.id] !== undefined && (
-                        <Progress value={uploadProgress[file.id]} className="h-1 mt-2" />
-                      )}
                     </div>
                   </div>
                   <Button
