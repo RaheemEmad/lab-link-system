@@ -2,19 +2,24 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon } from "lucide-react";
+import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon, CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { ToothSelector } from "./order/ToothSelector";
 import { ShadeSelector } from "./order/ShadeSelector";
 import { LabSelector } from "./order/LabSelector";
+import { FileUploadSection } from "./order/FileUploadSection";
 import { Progress } from "@/components/ui/progress";
 import { compressImage, createThumbnail, validateImageType, validateImageSize, formatFileSize } from "@/lib/imageCompression";
 import { processImageForUpload } from "@/lib/imageMetadata";
@@ -36,6 +41,7 @@ const formSchema = z.object({
   assignedLabId: z.string().nullable().optional(),
   htmlExport: z.string().optional(),
   handlingInstructions: z.string().max(500).optional(),
+  desiredDeliveryDate: z.date().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -95,6 +101,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       assignedLabId: null,
       htmlExport: "",
       handlingInstructions: "",
+      desiredDeliveryDate: undefined,
     },
   });
 
@@ -354,6 +361,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
           photosLink: photoUrls.join(','),
           htmlExport: data.htmlExport || "",
           handlingInstructions: data.handlingInstructions || "",
+          desiredDeliveryDate: data.desiredDeliveryDate?.toISOString().split('T')[0] || null,
         }),
       });
 
@@ -671,6 +679,56 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 </FormItem>
               )}
             />
+
+            {/* Desired Delivery Date */}
+            <FormField
+              control={form.control}
+              name="desiredDeliveryDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    Desired Delivery Date
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>
+                    When you'd like to receive the completed order
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* File Upload Section */}
+            <FileUploadSection />
 
             <div className="space-y-2">
               <FormLabel>Patient Photos / Scans</FormLabel>
