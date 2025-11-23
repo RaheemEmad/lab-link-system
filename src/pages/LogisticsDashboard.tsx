@@ -61,10 +61,8 @@ const LogisticsDashboard = () => {
         .eq("user_id", user.id)
         .single();
 
-      if (data?.role !== "admin" && data?.role !== "lab_staff") {
-        toast.error("Access denied", {
-          description: "Only lab staff and admins can access logistics dashboard",
-        });
+      if (data?.role !== "admin" && data?.role !== "lab_staff" && data?.role !== "doctor") {
+        toast.error("Access denied");
         navigate("/dashboard");
         return;
       }
@@ -81,15 +79,6 @@ const LogisticsDashboard = () => {
 
       try {
         setLoading(true);
-
-        // Fetch lab capacity data
-        const { data: labs, error: labError } = await supabase
-          .from("labs")
-          .select("id, name, current_load, max_capacity, performance_score")
-          .eq("is_active", true)
-          .order("current_load", { ascending: false });
-
-        if (labError) throw labError;
 
         // Fetch shipment data (orders with tracking or handling instructions)
         let shipmentQuery = supabase
@@ -116,7 +105,7 @@ const LogisticsDashboard = () => {
           .not("assigned_lab_id", "is", null)
           .order("expected_delivery_date", { ascending: true });
 
-        // If lab staff, only show their lab's orders
+        // Filter based on user role
         if (userRole === "lab_staff") {
           const { data: roleData } = await supabase
             .from("user_roles")
@@ -127,13 +116,14 @@ const LogisticsDashboard = () => {
           if (roleData?.lab_id) {
             shipmentQuery = shipmentQuery.eq("assigned_lab_id", roleData.lab_id);
           }
+        } else if (userRole === "doctor") {
+          shipmentQuery = shipmentQuery.eq("doctor_id", user.id);
         }
 
         const { data: orders, error: orderError } = await shipmentQuery;
 
         if (orderError) throw orderError;
 
-        setLabCapacity(labs || []);
         setShipments(orders || []);
       } catch (error) {
         console.error("Error fetching logistics data:", error);
@@ -154,17 +144,6 @@ const LogisticsDashboard = () => {
           event: "*",
           schema: "public",
           table: "orders",
-        },
-        () => {
-          fetchData();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "labs",
         },
         () => {
           fetchData();
@@ -198,14 +177,11 @@ const LogisticsDashboard = () => {
     return { color: "secondary", label: "Low" };
   };
 
-  const totalCapacity = labCapacity.reduce((sum, lab) => sum + lab.max_capacity, 0);
-  const totalLoad = labCapacity.reduce((sum, lab) => sum + lab.current_load, 0);
-  const utilizationRate = totalCapacity > 0 ? (totalLoad / totalCapacity) * 100 : 0;
-
   const urgentShipments = shipments.filter((s) => s.urgency === "Urgent").length;
   const pendingDeliveries = shipments.filter(
     (s) => s.status === "Ready for Delivery" && !s.actual_delivery_date
   ).length;
+  const totalShipments = shipments.length;
 
   if (loading) {
     return (
@@ -247,14 +223,13 @@ const LogisticsDashboard = () => {
             <div className="grid gap-6 md:grid-cols-3 mb-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Overall Capacity</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{utilizationRate.toFixed(1)}%</div>
-                  <Progress value={utilizationRate} className="mt-2" />
+                  <div className="text-2xl font-bold">{totalShipments}</div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    {totalLoad} / {totalCapacity} orders active
+                    Active orders in transit
                   </p>
                 </CardContent>
               </Card>
@@ -285,45 +260,6 @@ const LogisticsDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Lab Capacity Monitoring */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Factory className="h-5 w-5" />
-                  Lab Capacity Status
-                </CardTitle>
-                <CardDescription>Real-time capacity monitoring across all labs</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {labCapacity.map((lab) => {
-                    const percentage = (lab.current_load / lab.max_capacity) * 100;
-                    const status = getCapacityStatus(lab.current_load, lab.max_capacity);
-
-                    return (
-                      <div key={lab.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="font-medium">{lab.name}</div>
-                            <Badge variant={status.color as any}>{status.label}</Badge>
-                            {lab.performance_score && (
-                              <Badge variant="secondary" className="text-xs">
-                                ⭐ {lab.performance_score.toFixed(1)}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {lab.current_load} / {lab.max_capacity}
-                          </div>
-                        </div>
-                        <Progress value={percentage} className="h-2" />
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Shipment Tracking */}
             <Card>
@@ -427,20 +363,20 @@ const LogisticsDashboard = () => {
                           </div>
                         )}
 
-                        {/* Edit Button for Lab Staff */}
-                        {userRole === "lab_staff" && shipment.status === "Ready for Delivery" && (
-                          <div className="mt-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedShipment(shipment)}
-                              className="w-full"
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit Shipment Details
-                            </Button>
-                          </div>
-                        )}
+                        {/* Edit/View Button */}
+                        <div className="mt-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedShipment(shipment)}
+                            className="w-full"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            {userRole === "lab_staff" && shipment.status === "Ready for Delivery" 
+                              ? "Edit Shipment Details" 
+                              : "View Shipment Details & Notes"}
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -460,9 +396,9 @@ const LogisticsDashboard = () => {
           order={selectedShipment}
           onUpdate={() => {
             setSelectedShipment(null);
-            // Refetch data
             window.location.reload();
           }}
+          userRole={userRole}
         />
       )}
     </ProtectedRoute>

@@ -128,8 +128,8 @@ const NotificationHistory = () => {
       // Lab application notifications should open lab requests page
       navigate('/lab-requests');
     } else if (notification.type === 'new_note' || notification.type === 'shipment_update') {
-      // Note and shipment notifications should open order tracking with notes modal
-      navigate(`/order-tracking?orderId=${notification.order_id}&openNotes=true`);
+      // Note and shipment notifications should open logistics page
+      navigate('/logistics');
     } else {
       // All other notifications open dashboard
       navigate(`/dashboard?orderId=${notification.order_id}`);
