@@ -559,8 +559,10 @@ const OrderDashboard = () => {
         <OrderStatusDialog
           open={statusDialogOpen}
           onOpenChange={setStatusDialogOpen}
-          order={selectedOrder}
-          onStatusUpdate={fetchOrders}
+          orderId={selectedOrder.id}
+          orderNumber={selectedOrder.order_number}
+          currentStatus={selectedOrder.status as OrderStatus}
+          onStatusUpdated={fetchOrders}
         />
       )}
 
@@ -570,7 +572,7 @@ const OrderDashboard = () => {
             <DialogHeader>
               <DialogTitle>Order History: {historyOrder.order_number}</DialogTitle>
             </DialogHeader>
-            <OrderHistoryTimeline orderId={historyOrder.id} />
+            <OrderHistoryTimeline orderId={historyOrder.id} orderNumber={historyOrder.order_number} />
           </DialogContent>
         </Dialog>
       )}
