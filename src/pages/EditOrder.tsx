@@ -43,6 +43,7 @@ const EditOrder = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [originalData, setOriginalData] = useState<FormValues | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -134,6 +135,7 @@ const EditOrder = () => {
         .single();
 
       const isLabStaff = roleData?.role === 'lab_staff' || roleData?.role === 'admin';
+      setUserRole(roleData?.role || null);
       
       if (data.doctor_id !== user!.id && !isLabStaff) {
         toast.error("Access denied", {
@@ -469,30 +471,33 @@ const EditOrder = () => {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="assignedLabId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            Assign to Lab (Optional)
-                            {isFieldModified("assignedLabId") && (
-                              <Badge variant="secondary" className="text-xs">Modified</Badge>
-                            )}
-                          </FormLabel>
-                          <FormControl>
-                            <LabSelector
-                              value={field.value}
-                              onChange={field.onChange}
-                              restorationType={form.watch("restorationType")}
-                              urgency={form.watch("urgency")}
-                              userId={user?.id || ""}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Only show lab selector for doctors, not lab staff */}
+                    {userRole !== 'lab_staff' && (
+                      <FormField
+                        control={form.control}
+                        name="assignedLabId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              Assign to Lab (Optional)
+                              {isFieldModified("assignedLabId") && (
+                                <Badge variant="secondary" className="text-xs">Modified</Badge>
+                              )}
+                            </FormLabel>
+                            <FormControl>
+                              <LabSelector
+                                value={field.value}
+                                onChange={field.onChange}
+                                restorationType={form.watch("restorationType")}
+                                urgency={form.watch("urgency")}
+                                userId={user?.id || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
 
                   <FormField
