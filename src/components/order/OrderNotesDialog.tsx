@@ -80,6 +80,47 @@ export default function OrderNotesDialog({
   useEffect(() => {
     if (open && orderId) {
       fetchNotes();
+
+      // Subscribe to realtime changes
+      const notesChannel = supabase
+        .channel(`order-notes-${orderId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'order_notes',
+            filter: `order_id=eq.${orderId}`
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              fetchNotes(); // Refetch to get profile data and like counts
+            } else if (payload.eventType === 'UPDATE') {
+              fetchNotes();
+            } else if (payload.eventType === 'DELETE') {
+              setNotes(prev => prev.filter(note => note.id !== payload.old.id));
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'note_likes'
+          },
+          (payload) => {
+            // Refetch to update like counts when likes change
+            if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+              fetchNotes();
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(notesChannel);
+      };
     }
   }, [open, orderId]);
 
