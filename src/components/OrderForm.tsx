@@ -25,6 +25,8 @@ import { compressImage, createThumbnail, validateImageType, validateImageSize, f
 import { processImageForUpload } from "@/lib/imageMetadata";
 import { validateUploadFile } from "@/lib/fileValidation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useFormAutosave } from "@/hooks/useFormAutosave";
+import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -68,6 +70,49 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   const [doctorName, setDoctorName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      doctorName: "",
+      patientName: "",
+      restorationType: "Zirconia",
+      teethShade: "",
+      shadeSystem: "VITA Classical",
+      teethNumber: "",
+      biologicalNotes: "",
+      urgency: "Normal",
+      assignedLabId: null,
+      htmlExport: "",
+      handlingInstructions: "",
+      desiredDeliveryDate: undefined,
+    },
+  });
+
+  // Autosave functionality
+  const { saveData, clearSavedData, autosaveState } = useFormAutosave({
+    storageKey: 'order-form-draft',
+    debounceMs: 2000,
+    onRecover: (data) => {
+      // Recover form data
+      Object.keys(data).forEach((key) => {
+        if (key === 'desiredDeliveryDate' && data[key]) {
+          form.setValue(key as any, new Date(data[key]));
+        } else {
+          form.setValue(key as any, data[key]);
+        }
+      });
+    },
+  });
+
+  // Watch form values and autosave
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      saveData(values);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form.watch, saveData]);
+
   // Fetch user role
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -87,23 +132,25 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     fetchUserRole();
   }, [user]);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      doctorName: "",
-      patientName: "",
-      restorationType: "Zirconia",
-      teethShade: "",
-      shadeSystem: "VITA Classical",
-      teethNumber: "",
-      biologicalNotes: "",
-      urgency: "Normal",
-      assignedLabId: null,
-      htmlExport: "",
-      handlingInstructions: "",
-      desiredDeliveryDate: undefined,
-    },
-  });
+  // Auto-fill doctor name from user profile
+  useEffect(() => {
+    const fetchDoctorName = async () => {
+      if (!user) return;
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.full_name) {
+        setDoctorName(profile.full_name);
+        form.setValue('doctorName', profile.full_name);
+      }
+    };
+
+    fetchDoctorName();
+  }, [user, form]);
 
   // Auto-fill doctor name from user profile
   useEffect(() => {
@@ -412,6 +459,9 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       setOrderId(orderData.orderNumber);
       setIsSubmitted(true);
 
+      // Clear autosaved draft on successful submission
+      clearSavedData();
+
       toast.success("Order submitted successfully!", {
         description: `Order ID: ${orderData.orderNumber}`,
       });
@@ -455,8 +505,25 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   return (
     <Card className="shadow-lg w-full">
       <CardHeader className="px-4 sm:px-6">
-        <CardTitle className="text-xl sm:text-2xl">New Order Submission</CardTitle>
-        <CardDescription className="text-sm">Fill out the form below to submit a new dental lab order</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl sm:text-2xl">New Order Submission</CardTitle>
+            <CardDescription className="text-sm">Fill out the form below to submit a new dental lab order</CardDescription>
+          </div>
+          <AutosaveIndicator 
+            isSaving={autosaveState.isSaving}
+            lastSaved={autosaveState.lastSaved}
+            hasRecoveredData={autosaveState.hasRecoveredData}
+            className="hidden sm:flex"
+          />
+        </div>
+        {/* Mobile autosave indicator */}
+        <AutosaveIndicator 
+          isSaving={autosaveState.isSaving}
+          lastSaved={autosaveState.lastSaved}
+          hasRecoveredData={autosaveState.hasRecoveredData}
+          className="flex sm:hidden mt-2"
+        />
       </CardHeader>
       <CardContent className="px-4 sm:px-6">
         <Form {...form}>
