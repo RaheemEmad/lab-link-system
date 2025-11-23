@@ -43,9 +43,9 @@ export default defineConfig(({ mode }) => ({
         categories: ["medical", "business", "productivity"],
         screenshots: [
           {
-            src: "https://storage.googleapis.com/gpt-engineer-file-uploads/tmNyuY2x94WjbQ35tw5Dp9Bj0lD3/social-images/social-1763467497230-lohogdf.jpg",
-            sizes: "1200x630",
-            type: "image/jpeg"
+            src: "/splash-screen.png",
+            sizes: "1080x1920",
+            type: "image/png"
           }
         ]
       },
