@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { compressImage, validateImageType, formatFileSize } from "@/lib/imageCompression";
 import { validateUploadFile } from "@/lib/fileValidation";
 import { validate3DModelFile, getValidationSummary } from "@/lib/modelFileValidation";
+import { optimizedBatchUpload, parallelCompression, UploadTask } from "@/lib/batchUpload";
 
 interface FileUpload {
   id: string;
@@ -67,6 +68,11 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, category: FileUpload['category']) => {
     const selectedFiles = Array.from(e.target.files || []);
+    
+    // Show batch processing notification for multiple files
+    if (selectedFiles.length > 1) {
+      toast.info(`Processing ${selectedFiles.length} files in parallel...`);
+    }
     
     for (const file of selectedFiles) {
       // Validate file type
@@ -143,19 +149,8 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
         }
       }
 
-      // Compress images
+      // Note: Image compression will be handled in parallel batch at upload time
       let processedFile = file;
-      if (isImage && validateImageType(file)) {
-        try {
-          processedFile = await compressImage(file, 10, 1920);
-          toast.success(`Compressed ${file.name}`, {
-            description: `${formatFileSize(file.size)} → ${formatFileSize(processedFile.size)}`
-          });
-        } catch (error) {
-          console.error('Compression error:', error);
-          toast.error(`Failed to compress ${file.name}`);
-        }
-      }
 
       // Determine category for STL/OBJ
       let finalCategory = category;
@@ -196,67 +191,95 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
 
     setUploading(true);
     const totalFiles = files.length;
-    let completedFiles = 0;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      for (const fileUpload of files) {
-        const controller = new AbortController();
-        uploadControllers.current[fileUpload.id] = controller;
+      // Step 1: Parallel image compression (if any images)
+      const imageFiles = files.filter(f => 
+        ACCEPTED_IMAGE_TYPES.includes(f.file.type) && validateImageType(f.file)
+      );
+      const nonImageFiles = files.filter(f => 
+        !ACCEPTED_IMAGE_TYPES.includes(f.file.type) || !validateImageType(f.file)
+      );
 
-        const filePath = `${user.id}/${orderId}/${fileUpload.id}-${fileUpload.file.name}`;
+      let processedFiles = [...files];
 
-        // Simulate progress for better UX
-        const progressInterval = setInterval(() => {
-          setUploadProgress(prev => ({
-            ...prev,
-            [fileUpload.id]: Math.min((prev[fileUpload.id] || 0) + 10, 90)
-          }));
-        }, 200);
+      if (imageFiles.length > 0) {
+        toast.info(`Compressing ${imageFiles.length} image(s) in parallel...`);
+        
+        const compressionResults = await parallelCompression(
+          imageFiles.map(f => f.file),
+          (file) => compressImage(file, 10, 1920),
+          4 // Compress 4 images at once
+        );
 
-        try {
-          // Upload to storage
-          const { error: uploadError } = await supabase.storage
-            .from('order-attachments')
-            .upload(filePath, fileUpload.file, {
-              cacheControl: '3600',
-              upsert: false
-            });
-
-          clearInterval(progressInterval);
-
-          if (uploadError) throw uploadError;
-
-          setUploadProgress(prev => ({ ...prev, [fileUpload.id]: 100 }));
-
-          // Save metadata to database
-          const { error: dbError } = await supabase
-            .from('order_attachments')
-            .insert({
-              order_id: orderId,
-              uploaded_by: user.id,
-              file_name: fileUpload.file.name,
-              file_path: filePath,
-              file_type: fileUpload.file.type,
-              file_size: fileUpload.file.size,
-              attachment_category: fileUpload.category
-            });
-
-          if (dbError) throw dbError;
-
-          completedFiles++;
-        } catch (error) {
-          clearInterval(progressInterval);
-          throw error;
-        }
+        // Update processed files with compressed versions
+        processedFiles = files.map(fileUpload => {
+          const compressionResult = compressionResults.find(r => r.original === fileUpload.file);
+          if (compressionResult) {
+            const originalSize = compressionResult.original.size;
+            const compressedSize = compressionResult.compressed.size;
+            if (compressedSize < originalSize) {
+              toast.success(`Compressed ${fileUpload.file.name}`, {
+                description: `${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)}`
+              });
+            }
+            return { ...fileUpload, file: compressionResult.compressed };
+          }
+          return fileUpload;
+        });
       }
 
-      toast.success(`Uploaded ${totalFiles} file(s) successfully`);
-      setFiles([]);
+      // Step 2: Parallel batch upload with progress tracking
+      toast.info(`Uploading ${totalFiles} file(s) in parallel...`);
+
+      const uploadTasks: UploadTask[] = processedFiles.map(fileUpload => ({
+        id: fileUpload.id,
+        file: fileUpload.file,
+        orderId,
+        userId: user.id,
+        category: fileUpload.category,
+        onProgress: (progress) => {
+          setUploadProgress(prev => ({
+            ...prev,
+            [fileUpload.id]: progress
+          }));
+        }
+      }));
+
+      const results = await optimizedBatchUpload(supabase, uploadTasks);
+
+      // Check results
+      const successCount = results.filter(r => r.success).length;
+      const failedCount = results.filter(r => !r.success).length;
+
+      if (successCount > 0) {
+        toast.success(`Successfully uploaded ${successCount} file(s)`);
+      }
+
+      if (failedCount > 0) {
+        const failedFiles = results
+          .filter(r => !r.success)
+          .map(r => processedFiles.find(f => f.id === r.id)?.file.name)
+          .filter(Boolean);
+        
+        toast.error(`Failed to upload ${failedCount} file(s)`, {
+          description: failedFiles.join(', ')
+        });
+      }
+
+      // Clear successfully uploaded files
+      const successfulIds = results.filter(r => r.success).map(r => r.id);
+      setFiles(prev => prev.filter(f => !successfulIds.includes(f.id)));
       setUploadProgress({});
-      onFilesChange?.([]);
+      
+      if (successCount === totalFiles) {
+        onFilesChange?.([]);
+      } else {
+        onFilesChange?.(files.filter(f => !successfulIds.includes(f.id)));
+      }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error("Failed to upload files");
