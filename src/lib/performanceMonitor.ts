@@ -37,6 +37,11 @@ class PerformanceMonitor {
       // Log slow operations (> 1s)
       if (duration > 1000) {
         console.warn(`⚠️ Slow operation: ${name} took ${Math.round(duration)}ms`, metadata);
+        
+        // Check against SLA thresholds
+        if (typeof window !== 'undefined' && (window as any).__slaMonitor) {
+          (window as any).__slaMonitor.checkResponseTime(duration);
+        }
       }
 
       return result;
