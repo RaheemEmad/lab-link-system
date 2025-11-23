@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { OrderNotes } from "@/components/order/OrderNotes";
 import { useNavigate } from "react-router-dom";
 import LandingNav from "@/components/landing/LandingNav";
@@ -22,7 +24,9 @@ import {
   ExternalLink,
   ArrowLeft,
   MessageSquare,
-  FileText
+  FileText,
+  Mail,
+  Phone
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,9 +45,11 @@ interface Order {
   html_export: string | null;
   screenshot_url: string | null;
   labs: {
+    id: string;
     name: string;
     contact_email: string;
     contact_phone: string | null;
+    description: string | null;
   } | null;
 }
 
@@ -111,10 +117,12 @@ const OrderTracking = () => {
           assigned_lab_id,
           html_export,
           screenshot_url,
-          labs (
+          labs:assigned_lab_id (
+            id,
             name,
             contact_email,
-            contact_phone
+            contact_phone,
+            description
           )
         `)
         .eq('doctor_id', user.id)
@@ -260,35 +268,103 @@ const OrderTracking = () => {
                           </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
-                          {order.html_export && (
-                            <button
-                              onClick={() => {
-                                const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
-                                if (isUrl) {
-                                  window.open(order.html_export!, '_blank', 'noopener,noreferrer');
-                                } else {
-                                  const previewWindow = window.open('', '_blank');
-                                  if (previewWindow && order.html_export) {
-                                    previewWindow.document.write(order.html_export);
-                                    previewWindow.document.close();
-                                  }
-                                }
-                              }}
-                              className="relative w-16 h-16 rounded-md overflow-hidden border border-border bg-muted flex-shrink-0 hover:border-primary transition-colors cursor-pointer"
-                              title="Click to preview HTML export"
-                            >
-                              {order.screenshot_url ? (
-                                <img 
-                                  src={order.screenshot_url} 
-                                  alt="HTML Preview" 
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <FileText className="h-6 w-6 text-muted-foreground" />
-                                </div>
-                              )}
-                            </button>
+                          {order.html_export ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => {
+                                      const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
+                                      if (isUrl) {
+                                        window.open(order.html_export!, '_blank', 'noopener,noreferrer');
+                                      } else {
+                                        const previewWindow = window.open('', '_blank');
+                                        if (previewWindow && order.html_export) {
+                                          previewWindow.document.write(order.html_export);
+                                          previewWindow.document.close();
+                                        }
+                                      }
+                                    }}
+                                    className="relative w-16 h-16 rounded-md overflow-hidden border border-border bg-muted flex-shrink-0 hover:border-primary transition-colors cursor-pointer"
+                                  >
+                                    {order.screenshot_url ? (
+                                      <img 
+                                        src={order.screenshot_url} 
+                                        alt="HTML Preview" 
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center">
+                                        <FileText className="h-6 w-6 text-muted-foreground" />
+                                      </div>
+                                    )}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="left" className="max-w-xs">
+                                  <div className="space-y-1">
+                                    <p className="font-semibold">{order.patient_name}</p>
+                                    <p className="text-sm text-muted-foreground">{order.restoration_type}</p>
+                                    {order.labs && (
+                                      <div className="pt-2 mt-2 border-t border-border">
+                                        <p className="text-xs font-medium flex items-center gap-1">
+                                          <Building2 className="h-3 w-3" />
+                                          {order.labs.name}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            order.labs && (
+                              <HoverCard>
+                                <HoverCardTrigger asChild>
+                                  <button
+                                    onClick={() => navigate(`/labs/${order.labs!.id}`)}
+                                    className="relative w-16 h-16 rounded-md overflow-hidden border border-border bg-muted flex-shrink-0 hover:border-primary transition-colors cursor-pointer flex items-center justify-center"
+                                  >
+                                    <Building2 className="h-6 w-6 text-muted-foreground" />
+                                  </button>
+                                </HoverCardTrigger>
+                                <HoverCardContent side="left" className="w-80">
+                                  <div className="space-y-3">
+                                    <div>
+                                      <h4 className="font-semibold flex items-center gap-2">
+                                        <Building2 className="h-4 w-4" />
+                                        {order.labs.name}
+                                      </h4>
+                                      {order.labs.description && (
+                                        <p className="text-sm text-muted-foreground mt-1">{order.labs.description}</p>
+                                      )}
+                                    </div>
+                                    <div className="space-y-1 text-sm">
+                                      {order.labs.contact_email && (
+                                        <p className="flex items-center gap-2">
+                                          <Mail className="h-3 w-3 text-muted-foreground" />
+                                          {order.labs.contact_email}
+                                        </p>
+                                      )}
+                                      {order.labs.contact_phone && (
+                                        <p className="flex items-center gap-2">
+                                          <Phone className="h-3 w-3 text-muted-foreground" />
+                                          {order.labs.contact_phone}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-full"
+                                      onClick={() => navigate(`/labs/${order.labs!.id}`)}
+                                    >
+                                      View Lab Profile
+                                      <ExternalLink className="h-3 w-3 ml-2" />
+                                    </Button>
+                                  </div>
+                                </HoverCardContent>
+                              </HoverCard>
+                            )
                           )}
                           <Badge variant={getStatusColor(order.status)}>
                             {order.status}
