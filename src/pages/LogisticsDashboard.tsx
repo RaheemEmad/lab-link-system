@@ -336,7 +336,7 @@ const LogisticsDashboard = () => {
                     <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No active shipments</p>
                   </div> : <div className="space-y-4">
-                    {shipments.map(shipment => <div key={shipment.id} className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
+                    {shipments.map(shipment => <div key={shipment.id} className="border rounded-lg p-4 hover:bg-primary/5 transition-colors">
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="font-semibold">{shipment.order_number}</div>

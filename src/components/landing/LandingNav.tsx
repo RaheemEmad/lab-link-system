@@ -531,7 +531,7 @@ const LandingNav = () => {
                         className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                           isLinkActive(link)
                             ? "bg-primary/10 text-primary font-semibold"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                            : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
                         }`}
                       >
                         <span>{link.label}</span>
@@ -554,7 +554,7 @@ const LandingNav = () => {
                             navigate("/notifications");
                             setIsOpen(false);
                           }}
-                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center justify-between"
+                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center justify-between"
                         >
                           <span className="flex items-center gap-2">
                             <Bell className="h-4 w-4" />
@@ -577,7 +577,7 @@ const LandingNav = () => {
                             navigate("/profile");
                             setIsOpen(false);
                           }}
-                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-2"
+                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
                         >
                           <User className="h-4 w-4" />
                           Profile
