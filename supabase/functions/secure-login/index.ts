@@ -2,13 +2,24 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || 'https://lablink-479111.lovable.app',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Credentials': 'true',
 };
 
 interface LoginRequest {
   email: string;
   password: string;
+}
+
+// Input validation
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+}
+
+function validatePassword(password: string): boolean {
+  return password.length >= 8 && password.length <= 128;
 }
 
 serve(async (req) => {
@@ -28,12 +39,30 @@ serve(async (req) => {
     const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
-    console.log(`Login attempt for email: ${email} from IP: ${ipAddress}`);
-
     // Validate input
     if (!email || !password) {
       return new Response(
         JSON.stringify({ error: 'Email and password are required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    if (!validateEmail(email)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid email format' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    if (!validatePassword(password)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid password format' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -46,7 +75,7 @@ serve(async (req) => {
       .rpc('is_account_locked', { user_email: email.toLowerCase() });
 
     if (lockCheckError) {
-      console.error('Error checking account lock status:', lockCheckError);
+      console.error('Lock check error');
       return new Response(
         JSON.stringify({ error: 'An error occurred. Please try again.' }),
         { 
@@ -57,8 +86,6 @@ serve(async (req) => {
     }
 
     if (isLocked) {
-      console.log(`Account locked for email: ${email}`);
-      
       // Log the failed attempt due to lockout
       await supabase.from('login_attempts').insert({
         email: email.toLowerCase(),
@@ -86,8 +113,6 @@ serve(async (req) => {
 
     // Log failed attempt
     if (signInError) {
-      console.log(`Failed login attempt for email: ${email}`);
-      
       await supabase.from('login_attempts').insert({
         email: email.toLowerCase(),
         success: false,
@@ -105,8 +130,6 @@ serve(async (req) => {
     }
 
     // Log successful attempt
-    console.log(`Successful login for email: ${email}`);
-    
     await supabase.from('login_attempts').insert({
       email: email.toLowerCase(),
       success: true,
@@ -128,7 +151,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Unexpected error in secure-login:', error);
+    console.error('Unexpected error');
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred' }),
       { 
