@@ -187,18 +187,18 @@ const LogisticsDashboard = () => {
         <LandingNav />
         <div className="flex-1 bg-secondary/30 py-12">
           <div className="container px-4">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Dashboard
-                </Button>
-                <h1 className="text-3xl font-bold text-center">Logistics Dashboard</h1>
+            <div className="mb-6">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-2 mb-4">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+              <div className="flex items-center justify-center gap-4">
+                <h1 className="text-3xl font-bold">Logistics Dashboard</h1>
+                <Badge variant="outline" className="text-sm">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  Real-time Updates
+                </Badge>
               </div>
-              <Badge variant="outline" className="text-sm">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                Real-time Updates
-              </Badge>
             </div>
 
             {/* Key Metrics */}
