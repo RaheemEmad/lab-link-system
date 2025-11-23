@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -17,7 +18,8 @@ import {
   ArrowUp,
   ArrowDown,
   Trash2,
-  Plus
+  Plus,
+  ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -48,6 +50,7 @@ interface PreferredLab {
 
 const PreferredLabs = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedLab, setSelectedLab] = useState<string | null>(null);
 
@@ -196,9 +199,13 @@ const PreferredLabs = () => {
             
             {/* Header */}
             <div className="mb-8">
+              <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
               <h1 className="text-3xl font-bold mb-2">Preferred Labs</h1>
               <p className="text-muted-foreground">
-                Manage your preferred labs. Orders will be auto-assigned to these labs based on priority when using auto-assign.
+                Your bookmarked labs. Orders can be auto-assigned to these labs based on priority.
               </p>
             </div>
 
