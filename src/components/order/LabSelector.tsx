@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Building2, 
   Clock, 
@@ -11,7 +12,8 @@ import {
   TrendingUp, 
   Star,
   Sparkles,
-  Calendar
+  Calendar,
+  HelpCircle
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -203,131 +205,204 @@ export const LabSelector = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Select Lab</h3>
-        </div>
-        <CardDescription>
-          <strong>Auto-Assign:</strong> Order goes to marketplace → Labs apply → You approve the best match.
-          <br/>
-          <strong>Manual:</strong> Send directly to a specific lab below.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Select value={selectedValue} onValueChange={handleChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue>
-              {getSelectedLabDisplay()}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="max-h-[400px]">
-            {/* Auto-assign option */}
-            <SelectItem value="auto" className="cursor-pointer">
-              <div className="flex items-start gap-2 py-2">
-                <Sparkles className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <div className="font-medium mb-1">Auto-Assign (Recommended)</div>
-                  <p className="text-xs text-muted-foreground">
-                    Order published to marketplace. Labs apply, you approve.
-                  </p>
-                </div>
-              </div>
-            </SelectItem>
-
-            {/* Available labs */}
-            {sortedLabs?.map((lab) => {
-              const spec = getLabSpecialization(lab.id);
-              const capacity = getCapacityStatus(lab.current_load, lab.max_capacity);
-              const expectedDate = getExpectedDeliveryDate(lab);
-              const preferred = isPreferred(lab.id);
-              const hasSpecialization = !!spec;
-              const isDisabled = lab.current_load >= lab.max_capacity || !hasSpecialization;
-
-              return (
-                <SelectItem 
-                  key={lab.id} 
-                  value={lab.id}
-                  disabled={isDisabled}
-                  className={`cursor-pointer ${preferred ? 'bg-primary/5' : ''}`}
-                >
-                  <div className="flex flex-col gap-2 py-2 w-full">
-                    {/* Lab name and badges */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium">{lab.name}</span>
-                        {preferred && (
-                          <Badge variant="default" className="text-xs">
-                            Preferred
-                          </Badge>
-                        )}
-                        <Badge variant={getPricingBadgeVariant(lab.pricing_tier)} className="text-xs">
-                          {lab.pricing_tier}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm flex-shrink-0">
-                        <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                        <span className="font-medium">{lab.performance_score?.toFixed(1)}</span>
-                      </div>
-                    </div>
-
-                    {/* Specialization info */}
-                    {spec ? (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <TrendingUp className="h-3 w-3" />
-                        <span className="capitalize">{spec.expertise_level}</span>
-                        <span>•</span>
-                        <span>{spec.turnaround_days} days turnaround</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-xs text-orange-600">
-                        <span>No specialization in {restorationType}</span>
-                      </div>
-                    )}
-
-                    {/* Capacity and delivery info */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <div className={`w-2 h-2 rounded-full ${capacity.color.replace('text-', 'bg-')}`} />
-                        <span className={capacity.color}>{capacity.status}</span>
-                        <span className="text-muted-foreground">
-                          ({lab.current_load}/{lab.max_capacity})
-                        </span>
-                      </div>
-                      
-                      {hasSpecialization && (
-                        <>
-                          <span className="text-muted-foreground">•</span>
-                          <div className="flex items-center gap-1.5">
-                            {urgency === 'Urgent' ? (
-                              <Zap className="h-3 w-3 text-orange-500" />
-                            ) : (
-                              <Clock className="h-3 w-3 text-muted-foreground" />
-                            )}
-                            <span className="text-muted-foreground">
-                              {urgency === 'Urgent' ? 'Rush: ' : 'Standard: '}
-                              {urgency === 'Urgent' ? lab.urgent_sla_days : lab.standard_sla_days} days
-                            </span>
-                          </div>
-                          
-                          <span className="text-muted-foreground">•</span>
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-muted-foreground">
-                              Expected: {format(expectedDate, 'MMM dd')}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                    </div>
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">Select Lab</h3>
+          </div>
+          <CardDescription>
+            <strong>Auto-Assign:</strong> Order goes to marketplace → Labs apply → You approve the best match.
+            <br/>
+            <strong>Manual:</strong> Send directly to a specific lab below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedValue} onValueChange={handleChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue>
+                {getSelectedLabDisplay()}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-[400px]">
+              {/* Auto-assign option */}
+              <SelectItem value="auto" className="cursor-pointer">
+                <div className="flex items-start gap-2 py-2">
+                  <Sparkles className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium mb-1">Auto-Assign (Recommended)</div>
+                    <p className="text-xs text-muted-foreground">
+                      Order published to marketplace. Labs apply, you approve.
+                    </p>
                   </div>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
-      </CardContent>
-    </Card>
+                </div>
+              </SelectItem>
+
+              {/* Available labs */}
+              {sortedLabs?.map((lab) => {
+                const spec = getLabSpecialization(lab.id);
+                const capacity = getCapacityStatus(lab.current_load, lab.max_capacity);
+                const expectedDate = getExpectedDeliveryDate(lab);
+                const preferred = isPreferred(lab.id);
+                const hasSpecialization = !!spec;
+                const isDisabled = lab.current_load >= lab.max_capacity || !hasSpecialization;
+
+                return (
+                  <SelectItem 
+                    key={lab.id} 
+                    value={lab.id}
+                    disabled={isDisabled}
+                    className={`cursor-pointer ${preferred ? 'bg-primary/5' : ''}`}
+                  >
+                    <div className="flex flex-col gap-2 py-2 w-full">
+                      {/* Lab name and badges */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium">{lab.name}</span>
+                          {preferred && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="default" className="text-xs cursor-help">
+                                  Preferred
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">This lab is in your preferred list and will be prioritized</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant={getPricingBadgeVariant(lab.pricing_tier)} className="text-xs cursor-help">
+                                {lab.pricing_tier}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">Pricing tier: {lab.pricing_tier} - indicates cost range for services</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1 text-sm flex-shrink-0 cursor-help">
+                              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                              <span className="font-medium">{lab.performance_score?.toFixed(1)}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs font-medium mb-1">Performance Score (out of 5.0)</p>
+                            <p className="text-xs">Based on on-time delivery rate, quality ratings, and completed orders</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+
+                      {/* Specialization info */}
+                      {spec ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground cursor-help">
+                              <TrendingUp className="h-3 w-3" />
+                              <span className="capitalize">{spec.expertise_level}</span>
+                              <span>•</span>
+                              <span>{spec.turnaround_days} days turnaround</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs font-medium mb-1">Expertise Level: {spec.expertise_level}</p>
+                            <p className="text-xs">• Basic: Good quality, standard cases</p>
+                            <p className="text-xs">• Intermediate: High quality, complex cases</p>
+                            <p className="text-xs">• Expert: Premium quality, advanced cases</p>
+                            <p className="text-xs mt-1">Turnaround: {spec.turnaround_days} days for {restorationType}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-orange-600">
+                          <span>No specialization in {restorationType}</span>
+                        </div>
+                      )}
+
+                      {/* Capacity and delivery info */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 cursor-help">
+                              <div className={`w-2 h-2 rounded-full ${capacity.color.replace('text-', 'bg-')}`} />
+                              <span className={capacity.color}>{capacity.status}</span>
+                              <span className="text-muted-foreground">
+                                ({lab.current_load}/{lab.max_capacity})
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs font-medium mb-1">Current Capacity Status</p>
+                            <p className="text-xs">Active orders: {lab.current_load} of {lab.max_capacity} max</p>
+                            <p className="text-xs mt-1">
+                              {capacity.status === 'Available' && '✓ Lab has plenty of capacity'}
+                              {capacity.status === 'Limited' && '⚠ Moderate workload, still accepting'}
+                              {capacity.status === 'Nearly Full' && '⚠ High workload, limited availability'}
+                              {capacity.status === 'At Capacity' && '✗ Currently at maximum capacity'}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        {hasSpecialization && (
+                          <>
+                            <span className="text-muted-foreground">•</span>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-1.5 cursor-help">
+                                  {urgency === 'Urgent' ? (
+                                    <Zap className="h-3 w-3 text-orange-500" />
+                                  ) : (
+                                    <Clock className="h-3 w-3 text-muted-foreground" />
+                                  )}
+                                  <span className="text-muted-foreground">
+                                    {urgency === 'Urgent' ? 'Rush: ' : 'Standard: '}
+                                    {urgency === 'Urgent' ? lab.urgent_sla_days : lab.standard_sla_days} days
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs font-medium mb-1">Service Level Agreement (SLA)</p>
+                                <p className="text-xs">
+                                  {urgency === 'Urgent' 
+                                    ? `Rush delivery guaranteed within ${lab.urgent_sla_days} days`
+                                    : `Standard delivery within ${lab.standard_sla_days} days`
+                                  }
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                            
+                            <span className="text-muted-foreground">•</span>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-1.5 cursor-help">
+                                  <Calendar className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-muted-foreground">
+                                    Expected: {format(expectedDate, 'MMM dd')}
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs font-medium mb-1">Estimated Delivery Date</p>
+                                <p className="text-xs">
+                                  Based on {spec.turnaround_days} day turnaround for {restorationType}
+                                </p>
+                                <p className="text-xs mt-1">Calculated from today + turnaround time</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
