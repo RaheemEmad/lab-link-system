@@ -11,26 +11,51 @@ npm install
 npx playwright install
 ```
 
-### 2. Create Test Users
+### 2. Create Test Users (Automated)
 
-**Important**: Test users must be created manually through the signup flow because Supabase auth users cannot be created via SQL.
+The easiest way to set up test users is using the automated script:
+
+```bash
+# Run the automated test user creation
+npm run create-test-users
+```
+
+This will automatically create:
+- ✅ Doctor account (doctor.test@lablink.test)
+- ✅ Lab staff account (lab.staff@lablink.test)
+- ✅ Proper verification (onboarding_completed = true)
+- ✅ Lab staff linked to test lab
+
+**Test Credentials Created:**
+```
+Doctor Account:
+  Email: doctor.test@lablink.test
+  Password: TestDoctor123!
+  Status: Verified & Authenticated
+
+Lab Staff Account:
+  Email: lab.staff@lablink.test
+  Password: TestLabStaff123!
+  Lab: Test Lab (ID: 00000000-0000-0000-0000-000000000001)
+  Status: Verified & Authenticated
+```
+
+### 2b. Manual Setup (Alternative)
+
+If the automated script doesn't work, you can create accounts manually:
 
 #### Test Lab (Already Created)
 - Lab ID: `00000000-0000-0000-0000-000000000001`
 - Name: Test Lab - Auto-Assign Testing
-- Email: testlab@lablink.test
 
-#### Doctor Account
+#### Doctor Account (Manual)
 1. Navigate to `/auth` in your app
 2. Sign up with:
    - Email: `doctor.test@lablink.test`
    - Password: `TestDoctor123!`
-3. Complete doctor onboarding:
-   - Clinic Name: Test Dental Clinic
-   - Phone: +1-555-TEST-DOC
-   - Specialty: General Dentistry
+3. Complete doctor onboarding
 
-#### Lab Staff Account
+#### Lab Staff Account (Manual)
 1. Navigate to `/auth`
 2. Sign up with:
    - Email: `lab.staff@lablink.test`
@@ -39,27 +64,31 @@ npx playwright install
 4. **Link to test lab** using SQL:
 
 ```sql
--- Get the user_id for lab staff
-SELECT id, email FROM auth.users WHERE email = 'lab.staff@lablink.test';
-
--- Update user_roles to link to test lab
 UPDATE user_roles
 SET lab_id = '00000000-0000-0000-0000-000000000001'
 WHERE user_id = (SELECT id FROM auth.users WHERE email = 'lab.staff@lablink.test')
 AND role = 'lab_staff';
-
--- Verify the link
-SELECT ur.*, l.name as lab_name
-FROM user_roles ur
-JOIN labs l ON l.id = ur.lab_id
-WHERE ur.user_id = (SELECT id FROM auth.users WHERE email = 'lab.staff@lablink.test');
 ```
 
 ### 3. Verify Test Data
 
 ```bash
-npx ts-node e2e/setup-test-data.ts
+npm run verify-test-data
 ```
+
+## Lab Verification & Marketplace Access
+
+The system ensures only properly verified labs can access the marketplace:
+
+**Verification System:**
+- Labs must have `onboarding_completed = true` to access marketplace
+- RLS policies enforce this at the database level
+- Unverified labs cannot view orders or submit applications
+
+**What Happens:**
+1. Lab completes onboarding → `onboarding_completed` set to `true`
+2. Marketplace queries check this flag automatically
+3. Only verified labs can apply to orders
 
 ## Running Tests
 
