@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { 
   Building2, 
@@ -15,6 +14,7 @@ import {
   Calendar
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addDays, format } from "date-fns";
 
 interface Lab {
@@ -172,6 +172,36 @@ export const LabSelector = ({
     );
   }
 
+  const getSelectedLabDisplay = () => {
+    if (selectedValue === "auto") {
+      return (
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span>Auto-Assign (Recommended)</span>
+        </div>
+      );
+    }
+    
+    const selectedLab = labs?.find(l => l.id === selectedValue);
+    if (!selectedLab) return "Select a lab...";
+    
+    const preferred = isPreferred(selectedLab.id);
+    const spec = getLabSpecialization(selectedLab.id);
+    
+    return (
+      <div className="flex items-center gap-2">
+        <Building2 className="h-4 w-4" />
+        <span>{selectedLab.name}</span>
+        {preferred && <Badge variant="default" className="text-xs ml-1">Preferred</Badge>}
+        {spec && (
+          <Badge variant="secondary" className="text-xs ml-1 capitalize">
+            {spec.expertise_level}
+          </Badge>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -186,119 +216,117 @@ export const LabSelector = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <RadioGroup value={selectedValue} onValueChange={handleChange}>
-          {/* Auto-assign option */}
-          <div className="flex items-start space-x-3 space-y-0 rounded-lg border border-dashed border-primary/50 p-4 hover:bg-primary/5 transition-colors">
-            <RadioGroupItem value="auto" id="auto" />
-            <Label htmlFor="auto" className="flex-1 cursor-pointer">
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="font-medium">Auto-Assign (Recommended)</span>
+        <Select value={selectedValue} onValueChange={handleChange}>
+          <SelectTrigger className="w-full">
+            <SelectValue>
+              {getSelectedLabDisplay()}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="max-h-[400px]">
+            {/* Auto-assign option */}
+            <SelectItem value="auto" className="cursor-pointer">
+              <div className="flex items-start gap-2 py-2">
+                <Sparkles className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <div className="font-medium mb-1">Auto-Assign (Recommended)</div>
+                  <p className="text-xs text-muted-foreground">
+                    Order published to marketplace. Labs apply, you approve.
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Order will be published to marketplace. Labs can apply, and you'll review their profiles before approving.
-              </p>
-            </Label>
-          </div>
+            </SelectItem>
 
-          {/* Available labs */}
-          <div className="space-y-3 mt-4">
+            {/* Available labs */}
             {sortedLabs?.map((lab) => {
               const spec = getLabSpecialization(lab.id);
               const capacity = getCapacityStatus(lab.current_load, lab.max_capacity);
               const expectedDate = getExpectedDeliveryDate(lab);
               const preferred = isPreferred(lab.id);
               const hasSpecialization = !!spec;
+              const isDisabled = lab.current_load >= lab.max_capacity || !hasSpecialization;
 
               return (
-                <div
-                  key={lab.id}
-                  className={`flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-primary/5 transition-colors ${
-                    preferred ? 'border-primary/50 bg-primary/5' : ''
-                  } ${!hasSpecialization ? 'opacity-60' : ''}`}
+                <SelectItem 
+                  key={lab.id} 
+                  value={lab.id}
+                  disabled={isDisabled}
+                  className={`cursor-pointer ${preferred ? 'bg-primary/5' : ''}`}
                 >
-                  <RadioGroupItem 
-                    value={lab.id} 
-                    id={lab.id}
-                    disabled={lab.current_load >= lab.max_capacity || !hasSpecialization}
-                  />
-                  <Label htmlFor={lab.id} className="flex-1 cursor-pointer">
-                    <div className="space-y-2">
-                      {/* Lab name and badges */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium">{lab.name}</span>
-                          {preferred && (
-                            <Badge variant="default" className="text-xs">
-                              Preferred
-                            </Badge>
-                          )}
-                          <Badge variant={getPricingBadgeVariant(lab.pricing_tier)} className="text-xs">
-                            {lab.pricing_tier}
+                  <div className="flex flex-col gap-2 py-2 w-full">
+                    {/* Lab name and badges */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium">{lab.name}</span>
+                        {preferred && (
+                          <Badge variant="default" className="text-xs">
+                            Preferred
                           </Badge>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm">
-                          <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                          <span className="font-medium">{lab.performance_score?.toFixed(1)}</span>
-                        </div>
-                      </div>
-
-                      {/* Specialization info */}
-                      {spec ? (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <TrendingUp className="h-3 w-3" />
-                          <span className="capitalize">{spec.expertise_level}</span>
-                          <span>•</span>
-                          <span>{spec.turnaround_days} days turnaround</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="text-orange-600">No specialization in {restorationType}</span>
-                        </div>
-                      )}
-
-                      {/* Capacity and delivery info */}
-                      <div className="flex items-center gap-4 text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <div className={`w-2 h-2 rounded-full ${capacity.color.replace('text-', 'bg-')}`} />
-                          <span className={capacity.color}>{capacity.status}</span>
-                          <span className="text-muted-foreground">
-                            ({lab.current_load}/{lab.max_capacity})
-                          </span>
-                        </div>
-                        
-                        {hasSpecialization && (
-                          <>
-                            <span className="text-muted-foreground">•</span>
-                            <div className="flex items-center gap-1.5">
-                              {urgency === 'Urgent' ? (
-                                <Zap className="h-3 w-3 text-orange-500" />
-                              ) : (
-                                <Clock className="h-3 w-3 text-muted-foreground" />
-                              )}
-                              <span className="text-muted-foreground">
-                                {urgency === 'Urgent' ? 'Rush: ' : 'Standard: '}
-                                {urgency === 'Urgent' ? lab.urgent_sla_days : lab.standard_sla_days} days
-                              </span>
-                            </div>
-                            
-                            <span className="text-muted-foreground">•</span>
-                            <div className="flex items-center gap-1.5">
-                              <Calendar className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-muted-foreground">
-                                Expected: {format(expectedDate, 'MMM dd')}
-                              </span>
-                            </div>
-                          </>
                         )}
+                        <Badge variant={getPricingBadgeVariant(lab.pricing_tier)} className="text-xs">
+                          {lab.pricing_tier}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm flex-shrink-0">
+                        <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                        <span className="font-medium">{lab.performance_score?.toFixed(1)}</span>
                       </div>
                     </div>
-                  </Label>
-                </div>
+
+                    {/* Specialization info */}
+                    {spec ? (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <TrendingUp className="h-3 w-3" />
+                        <span className="capitalize">{spec.expertise_level}</span>
+                        <span>•</span>
+                        <span>{spec.turnaround_days} days turnaround</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs text-orange-600">
+                        <span>No specialization in {restorationType}</span>
+                      </div>
+                    )}
+
+                    {/* Capacity and delivery info */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-2 h-2 rounded-full ${capacity.color.replace('text-', 'bg-')}`} />
+                        <span className={capacity.color}>{capacity.status}</span>
+                        <span className="text-muted-foreground">
+                          ({lab.current_load}/{lab.max_capacity})
+                        </span>
+                      </div>
+                      
+                      {hasSpecialization && (
+                        <>
+                          <span className="text-muted-foreground">•</span>
+                          <div className="flex items-center gap-1.5">
+                            {urgency === 'Urgent' ? (
+                              <Zap className="h-3 w-3 text-orange-500" />
+                            ) : (
+                              <Clock className="h-3 w-3 text-muted-foreground" />
+                            )}
+                            <span className="text-muted-foreground">
+                              {urgency === 'Urgent' ? 'Rush: ' : 'Standard: '}
+                              {urgency === 'Urgent' ? lab.urgent_sla_days : lab.standard_sla_days} days
+                            </span>
+                          </div>
+                          
+                          <span className="text-muted-foreground">•</span>
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              Expected: {format(expectedDate, 'MMM dd')}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </SelectItem>
               );
             })}
-          </div>
-        </RadioGroup>
+          </SelectContent>
+        </Select>
       </CardContent>
     </Card>
   );
