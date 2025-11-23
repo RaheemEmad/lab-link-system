@@ -26,23 +26,36 @@ export default function LabRequestsManagement() {
   const currentUserRole = 'doctor' as const;
 
   // Fetch all requests for this doctor's orders with full lab details
-  const { data: requests, isLoading, refetch } = useQuery({
+  // RLS policies already filter by doctor, no need for client-side filtering
+  const { data: requests, isLoading, error, refetch } = useQuery({
     queryKey: ["lab-requests-doctor", user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id) {
+        console.log('[LabRequests] No user ID, returning empty array');
+        return [];
+      }
+      
+      console.log('[LabRequests] Fetching lab work requests for doctor:', user.id);
       
       const { data, error } = await supabase
         .from("lab_work_requests")
         .select(`
-          *,
-          orders (
+          id,
+          created_at,
+          updated_at,
+          status,
+          lab_id,
+          order_id,
+          requested_by_user_id,
+          orders!inner (
+            id,
             order_number,
             patient_name,
             restoration_type,
             urgency,
             doctor_id
           ),
-          labs (
+          labs!inner (
             id,
             name,
             description,
@@ -59,49 +72,63 @@ export default function LabRequestsManagement() {
             max_capacity
           )
         `)
+        .eq('orders.doctor_id', user.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('[LabRequests] Error fetching requests:', error);
+        throw error;
+      }
       
-      // Filter only requests for this doctor's orders
-      return data?.filter((req: any) => req.orders?.doctor_id === user.id) || [];
+      console.log('[LabRequests] Successfully fetched requests:', data?.length || 0);
+      return data || [];
     },
     enabled: !!user?.id,
-    staleTime: 0,
-    refetchOnMount: 'always',
+    retry: 3,
+    retryDelay: 1000,
   });
 
-  // Update request status - MUST be before any conditional returns
+  // Update request status
   const updateRequestStatus = useMutation({
     mutationFn: async ({ requestId, status, orderId, orderNumber }: { requestId: string; status: string; orderId?: string; orderNumber?: string }) => {
+      console.log('[LabRequests] Updating request status:', { requestId, status });
+      
       const { error } = await supabase
         .from("lab_work_requests")
         .update({ status })
         .eq("id", requestId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('[LabRequests] Error updating request status:', error);
+        throw error;
+      }
+      
+      console.log('[LabRequests] Request status updated successfully');
       return { requestId, orderId, orderNumber };
     },
     onSuccess: (data, variables) => {
       if (variables.status === 'accepted' && data.orderNumber && data.orderId) {
-        // Show animation for acceptance
+        console.log('[LabRequests] Request accepted, showing animation');
         setAcceptedRequest({ id: variables.requestId, orderId: data.orderId, orderNumber: data.orderNumber });
       } else {
-        // Regular flow for declined requests
+        console.log('[LabRequests] Request declined, invalidating queries');
         queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
         queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
         queryClient.invalidateQueries({ queryKey: ["orders"] });
         
         toast({
-          title: "Request Declined",
-          description: "The order has been removed from the lab's marketplace.",
+          title: "Request Updated",
+          description: variables.status === 'refused' 
+            ? "The lab application has been declined." 
+            : "Request status updated successfully.",
         });
       }
     },
     onError: (error: any) => {
+      console.error('[LabRequests] Mutation error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update request status. Please try again.",
         variant: "destructive",
       });
     },
@@ -112,6 +139,31 @@ export default function LabRequestsManagement() {
     return (
       <ProtectedRoute>
         <LoadingScreen message="Loading lab applications..." />
+      </ProtectedRoute>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen flex flex-col">
+          <LandingNav />
+          <div className="flex-1 bg-secondary/30 py-8 flex items-center justify-center">
+            <Card className="max-w-md">
+              <CardContent className="py-12 text-center">
+                <p className="text-destructive font-semibold mb-4">Error Loading Lab Applications</p>
+                <p className="text-sm text-muted-foreground mb-6">
+                  {error instanceof Error ? error.message : 'An unexpected error occurred'}
+                </p>
+                <Button onClick={() => refetch()}>
+                  Try Again
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          <LandingFooter />
+        </div>
       </ProtectedRoute>
     );
   }
