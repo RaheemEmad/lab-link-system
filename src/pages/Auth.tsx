@@ -105,9 +105,9 @@ const Auth = () => {
           return;
         }
 
-        // Log successful OAuth attempt if this was an OAuth login
-        if (user.app_metadata?.provider === 'google' && userIP) {
-          await logOAuthAttempt(user.email || '', true, userIP);
+        // Log successful OAuth attempt if this was an OAuth login and we have IP
+        if (user.app_metadata?.provider === 'google' && userIP && user.email) {
+          await logOAuthAttempt(user.email, true, userIP);
         }
 
         // First check if profile exists (registered user)
@@ -190,25 +190,24 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!userIP) {
-      toast.error("Unable to verify security. Please refresh the page.");
-      return;
-    }
-
     try {
-      // Check rate limiting before allowing OAuth
-      const rateLimit = await checkOAuthRateLimit(userIP);
-      
-      if (rateLimit.isLocked) {
-        const retryTime = formatRetryTime(rateLimit.retryAfterSeconds || 0);
-        toast.error(
-          `Too many failed attempts. Please try again in ${retryTime}.`,
-          { duration: 5000 }
-        );
-        return;
+      setIsGoogleLoading(true);
+
+      // Check rate limiting if we have user's IP (optional security layer)
+      if (userIP) {
+        const rateLimit = await checkOAuthRateLimit(userIP);
+        
+        if (rateLimit.isLocked) {
+          const retryTime = formatRetryTime(rateLimit.retryAfterSeconds || 0);
+          toast.error(
+            `Too many failed attempts. Please try again in ${retryTime}.`,
+            { duration: 5000 }
+          );
+          setIsGoogleLoading(false);
+          return;
+        }
       }
 
-      setIsGoogleLoading(true);
       await signInWithGoogle();
       // Don't set loading to false here as user will be redirected
     } catch (error) {

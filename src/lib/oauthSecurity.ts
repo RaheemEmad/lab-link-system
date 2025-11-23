@@ -2,14 +2,29 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Get the user's IP address from a public API
+ * Returns null if unable to fetch (graceful degradation)
  */
 export async function getUserIP(): Promise<string | null> {
   try {
-    const response = await fetch('https://api.ipify.org?format=json');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    
+    const response = await fetch('https://api.ipify.org?format=json', {
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      console.warn('IP detection API returned non-OK status');
+      return null;
+    }
+    
     const data = await response.json();
-    return data.ip;
+    return data.ip || null;
   } catch (error) {
-    console.error('Error fetching IP address:', error);
+    // Silently fail - IP detection is optional
+    console.warn('IP detection unavailable:', error);
     return null;
   }
 }
