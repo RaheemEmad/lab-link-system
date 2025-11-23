@@ -2,6 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://esm.sh https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.supabase.co https://lablink-479111.lovable.app; connect-src 'self' https://*.supabase.co https://api.pwnedpasswords.com wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <title>LabLink — Dental Lab Management</title>
     <meta name="description" content="The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow in one place.">
@@ -13,40 +22,25 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="LabLink" />
     <link rel="apple-touch-icon" href="/lablink-icon.png" />
-
     
-    
+    <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/lablink-icon.png">
+    <meta property="og:title" content="LabLink — Dental Lab Management">
+    <meta property="og:description" content="The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow in one place.">
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
     <meta name="twitter:image" content="/lablink-icon.png">
+    <meta name="twitter:title" content="LabLink — Dental Lab Management">
+    <meta name="twitter:description" content="The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow in one place.">
     
-  
-  
-  
-  
-  
-  
-  
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
-  <link rel="icon" type="image/png" href="/lablink-icon.png">
-  
-  
-  
-  
-  
-  
-  
-  
-  <meta property="og:title" content="LabLink — Dental Lab Management">
-  <meta name="twitter:title" content="LabLink — Dental Lab Management">
-  <meta property="og:description" content="The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow in one place.">
-  <meta name="twitter:description" content="The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow in one place.">
-</head>
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+    <link rel="icon" type="image/png" href="/lablink-icon.png">
+  </head>
 
   <body>
     <div id="root"></div>

@@ -14,6 +14,7 @@ const AdminOrdersTab = lazy(() => import("@/components/admin/AdminOrdersTab"));
 const AdminActivityTab = lazy(() => import("@/components/admin/AdminActivityTab"));
 const AdminCommunicationTab = lazy(() => import("@/components/admin/AdminCommunicationTab"));
 const AdminAnalyticsTab = lazy(() => import("@/components/admin/AdminAnalyticsTab"));
+const AdminSecurityTab = lazy(() => import("@/components/admin/AdminSecurityTab"));
 
 const TabLoadingFallback = () => (
   <div className="flex items-center justify-center p-12">
@@ -120,6 +121,7 @@ const Admin = () => {
                 <TabsTrigger value="activity">Activity</TabsTrigger>
                 <TabsTrigger value="communication">Communication</TabsTrigger>
                 <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                <TabsTrigger value="security">Security</TabsTrigger>
               </TabsList>
 
               <TabsContent value="dashboard" className="space-y-4">
@@ -155,6 +157,12 @@ const Admin = () => {
               <TabsContent value="analytics" className="space-y-4">
                 <Suspense fallback={<TabLoadingFallback />}>
                   <AdminAnalyticsTab />
+                </Suspense>
+              </TabsContent>
+
+              <TabsContent value="security" className="space-y-4">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <AdminSecurityTab />
                 </Suspense>
               </TabsContent>
             </Tabs>
