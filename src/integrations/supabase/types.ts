@@ -378,6 +378,33 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          attempted_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          attempted_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          attempted_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       note_likes: {
         Row: {
           created_at: string | null
@@ -1147,6 +1174,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      cleanup_old_login_attempts: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       complete_doctor_onboarding: {
         Args: {
@@ -1192,6 +1220,7 @@ export type Database = {
         Args: { order_id_param: string }
         Returns: undefined
       }
+      is_account_locked: { Args: { user_email: string }; Returns: boolean }
       lab_was_refused_for_order: {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean
