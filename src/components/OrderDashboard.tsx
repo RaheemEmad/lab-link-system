@@ -268,7 +268,7 @@ const OrderDashboard = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filters and Search */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -278,9 +278,9 @@ const OrderDashboard = () => {
                 className="pl-9"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -294,7 +294,7 @@ const OrderDashboard = () => {
               </Select>
 
               <Select value={itemsPerPage.toString()} onValueChange={(val) => setItemsPerPage(Number(val))}>
-                <SelectTrigger className="w-[100px]">
+                <SelectTrigger className="w-full sm:w-[120px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -308,7 +308,7 @@ const OrderDashboard = () => {
           </div>
 
           {/* Orders Table */}
-          <div className="rounded-md border overflow-x-auto" data-tour="orders-table">
+          <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0" data-tour="orders-table">
             <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow>
