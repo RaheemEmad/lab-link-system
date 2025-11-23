@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,39 +58,26 @@ interface OrderShipment {
 }
 
 const LogisticsDashboard = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const { role, isLoading: roleLoading, hasAnyRole } = useUserRole();
   const navigate = useNavigate();
-  const [userRole, setUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [labCapacity, setLabCapacity] = useState<LabCapacity[]>([]);
   const [shipments, setShipments] = useState<OrderShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
   
+  // Check access permissions
   useEffect(() => {
-    const checkRole = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      
-      if (!data || (data.role !== "admin" && data.role !== "lab_staff" && data.role !== "doctor")) {
-        toast.error("Access denied");
-        navigate("/dashboard");
-        return;
-      }
-      setUserRole(data.role);
-    };
-    checkRole();
-  }, [user, navigate]);
+    if (!roleLoading && !hasAnyRole(["admin", "lab_staff", "doctor"])) {
+      toast.error("Access denied");
+      navigate("/dashboard");
+    }
+  }, [roleLoading, hasAnyRole, navigate]);
   
   useEffect(() => {
     const fetchData = async () => {
-      if (!user || !userRole) return;
+      if (!user || !role) return;
       try {
         setLoading(true);
 
@@ -127,14 +115,14 @@ const LogisticsDashboard = () => {
         });
 
         // Filter based on user role
-        if (userRole === "lab_staff") {
+        if (role === "lab_staff") {
           const {
             data: roleData
           } = await supabase.from("user_roles").select("lab_id").eq("user_id", user.id).single();
           if (roleData?.lab_id) {
             shipmentQuery = shipmentQuery.eq("assigned_lab_id", roleData.lab_id);
           }
-        } else if (userRole === "doctor") {
+        } else if (role === "doctor") {
           shipmentQuery = shipmentQuery.eq("doctor_id", user.id);
         }
         const {
@@ -167,7 +155,7 @@ const LogisticsDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, userRole]);
+  }, [user, role]);
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -211,7 +199,7 @@ const LogisticsDashboard = () => {
   const urgentShipments = shipments.filter(s => s.urgency === "Urgent").length;
   const priorityHandling = shipments.filter(s => s.urgency === "Urgent" && s.status !== "Delivered").length;
   
-  if (loading) {
+  if (roleLoading || loading) {
     return (
       <ProtectedRoute>
         <LoadingScreen message="Loading logistics data..." />
@@ -432,7 +420,7 @@ const LogisticsDashboard = () => {
       {selectedShipment && <ShipmentDetailsDialog open={!!selectedShipment} onOpenChange={open => !open && setSelectedShipment(null)} order={selectedShipment} onUpdate={() => {
       setSelectedShipment(null);
       window.location.reload();
-    }} userRole={userRole} />}
+    }} userRole={role || undefined} />}
 
       {/* Order Details Modal */}
       {selectedOrderForDetails && (
