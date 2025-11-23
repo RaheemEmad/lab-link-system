@@ -8,6 +8,7 @@ import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
+import { HelpButton } from "@/components/layout/HelpButton";
 import Home from "./pages/Home";
 import HowItWorks from "./pages/HowItWorks";
 import Labs from "./pages/Labs";
@@ -54,6 +55,7 @@ const AppContent = () => {
   
   return (
     <>
+      <HelpButton />
       <SessionTimeoutWarning />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>

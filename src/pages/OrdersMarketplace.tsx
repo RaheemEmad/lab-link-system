@@ -12,6 +12,8 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
+import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
@@ -23,15 +25,19 @@ export default function OrdersMarketplace() {
   const [sortBy, setSortBy] = useState<string>("date-desc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+  const [showAcceptanceAnimation, setShowAcceptanceAnimation] = useState(false);
+  const [acceptedOrder, setAcceptedOrder] = useState<{ id: string; orderNumber: string } | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<'doctor' | 'lab_staff'>('lab_staff');
 
-  // Get lab ID for current user
+  // Get lab ID and user role for current user
   useEffect(() => {
-    const fetchLabId = async () => {
+    const fetchLabIdAndRole = async () => {
       if (!user?.id) return;
       
       const { data } = await supabase
         .from('user_roles')
-        .select('lab_id')
+        .select('lab_id, role')
         .eq('user_id', user.id)
         .eq('role', 'lab_staff')
         .maybeSingle();
@@ -39,9 +45,12 @@ export default function OrdersMarketplace() {
       if (data?.lab_id) {
         setLabId(data.lab_id);
       }
+      if (data?.role) {
+        setCurrentUserRole(data.role as 'doctor' | 'lab_staff');
+      }
     };
     
-    fetchLabId();
+    fetchLabIdAndRole();
   }, [user]);
 
   // Fetch marketplace orders (auto_assign_pending, unassigned, excluding refused)

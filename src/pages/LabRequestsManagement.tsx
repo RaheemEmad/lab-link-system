@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useState } from "react";
 import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
+import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 
 export default function LabRequestsManagement() {
   const { user } = useAuth();
@@ -20,7 +21,9 @@ export default function LabRequestsManagement() {
   const queryClient = useQueryClient();
   const [selectedLab, setSelectedLab] = useState<any>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [acceptedRequest, setAcceptedRequest] = useState<{ id: string; orderNumber: string } | null>(null);
+  const [acceptedRequest, setAcceptedRequest] = useState<{ id: string; orderId: string; orderNumber: string } | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [currentUserRole] = useState<'doctor' | 'lab_staff'>('doctor');
 
   // Fetch all requests for this doctor's orders with full lab details
   const { data: requests, isLoading } = useQuery({
@@ -67,20 +70,20 @@ export default function LabRequestsManagement() {
   });
 
   // Update request status
-  const updateRequest = useMutation({
-    mutationFn: async ({ requestId, status, orderNumber }: { requestId: string; status: string; orderNumber?: string }) => {
+  const updateRequestStatus = useMutation({
+    mutationFn: async ({ requestId, status, orderId, orderNumber }: { requestId: string; status: string; orderId?: string; orderNumber?: string }) => {
       const { error } = await supabase
         .from("lab_work_requests")
         .update({ status })
         .eq("id", requestId);
       
       if (error) throw error;
-      return { requestId, orderNumber };
+      return { requestId, orderId, orderNumber };
     },
     onSuccess: (data, variables) => {
-      if (variables.status === 'accepted' && data.orderNumber) {
+      if (variables.status === 'accepted' && data.orderNumber && data.orderId) {
         // Show animation for acceptance
-        setAcceptedRequest({ id: variables.requestId, orderNumber: data.orderNumber });
+        setAcceptedRequest({ id: variables.requestId, orderId: data.orderId, orderNumber: data.orderNumber });
       } else {
         // Regular flow for declined requests
         queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
@@ -107,12 +110,23 @@ export default function LabRequestsManagement() {
       {acceptedRequest && (
         <AcceptanceAnimation
           orderNumber={acceptedRequest.orderNumber}
+          orderId={acceptedRequest.orderId}
+          onChatOpen={() => setShowChat(true)}
           onComplete={() => {
             setAcceptedRequest(null);
             queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
             queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
             queryClient.invalidateQueries({ queryKey: ["orders"] });
           }}
+        />
+      )}
+
+      {showChat && acceptedRequest && (
+        <OrderChatWindow
+          orderId={acceptedRequest.orderId}
+          orderNumber={acceptedRequest.orderNumber}
+          currentUserRole={currentUserRole}
+          onClose={() => setShowChat(false)}
         />
       )}
       
@@ -273,12 +287,13 @@ export default function LabRequestsManagement() {
                             <>
                               <Button
                                 variant="default"
-                                onClick={() => updateRequest.mutate({ 
+                                onClick={() => updateRequestStatus.mutate({ 
                                   requestId: request.id, 
                                   status: 'accepted',
+                                  orderId: order?.id,
                                   orderNumber: order?.order_number
                                 })}
-                                disabled={updateRequest.isPending}
+                                disabled={updateRequestStatus.isPending}
                                 className="flex-1"
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -286,11 +301,11 @@ export default function LabRequestsManagement() {
                               </Button>
                               <Button
                                 variant="destructive"
-                                onClick={() => updateRequest.mutate({ 
+                                onClick={() => updateRequestStatus.mutate({ 
                                   requestId: request.id, 
                                   status: 'refused' 
                                 })}
-                                disabled={updateRequest.isPending}
+                                disabled={updateRequestStatus.isPending}
                                 className="flex-1"
                               >
                                 <XCircle className="h-4 w-4 mr-2" />

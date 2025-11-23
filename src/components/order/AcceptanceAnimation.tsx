@@ -7,17 +7,20 @@ import { TestTube, Zap } from "lucide-react";
 interface AcceptanceAnimationProps {
   onComplete: () => void;
   orderNumber: string;
+  orderId: string;
+  onChatOpen: () => void;
 }
 
-export const AcceptanceAnimation = ({ onComplete, orderNumber }: AcceptanceAnimationProps) => {
+export const AcceptanceAnimation = ({ onComplete, orderNumber, orderId, onChatOpen }: AcceptanceAnimationProps) => {
   const [stage, setStage] = useState<"initial" | "button" | "launching" | "complete">("initial");
   const navigate = useNavigate();
 
   const handleInitiate = () => {
     setStage("launching");
     
-    // After animation completes, navigate to dashboard with state
+    // After animation completes, open chat and navigate
     setTimeout(() => {
+      onChatOpen();
       navigate("/dashboard", { 
         state: { 
           newOrderAccepted: true,
