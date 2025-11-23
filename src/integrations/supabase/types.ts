@@ -630,6 +630,7 @@ export type Database = {
           doctor_id: string | null
           doctor_name: string
           expected_delivery_date: string | null
+          handling_instructions: string | null
           html_export: string | null
           id: string
           order_number: string
@@ -661,6 +662,7 @@ export type Database = {
           doctor_id?: string | null
           doctor_name: string
           expected_delivery_date?: string | null
+          handling_instructions?: string | null
           html_export?: string | null
           id?: string
           order_number: string
@@ -692,6 +694,7 @@ export type Database = {
           doctor_id?: string | null
           doctor_name?: string
           expected_delivery_date?: string | null
+          handling_instructions?: string | null
           html_export?: string | null
           id?: string
           order_number?: string

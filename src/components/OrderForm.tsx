@@ -35,6 +35,7 @@ const formSchema = z.object({
   urgency: z.enum(["Normal", "Urgent"]),
   assignedLabId: z.string().nullable().optional(),
   htmlExport: z.string().optional(),
+  handlingInstructions: z.string().max(500).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -93,6 +94,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       urgency: "Normal",
       assignedLabId: null,
       htmlExport: "",
+      handlingInstructions: "",
     },
   });
 
@@ -351,6 +353,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
           assignedLabId: data.assignedLabId || null,
           photosLink: photoUrls.join(','),
           htmlExport: data.htmlExport || "",
+          handlingInstructions: data.handlingInstructions || "",
         }),
       });
 
@@ -642,6 +645,27 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                   </FormControl>
                   <FormDescription className="text-xs">
                     Paste HTML content directly or provide a URL to open it in a new tab
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="handlingInstructions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Handling Instructions (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Special handling requirements (e.g., fragile, cold storage, keep upright)"
+                      className="min-h-[80px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Specify any special handling or shipping requirements
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
