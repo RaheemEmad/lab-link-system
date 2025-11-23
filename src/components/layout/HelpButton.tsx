@@ -6,63 +6,82 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const HelpButton: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="fixed bottom-6 right-6 z-[9999] rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-background border-2 border-primary/20 hover:border-primary"
-        >
-          <HelpCircle className="h-5 w-5 text-primary" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80" align="end">
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold text-lg mb-2">Need Help?</h3>
-            <p className="text-sm text-muted-foreground">
-              Contact our support team if you encounter any issues.
-            </p>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <Mail className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm font-medium">Email Support</p>
-                <a
-                  href="mailto:raheem.amer.swe@gmail.com"
-                  className="text-sm text-primary hover:underline"
-                >
-                  raheem.amer.swe@gmail.com
-                </a>
+    <>
+      {/* Backdrop blur overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9998] bg-background/20 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="fixed bottom-6 right-6 z-[9999] rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-background border-2 border-primary/20 hover:border-primary"
+          >
+            <HelpCircle className="h-5 w-5 text-primary" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 z-[9999]" align="end">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Need Help?</h3>
+              <p className="text-sm text-muted-foreground">
+                Contact our support team if you encounter any issues.
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <Mail className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Email Support</p>
+                  <a
+                    href="mailto:raheem.amer.swe@gmail.com"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    raheem.amer.swe@gmail.com
+                  </a>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <Phone className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Business Phone</p>
+                  <a
+                    href="tel:+201018385093"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    +201018385093
+                  </a>
+                </div>
               </div>
             </div>
             
-            <div className="flex items-start gap-3">
-              <Phone className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm font-medium">Business Phone</p>
-                <a
-                  href="tel:+201018385093"
-                  className="text-sm text-primary hover:underline"
-                >
-                  +201018385093
-                </a>
-              </div>
+            <div className="pt-3 border-t">
+              <p className="text-xs text-muted-foreground">
+                Our support team is available to help you with any questions or technical issues.
+              </p>
             </div>
           </div>
-          
-          <div className="pt-3 border-t">
-            <p className="text-xs text-muted-foreground">
-              Our support team is available to help you with any questions or technical issues.
-            </p>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </>
   );
 };
