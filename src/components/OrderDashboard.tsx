@@ -39,6 +39,7 @@ import { OrderStatusDialog } from "./order/OrderStatusDialog";
 import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
 import OrderNotesDialog from "./order/OrderNotesDialog";
 import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
+import { StaggeredList, StaggeredItem } from "@/components/ui/staggered-list";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -369,8 +370,10 @@ const OrderDashboard = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredOrders.map((order) => (
-                    <TableRow key={order.id}>
+                  <StaggeredList>
+                    {filteredOrders.map((order) => (
+                      <StaggeredItem key={order.id}>
+                        <TableRow>
                       <TableCell className="font-mono font-medium">{order.order_number}</TableCell>
                       {!isDoctor && <TableCell>{order.doctor_name}</TableCell>}
                       <TableCell>{order.patient_name}</TableCell>
@@ -517,7 +520,9 @@ const OrderDashboard = () => {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))
+                  </StaggeredItem>
+                ))}
+              </StaggeredList>
                 )}
               </TableBody>
             </Table>

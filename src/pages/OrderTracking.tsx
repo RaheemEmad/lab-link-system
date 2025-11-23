@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -15,6 +14,8 @@ import OrderNotesDialog from "@/components/order/OrderNotesDialog";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { CardSkeleton } from "@/components/ui/skeleton-loader";
+import { StaggeredList, StaggeredItem } from "@/components/ui/staggered-list";
 import { 
   Package, 
   Clock, 
@@ -269,18 +270,19 @@ const OrderTracking = () => {
         <LandingNav />
         <div className="flex-1 bg-secondary/30 py-8">
           <div className="container max-w-6xl mx-auto px-4">
-            <div className="mb-6">
-              <Skeleton className="h-10 w-64 mb-2" />
-              <Skeleton className="h-4 w-96" />
+            <div className="mb-8 animate-fade-in">
+              <div className="h-10 w-64 bg-muted rounded-lg animate-pulse mb-2" />
+              <div className="h-4 w-96 bg-muted rounded-lg animate-pulse" />
             </div>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-64 w-full" />
-              ))}
+            <div className="space-y-6">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
             </div>
           </div>
         </div>
         <LandingFooter />
+        <ScrollToTop />
       </div>
     );
   }
@@ -319,8 +321,9 @@ const OrderTracking = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
+              <StaggeredList className="grid gap-4">
                 {orders.map((order) => (
+                  <StaggeredItem key={order.id}>
                   <Card key={order.id} className="overflow-hidden">
                     <div className="grid md:grid-cols-[1fr,2fr] gap-0">
                       {/* Left side - Status info */}
@@ -425,8 +428,9 @@ const OrderTracking = () => {
                       </div>
                     </div>
                   </Card>
-                ))}
-              </div>
+                </StaggeredItem>
+              ))}
+            </StaggeredList>
             )}
           </div>
         </div>
@@ -484,13 +488,14 @@ const OrderTracking = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <StaggeredList className="space-y-4">
               {orders.map((order) => {
                 const daysUntil = calculateDaysUntil(order.expected_delivery_date);
                 const isUrgent = daysUntil !== null && daysUntil <= 2 && order.status !== 'Delivered';
                 
                 return (
-                  <Card key={order.id} className={isUrgent ? 'border-destructive' : ''}>
+                  <StaggeredItem key={order.id}>
+                    <Card className={isUrgent ? 'border-destructive' : ''}>
                     <CardHeader>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -699,9 +704,10 @@ const OrderTracking = () => {
                       </div>
                     </CardContent>
                   </Card>
+                </StaggeredItem>
                 );
               })}
-            </div>
+            </StaggeredList>
           )}
         </div>
       </div>
