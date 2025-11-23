@@ -10,7 +10,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { OrderNotes } from "@/components/order/OrderNotes";
 import { OrderHistoryTimeline } from "@/components/order/OrderHistoryTimeline";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import OrderNotesDialog from "@/components/order/OrderNotesDialog";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
@@ -59,9 +60,12 @@ interface Order {
 const OrderTracking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<string | null>(null);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -104,6 +108,23 @@ const OrderTracking = () => {
       };
     }
   }, [userRole, user]);
+
+  // Handle opening notes dialog from URL params
+  useEffect(() => {
+    const orderId = searchParams.get('orderId');
+    const openNotes = searchParams.get('openNotes');
+    
+    if (orderId && openNotes === 'true' && orders.length > 0) {
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        setSelectedOrderForNotes(orderId);
+        setNotesDialogOpen(true);
+        // Clear the params after opening
+        searchParams.delete('openNotes');
+        setSearchParams(searchParams);
+      }
+    }
+  }, [searchParams, orders, setSearchParams]);
 
   const fetchUserRole = async () => {
     if (!user) return;
@@ -344,20 +365,18 @@ const OrderTracking = () => {
                           </div>
 
                           <div className="flex gap-2">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="flex-1">
-                                  <MessageSquare className="h-4 w-4 mr-2" />
-                                  Notes
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                                <DialogHeader>
-                                  <DialogTitle>Order Notes - {order.order_number}</DialogTitle>
-                                </DialogHeader>
-                                <OrderNotes orderId={order.id} />
-                              </DialogContent>
-                            </Dialog>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1"
+                              onClick={() => {
+                                setSelectedOrderForNotes(order.id);
+                                setNotesDialogOpen(true);
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Notes
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -619,20 +638,17 @@ const OrderTracking = () => {
                         <p className="text-xs text-muted-foreground">
                           Order submitted on {formatDate(order.created_at)}
                         </p>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <MessageSquare className="h-4 w-4 mr-2" />
-                              View Notes
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Order Notes - {order.order_number}</DialogTitle>
-                            </DialogHeader>
-                            <OrderNotes orderId={order.id} />
-                          </DialogContent>
-                        </Dialog>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedOrderForNotes(order.id);
+                            setNotesDialogOpen(true);
+                          }}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          View Notes
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -644,6 +660,18 @@ const OrderTracking = () => {
       </div>
       <LandingFooter />
       <ScrollToTop />
+      
+      {selectedOrderForNotes && (
+        <OrderNotesDialog
+          orderId={selectedOrderForNotes}
+          orderNumber={orders.find(o => o.id === selectedOrderForNotes)?.order_number || ''}
+          open={notesDialogOpen}
+          onOpenChange={(open) => {
+            setNotesDialogOpen(open);
+            if (!open) setSelectedOrderForNotes(null);
+          }}
+        />
+      )}
     </div>
   );
 };
