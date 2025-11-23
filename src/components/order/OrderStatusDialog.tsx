@@ -66,7 +66,7 @@ export const OrderStatusDialog = ({
     setIsUpdating(true);
 
     try {
-      // Update the order status
+      // Update the order status - the database trigger will automatically handle status history
       const { error: updateError } = await supabase
         .from("orders")
         .update({ 
@@ -76,18 +76,6 @@ export const OrderStatusDialog = ({
         .eq("id", orderId);
 
       if (updateError) throw updateError;
-
-      // Insert status history record
-      const { error: historyError } = await supabase
-        .from("order_status_history")
-        .insert({
-          order_id: orderId,
-          old_status: currentStatus,
-          new_status: newStatus,
-          changed_by: user.id,
-        });
-
-      if (historyError) throw historyError;
 
       toast.success("Order status updated", {
         description: `${orderNumber} is now ${newStatus}`,
