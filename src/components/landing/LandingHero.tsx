@@ -1,259 +1,214 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Zap, Building2, Stethoscope } from "lucide-react";
+import { ArrowRight, CheckCircle2, Zap, Building2, Stethoscope, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 
 
 const LandingHero = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const heroRef = useRef<HTMLElement>(null);
-  
-  // Parallax scroll animations
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"]
-  });
-  
-  // Different parallax speeds for depth
-  const orbY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const gridY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const floatingY = useTransform(scrollYProgress, [0, 1], ["0%", "80%"]);
-  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
-  
-  // Fade-out effect for hero section
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  
-  // Wave animations responding to scroll
-  const wave1Y = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const wave2Y = useTransform(scrollYProgress, [0, 1], [0, 100]);
-  const wave3Y = useTransform(scrollYProgress, [0, 1], [0, 200]);
   
   const stats = [
-    { value: "2 min", label: "Setup Time" },
-    { value: "Zero", label: "Training Required" },
-    { value: "100%", label: "Order Visibility" }
+    { value: "2 min", label: "Setup Time", icon: Zap },
+    { value: "Zero", label: "Training Required", icon: Sparkles },
+    { value: "100%", label: "Order Visibility", icon: CheckCircle2 }
   ];
   
-  const hooks = [
+  const benefits = [
     "Transform WhatsApp chaos into organized workflows",
-    "Every order tracked from intake to delivery",
-    "Connect dentists with qualified labs instantly"
+    "Track every order from intake to delivery",
+    "Connect with qualified labs instantly"
   ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
+    }
+  };
+
   return (
-    <motion.section 
-      ref={heroRef} 
-      style={{ opacity: heroOpacity }}
-      className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20"
-    >
-      {/* SVG Filters for morphing blobs */}
-      <svg className="absolute w-0 h-0">
-        <defs>
-          <filter id="goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo" />
-            <feBlend in="SourceGraphic" in2="goo" />
-          </filter>
-          <filter id="blur">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
-          </filter>
-        </defs>
-      </svg>
-
-      {/* Morphing blob animations */}
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-b from-background via-primary/5 to-background">
+      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Primary blob - blue */}
-        <div
-          className="absolute top-1/4 -left-32 w-96 h-96 bg-gradient-to-br from-primary/30 to-primary/10 animate-morph-blob"
-          style={{ filter: "url(#goo) blur(40px)" }}
+        {/* Gradient orbs */}
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.2, 0.3]
+          }}
+          transition={{ 
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute -top-24 -left-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.3, 0.2]
+          }}
+          transition={{ 
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute -bottom-24 -right-24 w-[500px] h-[500px] bg-accent/20 rounded-full blur-3xl"
         />
         
-        {/* Secondary blob - teal */}
-        <div
-          className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-gradient-to-br from-accent/30 to-accent/10 animate-morph-blob-alt"
-          style={{ filter: "url(#goo) blur(40px)", animationDelay: "2s" }}
-        />
-        
-        {/* Tertiary blob - blue variant */}
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-primary/20 to-accent/20 animate-morph-blob"
-          style={{ filter: "url(#blur)", animationDelay: "5s", animationDuration: "25s" }}
-        />
-      </div>
-
-      {/* Animated wave patterns responding to scroll */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Wave 1 */}
-        <motion.div
-          style={{ y: wave1Y }}
-          className="absolute -bottom-32 left-0 right-0"
-        >
-          <svg
-            className="w-full h-64 opacity-[0.03]"
-            viewBox="0 0 1440 320"
-            preserveAspectRatio="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill="hsl(var(--primary))"
-              d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,101.3C1248,85,1344,75,1392,69.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-            />
-          </svg>
-        </motion.div>
-        
-        {/* Wave 2 */}
-        <motion.div
-          style={{ y: wave2Y }}
-          className="absolute -bottom-20 left-0 right-0"
-        >
-          <svg
-            className="w-full h-48 opacity-[0.02]"
-            viewBox="0 0 1440 320"
-            preserveAspectRatio="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill="hsl(var(--accent))"
-              d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-            />
-          </svg>
-        </motion.div>
-        
-        {/* Wave 3 */}
-        <motion.div
-          style={{ y: wave3Y }}
-          className="absolute -bottom-10 left-0 right-0"
-        >
-          <svg
-            className="w-full h-32 opacity-[0.04]"
-            viewBox="0 0 1440 320"
-            preserveAspectRatio="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill="hsl(var(--primary))"
-              d="M0,32L48,58.7C96,85,192,139,288,149.3C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-            />
-          </svg>
-        </motion.div>
-        
-        {/* Abstract geometric shapes */}
-        <motion.div
-          style={{ y: wave1Y, rotate: useTransform(scrollYProgress, [0, 1], [0, 45]) }}
-          className="absolute top-1/3 -right-20 w-96 h-96 border-2 border-primary/5 rounded-full"
-        />
-        <motion.div
-          style={{ y: wave2Y, rotate: useTransform(scrollYProgress, [0, 1], [0, -30]) }}
-          className="absolute bottom-1/4 -left-32 w-64 h-64 border-2 border-accent/5"
-        />
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.05)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,black,transparent)]" />
       </div>
       
-      {/* Animated gradient orbs with parallax */}
-      <motion.div 
-        style={{ y: orbY }}
-        className="hidden sm:block absolute top-20 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" 
-        transition={{ type: "spring", stiffness: 50 }}
-      />
-      <motion.div 
-        style={{ y: orbY }}
-        className="hidden sm:block absolute bottom-20 right-10 w-64 h-64 sm:w-96 sm:h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" 
-        transition={{ type: "spring", stiffness: 50 }}
-      />
-      
-      {/* Animated grid with parallax */}
-      <motion.div 
-        style={{ y: gridY }}
-        className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.03)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[size:32px_32px] sm:bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)] animate-fade-in" 
-      />
-      
-      {/* Floating elements with parallax */}
-      <motion.div 
-        style={{ y: floatingY }}
-        className="hidden md:block absolute top-1/4 right-1/4 animate-[float_6s_ease-in-out_infinite]"
-      >
-        <CheckCircle2 className="w-8 h-8 text-primary/30" />
-      </motion.div>
-      <motion.div 
-        style={{ y: floatingY }}
-        className="hidden md:block absolute bottom-1/3 left-1/4 animate-[float_5s_ease-in-out_infinite]" 
-      >
-        <Zap className="w-6 h-6 text-accent/40" />
-      </motion.div>
-      
-      <motion.div style={{ y: contentY }} className="container relative z-10 px-4 mx-auto">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center space-y-6 sm:space-y-8 md:space-y-10">
+      <div className="container relative z-10 px-4 mx-auto py-20">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="max-w-5xl mx-auto"
+        >
+          <div className="text-center space-y-8">
+            
+            {/* Badge */}
+            <motion.div variants={itemVariants} className="flex justify-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary font-medium">
+                <Sparkles className="w-4 h-4" />
+                <span>Precision for labs. Clarity for dentists.</span>
+              </div>
+            </motion.div>
             
             {/* Main headline */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-foreground animate-fade-in px-4 mt-8 sm:mt-12 md:mt-16" style={{ animationDelay: '100ms' }}>
+            <motion.h1 
+              variants={itemVariants}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.1] text-foreground tracking-tight"
+            >
               From WhatsApp Chaos to{" "}
-              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-[gradient_3s_ease_infinite] bg-[length:200%_auto]">
-                Digital Clarity
+              <span className="relative inline-block">
+                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-[gradient_3s_ease_infinite] bg-[length:200%_auto]">
+                  Digital Clarity
+                </span>
+                <motion.div
+                  animate={{ scaleX: [0, 1] }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                  className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent origin-left"
+                />
               </span>
-            </h1>
-            
-            {/* Hook bullets */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 animate-fade-in" style={{
-            animationDelay: '200ms'
-          }}>
-              {hooks.map((hook, index) => <div key={index} className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                  <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-center sm:text-left">{hook}</span>
-                </div>)}
-            </div>
+            </motion.h1>
             
             {/* Subheadline */}
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
-              The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow in one place.
-            </p>
+            <motion.p 
+              variants={itemVariants}
+              className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            >
+              The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow.
+            </motion.p>
             
-            {/* Dual CTA for both user types */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+            {/* Benefits */}
+            <motion.div 
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-4xl mx-auto"
+            >
+              {benefits.map((benefit, index) => (
+                <div key={index} className="flex items-start gap-2 text-sm sm:text-base text-muted-foreground group">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                  <span className="text-left">{benefit}</span>
+                </div>
+              ))}
+            </motion.div>
+            
+            {/* CTAs */}
+            <motion.div 
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+            >
               <Button 
                 size="lg" 
-                className="text-base sm:text-lg px-8 py-6 h-auto group hover-scale hover-glow transition-all duration-300 shadow-lg w-full sm:w-auto"
+                className="text-lg px-10 py-7 h-auto group relative overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300"
                 onClick={() => navigate(user ? "/new-order" : "/auth")}
               >
-                <Stethoscope className="mr-2 h-5 w-5" />
-                For Dentists
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <span className="relative z-10 flex items-center">
+                  <Stethoscope className="mr-2 h-5 w-5" />
+                  For Dentists
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-primary to-accent"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                />
               </Button>
               
               <Button 
                 size="lg" 
                 variant="outline"
-                className="text-base sm:text-lg px-8 py-6 h-auto hover-scale transition-all duration-300 border-2 w-full sm:w-auto"
+                className="text-lg px-10 py-7 h-auto group border-2 hover:border-primary hover:bg-primary/5 transition-all duration-300"
                 onClick={() => navigate(user ? "/lab-admin" : "/auth")}
               >
                 <Building2 className="mr-2 h-5 w-5" />
                 For Labs
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-            </div>
+            </motion.div>
             
-            <p className="text-xs sm:text-sm text-muted-foreground animate-fade-in px-4" style={{ animationDelay: '500ms' }}>
+            {/* Trust line */}
+            <motion.p 
+              variants={itemVariants}
+              className="text-sm text-muted-foreground"
+            >
               Free to start • No credit card required • Launch in 2 minutes
-            </p>
+            </motion.p>
             
-            {/* Stats bar */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-2xl mx-auto pt-8 sm:pt-12 px-4 animate-fade-in" style={{
-            animationDelay: '600ms'
-          }}>
-              {stats.map((stat, index) => <div key={index} className="text-center group hover-scale">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
-                    {stat.value}
-                  </div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">
-                    {stat.label}
-                  </div>
-                </div>)}
-            </div>
+            {/* Stats */}
+            <motion.div 
+              variants={itemVariants}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto pt-12"
+            >
+              {stats.map((stat, index) => {
+                const Icon = stat.icon;
+                return (
+                  <motion.div 
+                    key={index}
+                    whileHover={{ y: -4 }}
+                    className="text-center p-6 rounded-2xl bg-gradient-to-b from-primary/5 to-transparent border border-primary/10 hover:border-primary/20 transition-all duration-300"
+                  >
+                    <div className="flex justify-center mb-3">
+                      <div className="p-3 rounded-full bg-primary/10">
+                        <Icon className="w-6 h-6 text-primary" />
+                      </div>
+                    </div>
+                    <div className="text-4xl font-bold text-foreground mb-2">
+                      {stat.value}
+                    </div>
+                    <div className="text-sm text-muted-foreground font-medium">
+                      {stat.label}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           </div>
-        </div>
-      </motion.div>
-    </motion.section>
+        </motion.div>
+      </div>
+    </section>
   );
 };
 
