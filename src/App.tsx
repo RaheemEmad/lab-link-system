@@ -45,6 +45,7 @@ import AutosaveDemo from "./pages/AutosaveDemo";
 import DraftsManager from "./pages/DraftsManager";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import ChatHistory from "./pages/ChatHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -93,6 +94,7 @@ const AppContent = () => {
           <Route path="/style-guide" element={<PageTransition><StyleGuide /></PageTransition>} />
           <Route path="/autosave-demo" element={<PageTransition><AutosaveDemo /></PageTransition>} />
           <Route path="/drafts" element={<PageTransition><DraftsManager /></PageTransition>} />
+          <Route path="/chat-history" element={<PageTransition><ChatHistory /></PageTransition>} />
           <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
           <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
