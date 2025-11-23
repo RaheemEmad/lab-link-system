@@ -141,6 +141,32 @@ const PreferredLabs = () => {
     },
   });
 
+  // Reorder preferred labs mutation
+  const reorderPreferredMutation = useMutation({
+    mutationFn: async (reorderedLabs: PreferredLab[]) => {
+      if (!user?.id) throw new Error("Not authenticated");
+
+      const updates = reorderedLabs.map((lab, index) => ({
+        id: lab.id,
+        dentist_id: user.id,
+        lab_id: lab.lab_id,
+        priority_order: index + 1,
+      }));
+
+      const { error } = await supabase
+        .from("preferred_labs")
+        .upsert(updates);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["preferred-labs"] });
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to update order", { description: error.message });
+    },
+  });
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
@@ -182,6 +208,7 @@ const PreferredLabs = () => {
                     <PreferredLabsList
                       preferredLabs={preferredLabs}
                       onRemove={(id) => removePreferredMutation.mutate(id)}
+                      onReorder={(labs) => reorderPreferredMutation.mutate(labs)}
                     />
                   ) : (
                     <div className="text-center py-12">
