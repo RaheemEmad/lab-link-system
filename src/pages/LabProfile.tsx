@@ -102,6 +102,25 @@ export default function LabProfile() {
     enabled: !!user?.id,
   });
 
+  // Check if user can review (has completed order with this lab)
+  const { data: canReview } = useQuery({
+    queryKey: ["can-review-lab", labId, user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("doctor_id", user.id)
+        .eq("assigned_lab_id", labId)
+        .eq("status", "Delivered")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return !!data;
+    },
+    enabled: !!user?.id,
+  });
+
   // Toggle bookmark mutation
   const toggleBookmark = useMutation({
     mutationFn: async () => {
@@ -368,35 +387,48 @@ export default function LabProfile() {
           {user && (
             <div className="border rounded-lg p-4 space-y-4">
               <h3 className="font-medium">Write a Review</h3>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className="focus:outline-none"
+              {canReview ? (
+                <>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        className="focus:outline-none"
+                      >
+                        <Star
+                          className={`h-6 w-6 ${
+                            star <= rating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <Textarea
+                    placeholder="Share your experience with this lab..."
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    rows={4}
+                  />
+                  <Button
+                    onClick={() => submitReview.mutate()}
+                    disabled={submitReview.isPending || !reviewText.trim()}
                   >
-                    <Star
-                      className={`h-6 w-6 ${
-                        star <= rating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-              <Textarea
-                placeholder="Share your experience with this lab..."
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-                rows={4}
-              />
-              <Button
-                onClick={() => submitReview.mutate()}
-                disabled={submitReview.isPending || !reviewText.trim()}
-              >
-                Submit Review
-              </Button>
+                    Submit Review
+                  </Button>
+                </>
+              ) : (
+                <div className="text-center py-6 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    You can only write a review after completing an order with this lab.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Place an order and wait for it to be delivered to unlock reviews.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
