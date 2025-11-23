@@ -47,6 +47,7 @@ interface ShipmentDetailsDialogProps {
     id: string;
     order_number: string;
     patient_name: string;
+    status?: string;
     desired_delivery_date?: string | null;
     proposed_delivery_date?: string | null;
     delivery_date_comment?: string | null;
@@ -67,7 +68,7 @@ export function ShipmentDetailsDialog({
 }: ShipmentDetailsDialogProps) {
   const [loading, setLoading] = useState(false);
   const isLabStaff = userRole === "lab_staff";
-  const canEdit = isLabStaff;
+  const canEdit = isLabStaff && (!order.status || order.status === "Ready for Delivery" || order.status === "In Progress");
 
   const form = useForm<ShipmentFormValues>({
     resolver: zodResolver(shipmentSchema),
@@ -166,11 +167,11 @@ export function ShipmentDetailsDialog({
           <DialogDescription>
             {canEdit 
               ? `Manage delivery dates, carrier information, and tracking for ${order.patient_name}`
-              : `View shipment details and communicate about ${order.patient_name}'s order`}
+              : `View shipment information and communicate about ${order.patient_name}'s order`}
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue={canEdit ? "details" : "notes"} className="w-full">
+        <Tabs defaultValue="details" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="details">Shipment Details</TabsTrigger>
             <TabsTrigger value="notes">Notes & Communication</TabsTrigger>
@@ -319,7 +320,7 @@ export function ShipmentDetailsDialog({
                   </p>
                 </div>
 
-                {canEdit && (
+                {canEdit ? (
                   <div className="flex gap-3 justify-end">
                     <Button
                       type="button"
@@ -332,6 +333,12 @@ export function ShipmentDetailsDialog({
                     <Button type="submit" disabled={loading}>
                       {loading ? "Saving..." : "Save Shipment Details"}
                     </Button>
+                  </div>
+                ) : (
+                  <div className="bg-secondary/50 p-4 rounded-lg border">
+                    <p className="text-sm text-muted-foreground">
+                      ℹ️ Shipment details are managed by the lab. Use the "Notes & Communication" tab to discuss any changes.
+                    </p>
                   </div>
                 )}
               </form>
