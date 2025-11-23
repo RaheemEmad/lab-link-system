@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 // Lazy load admin components
 const AdminDashboardTab = lazy(() => import("@/components/admin/AdminDashboardTab"));
@@ -89,10 +91,19 @@ const Admin = () => {
         <AdminSidebar />
         
         <div className="flex-1 flex flex-col">
-          {/* Header with trigger */}
+          {/* Header with trigger and back button */}
           <header className="sticky top-0 z-10 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-full items-center gap-4 px-6">
               <SidebarTrigger />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(-1)}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
               <div className="flex-1">
                 <h1 className="text-xl font-semibold">Admin Panel</h1>
               </div>
