@@ -192,7 +192,7 @@ const LogisticsDashboard = () => {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
               </Button>
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex flex-col items-center gap-2">
                 <h1 className="text-3xl font-bold">Logistics Dashboard</h1>
                 <Badge variant="outline" className="text-sm">
                   <TrendingUp className="h-3 w-3 mr-1" />
