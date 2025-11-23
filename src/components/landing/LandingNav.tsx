@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
@@ -289,20 +289,57 @@ const LandingNav = () => {
             </div>
             
             {/* Desktop Right Section (Auth & User Actions) */}
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2">
               {user ? (
                 <>
-                  {/* Notifications */}
+                  {/* Achievements Icon - Doctor */}
+                  {userRole === 'doctor' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate("/doctor-achievements")}
+                          className="relative"
+                        >
+                          <Trophy className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View your achievements</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
+                  {/* Achievements Icon - Lab Staff */}
+                  {userRole === 'lab_staff' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate("/lab-achievements")}
+                          className="relative"
+                        >
+                          <Trophy className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View your lab achievements</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
+                  {/* Notifications Icon */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => navigate("/notifications")}
-                        className="relative gap-2"
+                        className="relative"
                       >
-                        <Bell className="h-4 w-4" />
-                        <span className="hidden xl:inline">Notifications</span>
+                        <Bell className="h-5 w-5" />
                         {unreadCount > 0 && (
                           <Badge
                             variant={hasUrgent ? "destructive" : "default"}
@@ -318,25 +355,42 @@ const LandingNav = () => {
                     <TooltipContent>
                       <p>
                         {unreadCount > 0
-                          ? `${hasUrgent ? "🔴 " : ""}View ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}${hasUrgent ? " (urgent)" : ""}` 
+                          ? `${hasUrgent ? "🔴 " : ""}${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}${hasUrgent ? " (urgent)" : ""}` 
                           : 'View all notifications'}
                       </p>
                     </TooltipContent>
                   </Tooltip>
 
-                  {/* Role-specific dropdown menu */}
+                  {/* Role-specific dropdown menu with innovative icon */}
                   {(doctorMenuItems.length > 0 || labStaffMenuItems.length > 0) && (
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Menu className="h-4 w-4" />
-                          <span className="ml-2 hidden xl:inline">My Tools</span>
-                        </Button>
-                      </DropdownMenuTrigger>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              {userRole === 'lab_staff' || userRole === 'admin' ? (
+                                <Sparkles className="h-5 w-5" />
+                              ) : (
+                                <Menu className="h-5 w-5" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{userRole === 'lab_staff' || userRole === 'admin' ? 'Lab Tools' : 'My Tools'}</p>
+                        </TooltipContent>
+                      </Tooltip>
                       <DropdownMenuContent align="end">
                         {doctorMenuItems.map((item) => (
                           <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href}>{item.label}</Link>
+                            <Link to={item.href} className="flex items-center justify-between w-full">
+                              <span>{item.label}</span>
+                              {item.badge && (
+                                <Badge variant="default" className="ml-2">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </Link>
                           </DropdownMenuItem>
                         ))}
                         {labStaffMenuItems.map((item) => (

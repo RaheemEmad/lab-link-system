@@ -248,64 +248,23 @@ const Dashboard = () => {
                   </Tooltip>
                 )}
 
-                {userRole === "lab_staff" && (
+                {userRole === "doctor" && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => navigate("/lab-achievements")} 
+                        onClick={() => navigate("/new-order")} 
                         className="flex-1 sm:flex-none"
+                        data-tour="new-order-btn"
                       >
-                        <Trophy className="h-4 w-4" />
-                        <span className="ml-2">Achievements</span>
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Order
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>View your lab achievements and performance</p>
+                      <p>Create a new dental lab order</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
-
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate("/notifications")} 
-                      className="relative flex-1 sm:flex-none"
-                      data-tour="notifications-btn"
-                    >
-                      <Bell className="h-4 w-4" />
-                      <span className="ml-2">Notifications</span>
-                      {unreadCount > 0 && <Badge variant={hasUrgent ? "destructive" : "default"} className={`absolute -top-1 -right-1 h-5 min-w-5 rounded-full flex items-center justify-center text-xs px-1.5 ${hasUrgent ? "animate-pulse" : ""}`}>
-                          {unreadCount > 99 ? "99+" : unreadCount}
-                        </Badge>}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {unreadCount > 0 ? `${hasUrgent ? "🔴 " : ""}You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}${hasUrgent ? " (urgent)" : ""}` : 'View notification history'}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      onClick={() => navigate("/new-order")} 
-                      className="flex-1 sm:flex-none"
-                      data-tour="new-order-btn"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      New Order
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Create a new dental lab order</p>
-                  </TooltipContent>
-                </Tooltip>
               </div>
             </div>
             
