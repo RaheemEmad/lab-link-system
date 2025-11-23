@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight, XCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
@@ -149,6 +149,36 @@ export default function OrdersMarketplace() {
       toast({
         title: "Request sent",
         description: "Your request to work on this order has been sent to the doctor.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Cancel request mutation
+  const cancelRequest = useMutation({
+    mutationFn: async (orderId: string) => {
+      if (!labId) throw new Error("Not authenticated");
+      
+      const { error } = await supabase
+        .from("lab_work_requests")
+        .delete()
+        .eq("order_id", orderId)
+        .eq("lab_id", labId)
+        .eq("status", "pending");
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lab-requests", labId] });
+      toast({
+        title: "Request canceled",
+        description: "Your application has been withdrawn.",
       });
     },
     onError: (error: any) => {
@@ -334,12 +364,23 @@ export default function OrdersMarketplace() {
                           </div>
 
                           {requestStatus ? (
-                            <div className="pt-2">
+                            <div className="pt-2 space-y-2">
                               {requestStatus.status === 'pending' ? (
-                                <Badge variant="outline" className="w-full justify-center py-2">
-                                  <Send className="h-4 w-4 mr-2" />
-                                  Request Sent
-                                </Badge>
+                                <>
+                                  <Badge variant="outline" className="w-full justify-center py-2">
+                                    <Send className="h-4 w-4 mr-2" />
+                                    Request Sent
+                                  </Badge>
+                                  <Button
+                                    onClick={() => cancelRequest.mutate(order.id)}
+                                    disabled={cancelRequest.isPending}
+                                    variant="outline"
+                                    className="w-full"
+                                  >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Cancel Application
+                                  </Button>
+                                </>
                               ) : requestStatus.status === 'accepted' ? (
                                 <Badge variant="default" className="w-full justify-center py-2">
                                   <CheckCircle className="h-4 w-4 mr-2" />
