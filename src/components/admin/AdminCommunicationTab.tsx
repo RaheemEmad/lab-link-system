@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { MessageSquare, ThumbsUp, Search } from "lucide-react";
@@ -85,6 +86,13 @@ const AdminCommunicationTab = () => {
     note.author_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const exportNotes = async () => {
+    const { exportToCSV, prepareNotesForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareNotesForExport(filteredNotes);
+    exportToCSV(exportData, `communication-export-${new Date().toISOString().split("T")[0]}`);
+    toast.success("Communication logs exported successfully");
+  };
+
   if (loading) {
     return (
       <Card>
@@ -106,8 +114,8 @@ const AdminCommunicationTab = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <div className="relative">
+        <div className="flex gap-4 mb-4">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by order #, author, or note content..."
@@ -116,6 +124,9 @@ const AdminCommunicationTab = () => {
               className="pl-10"
             />
           </div>
+          <Button onClick={exportNotes} variant="outline">
+            Export CSV
+          </Button>
         </div>
 
         <div className="overflow-x-auto">

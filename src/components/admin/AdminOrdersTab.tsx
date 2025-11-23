@@ -27,6 +27,8 @@ const AdminOrdersTab = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,6 +83,54 @@ const AdminOrdersTab = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrders((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrders.size === filteredOrders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(filteredOrders.map((o) => o.id)));
+    }
+  };
+
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    if (selectedOrders.size === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: newStatus as any })
+        .in("id", Array.from(selectedOrders));
+
+      if (error) throw error;
+
+      toast.success(`Updated ${selectedOrders.size} order(s) to ${newStatus}`);
+      setSelectedOrders(new Set());
+      setBulkAction("");
+      fetchOrders();
+    } catch (error: any) {
+      console.error("Bulk update error:", error);
+      toast.error(error.message || "Bulk update failed");
+    }
+  };
+
+  const exportOrders = async () => {
+    const { exportToCSV, prepareOrdersForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareOrdersForExport(filteredOrders);
+    exportToCSV(exportData, `orders-export-${new Date().toISOString().split("T")[0]}`);
+    toast.success("Orders exported successfully");
+  };
+
   if (loading) {
     return (
       <Card>
@@ -102,8 +152,8 @@ const AdminOrdersTab = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-4 mb-4">
-          <div className="relative flex-1">
+        <div className="flex gap-4 mb-4 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by order #, doctor, patient, or type..."
@@ -124,12 +174,43 @@ const AdminOrdersTab = () => {
             <option value="Ready for Delivery">Ready for Delivery</option>
             <option value="Delivered">Delivered</option>
           </select>
+          <Button onClick={exportOrders} variant="outline">
+            Export CSV
+          </Button>
         </div>
+
+        {selectedOrders.size > 0 && (
+          <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-md flex-wrap">
+            <span className="text-sm font-medium">{selectedOrders.size} selected</span>
+            <select
+              value={bulkAction}
+              onChange={(e) => {
+                setBulkAction(e.target.value);
+                if (e.target.value) handleBulkStatusUpdate(e.target.value);
+              }}
+              className="px-3 py-1 border border-input rounded-md bg-background text-sm"
+            >
+              <option value="">Update Status...</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Ready for QC">Ready for QC</option>
+              <option value="Ready for Delivery">Ready for Delivery</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+          </div>
+        )}
 
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <input
+                    type="checkbox"
+                    checked={selectedOrders.size === filteredOrders.length && filteredOrders.length > 0}
+                    onChange={toggleSelectAll}
+                    className="rounded border-gray-300"
+                  />
+                </TableHead>
                 <TableHead>Order #</TableHead>
                 <TableHead>Doctor</TableHead>
                 <TableHead>Patient</TableHead>
@@ -145,6 +226,14 @@ const AdminOrdersTab = () => {
             <TableBody>
               {filteredOrders.map((order) => (
                 <TableRow key={order.id}>
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      checked={selectedOrders.has(order.id)}
+                      onChange={() => toggleOrderSelection(order.id)}
+                      className="rounded border-gray-300"
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">
                     {order.order_number}
                   </TableCell>

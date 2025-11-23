@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
 interface AuditLog {
@@ -56,6 +57,13 @@ const AdminActivityTab = () => {
     return <Badge variant="secondary">{action}</Badge>;
   };
 
+  const exportLogs = async () => {
+    const { exportToCSV, prepareActivityLogsForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareActivityLogsForExport(logs);
+    exportToCSV(exportData, `activity-logs-${new Date().toISOString().split("T")[0]}`);
+    toast.success("Activity logs exported successfully");
+  };
+
   if (loading) {
     return (
       <Card>
@@ -70,11 +78,16 @@ const AdminActivityTab = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>System Activity Log</CardTitle>
-        <CardDescription>
-          Monitor all system actions and changes ({logs.length} recent entries)
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>System Activity Log</CardTitle>
+          <CardDescription>
+            Monitor all system actions and changes ({logs.length} recent entries)
+          </CardDescription>
+        </div>
+        <Button onClick={exportLogs} variant="outline">
+          Export CSV
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
