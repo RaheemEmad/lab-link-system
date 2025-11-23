@@ -13,7 +13,6 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ShipmentDetailsDialog } from "@/components/order/ShipmentDetailsDialog";
 import { toast } from "sonner";
-
 interface LabCapacity {
   id: string;
   name: string;
@@ -21,7 +20,6 @@ interface LabCapacity {
   max_capacity: number;
   performance_score: number | null;
 }
-
 interface OrderShipment {
   id: string;
   order_number: string;
@@ -41,50 +39,39 @@ interface OrderShipment {
     name: string;
   } | null;
 }
-
 const LogisticsDashboard = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [labCapacity, setLabCapacity] = useState<LabCapacity[]>([]);
   const [shipments, setShipments] = useState<OrderShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
-
   useEffect(() => {
     const checkRole = async () => {
       if (!user) return;
-
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-
+      const {
+        data
+      } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
       if (data?.role !== "admin" && data?.role !== "lab_staff" && data?.role !== "doctor") {
         toast.error("Access denied");
         navigate("/dashboard");
         return;
       }
-
       setUserRole(data.role);
     };
-
     checkRole();
   }, [user, navigate]);
-
   useEffect(() => {
     const fetchData = async () => {
       if (!user || !userRole) return;
-
       try {
         setLoading(true);
 
         // Fetch shipment data (orders with tracking or handling instructions)
-        let shipmentQuery = supabase
-          .from("orders")
-          .select(
-            `
+        let shipmentQuery = supabase.from("orders").select(`
             id,
             order_number,
             patient_name,
@@ -100,30 +87,26 @@ const LogisticsDashboard = () => {
             carrier_name,
             carrier_phone,
             assigned_lab:labs(name)
-          `
-          )
-          .not("assigned_lab_id", "is", null)
-          .order("expected_delivery_date", { ascending: true });
+          `).not("assigned_lab_id", "is", null).order("expected_delivery_date", {
+          ascending: true
+        });
 
         // Filter based on user role
         if (userRole === "lab_staff") {
-          const { data: roleData } = await supabase
-            .from("user_roles")
-            .select("lab_id")
-            .eq("user_id", user.id)
-            .single();
-
+          const {
+            data: roleData
+          } = await supabase.from("user_roles").select("lab_id").eq("user_id", user.id).single();
           if (roleData?.lab_id) {
             shipmentQuery = shipmentQuery.eq("assigned_lab_id", roleData.lab_id);
           }
         } else if (userRole === "doctor") {
           shipmentQuery = shipmentQuery.eq("doctor_id", user.id);
         }
-
-        const { data: orders, error: orderError } = await shipmentQuery;
-
+        const {
+          data: orders,
+          error: orderError
+        } = await shipmentQuery;
         if (orderError) throw orderError;
-
         setShipments(orders || []);
       } catch (error) {
         console.error("Error fetching logistics data:", error);
@@ -132,30 +115,20 @@ const LogisticsDashboard = () => {
         setLoading(false);
       }
     };
-
     fetchData();
 
     // Set up realtime subscription
-    const channel = supabase
-      .channel("logistics-updates")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "orders",
-        },
-        () => {
-          fetchData();
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel("logistics-updates").on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table: "orders"
+    }, () => {
+      fetchData();
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user, userRole]);
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Delivered":
@@ -168,24 +141,30 @@ const LogisticsDashboard = () => {
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
   };
-
   const getCapacityStatus = (current: number, max: number) => {
-    const percentage = (current / max) * 100;
-    if (percentage >= 90) return { color: "destructive", label: "Critical" };
-    if (percentage >= 70) return { color: "warning", label: "High" };
-    if (percentage >= 50) return { color: "default", label: "Moderate" };
-    return { color: "secondary", label: "Low" };
+    const percentage = current / max * 100;
+    if (percentage >= 90) return {
+      color: "destructive",
+      label: "Critical"
+    };
+    if (percentage >= 70) return {
+      color: "warning",
+      label: "High"
+    };
+    if (percentage >= 50) return {
+      color: "default",
+      label: "Moderate"
+    };
+    return {
+      color: "secondary",
+      label: "Low"
+    };
   };
-
-  const urgentShipments = shipments.filter((s) => s.urgency === "Urgent").length;
-  const pendingDeliveries = shipments.filter(
-    (s) => s.status === "Ready for Delivery" && !s.actual_delivery_date
-  ).length;
+  const urgentShipments = shipments.filter(s => s.urgency === "Urgent").length;
+  const pendingDeliveries = shipments.filter(s => s.status === "Ready for Delivery" && !s.actual_delivery_date).length;
   const totalShipments = shipments.length;
-
   if (loading) {
-    return (
-      <ProtectedRoute>
+    return <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
           <LandingNav />
           <div className="flex-1 bg-secondary/30 py-12">
@@ -201,28 +180,20 @@ const LogisticsDashboard = () => {
           </div>
           <LandingFooter />
         </div>
-      </ProtectedRoute>
-    );
+      </ProtectedRoute>;
   }
-
-  return (
-    <ProtectedRoute>
+  return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
         <div className="flex-1 bg-secondary/30 py-12">
           <div className="container px-4">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/dashboard")}
-                  className="gap-2"
-                >
+                <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-2">
                   <ArrowLeft className="h-4 w-4" />
                   Back to Dashboard
                 </Button>
-                <h1 className="text-3xl font-bold">Logistics Dashboard</h1>
+                <h1 className="text-3xl font-bold text-center">Logistics Dashboard</h1>
               </div>
               <Badge variant="outline" className="text-sm">
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -282,18 +253,11 @@ const LogisticsDashboard = () => {
                 <CardDescription>Track deliveries and handling requirements</CardDescription>
               </CardHeader>
               <CardContent>
-                {shipments.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
+                {shipments.length === 0 ? <div className="text-center py-12 text-muted-foreground">
                     <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No active shipments</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {shipments.map((shipment) => (
-                      <div
-                        key={shipment.id}
-                        className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
-                      >
+                  </div> : <div className="space-y-4">
+                    {shipments.map(shipment => <div key={shipment.id} className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
                         <div className="flex items-start justify-between mb-2">
                           <div>
                             <div className="font-semibold">{shipment.order_number}</div>
@@ -305,27 +269,20 @@ const LogisticsDashboard = () => {
                             <Badge className={getStatusColor(shipment.status)}>
                               {shipment.status}
                             </Badge>
-                            {shipment.urgency === "Urgent" && (
-                              <Badge variant="destructive">Urgent</Badge>
-                            )}
+                            {shipment.urgency === "Urgent" && <Badge variant="destructive">Urgent</Badge>}
                           </div>
                         </div>
 
-                        {shipment.assigned_lab && (
-                          <div className="text-sm text-muted-foreground mb-2">
+                        {shipment.assigned_lab && <div className="text-sm text-muted-foreground mb-2">
                             Lab: {shipment.assigned_lab.name}
-                          </div>
-                        )}
+                          </div>}
 
-                        {shipment.shipment_tracking && (
-                          <div className="flex items-center gap-2 text-sm mb-2">
+                        {shipment.shipment_tracking && <div className="flex items-center gap-2 text-sm mb-2">
                             <Truck className="h-4 w-4" />
                             <span className="font-mono">{shipment.shipment_tracking}</span>
-                          </div>
-                        )}
+                          </div>}
 
-                        {shipment.handling_instructions && (
-                          <div className="flex items-start gap-2 text-sm bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
+                        {shipment.handling_instructions && <div className="flex items-start gap-2 text-sm bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
                             <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500 mt-0.5" />
                             <div>
                               <div className="font-medium text-yellow-700 dark:text-yellow-400">
@@ -335,63 +292,45 @@ const LogisticsDashboard = () => {
                                 {shipment.handling_instructions}
                               </div>
                             </div>
-                          </div>
-                        )}
+                          </div>}
 
                         {/* Delivery Dates */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                          {shipment.desired_delivery_date && (
-                            <div className="text-sm">
+                          {shipment.desired_delivery_date && <div className="text-sm">
                               <span className="text-muted-foreground">Desired: </span>
                               <span className="font-medium">
                                 {new Date(shipment.desired_delivery_date).toLocaleDateString()}
                               </span>
-                            </div>
-                          )}
-                          {shipment.proposed_delivery_date && (
-                            <div className="text-sm">
+                            </div>}
+                          {shipment.proposed_delivery_date && <div className="text-sm">
                               <span className="text-muted-foreground">Proposed: </span>
                               <span className="font-medium text-blue-600 dark:text-blue-400">
                                 {new Date(shipment.proposed_delivery_date).toLocaleDateString()}
                               </span>
-                            </div>
-                          )}
+                            </div>}
                         </div>
 
                         {/* Carrier Information */}
-                        {shipment.carrier_name && (
-                          <div className="flex items-center gap-4 text-sm mt-3 bg-blue-500/10 p-2 rounded">
+                        {shipment.carrier_name && <div className="flex items-center gap-4 text-sm mt-3 bg-blue-500/10 p-2 rounded">
                             <div>
                               <span className="text-muted-foreground">Carrier: </span>
                               <span className="font-medium">{shipment.carrier_name}</span>
                             </div>
-                            {shipment.carrier_phone && (
-                              <div>
+                            {shipment.carrier_phone && <div>
                                 <span className="text-muted-foreground">Phone: </span>
                                 <span className="font-medium">{shipment.carrier_phone}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                              </div>}
+                          </div>}
 
                         {/* Edit/View Button */}
                         <div className="mt-3">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedShipment(shipment)}
-                            className="w-full"
-                          >
+                          <Button size="sm" variant="outline" onClick={() => setSelectedShipment(shipment)} className="w-full">
                             <Edit className="h-4 w-4 mr-2" />
-                            {userRole === "lab_staff" && shipment.status === "Ready for Delivery" 
-                              ? "Edit Shipment Details" 
-                              : "View Shipment Details & Notes"}
+                            {userRole === "lab_staff" && shipment.status === "Ready for Delivery" ? "Edit Shipment Details" : "View Shipment Details & Notes"}
                           </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
               </CardContent>
             </Card>
           </div>
@@ -400,20 +339,10 @@ const LogisticsDashboard = () => {
       </div>
 
       {/* Shipment Details Dialog */}
-      {selectedShipment && (
-        <ShipmentDetailsDialog
-          open={!!selectedShipment}
-          onOpenChange={(open) => !open && setSelectedShipment(null)}
-          order={selectedShipment}
-          onUpdate={() => {
-            setSelectedShipment(null);
-            window.location.reload();
-          }}
-          userRole={userRole}
-        />
-      )}
-    </ProtectedRoute>
-  );
+      {selectedShipment && <ShipmentDetailsDialog open={!!selectedShipment} onOpenChange={open => !open && setSelectedShipment(null)} order={selectedShipment} onUpdate={() => {
+      setSelectedShipment(null);
+      window.location.reload();
+    }} userRole={userRole} />}
+    </ProtectedRoute>;
 };
-
 export default LogisticsDashboard;
