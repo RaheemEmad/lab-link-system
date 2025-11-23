@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
@@ -48,7 +48,7 @@ const LandingNav = () => {
   const previousUrgentCountRef = useRef<number>(0);
   const previousTotalCountRef = useRef<number>(0);
 
-  // Fetch unread notification count and check for urgent notifications
+  // Fetch unread notification count and check for urgent notifications - OPTIMIZED
   const { data: notificationData } = useQuery({
     queryKey: ["unread-notifications", user?.id],
     queryFn: async () => {
@@ -62,7 +62,6 @@ const LandingNav = () => {
 
       if (error) throw error;
       
-      // Check if any notification is of urgent type (status_change or urgent types)
       const hasUrgent = data?.some(n => 
         n.type === "status_change" || n.type === "urgent"
       ) || false;
@@ -70,7 +69,8 @@ const LandingNav = () => {
       return { count: data?.length || 0, hasUrgent };
     },
     enabled: !!user?.id,
-    refetchInterval: 30000,
+    staleTime: 1000 * 60, // 1 minute
+    refetchInterval: 60000, // 1 minute instead of 30 seconds
   });
 
   const unreadCount = notificationData?.count || 0;
@@ -79,7 +79,6 @@ const LandingNav = () => {
   // Request notification permission on mount if user is logged in
   useEffect(() => {
     if (user && isSupported && !isGranted) {
-      // Delay the request slightly to avoid disrupting the user experience
       const timer = setTimeout(() => {
         requestPermission();
       }, 2000);
@@ -95,10 +94,8 @@ const LandingNav = () => {
     if (isNewUrgent) {
       playUrgentNotification();
       showUrgentNotification(unreadCount);
-      console.log('🔔 Urgent notification: sound + desktop notification');
     } else if (isNewNotification) {
       showNormalNotification(unreadCount);
-      console.log('📬 Normal notification: desktop notification');
     }
 
     previousUrgentCountRef.current = unreadCount;
@@ -138,7 +135,7 @@ const LandingNav = () => {
     fetchUserRole();
   }, [user]);
 
-  // Fetch count of new unassigned orders for today (for marketplace badge)
+  // Fetch count of new unassigned orders - OPTIMIZED
   const { data: newOrdersCount } = useQuery({
     queryKey: ["new-marketplace-orders-count", labId],
     queryFn: async () => {
@@ -156,7 +153,6 @@ const LandingNav = () => {
       
       if (error) return 0;
 
-      // Filter out orders where this lab has been refused
       const { data: refusedRequests } = await supabase
         .from("lab_work_requests")
         .select("order_id")
@@ -169,10 +165,11 @@ const LandingNav = () => {
       return filteredOrders.length;
     },
     enabled: !!labId && userRole === 'lab_staff',
-    refetchInterval: 60000,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    refetchInterval: 120000, // 2 minutes instead of 1 minute
   });
 
-  // Fetch pending lab applications count for doctors
+  // Fetch pending lab applications count - OPTIMIZED
   const { data: pendingRequestsCount = 0 } = useQuery({
     queryKey: ["pending-lab-requests", user?.id],
     queryFn: async () => {
@@ -188,7 +185,8 @@ const LandingNav = () => {
       return data?.length || 0;
     },
     enabled: !!user?.id && userRole === 'doctor',
-    refetchInterval: 30000,
+    staleTime: 1000 * 60, // 1 minute
+    refetchInterval: 60000, // 1 minute instead of 30 seconds
   });
 
   // Left navigation links - role-based and cleaner
@@ -217,21 +215,17 @@ const LandingNav = () => {
 
   const handleNavClick = (link: { href: string; type?: string }) => {
     if (link.type === "anchor") {
-      // Smooth scroll for anchor links
       const element = document.querySelector(link.href);
       if (element) {
         element.scrollIntoView({ behavior: "smooth" });
       }
     } else {
-      // Navigate to route
       navigate(link.href);
-      // Smooth scroll to top when navigating
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
     setIsOpen(false);
   };
 
-  // Check if a link is active
   const isLinkActive = (link: { href: string; type?: string }) => {
     if (link.type === "anchor") return false;
     return location.pathname === link.href;
@@ -769,4 +763,4 @@ const LandingNav = () => {
   );
 };
 
-export default LandingNav;
+export default memo(LandingNav);
