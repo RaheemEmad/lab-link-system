@@ -1,11 +1,37 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import OrderForm from "@/components/OrderForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const NewOrder = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const checkRole = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data?.role !== 'doctor') {
+        toast.error("Access denied", {
+          description: "Only doctors can create orders"
+        });
+        navigate('/dashboard');
+      }
+    };
+    
+    checkRole();
+  }, [user, navigate]);
 
   return (
     <ProtectedRoute>

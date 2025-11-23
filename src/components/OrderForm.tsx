@@ -570,12 +570,6 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                         urgency={form.watch("urgency")}
                         userId={user?.id || ""}
                       />
-                      <FormDescription className="text-xs">
-                        💡 <strong>Auto-Assign (Recommended):</strong> Leave blank to publish this order to the marketplace. 
-                        Labs will apply with their profiles, and you'll approve the best match. 
-                        <br/>
-                        <strong>Direct Assignment:</strong> Select a specific lab to send the order directly.
-                      </FormDescription>
                     </div>
                     <FormMessage />
                   </FormItem>

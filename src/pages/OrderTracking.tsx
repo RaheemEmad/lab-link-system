@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { OrderNotes } from "@/components/order/OrderNotes";
+import { OrderHistoryTimeline } from "@/components/order/OrderHistoryTimeline";
 import { useNavigate } from "react-router-dom";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -26,7 +27,8 @@ import {
   MessageSquare,
   FileText,
   Mail,
-  Phone
+  Phone,
+  History
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,6 +36,7 @@ interface Order {
   id: string;
   order_number: string;
   patient_name: string;
+  doctor_name: string;
   restoration_type: string;
   status: string;
   urgency: string;
@@ -58,6 +61,7 @@ const OrderTracking = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -65,48 +69,68 @@ const OrderTracking = () => {
       return;
     }
 
-    fetchOrders();
-
-    // Set up realtime subscription for order updates
-    const channel = supabase
-      .channel('order-tracking-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `doctor_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Order update received:', payload);
-          fetchOrders(); // Refetch all orders on any change
-          
-          if (payload.eventType === 'UPDATE') {
-            toast.success("Order Updated", {
-              description: `Order ${(payload.new as any).order_number} has been updated`
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    fetchUserRole();
   }, [user, navigate]);
 
-  const fetchOrders = async () => {
+  useEffect(() => {
+    if (userRole) {
+      fetchOrders();
+
+      // Set up realtime subscription for order updates
+      const channel = supabase
+        .channel('order-tracking-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+          },
+          (payload) => {
+            console.log('Order update received:', payload);
+            fetchOrders(); // Refetch all orders on any change
+            
+            if (payload.eventType === 'UPDATE') {
+              toast.success("Order Updated", {
+                description: `Order ${(payload.new as any).order_number} has been updated`
+              });
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [userRole, user]);
+
+  const fetchUserRole = async () => {
     if (!user) return;
+    
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (data) {
+      setUserRole(data.role);
+    }
+  };
+
+  const fetchOrders = async () => {
+    if (!user || !userRole) return;
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('orders')
         .select(`
           id,
           order_number,
           patient_name,
+          doctor_name,
           restoration_type,
           status,
           urgency,
@@ -124,9 +148,29 @@ const OrderTracking = () => {
             contact_phone,
             description
           )
-        `)
-        .eq('doctor_id', user.id)
-        .order('created_at', { ascending: false });
+        `);
+
+      // Filter based on user role
+      if (userRole === 'doctor') {
+        query = query.eq('doctor_id', user.id);
+      } else if (userRole === 'lab_staff') {
+        // For lab staff, get orders they're assigned to
+        const { data: assignments } = await supabase
+          .from('order_assignments')
+          .select('order_id')
+          .eq('user_id', user.id);
+        
+        if (assignments && assignments.length > 0) {
+          const orderIds = assignments.map(a => a.order_id);
+          query = query.in('id', orderIds);
+        } else {
+          setOrders([]);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setOrders(data || []);
@@ -212,6 +256,134 @@ const OrderTracking = () => {
     );
   }
 
+  // Lab staff view - different UI
+  if (userRole === 'lab_staff') {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <div className="flex-1 bg-secondary/30 py-8">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="mb-6">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/dashboard')}
+                className="mb-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <h1 className="text-3xl font-bold mb-2">My Assigned Orders</h1>
+              <p className="text-muted-foreground">
+                Track status and history of orders assigned to you
+              </p>
+            </div>
+
+            {orders.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No Assigned Orders</h3>
+                  <p className="text-muted-foreground mb-4">
+                    You haven't been assigned to any orders yet.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {orders.map((order) => (
+                  <Card key={order.id} className="overflow-hidden">
+                    <div className="grid md:grid-cols-[1fr,2fr] gap-0">
+                      {/* Left side - Status info */}
+                      <div className="bg-muted/30 p-6 border-r">
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              {getStatusIcon(order.status)}
+                              <h3 className="font-bold text-lg">{order.order_number}</h3>
+                            </div>
+                            <Badge variant={getStatusColor(order.status)} className="mb-2">
+                              {order.status}
+                            </Badge>
+                            {order.urgency === 'Urgent' && (
+                              <Badge variant="destructive" className="ml-2">Urgent</Badge>
+                            )}
+                          </div>
+
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <p className="text-muted-foreground">Patient</p>
+                              <p className="font-medium">{order.patient_name}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Doctor</p>
+                              <p className="font-medium">{order.doctor_name}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Type</p>
+                              <p className="font-medium">{order.restoration_type}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Expected Delivery</p>
+                              <p className="font-medium">{formatDate(order.expected_delivery_date)}</p>
+                              {(() => {
+                                const daysUntil = calculateDaysUntil(order.expected_delivery_date);
+                                return daysUntil !== null && order.status !== 'Delivered' && (
+                                  <p className={`text-xs ${
+                                    daysUntil <= 2 ? 'text-destructive font-medium' : 'text-muted-foreground'
+                                  }`}>
+                                    {daysUntil > 0 
+                                      ? `${daysUntil} day${daysUntil !== 1 ? 's' : ''} remaining`
+                                      : daysUntil === 0
+                                      ? 'Due today'
+                                      : `${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? 's' : ''} overdue`
+                                    }
+                                  </p>
+                                );
+                              })()}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="flex-1">
+                                  <MessageSquare className="h-4 w-4 mr-2" />
+                                  Notes
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle>Order Notes - {order.order_number}</DialogTitle>
+                                </DialogHeader>
+                                <OrderNotes orderId={order.id} />
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right side - History timeline */}
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <History className="h-5 w-5 text-primary" />
+                          <h4 className="font-semibold">Order History</h4>
+                        </div>
+                        <OrderHistoryTimeline orderId={order.id} orderNumber={order.order_number} />
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <LandingFooter />
+        <ScrollToTop />
+      </div>
+    );
+  }
+
+  // Doctor view - original card layout
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNav />
