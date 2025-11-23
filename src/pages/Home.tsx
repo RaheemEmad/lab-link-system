@@ -3,6 +3,7 @@ import LandingHero from "@/components/landing/LandingHero";
 import ProblemSection from "@/components/landing/ProblemSection";
 import FeatureSnapshot from "@/components/landing/FeatureSnapshot";
 import RoleShowcase from "@/components/landing/RoleShowcase";
+import LiveDemoSection from "@/components/landing/LiveDemoSection";
 import HowItWorks from "@/components/landing/HowItWorks";
 import DualView from "@/components/landing/DualView";
 import ProofSection from "@/components/landing/ProofSection";
@@ -19,6 +20,7 @@ const Home = () => {
       <ProblemSection />
       <FeatureSnapshot />
       <RoleShowcase />
+      <LiveDemoSection />
       <HowItWorks />
       <DualView />
       <ProofSection />
