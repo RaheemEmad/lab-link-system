@@ -62,7 +62,7 @@ const Dashboard = () => {
   const unreadCount = notificationData?.count || 0;
   const hasUrgent = notificationData?.hasUrgent || false;
 
-  // Fetch user role and check if should show tour
+  // Fetch user role (tour is now manual-only via "Start Tour" button)
   useEffect(() => {
     const fetchUserRole = async () => {
       if (!user?.id) return;
@@ -75,13 +75,6 @@ const Dashboard = () => {
 
       if (data?.role) {
         setUserRole(data.role);
-        
-        // Auto-start tour for first-time users
-        const tourKey = `dashboard_tour_seen_${user.id}`;
-        const hasSeenTour = localStorage.getItem(tourKey);
-        if (!hasSeenTour) {
-          setTimeout(() => setRunTour(true), 1500);
-        }
       }
     };
 
