@@ -76,28 +76,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // Use secure login edge function with account lockout protection
+      const { data, error } = await supabase.functions.invoke('secure-login', {
+        body: { email, password }
+      });
 
-    if (error) {
-      // Enhanced error messages
-      let errorMessage = error.message;
-      if (error.message.includes("Invalid login credentials")) {
-        errorMessage = "Invalid email or password";
-      } else if (error.message.includes("Email not confirmed")) {
-        errorMessage = "Please confirm your email address";
-      } else if (error.message.includes("Too many requests")) {
-        errorMessage = "Too many login attempts. Please try again later.";
+      if (error || data?.error) {
+        const errorMessage = data?.error || error?.message || 'Login failed';
+        toast.error(errorMessage);
+        return { error: error || new Error(errorMessage) };
       }
-      toast.error(errorMessage);
+
+      // Set the session from the edge function response
+      if (data?.session) {
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        });
+        
+        toast.success("Signed in successfully!");
+        navigate("/");
+        return { error: null };
+      }
+
+      toast.error("An unexpected error occurred");
+      return { error: new Error("No session returned") };
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast.error(error.message || "An unexpected error occurred");
       return { error };
     }
-
-    toast.success("Signed in successfully!");
-    navigate("/");
-    return { error: null };
   };
 
   const signInWithGoogle = async () => {
