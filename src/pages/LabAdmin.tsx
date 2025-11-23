@@ -67,7 +67,7 @@ const LabAdmin = () => {
         .from("user_roles")
         .select("role, lab_id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -261,19 +261,35 @@ const LabAdmin = () => {
     );
   }
 
-  if (!lab) {
+  if (!lab && !userRole?.lab_id) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
           <LandingNav />
           <div className="flex-1 flex items-center justify-center">
             <Card className="max-w-md">
-              <CardContent className="py-12 text-center">
-                <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h2 className="text-xl font-bold mb-2">No Lab Assigned</h2>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  No Lab Assigned
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
                   Your account is not currently assigned to a lab. Please contact an administrator.
                 </p>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="text-sm font-medium mb-2">To unlock this feature:</p>
+                  <p className="text-sm text-muted-foreground">
+                    Send an email to{" "}
+                    <a
+                      href="mailto:raheem.amer.swe@gmail.com"
+                      className="text-primary hover:underline"
+                    >
+                      raheem.amer.swe@gmail.com
+                    </a>
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

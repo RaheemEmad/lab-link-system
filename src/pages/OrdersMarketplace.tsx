@@ -28,7 +28,7 @@ export default function OrdersMarketplace() {
         .select('lab_id')
         .eq('user_id', user.id)
         .eq('role', 'lab_staff')
-        .single();
+        .maybeSingle();
       
       if (data?.lab_id) {
         setLabId(data.lab_id);
@@ -38,19 +38,32 @@ export default function OrdersMarketplace() {
     fetchLabId();
   }, [user]);
 
-  // Fetch unassigned orders
+  // Fetch unassigned orders (excluding those refused by this lab)
   const { data: orders, isLoading } = useQuery({
-    queryKey: ["marketplace-orders"],
+    queryKey: ["marketplace-orders", labId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: ordersData, error } = await supabase
         .from("orders")
         .select("*")
         .is("assigned_lab_id", null)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data;
+
+      // Filter out orders where this lab has been refused
+      if (!labId || !ordersData) return ordersData;
+
+      const { data: refusedRequests } = await supabase
+        .from("lab_work_requests")
+        .select("order_id")
+        .eq("lab_id", labId)
+        .eq("status", "refused");
+
+      const refusedOrderIds = new Set(refusedRequests?.map(r => r.order_id) || []);
+      
+      return ordersData.filter(order => !refusedOrderIds.has(order.id));
     },
+    enabled: !!labId,
   });
 
   // Fetch existing requests for this lab
