@@ -1,20 +1,24 @@
-import { useState } from "react";
-import { Upload, X, FileIcon, Image, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { Upload, X, FileIcon, Image, Loader2, Box, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { compressImage, validateImageType, formatFileSize } from "@/lib/imageCompression";
 import { validateUploadFile } from "@/lib/fileValidation";
+import { validate3DModelFile, getValidationSummary } from "@/lib/modelFileValidation";
 
 interface FileUpload {
   id: string;
   file: File;
-  category: 'radiograph' | 'stl' | 'intraoral_photo' | 'other';
+  category: 'radiograph' | 'stl' | 'obj' | 'intraoral_photo' | 'other';
   preview?: string;
   uploading?: boolean;
+  uploadProgress?: number;
+  modelInfo?: string;
 }
 
 interface FileUploadSectionProps {
@@ -38,13 +42,25 @@ const ACCEPTED_DOCUMENT_TYPES = ["application/pdf"];
 export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }: FileUploadSectionProps) {
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const uploadControllers = useRef<Record<string, AbortController>>({});
 
-  const getCategoryIcon = (category: string) => {
+  const getCategoryIcon = (category: string, fileName?: string) => {
     switch (category) {
       case 'radiograph':
       case 'intraoral_photo':
         return <Image className="h-4 w-4" />;
+      case 'stl':
+        return <Box className="h-4 w-4" />;
+      case 'obj':
+        return <Boxes className="h-4 w-4" />;
       default:
+        // Check file extension for uploaded files
+        if (fileName?.toLowerCase().endsWith('.stl')) {
+          return <Box className="h-4 w-4" />;
+        } else if (fileName?.toLowerCase().endsWith('.obj')) {
+          return <Boxes className="h-4 w-4" />;
+        }
         return <FileIcon className="h-4 w-4" />;
     }
   };
@@ -55,31 +71,76 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
     for (const file of selectedFiles) {
       // Validate file type
       const isImage = ACCEPTED_IMAGE_TYPES.includes(file.type);
-      const isSTL = ACCEPTED_STL_TYPES.includes(file.type);
+      const isSTL = file.name.toLowerCase().endsWith('.stl') || ACCEPTED_STL_TYPES.includes(file.type);
+      const isOBJ = file.name.toLowerCase().endsWith('.obj');
       const isDocument = ACCEPTED_DOCUMENT_TYPES.includes(file.type);
 
-      if (!isImage && !isSTL && !isDocument) {
-        toast.error(`Invalid file type: ${file.name}`);
+      if (!isImage && !isSTL && !isOBJ && !isDocument) {
+        toast.error(`Invalid file type: ${file.name}`, {
+          description: 'Accepted formats: JPEG, PNG, WebP, PDF, STL, OBJ'
+        });
         continue;
       }
 
       // Validate file size
       if (file.size > MAX_FILE_SIZE) {
-        toast.error(`File too large: ${file.name} (max 20MB)`);
-        continue;
-      }
-
-      // Security validation
-      const validation = await validateUploadFile(file);
-      if (!validation.isValid) {
-        toast.error(`Security check failed: ${file.name}`, {
-          description: validation.errors.join(', ')
+        toast.error(`File too large: ${file.name}`, {
+          description: `Maximum size is ${formatFileSize(MAX_FILE_SIZE)}`
         });
         continue;
       }
 
-      if (validation.warnings.length > 0) {
-        console.warn('File validation warnings:', validation.warnings);
+      // Show file size info for large files
+      if (file.size > 5 * 1024 * 1024) {
+        toast.info(`Large file detected: ${formatFileSize(file.size)}`, {
+          description: 'Upload may take a moment'
+        });
+      }
+
+      // Security validation for images
+      if (isImage) {
+        const validation = await validateUploadFile(file);
+        if (!validation.isValid) {
+          toast.error(`Security check failed: ${file.name}`, {
+            description: validation.errors.join(', ')
+          });
+          continue;
+        }
+      }
+
+      // 3D Model validation for STL/OBJ
+      let modelInfo: string | undefined;
+      if (isSTL || isOBJ) {
+        toast.loading(`Validating ${file.name}...`, { id: `validate-${file.name}` });
+        
+        try {
+          const modelValidation = await validate3DModelFile(file);
+          toast.dismiss(`validate-${file.name}`);
+          
+          if (!modelValidation.isValid) {
+            toast.error(`Invalid 3D model: ${file.name}`, {
+              description: modelValidation.errors.join(', ')
+            });
+            continue;
+          }
+
+          if (modelValidation.warnings.length > 0) {
+            toast.warning(`Model validation warnings`, {
+              description: modelValidation.warnings.join(', ')
+            });
+          }
+
+          modelInfo = getValidationSummary(modelValidation);
+          toast.success(`Valid ${modelValidation.fileType.toUpperCase()} model`, {
+            description: modelInfo
+          });
+        } catch (error) {
+          toast.dismiss(`validate-${file.name}`);
+          toast.error(`Failed to validate ${file.name}`, {
+            description: 'File may be corrupted'
+          });
+          continue;
+        }
       }
 
       // Compress images
@@ -87,18 +148,26 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
       if (isImage && validateImageType(file)) {
         try {
           processedFile = await compressImage(file, 10, 1920);
-          toast.success(`Compressed ${file.name}: ${formatFileSize(file.size)} → ${formatFileSize(processedFile.size)}`);
+          toast.success(`Compressed ${file.name}`, {
+            description: `${formatFileSize(file.size)} → ${formatFileSize(processedFile.size)}`
+          });
         } catch (error) {
           console.error('Compression error:', error);
           toast.error(`Failed to compress ${file.name}`);
         }
       }
 
+      // Determine category for STL/OBJ
+      let finalCategory = category;
+      if (isSTL) finalCategory = 'stl';
+      if (isOBJ) finalCategory = 'obj';
+
       const newFile: FileUpload = {
         id: crypto.randomUUID(),
         file: processedFile,
-        category,
-        preview: isImage ? URL.createObjectURL(processedFile) : undefined
+        category: finalCategory,
+        preview: isImage ? URL.createObjectURL(processedFile) : undefined,
+        modelInfo
       };
 
       setFiles(prev => {
@@ -126,48 +195,74 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
     }
 
     setUploading(true);
+    const totalFiles = files.length;
+    let completedFiles = 0;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
       for (const fileUpload of files) {
+        const controller = new AbortController();
+        uploadControllers.current[fileUpload.id] = controller;
+
         const filePath = `${user.id}/${orderId}/${fileUpload.id}-${fileUpload.file.name}`;
 
-        // Upload to storage
-        const { error: uploadError } = await supabase.storage
-          .from('order-attachments')
-          .upload(filePath, fileUpload.file, {
-            cacheControl: '3600',
-            upsert: false
-          });
+        // Simulate progress for better UX
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => ({
+            ...prev,
+            [fileUpload.id]: Math.min((prev[fileUpload.id] || 0) + 10, 90)
+          }));
+        }, 200);
 
-        if (uploadError) throw uploadError;
+        try {
+          // Upload to storage
+          const { error: uploadError } = await supabase.storage
+            .from('order-attachments')
+            .upload(filePath, fileUpload.file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
-        // Save metadata to database
-        const { error: dbError } = await supabase
-          .from('order_attachments')
-          .insert({
-            order_id: orderId,
-            uploaded_by: user.id,
-            file_name: fileUpload.file.name,
-            file_path: filePath,
-            file_type: fileUpload.file.type,
-            file_size: fileUpload.file.size,
-            attachment_category: fileUpload.category
-          });
+          clearInterval(progressInterval);
 
-        if (dbError) throw dbError;
+          if (uploadError) throw uploadError;
+
+          setUploadProgress(prev => ({ ...prev, [fileUpload.id]: 100 }));
+
+          // Save metadata to database
+          const { error: dbError } = await supabase
+            .from('order_attachments')
+            .insert({
+              order_id: orderId,
+              uploaded_by: user.id,
+              file_name: fileUpload.file.name,
+              file_path: filePath,
+              file_type: fileUpload.file.type,
+              file_size: fileUpload.file.size,
+              attachment_category: fileUpload.category
+            });
+
+          if (dbError) throw dbError;
+
+          completedFiles++;
+        } catch (error) {
+          clearInterval(progressInterval);
+          throw error;
+        }
       }
 
-      toast.success(`Uploaded ${files.length} file(s) successfully`);
+      toast.success(`Uploaded ${totalFiles} file(s) successfully`);
       setFiles([]);
+      setUploadProgress({});
       onFilesChange?.([]);
     } catch (error) {
       console.error('Upload error:', error);
       toast.error("Failed to upload files");
     } finally {
       setUploading(false);
+      uploadControllers.current = {};
     }
   };
 
@@ -195,9 +290,12 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
     <div className="space-y-6">
       {/* Upload Section */}
       <div className="space-y-4">
-        <Label className="text-base font-semibold">Order Attachments</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-base font-semibold">Order Attachments</Label>
+          <span className="text-xs text-muted-foreground">Max {formatFileSize(MAX_FILE_SIZE)} per file</span>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Radiographs */}
           <Card className="p-4 border-2 border-dashed hover:border-primary/50 transition-colors">
             <Label htmlFor="radiograph-upload" className="cursor-pointer">
@@ -217,22 +315,41 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
             />
           </Card>
 
-          {/* 3D Model Files */}
+          {/* STL Files */}
           <Card className="p-4 border-2 border-dashed hover:border-primary/50 transition-colors">
             <Label htmlFor="stl-upload" className="cursor-pointer">
               <div className="flex flex-col items-center gap-2 text-center">
-                <FileIcon className="h-8 w-8 text-muted-foreground" />
-                <span className="text-sm font-medium">3D Model Files</span>
-                <span className="text-xs text-muted-foreground">STL, OBJ</span>
+                <Box className="h-8 w-8 text-muted-foreground" />
+                <span className="text-sm font-medium">STL Models</span>
+                <span className="text-xs text-muted-foreground">Binary/ASCII STL</span>
               </div>
             </Label>
             <input
               id="stl-upload"
               type="file"
-              accept={ACCEPTED_STL_TYPES.join(',')}
+              accept=".stl,model/stl,application/sla"
               multiple
               className="hidden"
               onChange={(e) => handleFileSelect(e, 'stl')}
+            />
+          </Card>
+
+          {/* OBJ Files */}
+          <Card className="p-4 border-2 border-dashed hover:border-primary/50 transition-colors">
+            <Label htmlFor="obj-upload" className="cursor-pointer">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <Boxes className="h-8 w-8 text-muted-foreground" />
+                <span className="text-sm font-medium">OBJ Models</span>
+                <span className="text-xs text-muted-foreground">Wavefront OBJ</span>
+              </div>
+            </Label>
+            <input
+              id="obj-upload"
+              type="file"
+              accept=".obj,model/obj,application/obj"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFileSelect(e, 'obj')}
             />
           </Card>
 
@@ -284,19 +401,29 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
             
             <div className="space-y-2">
               {files.map((file) => (
-                <div key={file.id} className="flex items-center justify-between p-2 bg-secondary/50 rounded">
+                <div key={file.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {file.preview ? (
                       <img src={file.preview} alt={file.file.name} className="h-10 w-10 object-cover rounded" />
                     ) : (
-                      getCategoryIcon(file.category)
+                      <div className="h-10 w-10 flex items-center justify-center bg-primary/10 rounded">
+                        {getCategoryIcon(file.category, file.file.name)}
+                      </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{file.file.name}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">{file.category.replace('_', ' ')}</Badge>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs">
+                          {file.category === 'stl' ? 'STL' : file.category === 'obj' ? 'OBJ' : file.category.replace('_', ' ')}
+                        </Badge>
                         <span className="text-xs text-muted-foreground">{formatFileSize(file.file.size)}</span>
+                        {file.modelInfo && (
+                          <span className="text-xs text-muted-foreground">{file.modelInfo}</span>
+                        )}
                       </div>
+                      {uploadProgress[file.id] !== undefined && (
+                        <Progress value={uploadProgress[file.id]} className="h-1 mt-2" />
+                      )}
                     </div>
                   </div>
                   <Button
@@ -322,12 +449,14 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
             {existingFiles.map((file) => (
               <div key={file.id} className="flex items-center justify-between p-2 bg-secondary/50 rounded">
                 <div className="flex items-center gap-3">
-                  {getCategoryIcon(file.attachment_category)}
+                  <div className="h-8 w-8 flex items-center justify-center bg-primary/10 rounded">
+                    {getCategoryIcon(file.attachment_category, file.file_name)}
+                  </div>
                   <div>
                     <p className="text-sm font-medium">{file.file_name}</p>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {file.attachment_category.replace('_', ' ')}
+                        {file.attachment_category === 'stl' ? 'STL' : file.attachment_category === 'obj' ? 'OBJ' : file.attachment_category.replace('_', ' ')}
                       </Badge>
                       <span className="text-xs text-muted-foreground">{formatFileSize(file.file_size)}</span>
                     </div>
