@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, UserCheck, UserX } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Trash2, Edit, UserCheck, UserX, Search } from "lucide-react";
+import UserEditDialog from "./UserEditDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +36,9 @@ const AdminUsersTab = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [editUserId, setEditUserId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchUsers();
@@ -105,6 +110,18 @@ const AdminUsersTab = () => {
     }
   };
 
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.clinic_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.lab_name?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+
+    return matchesSearch && matchesRole;
+  });
+
   if (loading) {
     return (
       <Card>
@@ -127,6 +144,29 @@ const AdminUsersTab = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="flex gap-4 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, email, clinic, or lab..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="px-3 py-2 border border-input rounded-md bg-background"
+            >
+              <option value="all">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="doctor">Doctor</option>
+              <option value="lab_staff">Lab Staff</option>
+              <option value="none">No Role</option>
+            </select>
+          </div>
+
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -142,7 +182,7 @@ const AdminUsersTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">
                       {user.full_name || "—"}
@@ -178,7 +218,7 @@ const AdminUsersTab = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => toast.info("Edit user feature coming soon")}
+                          onClick={() => setEditUserId(user.id)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -220,6 +260,12 @@ const AdminUsersTab = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UserEditDialog
+        userId={editUserId}
+        onClose={() => setEditUserId(null)}
+        onUpdate={fetchUsers}
+      />
     </>
   );
 };
