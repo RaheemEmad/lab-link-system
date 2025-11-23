@@ -2,22 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* LabLink Design System - Clean, Professional, Dental-Grade Aesthetics */
 
 @layer base {
   :root {
-    /* LabLink Brand Colors */
-    --lablink-blue: 221 100% 60%; /* #3269FF */
-    --dental-slate: 215 20% 24%; /* #2F3B4A */
-    --soft-gray: 210 33% 96%; /* #F3F5F7 */
-    --success-green: 152 75% 46%; /* #1DCC6C */
-    --urgent-red: 6 87% 63%; /* #F15555 */
-    --accent-amber: 45 87% 62%; /* #F2C94C */
+    /* LabLink Brand Colors - Professional Medical Blue Palette */
+    --lablink-blue: 221 100% 60%; /* #3269FF - Primary Trust Blue */
+    --lablink-blue-light: 221 100% 70%; /* Lighter shade */
+    --dental-slate: 215 20% 24%; /* #2F3B4A - Professional Text */
+    --soft-gray: 210 33% 96%; /* #F3F5F7 - Clean Background */
+    --success-green: 152 75% 46%; /* #1DCC6C - Success States */
+    --urgent-red: 6 87% 63%; /* #F15555 - Urgent Alerts */
+    --accent-teal: 174 62% 47%; /* #2DBDB6 - Medical Accent */
     
     --background: 0 0% 100%;
-    --foreground: 215 20% 24%; /* dental-slate */
+    --foreground: 215 20% 24%;
 
     --card: 0 0% 100%;
     --card-foreground: 215 20% 24%;
@@ -25,19 +24,19 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 215 20% 24%;
 
-    --primary: 221 100% 60%; /* lablink-blue */
+    --primary: 221 100% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 33% 96%; /* soft-gray */
+    --secondary: 210 33% 96%;
     --secondary-foreground: 215 20% 24%;
 
     --muted: 210 33% 96%;
     --muted-foreground: 215 20% 50%;
 
-    --accent: 221 100% 60%;
+    --accent: 174 62% 47%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 6 87% 63%; /* urgent-red */
+    --destructive: 6 87% 63%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214 32% 91%;
@@ -46,61 +45,57 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    --success: 152 75% 46%; /* success-green */
+    --success: 152 75% 46%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 45 87% 62%; /* accent-amber */
+    --warning: 45 87% 62%;
     --warning-foreground: 215 20% 24%;
 
     --info: 221 100% 60%;
     --info-foreground: 0 0% 100%;
     
-    --hero-gradient: linear-gradient(135deg, hsl(221 100% 60%), hsl(221 100% 70%));
-    --shadow-soft: 0 8px 30px rgba(47, 59, 74, 0.08);
-    --shadow-medium: 0 12px 40px rgba(47, 59, 74, 0.12);
-    --transition-smooth: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Elegant Shadows */
+    --shadow-soft: 0 2px 8px rgba(47, 59, 74, 0.04);
+    --shadow-medium: 0 4px 16px rgba(47, 59, 74, 0.08);
+    --shadow-strong: 0 8px 24px rgba(47, 59, 74, 0.12);
+    --shadow-glow: 0 0 20px rgba(50, 105, 255, 0.15);
+    
+    /* Smooth Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .dark {
     --background: 215 25% 12%;
     --foreground: 210 40% 98%;
-
     --card: 215 23% 16%;
     --card-foreground: 210 40% 98%;
-
     --popover: 215 25% 12%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 221 100% 65%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 215 20% 20%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 215 20% 20%;
     --muted-foreground: 215 20% 65%;
-
-    --accent: 221 100% 65%;
+    --accent: 174 62% 52%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 6 87% 63%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 215 20% 25%;
     --input: 215 20% 25%;
     --ring: 221 100% 65%;
-
     --success: 152 75% 46%;
     --success-foreground: 0 0% 100%;
-
     --warning: 45 87% 62%;
     --warning-foreground: 215 20% 10%;
-
     --info: 221 100% 65%;
     --info-foreground: 0 0% 100%;
-    
-    --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.3);
-    --shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.4);
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -110,12 +105,14 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "liga" 1, "calt" 1;
   }
 }
 
-/* Mobile-first responsive utilities */
+/* Professional Animation Utilities */
 @layer utilities {
+  /* Responsive Touch Targets */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
@@ -123,59 +120,171 @@ All colors MUST be HSL.
   .tap-highlight-none {
     -webkit-tap-highlight-color: transparent;
   }
-}
 
-/* Responsive typography and mobile optimizations */
-@layer base {
-  html {
-    @apply tap-highlight-none;
+  /* Elegant Hover Effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(47,59,74,0.12)];
   }
 
-  /* Improve text rendering on mobile */
+  .hover-scale {
+    @apply transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-[0_0_20px_rgba(50,105,255,0.15)];
+  }
+
+  /* Professional Card Animations */
+  .card-interactive {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(47,59,74,0.12)] hover:border-primary/30;
+  }
+
+  /* Button Press Effect */
+  .btn-press {
+    @apply active:scale-95 transition-transform duration-100;
+  }
+
+  /* Smooth Fade Animations */
+  .fade-in {
+    animation: fadeIn var(--transition-base) ease-out;
+  }
+
+  .fade-in-up {
+    animation: fadeInUp var(--transition-slow) ease-out;
+  }
+
+  .fade-in-down {
+    animation: fadeInDown var(--transition-slow) ease-out;
+  }
+
+  /* Medical/Dental Theme Pulse */
+  .pulse-medical {
+    animation: pulseMedical 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Shimmer Loading Effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(50, 105, 255, 0.1),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseMedical {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Responsive Components */
+@layer components {
+  .responsive-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .responsive-card {
+    @apply p-4 sm:p-6 lg:p-8 rounded-lg sm:rounded-xl;
+  }
+
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .responsive-heading {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+  }
+
+  .responsive-text {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+
+  /* Professional Form Inputs */
+  .input-elegant {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary hover:border-primary/50;
+  }
+
+  /* Modal/Dialog Backdrop */
+  .backdrop-elegant {
+    @apply bg-black/40 backdrop-blur-sm;
+  }
+}
+
+/* Mobile Optimizations */
+@layer base {
+  html {
+    @apply tap-highlight-none scroll-smooth;
+  }
+
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
-  /* Prevent text size adjustment on mobile */
+  /* Prevent zoom on iOS */
   input, textarea, select {
-    font-size: 16px; /* Prevents iOS zoom on focus */
+    font-size: 16px;
   }
   
-  /* Improve scrolling on iOS */
+  /* Smooth scrolling on iOS */
   * {
     -webkit-overflow-scrolling: touch;
   }
-}
 
-/* Mobile-optimized animations */
-@media (max-width: 768px) {
-  .hover-scale {
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .hover-scale:active {
-    transform: scale(0.95);
-  }
-}
-
-/* Responsive components */
-@layer components {
-  .responsive-card {
-    @apply p-4 sm:p-6 lg:p-8;
-  }
-
-  .responsive-form-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6;
-  }
-
-  .responsive-heading {
-    @apply text-2xl sm:text-3xl md:text-4xl;
-  }
-
-  .responsive-subheading {
-    @apply text-xl sm:text-2xl md:text-3xl;
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2;
   }
 }
 
