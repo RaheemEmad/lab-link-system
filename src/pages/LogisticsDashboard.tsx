@@ -1,0 +1,402 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory } from "lucide-react";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
+import { toast } from "sonner";
+
+interface LabCapacity {
+  id: string;
+  name: string;
+  current_load: number;
+  max_capacity: number;
+  performance_score: number | null;
+}
+
+interface OrderShipment {
+  id: string;
+  order_number: string;
+  patient_name: string;
+  status: string;
+  shipment_tracking: string | null;
+  handling_instructions: string | null;
+  expected_delivery_date: string | null;
+  actual_delivery_date: string | null;
+  urgency: string;
+  assigned_lab: {
+    name: string;
+  } | null;
+}
+
+const LogisticsDashboard = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [userRole, setUserRole] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [labCapacity, setLabCapacity] = useState<LabCapacity[]>([]);
+  const [shipments, setShipments] = useState<OrderShipment[]>([]);
+
+  useEffect(() => {
+    const checkRole = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data?.role !== "admin" && data?.role !== "lab_staff") {
+        toast.error("Access denied", {
+          description: "Only lab staff and admins can access logistics dashboard",
+        });
+        navigate("/dashboard");
+        return;
+      }
+
+      setUserRole(data.role);
+    };
+
+    checkRole();
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user || !userRole) return;
+
+      try {
+        setLoading(true);
+
+        // Fetch lab capacity data
+        const { data: labs, error: labError } = await supabase
+          .from("labs")
+          .select("id, name, current_load, max_capacity, performance_score")
+          .eq("is_active", true)
+          .order("current_load", { ascending: false });
+
+        if (labError) throw labError;
+
+        // Fetch shipment data (orders with tracking or handling instructions)
+        let shipmentQuery = supabase
+          .from("orders")
+          .select(
+            `
+            id,
+            order_number,
+            patient_name,
+            status,
+            shipment_tracking,
+            handling_instructions,
+            expected_delivery_date,
+            actual_delivery_date,
+            urgency,
+            assigned_lab:labs(name)
+          `
+          )
+          .not("assigned_lab_id", "is", null)
+          .order("expected_delivery_date", { ascending: true });
+
+        // If lab staff, only show their lab's orders
+        if (userRole === "lab_staff") {
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("lab_id")
+            .eq("user_id", user.id)
+            .single();
+
+          if (roleData?.lab_id) {
+            shipmentQuery = shipmentQuery.eq("assigned_lab_id", roleData.lab_id);
+          }
+        }
+
+        const { data: orders, error: orderError } = await shipmentQuery;
+
+        if (orderError) throw orderError;
+
+        setLabCapacity(labs || []);
+        setShipments(orders || []);
+      } catch (error) {
+        console.error("Error fetching logistics data:", error);
+        toast.error("Failed to load logistics data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel("logistics-updates")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "labs",
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, userRole]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Delivered":
+        return "bg-green-500/10 text-green-700 dark:text-green-400";
+      case "Ready for Delivery":
+        return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+      case "In Progress":
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+      default:
+        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+    }
+  };
+
+  const getCapacityStatus = (current: number, max: number) => {
+    const percentage = (current / max) * 100;
+    if (percentage >= 90) return { color: "destructive", label: "Critical" };
+    if (percentage >= 70) return { color: "warning", label: "High" };
+    if (percentage >= 50) return { color: "default", label: "Moderate" };
+    return { color: "secondary", label: "Low" };
+  };
+
+  const totalCapacity = labCapacity.reduce((sum, lab) => sum + lab.max_capacity, 0);
+  const totalLoad = labCapacity.reduce((sum, lab) => sum + lab.current_load, 0);
+  const utilizationRate = totalCapacity > 0 ? (totalLoad / totalCapacity) * 100 : 0;
+
+  const urgentShipments = shipments.filter((s) => s.urgency === "Urgent").length;
+  const pendingDeliveries = shipments.filter(
+    (s) => s.status === "Ready for Delivery" && !s.actual_delivery_date
+  ).length;
+
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen flex flex-col">
+          <LandingNav />
+          <div className="flex-1 bg-secondary/30 py-12">
+            <div className="container px-4">
+              <Skeleton className="h-10 w-64 mb-6" />
+              <div className="grid gap-6 md:grid-cols-3 mb-6">
+                <Skeleton className="h-32" />
+                <Skeleton className="h-32" />
+                <Skeleton className="h-32" />
+              </div>
+              <Skeleton className="h-96" />
+            </div>
+          </div>
+          <LandingFooter />
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <div className="flex-1 bg-secondary/30 py-12">
+          <div className="container px-4">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-3xl font-bold">Logistics Dashboard</h1>
+              <Badge variant="outline" className="text-sm">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Real-time Updates
+              </Badge>
+            </div>
+
+            {/* Key Metrics */}
+            <div className="grid gap-6 md:grid-cols-3 mb-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Overall Capacity</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{utilizationRate.toFixed(1)}%</div>
+                  <Progress value={utilizationRate} className="mt-2" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {totalLoad} / {totalCapacity} orders active
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{pendingDeliveries}</div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Ready for shipment
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Urgent Orders</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-destructive">{urgentShipments}</div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Require priority handling
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Lab Capacity Monitoring */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Factory className="h-5 w-5" />
+                  Lab Capacity Status
+                </CardTitle>
+                <CardDescription>Real-time capacity monitoring across all labs</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {labCapacity.map((lab) => {
+                    const percentage = (lab.current_load / lab.max_capacity) * 100;
+                    const status = getCapacityStatus(lab.current_load, lab.max_capacity);
+
+                    return (
+                      <div key={lab.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="font-medium">{lab.name}</div>
+                            <Badge variant={status.color as any}>{status.label}</Badge>
+                            {lab.performance_score && (
+                              <Badge variant="secondary" className="text-xs">
+                                ⭐ {lab.performance_score.toFixed(1)}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {lab.current_load} / {lab.max_capacity}
+                          </div>
+                        </div>
+                        <Progress value={percentage} className="h-2" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Shipment Tracking */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="h-5 w-5" />
+                  Active Shipments
+                </CardTitle>
+                <CardDescription>Track deliveries and handling requirements</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {shipments.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No active shipments</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {shipments.map((shipment) => (
+                      <div
+                        key={shipment.id}
+                        className="border rounded-lg p-4 hover:bg-accent/50 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/order-tracking`)}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <div className="font-semibold">{shipment.order_number}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {shipment.patient_name}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge className={getStatusColor(shipment.status)}>
+                              {shipment.status}
+                            </Badge>
+                            {shipment.urgency === "Urgent" && (
+                              <Badge variant="destructive">Urgent</Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {shipment.assigned_lab && (
+                          <div className="text-sm text-muted-foreground mb-2">
+                            Lab: {shipment.assigned_lab.name}
+                          </div>
+                        )}
+
+                        {shipment.shipment_tracking && (
+                          <div className="flex items-center gap-2 text-sm mb-2">
+                            <Truck className="h-4 w-4" />
+                            <span className="font-mono">{shipment.shipment_tracking}</span>
+                          </div>
+                        )}
+
+                        {shipment.handling_instructions && (
+                          <div className="flex items-start gap-2 text-sm bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
+                            <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-yellow-700 dark:text-yellow-400">
+                                Handling Instructions:
+                              </div>
+                              <div className="text-yellow-600 dark:text-yellow-300">
+                                {shipment.handling_instructions}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {shipment.expected_delivery_date && (
+                          <div className="text-sm text-muted-foreground mt-2">
+                            Expected:{" "}
+                            {new Date(shipment.expected_delivery_date).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        <LandingFooter />
+      </div>
+    </ProtectedRoute>
+  );
+};
+
+export default LogisticsDashboard;

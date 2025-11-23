@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell, Package, Compass } from "lucide-react";
+import { Plus, Bell, Package, Compass, Truck } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -188,6 +188,25 @@ const Dashboard = () => {
                     <p>Real-time order tracking with delivery updates</p>
                   </TooltipContent>
                 </Tooltip>
+
+                {(userRole === "admin" || userRole === "lab_staff") && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate("/logistics")} 
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Truck className="h-4 w-4" />
+                        <span className="ml-2">Logistics</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Shipping tracking, handling instructions & lab capacity</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
 
                 <Tooltip>
                   <TooltipTrigger asChild>

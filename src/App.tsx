@@ -32,6 +32,7 @@ import DesignApprovalWorkflow from "./pages/DesignApprovalWorkflow";
 import EditOrder from "./pages/EditOrder";
 import OrdersMarketplace from "./pages/OrdersMarketplace";
 import LabRequestsManagement from "./pages/LabRequestsManagement";
+import LogisticsDashboard from "./pages/LogisticsDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const AppContent = () => {
         <Route path="/edit-order/:orderId" element={<EditOrder />} />
         <Route path="/orders-marketplace" element={<OrdersMarketplace />} />
         <Route path="/lab-requests" element={<LabRequestsManagement />} />
+        <Route path="/logistics" element={<LogisticsDashboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
