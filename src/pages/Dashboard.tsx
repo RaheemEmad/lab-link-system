@@ -189,24 +189,23 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
-                {(userRole === "admin" || userRole === "lab_staff") && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => navigate("/logistics")} 
-                        className="flex-1 sm:flex-none"
-                      >
-                        <Truck className="h-4 w-4" />
-                        <span className="ml-2">Logistics</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Shipping tracking, handling instructions & lab capacity</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/logistics")} 
+                      className="flex-1 sm:flex-none"
+                    >
+                      <Truck className="h-4 w-4" />
+                      <span className="ml-2">Logistics</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Manage shipment details and communicate about deliveries</p>
+                  </TooltipContent>
+                </Tooltip>
+
 
                 <Tooltip>
                   <TooltipTrigger asChild>
