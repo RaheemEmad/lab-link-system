@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck } from "lucide-react";
+import { motion } from "framer-motion";
+import lablinkLogo from "@/assets/lablink-logo.jpg";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
@@ -240,15 +242,47 @@ const LandingNav = () => {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container px-4 mx-auto">
           <div className="flex items-center justify-between h-20">
-            {/* Logo */}
+            {/* Logo with animation */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <div 
-                  className="text-2xl font-bold text-primary cursor-pointer"
+                <motion.div 
+                  className="flex items-center gap-3 cursor-pointer group"
                   onClick={() => navigate("/")}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ 
+                    duration: 0.6, 
+                    ease: [0.22, 1, 0.36, 1],
+                    delay: 0.1 
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  LabLink
-                </div>
+                  <motion.img 
+                    src={lablinkLogo} 
+                    alt="LabLink Logo" 
+                    className="h-10 w-auto object-contain"
+                    initial={{ opacity: 0, rotate: -10 }}
+                    animate={{ opacity: 1, rotate: 0 }}
+                    transition={{ 
+                      duration: 0.8, 
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: 0.2
+                    }}
+                  />
+                  <motion.span 
+                    className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] group-hover:animate-gradient"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: 0.3
+                    }}
+                  >
+                    LabLink
+                  </motion.span>
+                </motion.div>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Go to home page</p>
