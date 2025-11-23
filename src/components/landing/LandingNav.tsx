@@ -285,7 +285,7 @@ const LandingNav = () => {
                 </motion.div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Go to home page</p>
+                <p>Home</p>
               </TooltipContent>
             </Tooltip>
             
@@ -313,7 +313,6 @@ const LandingNav = () => {
                       {!isLinkActive(link) && (
                         <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent transition-all duration-300 group-hover:w-full" />
                       )}
-                      {link.label}
                       {link.label === "Marketplace" && userRole === 'lab_staff' && newOrdersCount && newOrdersCount > 0 && (
                         <motion.span 
                           className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-primary-foreground bg-gradient-to-r from-primary to-accent rounded-full shadow-glow"
