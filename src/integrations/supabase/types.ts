@@ -1007,7 +1007,7 @@ export type Database = {
           tax_id_param: string
           user_id_param: string
         }
-        Returns: undefined
+        Returns: string
       }
       complete_onboarding: {
         Args: {
