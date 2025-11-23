@@ -148,6 +148,7 @@ const LandingNav = () => {
       const { data: ordersData, error } = await supabase
         .from("orders")
         .select("id, created_at")
+        .eq("auto_assign_pending", true)
         .is("assigned_lab_id", null)
         .gte("created_at", today.toISOString());
       
