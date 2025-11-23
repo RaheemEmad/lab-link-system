@@ -340,6 +340,7 @@ const OrderDashboard = () => {
                   <TableHead>Type</TableHead>
                   <TableHead>Shade</TableHead>
                   <TableHead>Teeth</TableHead>
+                  <TableHead>Lab</TableHead>
                   <TableHead>Urgency</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Preview</TableHead>
@@ -349,7 +350,7 @@ const OrderDashboard = () => {
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDoctor ? 9 : 10} className="text-center text-muted-foreground">
+                    <TableCell colSpan={isDoctor ? 10 : 11} className="text-center text-muted-foreground">
                       No orders found
                     </TableCell>
                   </TableRow>
@@ -363,6 +364,63 @@ const OrderDashboard = () => {
                       <TableCell>{order.teeth_shade}</TableCell>
                       <TableCell>{order.teeth_number}</TableCell>
                       <TableCell>
+                        {order.labs ? (
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <button
+                                onClick={() => navigate(`/labs/${order.labs!.id}`)}
+                                className="flex items-center gap-2 hover:text-primary transition-colors group"
+                              >
+                                <div className="relative w-8 h-8 rounded overflow-hidden border border-border bg-muted flex-shrink-0 group-hover:border-primary transition-colors">
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Building2 className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                  </div>
+                                </div>
+                                <span className="text-sm font-medium truncate max-w-[120px]">{order.labs.name}</span>
+                              </button>
+                            </HoverCardTrigger>
+                            <HoverCardContent side="top" className="w-80">
+                              <div className="space-y-3">
+                                <div>
+                                  <h4 className="font-semibold flex items-center gap-2">
+                                    <Building2 className="h-4 w-4" />
+                                    {order.labs.name}
+                                  </h4>
+                                  {order.labs.description && (
+                                    <p className="text-sm text-muted-foreground mt-1">{order.labs.description}</p>
+                                  )}
+                                </div>
+                                <div className="space-y-1 text-sm">
+                                  {order.labs.contact_email && (
+                                    <p className="flex items-center gap-2">
+                                      <Mail className="h-3 w-3 text-muted-foreground" />
+                                      <span className="truncate">{order.labs.contact_email}</span>
+                                    </p>
+                                  )}
+                                  {order.labs.contact_phone && (
+                                    <p className="flex items-center gap-2">
+                                      <Phone className="h-3 w-3 text-muted-foreground" />
+                                      {order.labs.contact_phone}
+                                    </p>
+                                  )}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full"
+                                  onClick={() => navigate(`/labs/${order.labs!.id}`)}
+                                >
+                                  View Lab Profile
+                                  <ExternalLink className="h-3 w-3 ml-2" />
+                                </Button>
+                              </div>
+                            </HoverCardContent>
+                          </HoverCard>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Not assigned</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>
                           {order.urgency}
                         </Badge>
@@ -373,7 +431,7 @@ const OrderDashboard = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {order.html_export ? (
+                        {order.html_export && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -411,67 +469,10 @@ const OrderDashboard = () => {
                                   <p className="text-sm text-muted-foreground">{order.restoration_type}</p>
                                   <p className="text-xs text-muted-foreground">Teeth: {order.teeth_number}</p>
                                   <p className="text-xs text-muted-foreground">Shade: {order.teeth_shade}</p>
-                                  {order.labs && (
-                                    <div className="pt-2 mt-2 border-t border-border">
-                                      <p className="text-xs font-medium flex items-center gap-1">
-                                        <Building2 className="h-3 w-3" />
-                                        {order.labs.name}
-                                      </p>
-                                    </div>
-                                  )}
                                 </div>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                        ) : (
-                          order.labs && (
-                            <HoverCard>
-                              <HoverCardTrigger asChild>
-                                <button
-                                  onClick={() => navigate(`/labs/${order.labs!.id}`)}
-                                  className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted hover:border-primary transition-colors cursor-pointer flex items-center justify-center"
-                                >
-                                  <Building2 className="h-5 w-5 text-muted-foreground" />
-                                </button>
-                              </HoverCardTrigger>
-                              <HoverCardContent side="left" className="w-80">
-                                <div className="space-y-3">
-                                  <div>
-                                    <h4 className="font-semibold flex items-center gap-2">
-                                      <Building2 className="h-4 w-4" />
-                                      {order.labs.name}
-                                    </h4>
-                                    {order.labs.description && (
-                                      <p className="text-sm text-muted-foreground mt-1">{order.labs.description}</p>
-                                    )}
-                                  </div>
-                                  <div className="space-y-1 text-sm">
-                                    {order.labs.contact_email && (
-                                      <p className="flex items-center gap-2">
-                                        <Mail className="h-3 w-3 text-muted-foreground" />
-                                        {order.labs.contact_email}
-                                      </p>
-                                    )}
-                                    {order.labs.contact_phone && (
-                                      <p className="flex items-center gap-2">
-                                        <Phone className="h-3 w-3 text-muted-foreground" />
-                                        {order.labs.contact_phone}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full"
-                                    onClick={() => navigate(`/labs/${order.labs!.id}`)}
-                                  >
-                                    View Lab Profile
-                                    <ExternalLink className="h-3 w-3 ml-2" />
-                                  </Button>
-                                </div>
-                              </HoverCardContent>
-                            </HoverCard>
-                          )
                         )}
                       </TableCell>
                       <TableCell className="text-right">
