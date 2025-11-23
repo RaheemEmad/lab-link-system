@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Bell, Package, Compass, Truck, Trophy } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import LandingNav from "@/components/landing/LandingNav";
@@ -23,8 +24,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { role, isDoctor } = useUserRole();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [userRole, setUserRole] = useState<string>("");
   const [runTour, setRunTour] = useState(false);
   const [showReceiveAnimation, setShowReceiveAnimation] = useState(false);
   const [receivedOrderNumber, setReceivedOrderNumber] = useState<string>("");
@@ -66,25 +67,6 @@ const Dashboard = () => {
 
   const unreadCount = notificationData?.count || 0;
   const hasUrgent = notificationData?.hasUrgent || false;
-
-  // Fetch user role (tour is now manual-only via "Start Tour" button)
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      if (!user?.id) return;
-
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (data?.role) {
-        setUserRole(data.role);
-      }
-    };
-
-    fetchUserRole();
-  }, [user]);
 
   // Check if this is first login and show onboarding modal
   useEffect(() => {
@@ -165,7 +147,7 @@ const Dashboard = () => {
         )}
         
         <FirstTimeModal open={showOnboarding} onClose={() => setShowOnboarding(false)} />
-        <DashboardTour userRole={userRole} run={runTour} onComplete={() => setRunTour(false)} />
+        <DashboardTour userRole={role || ""} run={runTour} onComplete={() => setRunTour(false)} />
         <AchievementToast />
         <AchievementProgressNotification />
         <LandingNav />
@@ -229,7 +211,7 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
-                {userRole === "doctor" && (
+                {isDoctor && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 

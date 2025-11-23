@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -56,6 +57,7 @@ const expertiseLevels = ['basic', 'intermediate', 'expert'] as const;
 
 const LabAdmin = () => {
   const { user } = useAuth();
+  const { role, labId, isLoading: roleLoading, isLabStaff, isAdmin } = useUserRole();
   const queryClient = useQueryClient();
   const [newSpecType, setNewSpecType] = useState<string>("");
   const [newSpecExpertise, setNewSpecExpertise] = useState<string>("intermediate");
@@ -65,57 +67,39 @@ const LabAdmin = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
-  // Check if user is lab staff and get their lab
-  const { data: userRole } = useQuery({
-    queryKey: ["user-role", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role, lab_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
   // Fetch lab data
   const { data: lab, isLoading: labLoading } = useQuery({
-    queryKey: ["lab-profile", userRole?.lab_id],
+    queryKey: ["lab-profile", labId],
     queryFn: async () => {
-      if (!userRole?.lab_id) return null;
+      if (!labId) return null;
       
       const { data, error } = await supabase
         .from("labs")
         .select("*")
-        .eq("id", userRole.lab_id)
+        .eq("id", labId)
         .single();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!userRole?.lab_id,
+    enabled: !!labId,
   });
 
   // Fetch lab specializations
   const { data: specializations } = useQuery({
-    queryKey: ["lab-specializations-admin", userRole?.lab_id],
+    queryKey: ["lab-specializations-admin", labId],
     queryFn: async () => {
-      if (!userRole?.lab_id) return [];
+      if (!labId) return [];
       
       const { data, error } = await supabase
         .from("lab_specializations")
         .select("*")
-        .eq("lab_id", userRole.lab_id);
+        .eq("lab_id", labId);
       
       if (error) throw error;
       return data;
     },
-    enabled: !!userRole?.lab_id,
+    enabled: !!labId,
   });
 
   const form = useForm<LabProfileForm>({
@@ -155,7 +139,7 @@ const LabAdmin = () => {
   // Update lab profile mutation
   const updateLabMutation = useMutation({
     mutationFn: async (data: LabProfileForm) => {
-      if (!userRole?.lab_id) throw new Error("No lab assigned");
+      if (!labId) throw new Error("No lab assigned");
       
       const { error } = await supabase
         .from("labs")
@@ -171,7 +155,7 @@ const LabAdmin = () => {
           pricing_tier: data.pricing_tier,
           website_url: data.website_url,
         })
-        .eq("id", userRole.lab_id);
+        .eq("id", labId);
       
       if (error) throw error;
     },
@@ -187,12 +171,12 @@ const LabAdmin = () => {
   // Add specialization mutation
   const addSpecializationMutation = useMutation({
     mutationFn: async () => {
-      if (!userRole?.lab_id || !newSpecType) throw new Error("Invalid data");
+      if (!labId || !newSpecType) throw new Error("Invalid data");
       
       const { error } = await supabase
         .from("lab_specializations")
         .insert([{
-          lab_id: userRole.lab_id,
+          lab_id: labId,
           restoration_type: newSpecType as any,
           expertise_level: newSpecExpertise as any,
           turnaround_days: parseInt(newSpecDays),
@@ -299,7 +283,7 @@ const LabAdmin = () => {
   };
 
   // Check access
-  if (!userRole || (userRole.role !== 'lab_staff' && userRole.role !== 'admin')) {
+  if (roleLoading || (!isLabStaff && !isAdmin)) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
@@ -335,7 +319,7 @@ const LabAdmin = () => {
     );
   }
 
-  if (!lab && !userRole?.lab_id) {
+  if (!lab && !labId) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
