@@ -84,7 +84,7 @@ export const ShadeSelector = ({ value, onChange, onSystemChange }: ShadeSelector
                         />
                         <Label
                           htmlFor={`shade-${shade}`}
-                          className="flex items-center justify-center px-4 py-2 border-2 border-border rounded-md cursor-pointer hover:bg-accent hover:border-primary transition-all peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground peer-data-[state=checked]:border-primary font-medium text-sm"
+                          className="flex items-center justify-center px-4 py-2 border-2 border-border rounded-md cursor-pointer hover:bg-primary/5 hover:border-primary transition-all peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground peer-data-[state=checked]:border-primary font-medium text-sm"
                         >
                           {shade}
                         </Label>
@@ -117,7 +117,7 @@ export const ShadeSelector = ({ value, onChange, onSystemChange }: ShadeSelector
                         />
                         <Label
                           htmlFor={`shade-${shade}`}
-                          className="flex items-center justify-center px-3 py-2 border-2 border-border rounded-md cursor-pointer hover:bg-accent hover:border-primary transition-all peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground peer-data-[state=checked]:border-primary font-medium text-xs"
+                          className="flex items-center justify-center px-3 py-2 border-2 border-border rounded-md cursor-pointer hover:bg-primary/5 hover:border-primary transition-all peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground peer-data-[state=checked]:border-primary font-medium text-xs"
                         >
                           {shade}
                         </Label>

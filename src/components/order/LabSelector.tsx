@@ -188,7 +188,7 @@ export const LabSelector = ({
       <CardContent>
         <RadioGroup value={selectedValue} onValueChange={handleChange}>
           {/* Auto-assign option */}
-          <div className="flex items-start space-x-3 space-y-0 rounded-lg border border-dashed border-primary/50 p-4 hover:bg-accent/50 transition-colors">
+          <div className="flex items-start space-x-3 space-y-0 rounded-lg border border-dashed border-primary/50 p-4 hover:bg-primary/5 transition-colors">
             <RadioGroupItem value="auto" id="auto" />
             <Label htmlFor="auto" className="flex-1 cursor-pointer">
               <div className="flex items-center gap-2 mb-1">
@@ -213,7 +213,7 @@ export const LabSelector = ({
               return (
                 <div
                   key={lab.id}
-                  className={`flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-accent/50 transition-colors ${
+                  className={`flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-primary/5 transition-colors ${
                     preferred ? 'border-primary/50 bg-primary/5' : ''
                   } ${!hasSpecialization ? 'opacity-60' : ''}`}
                 >
