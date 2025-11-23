@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
+import { toast } from "sonner";
 
 const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
@@ -47,6 +48,7 @@ const Auth = () => {
   const [signUpEmail, setSignUpEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [tab, setTab] = useState<"signin" | "signup">("signin");
 
   const signUpForm = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -76,43 +78,54 @@ const Auth = () => {
       if (!user) return;
 
       try {
-        // Check if user has a role assigned
-        const { data: userRole, error: roleError } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        setIsLoading(true);
 
-        if (roleError) {
-          console.error('Error fetching role:', roleError);
-        }
-
-        // If no role exists, redirect to onboarding regardless of other status
-        if (!userRole) {
-          navigate("/onboarding");
-          return;
-        }
-
-        // Check if user has completed onboarding
+        // First check if profile exists (registered user)
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("onboarding_completed")
           .eq("id", user.id)
           .maybeSingle();
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
+        // If no profile exists, this is a new user from Google OAuth
+        // They need to sign up properly first
+        if (!profile && !profileError) {
+          toast.error("Email not registered. Please sign up first.");
+          await supabase.auth.signOut();
+          setTab("signup");
+          setIsLoading(false);
           return;
         }
 
-        // Redirect based on onboarding completion
+        // Check if user has a role assigned
+        const { data: userRole } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        // If no role, redirect to onboarding for role selection
+        if (!userRole) {
+          navigate("/onboarding");
+          return;
+        }
+
+        // If role exists but onboarding not completed
         if (!profile?.onboarding_completed) {
           navigate("/onboarding");
+          return;
+        }
+
+        // User has role and completed onboarding, redirect to appropriate page
+        if (userRole.role === "admin") {
+          navigate("/admin");
         } else {
           navigate("/dashboard");
         }
       } catch (error) {
-        console.error('Error in user status check:', error);
+        console.error('Error checking user status:', error);
+        toast.error("Error verifying account status");
+        setIsLoading(false);
       }
     };
 
@@ -186,7 +199,7 @@ const Auth = () => {
           <CardDescription className="text-sm">Sign in to track orders or create your account</CardDescription>
         </CardHeader>
         <CardContent className="px-4 sm:px-6">
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
