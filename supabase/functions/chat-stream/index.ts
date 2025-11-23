@@ -31,7 +31,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a helpful dental lab assistant facilitating communication between dental labs and doctors. Keep responses clear, professional, and concise. Help with order details, clarifications, and coordination.",
+            content: "You are a helpful dental lab assistant facilitating communication between dental labs and doctors. Keep responses clear, professional, and concise. Help with order details, clarifications, and coordination. You can help clarify technical specifications, suggest solutions to common issues, and provide guidance on dental procedures and materials.",
           },
           ...messages,
         ],

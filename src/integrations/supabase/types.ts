@@ -91,31 +91,49 @@ export type Database = {
       }
       chat_messages: {
         Row: {
+          attachment_name: string | null
+          attachment_size: number | null
+          attachment_type: string | null
+          attachment_url: string | null
           created_at: string | null
           id: string
           is_ai_generated: boolean | null
           message_text: string
           order_id: string
+          read_at: string | null
+          read_by: string | null
           sender_id: string
           sender_role: string
           updated_at: string | null
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_size?: number | null
+          attachment_type?: string | null
+          attachment_url?: string | null
           created_at?: string | null
           id?: string
           is_ai_generated?: boolean | null
           message_text: string
           order_id: string
+          read_at?: string | null
+          read_by?: string | null
           sender_id: string
           sender_role: string
           updated_at?: string | null
         }
         Update: {
+          attachment_name?: string | null
+          attachment_size?: number | null
+          attachment_type?: string | null
+          attachment_url?: string | null
           created_at?: string | null
           id?: string
           is_ai_generated?: boolean | null
           message_text?: string
           order_id?: string
+          read_at?: string | null
+          read_by?: string | null
           sender_id?: string
           sender_role?: string
           updated_at?: string | null
@@ -123,6 +141,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "chat_messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_typing_indicators: {
+        Row: {
+          id: string
+          is_typing: boolean | null
+          order_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_typing?: boolean | null
+          order_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_typing?: boolean | null
+          order_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_typing_indicators_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
