@@ -591,7 +591,10 @@ const OrderDashboard = () => {
           orderId={chatOrder.id}
           orderNumber={chatOrder.order_number}
           currentUserRole={isDoctor ? 'doctor' : 'lab_staff'}
-          onClose={() => setChatDialogOpen(false)}
+          onClose={() => {
+            setChatDialogOpen(false);
+            setChatOrder(null);
+          }}
         />
       )}
 
