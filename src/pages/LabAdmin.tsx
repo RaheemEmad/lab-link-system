@@ -20,13 +20,17 @@ import {
   Award,
   Plus,
   Trash2,
-  Save
+  Save,
+  Eye,
+  Upload,
+  X
 } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { LabProfilePreview } from "@/components/labs/LabProfilePreview";
 
 const labProfileSchema = z.object({
   name: z.string().min(2, "Lab name is required").max(100),
@@ -56,6 +60,10 @@ const LabAdmin = () => {
   const [newSpecType, setNewSpecType] = useState<string>("");
   const [newSpecExpertise, setNewSpecExpertise] = useState<string>("intermediate");
   const [newSpecDays, setNewSpecDays] = useState<string>("5");
+  const [showPreview, setShowPreview] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   // Check if user is lab staff and get their lab
   const { data: userRole } = useQuery({
@@ -220,8 +228,74 @@ const LabAdmin = () => {
     },
   });
 
-  const onSubmit = (data: LabProfileForm) => {
-    updateLabMutation.mutate(data);
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error("Please select an image file");
+        return;
+      }
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image must be less than 5MB");
+        return;
+      }
+      setLogoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadLogo = async () => {
+    if (!logoFile || !user?.id) return null;
+    
+    setUploadingLogo(true);
+    try {
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('lab-logos')
+        .upload(fileName, logoFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('lab-logos')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error: any) {
+      toast.error("Failed to upload logo", { description: error.message });
+      return null;
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+  };
+
+  const onSubmit = async (data: LabProfileForm) => {
+    let logoUrl = lab?.logo_url;
+    
+    // Upload new logo if one was selected
+    if (logoFile) {
+      const uploadedUrl = await uploadLogo();
+      if (uploadedUrl) {
+        logoUrl = uploadedUrl;
+      }
+    }
+    
+    updateLabMutation.mutate({ ...data, logo_url: logoUrl } as any);
   };
 
   // Check access
@@ -342,6 +416,64 @@ const LabAdmin = () => {
                   <CardContent>
                     <Form {...form}>
                       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        {/* Logo Upload Section */}
+                        <div className="border-b pb-6">
+                          <h3 className="text-lg font-semibold mb-4">Lab Logo</h3>
+                          <div className="flex items-start gap-4">
+                            <div className="relative">
+                              {logoPreview || lab?.logo_url ? (
+                                <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-border">
+                                  <img 
+                                    src={logoPreview || lab?.logo_url || ''} 
+                                    alt="Lab logo" 
+                                    className="w-full h-full object-cover"
+                                  />
+                                  {logoPreview && (
+                                    <button
+                                      type="button"
+                                      onClick={removeLogo}
+                                      className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center border-2 border-dashed border-border">
+                                  <Building2 className="h-8 w-8 text-muted-foreground" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                              <p className="text-sm text-muted-foreground">
+                                Upload a logo to represent your lab. This will appear in lab listings and on your profile.
+                              </p>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => document.getElementById('logo-upload')?.click()}
+                                  className="gap-2"
+                                >
+                                  <Upload className="h-4 w-4" />
+                                  {logoPreview || lab?.logo_url ? 'Change Logo' : 'Upload Logo'}
+                                </Button>
+                                <input
+                                  id="logo-upload"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleLogoChange}
+                                  className="hidden"
+                                />
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Max size: 5MB. Formats: JPG, PNG, WebP
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="grid gap-4 sm:grid-cols-2">
                           <FormField
                             control={form.control}
@@ -526,13 +658,22 @@ const LabAdmin = () => {
                         </div>
 
                         <div className="flex justify-end gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowPreview(true)}
+                            className="gap-2"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Preview Profile
+                          </Button>
                           <Button 
                             type="submit" 
-                            disabled={updateLabMutation.isPending}
+                            disabled={updateLabMutation.isPending || uploadingLogo}
                             className="gap-2"
                           >
                             <Save className="h-4 w-4" />
-                            {updateLabMutation.isPending ? "Saving..." : "Save Changes"}
+                            {updateLabMutation.isPending || uploadingLogo ? "Saving..." : "Save Changes"}
                           </Button>
                         </div>
                       </form>
@@ -662,6 +803,30 @@ const LabAdmin = () => {
         </div>
         <LandingFooter />
         <ScrollToTop />
+
+        {/* Preview Modal */}
+        {showPreview && lab && (
+          <LabProfilePreview
+            isOpen={showPreview}
+            onClose={() => setShowPreview(false)}
+            labData={{
+              name: form.getValues('name') || lab.name,
+              description: form.getValues('description') || lab.description || '',
+              contact_email: form.getValues('contact_email') || lab.contact_email,
+              contact_phone: form.getValues('contact_phone') || lab.contact_phone || '',
+              address: form.getValues('address') || lab.address || '',
+              max_capacity: form.getValues('max_capacity') || lab.max_capacity,
+              current_load: lab.current_load,
+              standard_sla_days: form.getValues('standard_sla_days') || lab.standard_sla_days,
+              urgent_sla_days: form.getValues('urgent_sla_days') || lab.urgent_sla_days,
+              pricing_tier: form.getValues('pricing_tier') || lab.pricing_tier,
+              performance_score: lab.performance_score || 5,
+              logo_url: logoPreview || lab.logo_url || null,
+              website_url: form.getValues('website_url') || lab.website_url || '',
+            }}
+            specializations={specializations || []}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );
