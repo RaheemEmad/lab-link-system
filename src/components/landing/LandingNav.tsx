@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
@@ -505,6 +505,26 @@ const LandingNav = () => {
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
+                  )}
+
+                  {/* Admin Panel Icon - Only for Admins */}
+                  {userRole === 'admin' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate("/admin")}
+                          className="h-9 w-9 relative group overflow-hidden hover:bg-destructive/10 hover:text-destructive transition-all duration-300"
+                        >
+                          <span className="absolute inset-0 w-0 bg-destructive/10 transition-all duration-300 group-hover:w-full" />
+                          <Shield className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-destructive" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Admin Panel</p>
+                      </TooltipContent>
+                    </Tooltip>
                   )}
 
                   {/* Profile Dropdown */}
