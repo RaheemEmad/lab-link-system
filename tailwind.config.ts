@@ -103,6 +103,9 @@ export default {
         float: "float 6s ease-in-out infinite",
         gradient: "gradient 3s ease infinite",
       },
+      backgroundSize: {
+        "size-200": "200% 200%",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
