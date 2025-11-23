@@ -12,6 +12,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useState } from "react";
+import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
 
 export default function LabRequestsManagement() {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export default function LabRequestsManagement() {
   const queryClient = useQueryClient();
   const [selectedLab, setSelectedLab] = useState<any>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [acceptedRequest, setAcceptedRequest] = useState<{ id: string; orderNumber: string } | null>(null);
 
   // Fetch all requests for this doctor's orders with full lab details
   const { data: requests, isLoading } = useQuery({
@@ -66,25 +68,30 @@ export default function LabRequestsManagement() {
 
   // Update request status
   const updateRequest = useMutation({
-    mutationFn: async ({ requestId, status }: { requestId: string; status: string }) => {
+    mutationFn: async ({ requestId, status, orderNumber }: { requestId: string; status: string; orderNumber?: string }) => {
       const { error } = await supabase
         .from("lab_work_requests")
         .update({ status })
         .eq("id", requestId);
       
       if (error) throw error;
+      return { requestId, orderNumber };
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      
-      toast({
-        title: variables.status === 'accepted' ? "Lab Approved" : "Request Declined",
-        description: variables.status === 'accepted' 
-          ? "The lab can now view full order details and begin work."
-          : "The order has been removed from the lab's marketplace.",
-      });
+    onSuccess: (data, variables) => {
+      if (variables.status === 'accepted' && data.orderNumber) {
+        // Show animation for acceptance
+        setAcceptedRequest({ id: variables.requestId, orderNumber: data.orderNumber });
+      } else {
+        // Regular flow for declined requests
+        queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
+        queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+        
+        toast({
+          title: "Request Declined",
+          description: "The order has been removed from the lab's marketplace.",
+        });
+      }
     },
     onError: (error: any) => {
       toast({
@@ -97,6 +104,18 @@ export default function LabRequestsManagement() {
 
   return (
     <ProtectedRoute>
+      {acceptedRequest && (
+        <AcceptanceAnimation
+          orderNumber={acceptedRequest.orderNumber}
+          onComplete={() => {
+            setAcceptedRequest(null);
+            queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
+            queryClient.invalidateQueries({ queryKey: ["orders"] });
+          }}
+        />
+      )}
+      
       <div className="min-h-screen flex flex-col">
         <LandingNav />
         <div className="flex-1 bg-secondary/30 py-8">
@@ -256,7 +275,8 @@ export default function LabRequestsManagement() {
                                 variant="default"
                                 onClick={() => updateRequest.mutate({ 
                                   requestId: request.id, 
-                                  status: 'accepted' 
+                                  status: 'accepted',
+                                  orderNumber: order?.order_number
                                 })}
                                 disabled={updateRequest.isPending}
                                 className="flex-1"

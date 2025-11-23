@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,16 @@ import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
 import { DashboardTour } from "@/components/dashboard/DashboardTour";
 import { AchievementToast } from "@/components/dashboard/AchievementToast";
 import { AchievementProgressNotification } from "@/components/dashboard/AchievementProgressNotification";
+import { DashboardReceiveAnimation } from "@/components/order/DashboardReceiveAnimation";
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
   const [runTour, setRunTour] = useState(false);
+  const [showReceiveAnimation, setShowReceiveAnimation] = useState(false);
+  const [receivedOrderNumber, setReceivedOrderNumber] = useState<string>("");
   const { playUrgentNotification } = useNotificationSound();
   const { 
     requestPermission, 
@@ -112,6 +116,16 @@ const Dashboard = () => {
     checkFirstLogin();
   }, [user]);
 
+  // Check if we're receiving a newly accepted order
+  useEffect(() => {
+    if (location.state?.newOrderAccepted && location.state?.orderNumber) {
+      setReceivedOrderNumber(location.state.orderNumber);
+      setShowReceiveAnimation(true);
+      // Clear the state
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
   // Request notification permission on mount if user is logged in
   useEffect(() => {
     if (user && isSupported && !isGranted) {
@@ -143,6 +157,13 @@ const Dashboard = () => {
 
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
+        {showReceiveAnimation && (
+          <DashboardReceiveAnimation
+            orderNumber={receivedOrderNumber}
+            onComplete={() => setShowReceiveAnimation(false)}
+          />
+        )}
+        
         <FirstTimeModal open={showOnboarding} onClose={() => setShowOnboarding(false)} />
         <DashboardTour userRole={userRole} run={runTour} onComplete={() => setRunTour(false)} />
         <AchievementToast />
