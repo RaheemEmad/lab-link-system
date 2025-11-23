@@ -200,7 +200,6 @@ const LandingNav = () => {
 
   // Role-specific dropdown menu items
   const doctorMenuItems = user && userRole === 'doctor' ? [
-    { label: "Track Orders", href: "/order-tracking" },
     { label: "Preferred Labs", href: "/preferred-labs" },
     { 
       label: "Lab Applications", 
