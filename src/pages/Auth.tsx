@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
 import { toast } from "sonner";
+import { 
+  getUserIP, 
+  checkOAuthRateLimit, 
+  logOAuthAttempt, 
+  isEmailVerified,
+  formatRetryTime 
+} from "@/lib/oauthSecurity";
 
 const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
@@ -49,6 +56,13 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const [userIP, setUserIP] = useState<string | null>(null);
+  const hasCheckedAuth = useRef(false);
+
+  // Get user's IP address on mount
+  useEffect(() => {
+    getUserIP().then(setUserIP);
+  }, []);
 
   const signUpForm = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -75,10 +89,26 @@ const Auth = () => {
   // Check onboarding and role status when user changes
   useEffect(() => {
     const checkUserStatus = async () => {
-      if (!user) return;
+      if (!user || hasCheckedAuth.current) return;
+      
+      hasCheckedAuth.current = true;
 
       try {
         setIsLoading(true);
+
+        // Check email verification
+        if (!isEmailVerified(user)) {
+          toast.error("Email not verified. Please check your email for verification link.");
+          await supabase.auth.signOut();
+          hasCheckedAuth.current = false;
+          setIsLoading(false);
+          return;
+        }
+
+        // Log successful OAuth attempt if this was an OAuth login
+        if (user.app_metadata?.provider === 'google' && userIP) {
+          await logOAuthAttempt(user.email || '', true, userIP);
+        }
 
         // First check if profile exists (registered user)
         const { data: profile, error: profileError } = await supabase
@@ -91,8 +121,15 @@ const Auth = () => {
         // They need to sign up properly first
         if (!profile && !profileError) {
           toast.error("Email not registered. Please sign up first.");
+          
+          // Log failed OAuth attempt
+          if (userIP && user.email) {
+            await logOAuthAttempt(user.email, false, userIP);
+          }
+          
           await supabase.auth.signOut();
           setTab("signup");
+          hasCheckedAuth.current = false;
           setIsLoading(false);
           return;
         }
@@ -125,12 +162,13 @@ const Auth = () => {
       } catch (error) {
         console.error('Error checking user status:', error);
         toast.error("Error verifying account status");
+        hasCheckedAuth.current = false;
         setIsLoading(false);
       }
     };
 
     checkUserStatus();
-  }, [user, navigate]);
+  }, [user, navigate, userIP]);
 
   const handleSignUp = async (values: SignUpValues) => {
     setIsLoading(true);
@@ -152,9 +190,32 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    await signInWithGoogle();
-    // Don't set loading to false here as user will be redirected
+    if (!userIP) {
+      toast.error("Unable to verify security. Please refresh the page.");
+      return;
+    }
+
+    try {
+      // Check rate limiting before allowing OAuth
+      const rateLimit = await checkOAuthRateLimit(userIP);
+      
+      if (rateLimit.isLocked) {
+        const retryTime = formatRetryTime(rateLimit.retryAfterSeconds || 0);
+        toast.error(
+          `Too many failed attempts. Please try again in ${retryTime}.`,
+          { duration: 5000 }
+        );
+        return;
+      }
+
+      setIsGoogleLoading(true);
+      await signInWithGoogle();
+      // Don't set loading to false here as user will be redirected
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      toast.error("Failed to sign in with Google");
+      setIsGoogleLoading(false);
+    }
   };
 
   if (showEmailConfirmation) {

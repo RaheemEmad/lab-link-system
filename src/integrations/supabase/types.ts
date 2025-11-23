@@ -1426,6 +1426,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      check_oauth_rate_limit: {
+        Args: { email_param?: string; ip_address_param: string }
+        Returns: Json
+      }
       cleanup_old_login_attempts: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       complete_doctor_onboarding: {
@@ -1521,6 +1525,15 @@ export type Database = {
           notification_id_param: string
           retry_at_param?: string
           status_param: string
+        }
+        Returns: string
+      }
+      log_oauth_attempt: {
+        Args: {
+          email_param: string
+          ip_address_param: string
+          success_param: boolean
+          user_agent_param?: string
         }
         Returns: string
       }
