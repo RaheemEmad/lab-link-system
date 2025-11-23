@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Calendar, User, Send, CheckCircle, Filter } from "lucide-react";
+import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
@@ -21,6 +21,8 @@ export default function OrdersMarketplace() {
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [restorationTypeFilter, setRestorationTypeFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("date-desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   // Get lab ID for current user
   useEffect(() => {
@@ -69,6 +71,42 @@ export default function OrdersMarketplace() {
     },
     enabled: !!labId,
   });
+
+  // Set up realtime subscription for new orders
+  useEffect(() => {
+    if (!labId) return;
+
+    const channel = supabase
+      .channel('marketplace-orders-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: 'assigned_lab_id=is.null'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["marketplace-orders", labId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["marketplace-orders", labId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [labId, queryClient]);
 
   // Fetch existing requests for this lab
   const { data: existingRequests } = useQuery({
@@ -140,6 +178,18 @@ export default function OrdersMarketplace() {
         return 0;
     }
   });
+
+  // Pagination
+  const totalPages = Math.ceil((filteredOrders?.length || 0) / itemsPerPage);
+  const paginatedOrders = filteredOrders?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [urgencyFilter, restorationTypeFilter, sortBy]);
 
   return (
     <ProtectedRoute>
@@ -218,84 +268,134 @@ export default function OrdersMarketplace() {
                   <Skeleton key={i} className="h-64" />
                 ))}
               </div>
-            ) : !filteredOrders || filteredOrders.length === 0 ? (
+            ) : !paginatedOrders || paginatedOrders.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-muted-foreground">
-                    {orders && orders.length > 0 ? "No orders match your filters" : "No available orders at the moment"}
+                    {filteredOrders && filteredOrders.length > 0 ? "No orders match your filters" : "No available orders at the moment"}
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredOrders.map((order) => {
-                  const requestStatus = getRequestStatus(order.id);
-                  
-                  return (
-                    <Card key={order.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-lg">
-                              {order.order_number}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {order.patient_name}
-                            </p>
+              <>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {paginatedOrders.map((order) => {
+                    const requestStatus = getRequestStatus(order.id);
+                    
+                    return (
+                      <Card key={order.id} className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <CardTitle className="text-lg">
+                                {order.order_number}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {order.patient_name}
+                              </p>
+                            </div>
+                            <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>
+                              {order.urgency}
+                            </Badge>
                           </div>
-                          <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>
-                            {order.urgency}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span>Dr. {order.doctor_name}</span>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span>Dr. {order.doctor_name}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                              <span>{order.restoration_type}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span>
+                                {new Date(order.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                            <span>{order.restoration_type}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>
-                              {new Date(order.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
 
-                        {requestStatus ? (
-                          <div className="pt-2">
-                            {requestStatus.status === 'pending' ? (
-                              <Badge variant="outline" className="w-full justify-center py-2">
-                                <Send className="h-4 w-4 mr-2" />
-                                Request Sent
-                              </Badge>
-                            ) : requestStatus.status === 'accepted' ? (
-                              <Badge variant="default" className="w-full justify-center py-2">
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Accepted
-                              </Badge>
-                            ) : null}
-                          </div>
-                        ) : (
+                          {requestStatus ? (
+                            <div className="pt-2">
+                              {requestStatus.status === 'pending' ? (
+                                <Badge variant="outline" className="w-full justify-center py-2">
+                                  <Send className="h-4 w-4 mr-2" />
+                                  Request Sent
+                                </Badge>
+                              ) : requestStatus.status === 'accepted' ? (
+                                <Badge variant="default" className="w-full justify-center py-2">
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Accepted
+                                </Badge>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <Button
+                              onClick={() => sendRequest.mutate(order.id)}
+                              disabled={sendRequest.isPending}
+                              className="w-full"
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              Send Request
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let page = i + 1;
+                        if (totalPages > 5) {
+                          if (currentPage > 3) {
+                            page = currentPage - 2 + i;
+                          }
+                          if (currentPage > totalPages - 3) {
+                            page = totalPages - 4 + i;
+                          }
+                        }
+                        return (
                           <Button
-                            onClick={() => sendRequest.mutate(order.id)}
-                            disabled={sendRequest.isPending}
-                            className="w-full"
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="w-10"
                           >
-                            <Send className="h-4 w-4 mr-2" />
-                            Send Request
+                            {page}
                           </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
