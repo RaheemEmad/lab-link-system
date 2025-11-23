@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Calendar, User, Send, CheckCircle } from "lucide-react";
+import { Package, Calendar, User, Send, CheckCircle, Filter } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
@@ -11,12 +11,16 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [labId, setLabId] = useState<string | null>(null);
+  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
+  const [restorationTypeFilter, setRestorationTypeFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("date-desc");
 
   // Get lab ID for current user
   useEffect(() => {
@@ -115,47 +119,27 @@ export default function OrdersMarketplace() {
     },
   });
 
-  if (!labId) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen flex flex-col">
-          <LandingNav />
-          <div className="flex-1 flex items-center justify-center">
-            <Card className="max-w-md">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  No Lab Assigned
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground">
-                  Your account is not currently assigned to a lab. Please contact an administrator.
-                </p>
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <p className="text-sm font-medium mb-2">To unlock this feature:</p>
-                  <p className="text-sm text-muted-foreground">
-                    Send an email to{" "}
-                    <a
-                      href="mailto:raheem.amer.swe@gmail.com"
-                      className="text-primary hover:underline"
-                    >
-                      raheem.amer.swe@gmail.com
-                    </a>
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <LandingFooter />
-        </div>
-      </ProtectedRoute>
-    );
-  }
-
   const getRequestStatus = (orderId: string) => {
     return existingRequests?.find(r => r.order_id === orderId);
   };
+
+  // Filter and sort orders
+  const filteredOrders = orders?.filter(order => {
+    if (urgencyFilter !== "all" && order.urgency !== urgencyFilter) return false;
+    if (restorationTypeFilter !== "all" && order.restoration_type !== restorationTypeFilter) return false;
+    return true;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case "date-asc":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case "date-desc":
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case "urgency":
+        return a.urgency === "Urgent" ? -1 : 1;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <ProtectedRoute>
@@ -170,24 +154,82 @@ export default function OrdersMarketplace() {
               </p>
             </div>
 
+            {/* Filters */}
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="font-medium">Filters</h3>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Urgency</label>
+                    <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All urgencies" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All urgencies</SelectItem>
+                        <SelectItem value="Normal">Normal</SelectItem>
+                        <SelectItem value="Urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Restoration Type</label>
+                    <Select value={restorationTypeFilter} onValueChange={setRestorationTypeFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All types</SelectItem>
+                        <SelectItem value="Zirconia">Zirconia</SelectItem>
+                        <SelectItem value="E-max">E-max</SelectItem>
+                        <SelectItem value="PFM">PFM</SelectItem>
+                        <SelectItem value="Metal">Metal</SelectItem>
+                        <SelectItem value="Acrylic">Acrylic</SelectItem>
+                        <SelectItem value="Crown">Crown</SelectItem>
+                        <SelectItem value="Bridge">Bridge</SelectItem>
+                        <SelectItem value="Zirconia Layer">Zirconia Layer</SelectItem>
+                        <SelectItem value="Zirco-Max">Zirco-Max</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Sort By</label>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date-desc">Newest first</SelectItem>
+                        <SelectItem value="date-asc">Oldest first</SelectItem>
+                        <SelectItem value="urgency">Urgency</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {isLoading ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-64" />
                 ))}
               </div>
-            ) : !orders || orders.length === 0 ? (
+            ) : !filteredOrders || filteredOrders.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-muted-foreground">
-                    No available orders at the moment
+                    {orders && orders.length > 0 ? "No orders match your filters" : "No available orders at the moment"}
                   </p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {orders.map((order) => {
+                {filteredOrders.map((order) => {
                   const requestStatus = getRequestStatus(order.id);
                   
                   return (
