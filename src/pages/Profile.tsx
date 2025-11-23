@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Save, KeyRound, Bell, Award } from "lucide-react";
+import { Save, KeyRound, Bell, Award, RefreshCw } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +43,8 @@ const Profile = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isSubscribed, isLoading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
+  const roleLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showCompleteOnboarding, setShowCompleteOnboarding] = useState(false);
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -119,8 +121,8 @@ const Profile = () => {
     }
   }, [fullName, phone, emailNotifications, smsNotifications, notificationStatusChange, notificationNewNotes, saveData, isLoading, user?.id]);
 
-  // Fetch user role
-  const { data: userRole } = useQuery({
+  // Fetch user role with timeout detection
+  const { data: userRole, isLoading: roleLoading, isError: roleError } = useQuery({
     queryKey: ["user-role", user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error("No user");
@@ -136,6 +138,33 @@ const Profile = () => {
     },
     enabled: !!user?.id,
   });
+
+  // Detect if role is stuck loading (after 5 seconds)
+  useEffect(() => {
+    if (roleLoading && !userRole) {
+      roleLoadingTimeoutRef.current = setTimeout(() => {
+        setShowCompleteOnboarding(true);
+      }, 5000);
+    } else {
+      if (roleLoadingTimeoutRef.current) {
+        clearTimeout(roleLoadingTimeoutRef.current);
+      }
+      setShowCompleteOnboarding(false);
+    }
+
+    return () => {
+      if (roleLoadingTimeoutRef.current) {
+        clearTimeout(roleLoadingTimeoutRef.current);
+      }
+    };
+  }, [roleLoading, userRole]);
+
+  // Also show button if role fetch errored
+  useEffect(() => {
+    if (roleError) {
+      setShowCompleteOnboarding(true);
+    }
+  }, [roleError]);
 
   // Fetch user achievements
   const { data: achievements = [] } = useQuery({
@@ -399,6 +428,24 @@ const Profile = () => {
                       </p>
                     </div>
                   </div>
+                  
+                  {showCompleteOnboarding && (
+                    <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                      <p className="text-sm text-amber-700 dark:text-amber-400 mb-2">
+                        Role information couldn't be loaded. Complete your account setup to continue.
+                      </p>
+                      <Button
+                        onClick={() => navigate("/onboarding")}
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-amber-500/30 hover:bg-amber-500/10"
+                      >
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Complete Onboarding
+                      </Button>
+                    </div>
+                  )}
+                  
                   <p className="text-xs text-muted-foreground">
                     Contact support if your role needs to be changed
                   </p>
