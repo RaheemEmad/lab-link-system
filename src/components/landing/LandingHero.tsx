@@ -90,7 +90,7 @@ const LandingHero = () => {
             {/* Main headline */}
             <motion.h1 
               variants={itemVariants}
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.1] text-foreground tracking-tight"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] text-foreground tracking-tight"
             >
               From WhatsApp Chaos to{" "}
               <span className="relative inline-block">
@@ -108,19 +108,19 @@ const LandingHero = () => {
             {/* Subheadline */}
             <motion.p 
               variants={itemVariants}
-              className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+              className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
             >
-              The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow.
+              Connect dentists with qualified dental labs. Track orders, manage profiles, and streamline your workflow.
             </motion.p>
             
             {/* Benefits */}
             <motion.div 
               variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-4xl mx-auto"
+              className="flex flex-col sm:flex-row gap-3 justify-center items-center max-w-4xl mx-auto"
             >
               {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-2 text-sm sm:text-base text-muted-foreground group">
-                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                <div key={index} className="flex items-start gap-2 text-sm text-muted-foreground group">
+                  <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                   <span className="text-left">{benefit}</span>
                 </div>
               ))}
@@ -129,50 +129,45 @@ const LandingHero = () => {
             {/* CTAs */}
             <motion.div 
               variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+              className="flex flex-col sm:flex-row gap-3 justify-center pt-4"
             >
               <Button 
+                variant="gradient"
                 size="lg" 
-                className="text-lg px-10 py-7 h-auto group relative overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300"
+                className="group relative z-10"
                 onClick={() => navigate(user ? "/new-order" : "/auth")}
               >
                 <span className="relative z-10 flex items-center">
-                  <Stethoscope className="mr-2 h-5 w-5" />
+                  <Stethoscope className="mr-2 h-4 w-4" />
                   For Dentists
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-primary to-accent"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
               </Button>
               
               <Button 
                 size="lg" 
                 variant="outline"
-                className="text-lg px-10 py-7 h-auto group border-2 hover:border-primary hover:bg-primary/5 transition-all duration-300"
+                className="group"
                 onClick={() => navigate(user ? "/lab-admin" : "/auth")}
               >
-                <Building2 className="mr-2 h-5 w-5" />
+                <Building2 className="mr-2 h-4 w-4" />
                 For Labs
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </motion.div>
             
             {/* Trust line */}
             <motion.p 
               variants={itemVariants}
-              className="text-sm text-muted-foreground"
+              className="text-xs text-muted-foreground"
             >
-              Free to start • No credit card required • Launch in 2 minutes
+              Free to start • No credit card • 2 minute setup
             </motion.p>
             
             {/* Stats */}
             <motion.div 
               variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto pt-12"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto pt-10"
             >
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
@@ -180,17 +175,17 @@ const LandingHero = () => {
                   <motion.div 
                     key={index}
                     whileHover={{ y: -4 }}
-                    className="text-center p-6 rounded-2xl bg-gradient-to-b from-primary/5 to-transparent border border-primary/10 hover:border-primary/20 transition-all duration-300"
+                    className="text-center p-5 rounded-xl bg-gradient-to-b from-primary/5 to-transparent border border-primary/10 hover:border-primary/20 transition-all duration-300"
                   >
-                    <div className="flex justify-center mb-3">
-                      <div className="p-3 rounded-full bg-primary/10">
-                        <Icon className="w-6 h-6 text-primary" />
+                    <div className="flex justify-center mb-2">
+                      <div className="p-2.5 rounded-full bg-primary/10">
+                        <Icon className="w-5 h-5 text-primary" />
                       </div>
                     </div>
-                    <div className="text-4xl font-bold text-foreground mb-2">
+                    <div className="text-3xl font-bold text-foreground mb-1">
                       {stat.value}
                     </div>
-                    <div className="text-sm text-muted-foreground font-medium">
+                    <div className="text-xs text-muted-foreground font-medium">
                       {stat.label}
                     </div>
                   </motion.div>
