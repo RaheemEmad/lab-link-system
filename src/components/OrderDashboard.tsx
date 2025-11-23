@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -40,6 +40,7 @@ import { OrderStatusDialog } from "./order/OrderStatusDialog";
 import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
 import OrderNotesDialog from "./order/OrderNotesDialog";
 import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
+import { OrderChatWindow } from "./chat/OrderChatWindow";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -87,6 +88,8 @@ const OrderDashboard = () => {
   const [historyOrder, setHistoryOrder] = useState<Order | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [notesOrder, setNotesOrder] = useState<Order | null>(null);
+  const [chatDialogOpen, setChatDialogOpen] = useState(false);
+  const [chatOrder, setChatOrder] = useState<Order | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const { user } = useAuth();
@@ -145,57 +148,52 @@ const OrderDashboard = () => {
     if (!user) return;
 
     try {
-      // For lab staff: only show ASSIGNED orders (not marketplace orders)
-      // For doctors: show all their orders
       let query = supabase
         .from("orders")
         .select(`
           *,
-          labs:assigned_lab_id (
+          labs (
             id,
             name,
             contact_email,
             contact_phone,
             description
           )
-        `);
+        `)
+        .order("timestamp", { ascending: false });
 
-      // Lab staff should only see orders assigned to them (not marketplace orders)
-      if (userRole === 'lab_staff') {
-        query = query.not('assigned_lab_id', 'is', null);
+      if (userRole === "doctor") {
+        query = query.eq("doctor_id", user.id);
+      } else if (userRole === "lab_staff") {
+        query = query.not("assigned_lab_id", "is", null);
       }
 
-      const { data, error } = await query.order("timestamp", { ascending: false });
+      const { data, error } = await query;
 
       if (error) throw error;
-
       setOrders(data || []);
     } catch (error: any) {
-      toast.error("Failed to load orders", {
-        description: error.message,
-      });
+      console.error("Failed to fetch orders:", error.message);
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteOrderId) return;
-
+  const handleDelete = async (orderId: string) => {
     try {
       const { error } = await supabase
         .from("orders")
         .delete()
-        .eq("id", deleteOrderId);
+        .eq("id", orderId);
 
       if (error) throw error;
 
       toast.success("Order deleted successfully");
       fetchOrders();
     } catch (error: any) {
-      toast.error("Failed to delete order", {
-        description: error.message,
-      });
+      console.error("Failed to delete order:", error.message);
+      toast.error("Failed to delete order");
     } finally {
       setDeleteOrderId(null);
     }
@@ -220,131 +218,69 @@ const OrderDashboard = () => {
     setNotesDialogOpen(true);
   };
 
-  const isLabStaff = userRole === "lab_staff" || userRole === "admin";
+  const handleOpenChat = (order: Order) => {
+    setChatOrder(order);
+    setChatDialogOpen(true);
+  };
 
   const filteredOrders = orders.filter((order) => {
-    const matchesSearch = 
-      order.doctor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.order_number.toLowerCase().includes(searchTerm.toLowerCase());
+      order.doctor_name.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
-
-  const stats = {
-    total: orders.length,
-    pending: orders.filter(o => o.status === "Pending").length,
-    inProgress: orders.filter(o => o.status === "In Progress").length,
-    delivered: orders.filter(o => o.status === "Delivered").length,
-  };
+  const isDoctor = userRole === "doctor";
+  const isLabStaff = userRole === "lab_staff";
 
   if (loading) {
     return (
-      <div className="space-y-4 sm:space-y-6">
-        {/* Skeleton Stats Cards */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
-
-        {/* Skeleton Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Loading Orders...</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-              <div className="relative flex-1">
-                <div className="h-10 bg-muted rounded-md animate-pulse" />
-              </div>
-              <div className="w-full sm:w-[200px] h-10 bg-muted rounded-md animate-pulse" />
-            </div>
-            <SkeletonTable rows={8} />
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Orders...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable />
+        </CardContent>
+      </Card>
     );
   }
 
-  const isDoctor = userRole === "doctor";
-
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4" data-tour="stats-cards">
-        <Card>
-          <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Total Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Pending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-warning">{stats.pending}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">In Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-info">{stats.inProgress}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Delivered</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-success">{stats.delivered}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
+    <TooltipProvider>
+      <Card data-tour="order-dashboard">
         <CardHeader>
-          <CardTitle>All Orders</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Order Management
+            {orders.length > 0 && (
+              <Badge variant="secondary">{orders.length} total</Badge>
+            )}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-tour="search-filter">
+        <CardContent className="space-y-4">
+          {/* Filters and Search */}
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by patient or order ID..."
+                placeholder="Search orders..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
               />
             </div>
-            
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <Filter className="mr-2 h-4 w-4" />
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -371,7 +307,7 @@ const OrderDashboard = () => {
             </div>
           </div>
 
-          {/* Orders Table - Scrollable on mobile */}
+          {/* Orders Table */}
           <div className="rounded-md border overflow-x-auto" data-tour="orders-table">
             <Table className="min-w-[800px]">
               <TableHeader>
@@ -513,6 +449,15 @@ const OrderDashboard = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-background">
+                            {order.assigned_lab_id && (
+                              <>
+                                <DropdownMenuItem onClick={() => handleOpenChat(order)}>
+                                  <MessageCircle className="mr-2 h-4 w-4" />
+                                  Open Chat
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
                             <DropdownMenuItem onClick={() => handleViewHistory(order)}>
                               <History className="mr-2 h-4 w-4" />
                               View History
@@ -553,7 +498,7 @@ const OrderDashboard = () => {
             </Table>
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
@@ -570,7 +515,6 @@ const OrderDashboard = () => {
                   </PaginationItem>
                   
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    // Show first page, last page, current page, and pages around current
                     if (
                       page === 1 ||
                       page === totalPages ||
@@ -610,59 +554,65 @@ const OrderDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteOrderId} onOpenChange={(open) => !open && setDeleteOrderId(null)}>
+      {/* Dialogs */}
+      {selectedOrder && (
+        <OrderStatusDialog
+          open={statusDialogOpen}
+          onOpenChange={setStatusDialogOpen}
+          order={selectedOrder}
+          onStatusUpdate={fetchOrders}
+        />
+      )}
+
+      {historyOrder && (
+        <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Order History: {historyOrder.order_number}</DialogTitle>
+            </DialogHeader>
+            <OrderHistoryTimeline orderId={historyOrder.id} />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {notesOrder && (
+        <OrderNotesDialog
+          open={notesDialogOpen}
+          onOpenChange={setNotesDialogOpen}
+          orderId={notesOrder.id}
+          orderNumber={notesOrder.order_number}
+        />
+      )}
+
+      {chatOrder && (
+        <OrderChatWindow
+          orderId={chatOrder.id}
+          orderNumber={chatOrder.order_number}
+          currentUserRole={isDoctor ? 'doctor' : 'lab_staff'}
+          onClose={() => setChatDialogOpen(false)}
+        />
+      )}
+
+      <AlertDialog open={!!deleteOrderId} onOpenChange={() => setDeleteOrderId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Order</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this order. This action cannot be undone.
+              Are you sure you want to delete this order? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={() => deleteOrderId && handleDelete(deleteOrderId)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Order Status Update Dialog */}
-      {selectedOrder && (
-        <OrderStatusDialog
-          orderId={selectedOrder.id}
-          orderNumber={selectedOrder.order_number}
-          currentStatus={selectedOrder.status}
-          open={statusDialogOpen}
-          onOpenChange={setStatusDialogOpen}
-          onStatusUpdated={fetchOrders}
-        />
-      )}
-
-      {/* Order History Timeline Dialog */}
-      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Order Status History</DialogTitle>
-          </DialogHeader>
-          {historyOrder && (
-            <OrderHistoryTimeline
-              orderId={historyOrder.id}
-              orderNumber={historyOrder.order_number}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Order Notes Dialog */}
-      <OrderNotesDialog
-        orderId={notesOrder?.id || null}
-        open={notesDialogOpen}
-        onOpenChange={setNotesDialogOpen}
-        orderNumber={notesOrder?.order_number || ""}
-      />
-    </div>
+    </TooltipProvider>
   );
 };
 

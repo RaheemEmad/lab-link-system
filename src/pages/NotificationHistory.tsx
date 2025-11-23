@@ -70,6 +70,7 @@ const NotificationHistory = () => {
       return data as Notification[];
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   // Mark as read mutation
@@ -83,14 +84,18 @@ const NotificationHistory = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Invalidate all notification-related queries
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-notifications"] });
     },
   });
 
-  // Mark all as read mutation
+  // Mark all as read mutation - FIXED
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("No user");
+
+      console.log('[NotificationHistory] Marking all notifications as read for user:', user.id);
 
       const { error } = await supabase
         .from("notifications")
@@ -98,18 +103,28 @@ const NotificationHistory = () => {
         .eq("user_id", user.id)
         .eq("read", false);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[NotificationHistory] Error marking all as read:', error);
+        throw error;
+      }
+
+      console.log('[NotificationHistory] Successfully marked all notifications as read');
     },
     onSuccess: () => {
+      // CRITICAL: Invalidate ALL notification-related queries to update nav badge
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-notifications"] });
+      
       toast({
-        title: "All notifications marked as read",
+        title: "Success",
+        description: "All notifications marked as read",
       });
     },
     onError: (error: Error) => {
+      console.error('[NotificationHistory] Mark all read mutation error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to mark notifications as read",
         variant: "destructive",
       });
     },
@@ -122,16 +137,12 @@ const NotificationHistory = () => {
     
     // Navigate based on notification type
     if (notification.type === 'new_marketplace_order') {
-      // Marketplace notifications should open marketplace
       navigate('/orders-marketplace');
     } else if (notification.type === 'lab_request') {
-      // Lab application notifications should open lab requests page
       navigate('/lab-requests');
     } else if (notification.type === 'new_note' || notification.type === 'shipment_update') {
-      // Note and shipment notifications should open logistics page
       navigate('/logistics');
     } else {
-      // All other notifications open dashboard
       navigate(`/dashboard?orderId=${notification.order_id}`);
     }
   };
@@ -241,11 +252,11 @@ const NotificationHistory = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => markAllAsReadMutation.mutate()}
+                          onClick={markAllAsRead}
                           disabled={markAllAsReadMutation.isPending}
                         >
                           <CheckCheck className="mr-2 h-4 w-4" />
-                          Mark All Read
+                          {markAllAsReadMutation.isPending ? "Marking..." : "Mark All Read"}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
