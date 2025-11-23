@@ -5,7 +5,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck } from "lucide-react";
 import { motion } from "framer-motion";
-import lablinkLogo from "@/assets/lablink-logo.jpg";
+import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
@@ -261,7 +261,7 @@ const LandingNav = () => {
                   <motion.img 
                     src={lablinkLogo} 
                     alt="LabLink Logo" 
-                    className="h-10 w-auto object-contain"
+                    className="h-12 w-auto object-contain"
                     initial={{ opacity: 0, rotate: -10 }}
                     animate={{ opacity: 1, rotate: 0 }}
                     transition={{ 
