@@ -146,18 +146,22 @@ const PreferredLabs = () => {
     mutationFn: async (reorderedLabs: PreferredLab[]) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      const updates = reorderedLabs.map((lab, index) => ({
-        id: lab.id,
-        dentist_id: user.id,
-        lab_id: lab.lab_id,
-        priority_order: index + 1,
-      }));
+      // Update each lab's priority individually
+      const updates = reorderedLabs.map((lab, index) =>
+        supabase
+          .from("preferred_labs")
+          .update({ priority_order: index + 1 })
+          .eq("id", lab.id)
+          .eq("dentist_id", user.id)
+      );
 
-      const { error } = await supabase
-        .from("preferred_labs")
-        .upsert(updates);
-
-      if (error) throw error;
+      const results = await Promise.all(updates);
+      
+      // Check if any updates failed
+      const errors = results.filter(result => result.error);
+      if (errors.length > 0) {
+        throw new Error(errors[0].error?.message || "Failed to update priorities");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["preferred-labs"] });
