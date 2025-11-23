@@ -3,12 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Database, Shield, Zap, FileText, Medal, Lock } from "lucide-react";
+import { Trophy, Database, Shield, Zap, FileText, Medal, Lock, Users, Rocket, MessageSquare, Archive } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 
 // Lab staff-specific achievements
 const LAB_ACHIEVEMENTS = {
@@ -33,6 +34,15 @@ const LAB_ACHIEVEMENTS = {
     category: "Quality Control",
     requiredCount: 5
   },
+  quality_guardian: {
+    name: "Quality Guardian",
+    description: "Completed 25 quality checks",
+    icon: Shield,
+    color: "from-emerald-500 to-emerald-600",
+    textColor: "text-emerald-500",
+    category: "Quality Control",
+    requiredCount: 25
+  },
   
   // Speed & Efficiency
   rush_hour_hero: {
@@ -44,6 +54,15 @@ const LAB_ACHIEVEMENTS = {
     category: "Speed & Efficiency",
     requiredCount: 1
   },
+  speed_demon: {
+    name: "Speed Demon",
+    description: "Completed 5 orders in one day",
+    icon: Rocket,
+    color: "from-orange-500 to-orange-600",
+    textColor: "text-orange-500",
+    category: "Speed & Efficiency",
+    requiredCount: 5
+  },
   
   // Digital Pioneer
   paperless_pro: {
@@ -54,6 +73,35 @@ const LAB_ACHIEVEMENTS = {
     textColor: "text-emerald-500",
     category: "Digital Pioneer",
     requiredCount: 25
+  },
+  archive_master: {
+    name: "Archive Master",
+    description: "Uploaded 50 files",
+    icon: Archive,
+    color: "from-teal-500 to-teal-600",
+    textColor: "text-teal-500",
+    category: "Digital Pioneer",
+    requiredCount: 50
+  },
+  
+  // Collaboration
+  team_player: {
+    name: "Team Player",
+    description: "Collaborated on 10 orders",
+    icon: Users,
+    color: "from-purple-500 to-purple-600",
+    textColor: "text-purple-500",
+    category: "Collaboration",
+    requiredCount: 10
+  },
+  communication_pro: {
+    name: "Communication Pro",
+    description: "Added 15 helpful notes",
+    icon: MessageSquare,
+    color: "from-indigo-500 to-indigo-600",
+    textColor: "text-indigo-500",
+    category: "Collaboration",
+    requiredCount: 15
   }
 };
 
@@ -143,6 +191,34 @@ export default function LabAchievements() {
     enabled: !!user?.id,
   });
 
+  // Fetch active challenges
+  const { data: activeChallenges } = useQuery({
+    queryKey: ["lab-challenges", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_challenges")
+        .select("*")
+        .eq("user_id", user?.id!)
+        .gte("expires_at", new Date().toISOString())
+        .order("challenge_type", { ascending: true })
+        .order("expires_at", { ascending: true });
+      
+      if (error) throw error;
+      return data as Array<{
+        id: string;
+        challenge_id: string;
+        challenge_type: "daily" | "weekly" | "monthly";
+        progress: number;
+        target: number;
+        completed: boolean;
+        expires_at: string;
+        completed_at?: string;
+      }>;
+    },
+    enabled: !!user?.id,
+    refetchInterval: 30000,
+  });
+
   const earnedIds = new Set(earnedAchievements?.map(a => a.achievement_id) || []);
   const earnedCount = earnedIds.size;
   const totalCount = Object.keys(LAB_ACHIEVEMENTS).length;
@@ -153,6 +229,10 @@ export default function LabAchievements() {
     acc[category].push({ id, ...achievement });
     return acc;
   }, {} as Record<string, any[]>);
+
+  const dailyChallenges = activeChallenges?.filter(c => c.challenge_type === 'daily') || [];
+  const weeklyChallenges = activeChallenges?.filter(c => c.challenge_type === 'weekly') || [];
+  const monthlyChallenges = activeChallenges?.filter(c => c.challenge_type === 'monthly') || [];
 
   return (
     <ProtectedRoute>
@@ -233,6 +313,58 @@ export default function LabAchievements() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Active Challenges */}
+            {activeChallenges && activeChallenges.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <div className="h-1 w-8 bg-gradient-to-r from-primary to-transparent rounded" />
+                  Active Challenges
+                </h2>
+                
+                {/* Daily Challenges */}
+                {dailyChallenges.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-3 text-blue-600 dark:text-blue-400">
+                      Daily Challenges
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {dailyChallenges.map(challenge => (
+                        <ChallengeCard key={challenge.id} challenge={challenge} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Weekly Challenges */}
+                {weeklyChallenges.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-3 text-purple-600 dark:text-purple-400">
+                      Weekly Challenges
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {weeklyChallenges.map(challenge => (
+                        <ChallengeCard key={challenge.id} challenge={challenge} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Monthly Challenges */}
+                {monthlyChallenges.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-3 text-amber-600 dark:text-amber-400">
+                      Monthly Challenges
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {monthlyChallenges.map(challenge => (
+                        <ChallengeCard key={challenge.id} challenge={challenge} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Achievement Categories */}
