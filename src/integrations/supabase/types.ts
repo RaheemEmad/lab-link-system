@@ -487,6 +487,60 @@ export type Database = {
           },
         ]
       }
+      order_attachments: {
+        Row: {
+          attachment_category: string
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          order_id: string
+          updated_at: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          attachment_category: string
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          order_id: string
+          updated_at?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          attachment_category?: string
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          order_id?: string
+          updated_at?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_attachments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_edit_history: {
         Row: {
           change_summary: string | null
@@ -623,10 +677,14 @@ export type Database = {
           assigned_lab_id: string | null
           auto_assign_pending: boolean | null
           biological_notes: string | null
+          carrier_name: string | null
+          carrier_phone: string | null
           created_at: string
           delivery_date: string | null
+          delivery_date_comment: string | null
           design_approved: boolean | null
           design_file_url: string | null
+          desired_delivery_date: string | null
           doctor_id: string | null
           doctor_name: string
           expected_delivery_date: string | null
@@ -637,6 +695,7 @@ export type Database = {
           patient_name: string
           photos_link: string | null
           price: number | null
+          proposed_delivery_date: string | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
           screenshot_url: string | null
           shade_system: string | null
@@ -655,10 +714,14 @@ export type Database = {
           assigned_lab_id?: string | null
           auto_assign_pending?: boolean | null
           biological_notes?: string | null
+          carrier_name?: string | null
+          carrier_phone?: string | null
           created_at?: string
           delivery_date?: string | null
+          delivery_date_comment?: string | null
           design_approved?: boolean | null
           design_file_url?: string | null
+          desired_delivery_date?: string | null
           doctor_id?: string | null
           doctor_name: string
           expected_delivery_date?: string | null
@@ -669,6 +732,7 @@ export type Database = {
           patient_name: string
           photos_link?: string | null
           price?: number | null
+          proposed_delivery_date?: string | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
           screenshot_url?: string | null
           shade_system?: string | null
@@ -687,10 +751,14 @@ export type Database = {
           assigned_lab_id?: string | null
           auto_assign_pending?: boolean | null
           biological_notes?: string | null
+          carrier_name?: string | null
+          carrier_phone?: string | null
           created_at?: string
           delivery_date?: string | null
+          delivery_date_comment?: string | null
           design_approved?: boolean | null
           design_file_url?: string | null
+          desired_delivery_date?: string | null
           doctor_id?: string | null
           doctor_name?: string
           expected_delivery_date?: string | null
@@ -701,6 +769,7 @@ export type Database = {
           patient_name?: string
           photos_link?: string | null
           price?: number | null
+          proposed_delivery_date?: string | null
           restoration_type?: Database["public"]["Enums"]["restoration_type"]
           screenshot_url?: string | null
           shade_system?: string | null

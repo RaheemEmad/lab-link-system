@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { ShipmentDetailsDialog } from "@/components/order/ShipmentDetailsDialog";
 import { toast } from "sonner";
 
 interface LabCapacity {
@@ -30,6 +32,11 @@ interface OrderShipment {
   expected_delivery_date: string | null;
   actual_delivery_date: string | null;
   urgency: string;
+  desired_delivery_date: string | null;
+  proposed_delivery_date: string | null;
+  delivery_date_comment: string | null;
+  carrier_name: string | null;
+  carrier_phone: string | null;
   assigned_lab: {
     name: string;
   } | null;
@@ -42,6 +49,7 @@ const LogisticsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [labCapacity, setLabCapacity] = useState<LabCapacity[]>([]);
   const [shipments, setShipments] = useState<OrderShipment[]>([]);
+  const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
 
   useEffect(() => {
     const checkRole = async () => {
@@ -97,6 +105,11 @@ const LogisticsDashboard = () => {
             expected_delivery_date,
             actual_delivery_date,
             urgency,
+            desired_delivery_date,
+            proposed_delivery_date,
+            delivery_date_comment,
+            carrier_name,
+            carrier_phone,
             assigned_lab:labs(name)
           `
           )
@@ -332,8 +345,7 @@ const LogisticsDashboard = () => {
                     {shipments.map((shipment) => (
                       <div
                         key={shipment.id}
-                        className="border rounded-lg p-4 hover:bg-accent/50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/order-tracking`)}
+                        className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div>
@@ -379,10 +391,54 @@ const LogisticsDashboard = () => {
                           </div>
                         )}
 
-                        {shipment.expected_delivery_date && (
-                          <div className="text-sm text-muted-foreground mt-2">
-                            Expected:{" "}
-                            {new Date(shipment.expected_delivery_date).toLocaleDateString()}
+                        {/* Delivery Dates */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                          {shipment.desired_delivery_date && (
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">Desired: </span>
+                              <span className="font-medium">
+                                {new Date(shipment.desired_delivery_date).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                          {shipment.proposed_delivery_date && (
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">Proposed: </span>
+                              <span className="font-medium text-blue-600 dark:text-blue-400">
+                                {new Date(shipment.proposed_delivery_date).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Carrier Information */}
+                        {shipment.carrier_name && (
+                          <div className="flex items-center gap-4 text-sm mt-3 bg-blue-500/10 p-2 rounded">
+                            <div>
+                              <span className="text-muted-foreground">Carrier: </span>
+                              <span className="font-medium">{shipment.carrier_name}</span>
+                            </div>
+                            {shipment.carrier_phone && (
+                              <div>
+                                <span className="text-muted-foreground">Phone: </span>
+                                <span className="font-medium">{shipment.carrier_phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Edit Button for Lab Staff */}
+                        {userRole === "lab_staff" && shipment.status === "Ready for Delivery" && (
+                          <div className="mt-3">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedShipment(shipment)}
+                              className="w-full"
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Shipment Details
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -395,6 +451,20 @@ const LogisticsDashboard = () => {
         </div>
         <LandingFooter />
       </div>
+
+      {/* Shipment Details Dialog */}
+      {selectedShipment && (
+        <ShipmentDetailsDialog
+          open={!!selectedShipment}
+          onOpenChange={(open) => !open && setSelectedShipment(null)}
+          order={selectedShipment}
+          onUpdate={() => {
+            setSelectedShipment(null);
+            // Refetch data
+            window.location.reload();
+          }}
+        />
+      )}
     </ProtectedRoute>
   );
 };
