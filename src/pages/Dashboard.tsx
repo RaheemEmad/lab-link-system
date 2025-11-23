@@ -233,25 +233,6 @@ const Dashboard = () => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => navigate("/doctor-achievements")} 
-                        className="flex-1 sm:flex-none"
-                      >
-                        <Trophy className="h-4 w-4" />
-                        <span className="ml-2">Achievements</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View your achievements and track progress</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-
-                {userRole === "doctor" && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
                         onClick={() => navigate("/new-order")} 
                         className="flex-1 sm:flex-none"
                         data-tour="new-order-btn"
