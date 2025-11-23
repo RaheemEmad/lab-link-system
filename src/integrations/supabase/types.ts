@@ -1124,6 +1124,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      user_onboarding_completed: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "lab_staff" | "doctor"
