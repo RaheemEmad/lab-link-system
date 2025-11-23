@@ -14,6 +14,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import { ShipmentDetailsDialog } from "@/components/order/ShipmentDetailsDialog";
 import { OrderDetailsModal } from "@/components/order/OrderDetailsModal";
 import { toast } from "sonner";
+
 interface LabCapacity {
   id: string;
   name: string;
@@ -21,10 +22,12 @@ interface LabCapacity {
   max_capacity: number;
   performance_score: number | null;
 }
+
 interface OrderShipment {
   id: string;
   order_number: string;
   patient_name: string;
+  doctor_name: string;
   status: string;
   shipment_tracking: string | null;
   handling_instructions: string | null;
@@ -50,6 +53,7 @@ interface OrderShipment {
     name: string;
   } | null;
 }
+
 const LogisticsDashboard = () => {
   const {
     user
@@ -61,6 +65,7 @@ const LogisticsDashboard = () => {
   const [shipments, setShipments] = useState<OrderShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
+  
   useEffect(() => {
     const checkRole = async () => {
       if (!user) return;
@@ -76,6 +81,7 @@ const LogisticsDashboard = () => {
     };
     checkRole();
   }, [user, navigate]);
+  
   useEffect(() => {
     const fetchData = async () => {
       if (!user || !userRole) return;
@@ -87,6 +93,7 @@ const LogisticsDashboard = () => {
             id,
             order_number,
             patient_name,
+            doctor_name,
             status,
             shipment_tracking,
             handling_instructions,
@@ -151,6 +158,7 @@ const LogisticsDashboard = () => {
       supabase.removeChannel(channel);
     };
   }, [user, userRole]);
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Delivered":
@@ -163,6 +171,7 @@ const LogisticsDashboard = () => {
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
   };
+  
   const getCapacityStatus = (current: number, max: number) => {
     const percentage = current / max * 100;
     if (percentage >= 90) return {
@@ -182,6 +191,7 @@ const LogisticsDashboard = () => {
       label: "Low"
     };
   };
+  
   // Calculate metrics
   const totalShipments = shipments.length;
   const activeShipments = shipments.filter(s => s.driver_name || s.carrier_name).length;
@@ -190,6 +200,7 @@ const LogisticsDashboard = () => {
   const readyForShipment = shipments.filter(s => s.status === "Ready for Delivery").length;
   const urgentShipments = shipments.filter(s => s.urgency === "Urgent").length;
   const priorityHandling = shipments.filter(s => s.urgency === "Urgent" && s.status !== "Delivered").length;
+  
   if (loading) {
     return <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
@@ -209,6 +220,7 @@ const LogisticsDashboard = () => {
         </div>
       </ProtectedRoute>;
   }
+  
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
@@ -228,7 +240,7 @@ const LogisticsDashboard = () => {
               </div>
             </div>
 
-            {/* Key Metrics - Enhanced for Lab */}
+            {/* Key Metrics */}
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mb-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -241,31 +253,27 @@ const LogisticsDashboard = () => {
                 </CardContent>
               </Card>
 
-              {userRole === "lab_staff" && (
-                <>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Active Shipments</CardTitle>
-                      <Truck className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{activeShipments}</div>
-                      <p className="text-xs text-muted-foreground mt-1">With driver assigned</p>
-                    </CardContent>
-                  </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Shipments</CardTitle>
+                  <Truck className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{activeShipments}</div>
+                  <p className="text-xs text-muted-foreground mt-1">With driver assigned</p>
+                </CardContent>
+              </Card>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">In Transit</CardTitle>
-                      <Package className="h-4 w-4 text-blue-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{ordersInTransit}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Active orders</p>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">In Transit</CardTitle>
+                  <Package className="h-4 w-4 text-blue-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{ordersInTransit}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Currently being transported</p>
+                </CardContent>
+              </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -274,46 +282,42 @@ const LogisticsDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{pendingDeliveries}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Awaiting delivery</p>
+                  <p className="text-xs text-muted-foreground mt-1">Awaiting final delivery</p>
                 </CardContent>
               </Card>
 
-              {userRole === "lab_staff" && (
-                <>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Ready for Shipment</CardTitle>
-                      <Package className="h-4 w-4 text-green-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">{readyForShipment}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Ready to ship</p>
-                    </CardContent>
-                  </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Ready for Shipment</CardTitle>
+                  <Package className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{readyForShipment}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Ready to be dispatched</p>
+                </CardContent>
+              </Card>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Urgent Orders</CardTitle>
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-destructive">{urgentShipments}</div>
-                      <p className="text-xs text-muted-foreground mt-1">All urgent</p>
-                    </CardContent>
-                  </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Urgent Orders</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-destructive">{urgentShipments}</div>
+                  <p className="text-xs text-muted-foreground mt-1">All urgent cases</p>
+                </CardContent>
+              </Card>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Priority Handling</CardTitle>
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-red-600 dark:text-red-400">{priorityHandling}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Needs attention</p>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Priority Handling</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{priorityHandling}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Requiring special attention</p>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Shipment Tracking */}
@@ -331,11 +335,14 @@ const LogisticsDashboard = () => {
                     <p>No active shipments</p>
                   </div> : <div className="space-y-4">
                     {shipments.map(shipment => <div key={shipment.id} className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="font-semibold">{shipment.order_number}</div>
                             <div className="text-sm text-muted-foreground">
                               {shipment.patient_name}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {new Date(shipment.created_at).toLocaleDateString()} at {new Date(shipment.created_at).toLocaleTimeString()} • Dr. {shipment.doctor_name}
                             </div>
                           </div>
                           <div className="flex gap-2">
@@ -439,4 +446,5 @@ const LogisticsDashboard = () => {
       )}
     </ProtectedRoute>;
 };
+
 export default LogisticsDashboard;
