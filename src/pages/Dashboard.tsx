@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell, Package, Compass, Truck } from "lucide-react";
+import { Plus, Bell, Package, Compass, Truck, Trophy } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -206,6 +206,24 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
+                {userRole === "doctor" && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate("/achievements")} 
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Trophy className="h-4 w-4" />
+                        <span className="ml-2">Achievements</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View your achievements and track progress</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
 
                 <Tooltip>
                   <TooltipTrigger asChild>
