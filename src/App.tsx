@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
@@ -53,6 +54,7 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   useServiceWorkerUpdate();
   const location = useLocation();
+  usePageTitle();
   
   return (
     <>
