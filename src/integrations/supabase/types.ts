@@ -687,6 +687,8 @@ export type Database = {
           desired_delivery_date: string | null
           doctor_id: string | null
           doctor_name: string
+          driver_name: string | null
+          driver_phone_whatsapp: string | null
           expected_delivery_date: string | null
           handling_instructions: string | null
           html_export: string | null
@@ -694,17 +696,20 @@ export type Database = {
           order_number: string
           patient_name: string
           photos_link: string | null
+          pickup_time: string | null
           price: number | null
           proposed_delivery_date: string | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
           screenshot_url: string | null
           shade_system: string | null
+          shipment_notes: string | null
           shipment_tracking: string | null
           status: Database["public"]["Enums"]["order_status"]
           status_updated_at: string | null
           teeth_number: string
           teeth_shade: string
           timestamp: string
+          tracking_location: string | null
           updated_at: string
           urgency: Database["public"]["Enums"]["urgency_level"]
         }
@@ -724,6 +729,8 @@ export type Database = {
           desired_delivery_date?: string | null
           doctor_id?: string | null
           doctor_name: string
+          driver_name?: string | null
+          driver_phone_whatsapp?: string | null
           expected_delivery_date?: string | null
           handling_instructions?: string | null
           html_export?: string | null
@@ -731,17 +738,20 @@ export type Database = {
           order_number: string
           patient_name: string
           photos_link?: string | null
+          pickup_time?: string | null
           price?: number | null
           proposed_delivery_date?: string | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
           screenshot_url?: string | null
           shade_system?: string | null
+          shipment_notes?: string | null
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           status_updated_at?: string | null
           teeth_number: string
           teeth_shade: string
           timestamp?: string
+          tracking_location?: string | null
           updated_at?: string
           urgency?: Database["public"]["Enums"]["urgency_level"]
         }
@@ -761,6 +771,8 @@ export type Database = {
           desired_delivery_date?: string | null
           doctor_id?: string | null
           doctor_name?: string
+          driver_name?: string | null
+          driver_phone_whatsapp?: string | null
           expected_delivery_date?: string | null
           handling_instructions?: string | null
           html_export?: string | null
@@ -768,17 +780,20 @@ export type Database = {
           order_number?: string
           patient_name?: string
           photos_link?: string | null
+          pickup_time?: string | null
           price?: number | null
           proposed_delivery_date?: string | null
           restoration_type?: Database["public"]["Enums"]["restoration_type"]
           screenshot_url?: string | null
           shade_system?: string | null
+          shipment_notes?: string | null
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           status_updated_at?: string | null
           teeth_number?: string
           teeth_shade?: string
           timestamp?: string
+          tracking_location?: string | null
           updated_at?: string
           urgency?: Database["public"]["Enums"]["urgency_level"]
         }

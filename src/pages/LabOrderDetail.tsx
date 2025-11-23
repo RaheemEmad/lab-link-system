@@ -44,6 +44,13 @@ interface Order {
   html_export: string | null;
   screenshot_url: string | null;
   assigned_lab_id: string | null;
+  driver_name: string | null;
+  driver_phone_whatsapp: string | null;
+  pickup_time: string | null;
+  tracking_location: string | null;
+  shipment_notes: string | null;
+  carrier_name: string | null;
+  carrier_phone: string | null;
 }
 
 interface LabEditableFields {
@@ -52,6 +59,16 @@ interface LabEditableFields {
   biological_notes: string;
   expected_delivery_date: string;
   shipment_tracking: string;
+}
+
+interface ShipmentDetails {
+  driver_name: string;
+  driver_phone_whatsapp: string;
+  pickup_time: string;
+  tracking_location: string;
+  shipment_notes: string;
+  carrier_name: string;
+  carrier_phone: string;
 }
 
 const LabOrderDetail = () => {
@@ -63,6 +80,7 @@ const LabOrderDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [isSavingShipment, setIsSavingShipment] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [showNotesDialog, setShowNotesDialog] = useState(false);
   
@@ -73,6 +91,17 @@ const LabOrderDetail = () => {
     biological_notes: "",
     expected_delivery_date: "",
     shipment_tracking: "",
+  });
+
+  // Shipment details
+  const [shipmentDetails, setShipmentDetails] = useState<ShipmentDetails>({
+    driver_name: "",
+    driver_phone_whatsapp: "",
+    pickup_time: "",
+    tracking_location: "",
+    shipment_notes: "",
+    carrier_name: "",
+    carrier_phone: "",
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -167,6 +196,15 @@ const LabOrderDetail = () => {
         biological_notes: data.biological_notes || "",
         expected_delivery_date: data.expected_delivery_date || "",
         shipment_tracking: data.shipment_tracking || "",
+      });
+      setShipmentDetails({
+        driver_name: data.driver_name || "",
+        driver_phone_whatsapp: data.driver_phone_whatsapp || "",
+        pickup_time: data.pickup_time ? new Date(data.pickup_time).toISOString().slice(0, 16) : "",
+        tracking_location: data.tracking_location || "",
+        shipment_notes: data.shipment_notes || "",
+        carrier_name: data.carrier_name || "",
+        carrier_phone: data.carrier_phone || "",
       });
     } catch (error: any) {
       console.error('Error fetching order:', error);
@@ -328,6 +366,54 @@ const LabOrderDetail = () => {
     }
   };
 
+  const handleSaveShipment = async () => {
+    if (!order) return;
+
+    setIsSavingShipment(true);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          driver_name: shipmentDetails.driver_name || null,
+          driver_phone_whatsapp: shipmentDetails.driver_phone_whatsapp || null,
+          pickup_time: shipmentDetails.pickup_time ? new Date(shipmentDetails.pickup_time).toISOString() : null,
+          tracking_location: shipmentDetails.tracking_location || null,
+          shipment_notes: shipmentDetails.shipment_notes || null,
+          carrier_name: shipmentDetails.carrier_name || null,
+          carrier_phone: shipmentDetails.carrier_phone || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order.id);
+
+      if (error) throw error;
+
+      // Create notification for doctor
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: order.doctor_id,
+          order_id: order.id,
+          type: 'shipment_update',
+          title: 'Shipment Details Updated',
+          message: `Shipment details have been added for order #${order.order_number}. Driver: ${shipmentDetails.driver_name || 'N/A'}`,
+        });
+
+      if (notifError) {
+        console.error('Failed to create notification:', notifError);
+      }
+
+      toast.success("Shipment details saved successfully!");
+      fetchOrder();
+    } catch (error: any) {
+      console.error('Error saving shipment:', error);
+      toast.error("Failed to save shipment details", {
+        description: error.message
+      });
+    } finally {
+      setIsSavingShipment(false);
+    }
+  };
+
   if (isLoading || !order) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -463,6 +549,119 @@ const LabOrderDetail = () => {
                   <Button onClick={handleSaveChanges} disabled={isSaving} className="w-full">
                     <Save className="h-4 w-4 mr-2" />
                     {isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Shipment Details Section */}
+              <Card className={order.status === 'Pending' ? "opacity-50 pointer-events-none" : ""}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Package className="h-5 w-5" />
+                        Shipment Details
+                      </CardTitle>
+                      <CardDescription>
+                        {order.status === 'Pending' 
+                          ? "Shipment section will activate once order status is updated"
+                          : "Enter driver and shipment information"
+                        }
+                      </CardDescription>
+                    </div>
+                    {order.status === 'Pending' && (
+                      <Badge variant="secondary">Locked</Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="driver_name">Driver's Name</Label>
+                      <Input
+                        id="driver_name"
+                        value={shipmentDetails.driver_name}
+                        onChange={(e) => setShipmentDetails({ ...shipmentDetails, driver_name: e.target.value })}
+                        placeholder="Full name"
+                        disabled={order.status === 'Pending'}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="driver_phone_whatsapp">Phone / WhatsApp</Label>
+                      <Input
+                        id="driver_phone_whatsapp"
+                        value={shipmentDetails.driver_phone_whatsapp}
+                        onChange={(e) => setShipmentDetails({ ...shipmentDetails, driver_phone_whatsapp: e.target.value })}
+                        placeholder="+1234567890"
+                        disabled={order.status === 'Pending'}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="carrier_name">Carrier Name</Label>
+                      <Input
+                        id="carrier_name"
+                        value={shipmentDetails.carrier_name}
+                        onChange={(e) => setShipmentDetails({ ...shipmentDetails, carrier_name: e.target.value })}
+                        placeholder="FedEx, UPS, etc."
+                        disabled={order.status === 'Pending'}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="carrier_phone">Carrier Phone</Label>
+                      <Input
+                        id="carrier_phone"
+                        value={shipmentDetails.carrier_phone}
+                        onChange={(e) => setShipmentDetails({ ...shipmentDetails, carrier_phone: e.target.value })}
+                        placeholder="Carrier contact number"
+                        disabled={order.status === 'Pending'}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pickup_time">Pickup Time</Label>
+                    <Input
+                      id="pickup_time"
+                      type="datetime-local"
+                      value={shipmentDetails.pickup_time}
+                      onChange={(e) => setShipmentDetails({ ...shipmentDetails, pickup_time: e.target.value })}
+                      disabled={order.status === 'Pending'}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="tracking_location">Tracking Location</Label>
+                    <Input
+                      id="tracking_location"
+                      value={shipmentDetails.tracking_location}
+                      onChange={(e) => setShipmentDetails({ ...shipmentDetails, tracking_location: e.target.value })}
+                      placeholder="Current location or address"
+                      disabled={order.status === 'Pending'}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="shipment_notes">Additional Notes</Label>
+                    <Textarea
+                      id="shipment_notes"
+                      value={shipmentDetails.shipment_notes}
+                      onChange={(e) => setShipmentDetails({ ...shipmentDetails, shipment_notes: e.target.value })}
+                      placeholder="Special handling instructions, delivery notes, etc."
+                      className="min-h-[100px]"
+                      disabled={order.status === 'Pending'}
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={handleSaveShipment} 
+                    disabled={isSavingShipment || order.status === 'Pending'} 
+                    className="w-full"
+                  >
+                    <Truck className="h-4 w-4 mr-2" />
+                    {isSavingShipment ? "Saving..." : "Save Shipment Details"}
                   </Button>
                 </CardContent>
               </Card>

@@ -199,7 +199,7 @@ const Dashboard = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => navigate("/order-tracking")} 
+                      onClick={() => navigate("/track-orders")} 
                       className="flex-1 sm:flex-none"
                       data-tour="track-orders-btn"
                     >
@@ -208,7 +208,7 @@ const Dashboard = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Real-time order tracking with delivery updates</p>
+                    <p>Monitor your orders with shipment details and tracking</p>
                   </TooltipContent>
                 </Tooltip>
 
@@ -225,7 +225,7 @@ const Dashboard = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Manage shipment details and communicate about deliveries</p>
+                    <p>Manage shipment details and delivery coordination</p>
                   </TooltipContent>
                 </Tooltip>
 

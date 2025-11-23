@@ -308,7 +308,7 @@ const LandingNav = () => {
                       </Tooltip>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link to="/order-tracking">Track Orders</Link>
+                          <Link to="/track-orders">Track Orders</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/logistics">Logistics Dashboard</Link>
