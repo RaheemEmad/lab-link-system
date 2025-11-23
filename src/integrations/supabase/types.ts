@@ -288,6 +288,42 @@ export type Database = {
         }
         Relationships: []
       }
+      note_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          note_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          note_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          note_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_likes_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "order_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
