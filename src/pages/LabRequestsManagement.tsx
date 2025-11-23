@@ -11,7 +11,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
 import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 
@@ -133,6 +133,54 @@ export default function LabRequestsManagement() {
       });
     },
   });
+
+  // Set up real-time subscription for lab work requests
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('[LabRequests] Setting up real-time subscription for doctor:', user.id);
+
+    const channel = supabase
+      .channel('lab-work-requests-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events: INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'lab_work_requests',
+        },
+        (payload) => {
+          console.log('[LabRequests] Real-time update received:', payload);
+          
+          // Refetch data when any change occurs
+          if (payload.eventType === 'INSERT') {
+            console.log('[LabRequests] New lab request detected, refetching data');
+            queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user.id] });
+            
+            // Show toast notification
+            toast({
+              title: "New Lab Application",
+              description: "A lab has applied to work on one of your orders.",
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            console.log('[LabRequests] Lab request status changed, refetching data');
+            queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user.id] });
+          } else if (payload.eventType === 'DELETE') {
+            console.log('[LabRequests] Lab request deleted, refetching data');
+            queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user.id] });
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[LabRequests] Subscription status:', status);
+      });
+
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('[LabRequests] Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient, toast]);
 
   // Loading state check AFTER all hooks
   if (isLoading) {
