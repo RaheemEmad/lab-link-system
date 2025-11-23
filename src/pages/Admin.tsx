@@ -1,16 +1,11 @@
-import { useEffect, useState, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Users, Package, Activity, MessageSquare, BarChart3, TrendingUp } from "lucide-react";
-import LandingNav from "@/components/landing/LandingNav";
-import LandingFooter from "@/components/landing/LandingFooter";
-import AdminNotifications from "@/components/admin/AdminNotifications";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
-// Lazy load admin components for better performance
+// Lazy load admin components
 const AdminDashboardTab = lazy(() => import("@/components/admin/AdminDashboardTab"));
 const AdminUsersTab = lazy(() => import("@/components/admin/AdminUsersTab"));
 const AdminOrdersTab = lazy(() => import("@/components/admin/AdminOrdersTab"));
@@ -18,59 +13,60 @@ const AdminActivityTab = lazy(() => import("@/components/admin/AdminActivityTab"
 const AdminCommunicationTab = lazy(() => import("@/components/admin/AdminCommunicationTab"));
 const AdminAnalyticsTab = lazy(() => import("@/components/admin/AdminAnalyticsTab"));
 
-// Loading fallback component
 const TabLoadingFallback = () => (
-  <Card>
-    <CardContent className="p-8">
-      <div className="flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    </CardContent>
-  </Card>
+  <div className="flex items-center justify-center p-12">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
 );
 
 const Admin = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get("tab") || "dashboard";
 
   useEffect(() => {
-    const checkAdminAccess = async () => {
+    checkAdminAccess();
+  }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
-        navigate("/auth");
+        navigate("/admin/login");
         return;
       }
 
-      try {
-        const { data, error } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .single();
+      const { data: roleData, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .single();
 
-        if (error) throw error;
-
-        if (data?.role !== "admin") {
-          toast.error("Access denied", {
-            description: "You don't have admin privileges"
-          });
-          navigate("/dashboard");
-          return;
-        }
-
-        setIsAdmin(true);
-      } catch (error) {
-        console.error("Error checking admin access:", error);
-        toast.error("Access denied");
-        navigate("/dashboard");
-      } finally {
-        setLoading(false);
+      if (error || !roleData) {
+        navigate("/");
+        return;
       }
-    };
 
-    checkAdminAccess();
-  }, [user, navigate]);
+      setIsAdmin(true);
+    } catch (error) {
+      console.error("Error checking admin access:", error);
+      navigate("/admin/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (value: string) => {
+    if (value === "dashboard") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ tab: value });
+    }
+  };
 
   if (loading) {
     return (
@@ -88,91 +84,73 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <LandingNav />
-      <div className="flex-1 bg-secondary/30 py-8">
-        <div className="container px-4">
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <Shield className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold">Admin Panel</h1>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AdminSidebar />
+        
+        <div className="flex-1 flex flex-col">
+          {/* Header with trigger */}
+          <header className="sticky top-0 z-10 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-full items-center gap-4 px-6">
+              <SidebarTrigger />
+              <div className="flex-1">
+                <h1 className="text-xl font-semibold">Admin Panel</h1>
               </div>
-              <AdminNotifications />
             </div>
-            <p className="text-muted-foreground">
-              Manage users, orders, and monitor all system activities
-            </p>
-          </div>
+          </header>
 
-          <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
-              <TabsTrigger value="dashboard" className="gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="gap-2">
-                <TrendingUp className="h-4 w-4" />
-                <span className="hidden sm:inline">Analytics</span>
-              </TabsTrigger>
-              <TabsTrigger value="users" className="gap-2">
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Users</span>
-              </TabsTrigger>
-              <TabsTrigger value="orders" className="gap-2">
-                <Package className="h-4 w-4" />
-                <span className="hidden sm:inline">Orders</span>
-              </TabsTrigger>
-              <TabsTrigger value="activity" className="gap-2">
-                <Activity className="h-4 w-4" />
-                <span className="hidden sm:inline">Activity</span>
-              </TabsTrigger>
-              <TabsTrigger value="communication" className="gap-2">
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">Communication</span>
-              </TabsTrigger>
-            </TabsList>
+          {/* Main content */}
+          <main className="flex-1 p-6">
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
+              <TabsList className="hidden">
+                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                <TabsTrigger value="users">Users</TabsTrigger>
+                <TabsTrigger value="orders">Orders</TabsTrigger>
+                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="communication">Communication</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="dashboard" className="mt-6">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <AdminDashboardTab />
-              </Suspense>
-            </TabsContent>
+              <TabsContent value="dashboard" className="space-y-4">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <AdminDashboardTab />
+                </Suspense>
+              </TabsContent>
 
-            <TabsContent value="analytics" className="mt-6">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <AdminAnalyticsTab />
-              </Suspense>
-            </TabsContent>
+              <TabsContent value="users" className="space-y-4">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <AdminUsersTab />
+                </Suspense>
+              </TabsContent>
 
-            <TabsContent value="users" className="mt-6">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <AdminUsersTab />
-              </Suspense>
-            </TabsContent>
+              <TabsContent value="orders" className="space-y-4">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <AdminOrdersTab />
+                </Suspense>
+              </TabsContent>
 
-            <TabsContent value="orders" className="mt-6">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <AdminOrdersTab />
-              </Suspense>
-            </TabsContent>
+              <TabsContent value="activity" className="space-y-4">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <AdminActivityTab />
+                </Suspense>
+              </TabsContent>
 
-            <TabsContent value="activity" className="mt-6">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <AdminActivityTab />
-              </Suspense>
-            </TabsContent>
+              <TabsContent value="communication" className="space-y-4">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <AdminCommunicationTab />
+                </Suspense>
+              </TabsContent>
 
-            <TabsContent value="communication" className="mt-6">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <AdminCommunicationTab />
-              </Suspense>
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="analytics" className="space-y-4">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <AdminAnalyticsTab />
+                </Suspense>
+              </TabsContent>
+            </Tabs>
+          </main>
         </div>
       </div>
-      <LandingFooter />
-    </div>
+    </SidebarProvider>
   );
 };
 
