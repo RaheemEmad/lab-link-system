@@ -71,7 +71,7 @@ const LandingHero = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
               <Button 
                 size="lg" 
-                className="text-base sm:text-lg px-8 py-6 h-auto group hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto"
+                className="text-base sm:text-lg px-8 py-6 h-auto group hover-scale hover-glow transition-all duration-300 shadow-lg w-full sm:w-auto"
                 onClick={() => navigate(user ? "/new-order" : "/auth")}
               >
                 <Stethoscope className="mr-2 h-5 w-5" />
@@ -82,7 +82,7 @@ const LandingHero = () => {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="text-base sm:text-lg px-8 py-6 h-auto hover:scale-105 transition-all duration-300 border-2 w-full sm:w-auto"
+                className="text-base sm:text-lg px-8 py-6 h-auto hover-scale transition-all duration-300 border-2 w-full sm:w-auto"
                 onClick={() => navigate(user ? "/lab-admin" : "/auth")}
               >
                 <Building2 className="mr-2 h-5 w-5" />
