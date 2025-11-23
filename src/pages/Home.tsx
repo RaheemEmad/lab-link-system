@@ -5,6 +5,7 @@ import FeatureSnapshot from "@/components/landing/FeatureSnapshot";
 import RoleShowcase from "@/components/landing/RoleShowcase";
 import LiveDemoSection from "@/components/landing/LiveDemoSection";
 import HowItWorks from "@/components/landing/HowItWorks";
+import VideoTutorialSection from "@/components/landing/VideoTutorialSection";
 import DualView from "@/components/landing/DualView";
 import ProofSection from "@/components/landing/ProofSection";
 import FAQSection from "@/components/landing/FAQSection";
@@ -22,6 +23,7 @@ const Home = () => {
       <RoleShowcase />
       <LiveDemoSection />
       <HowItWorks />
+      <VideoTutorialSection />
       <DualView />
       <ProofSection />
       <FAQSection />
