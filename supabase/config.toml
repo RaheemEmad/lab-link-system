@@ -1,1 +1,4 @@
 project_id = "ilpbkhrtbhbfcfbwvmyz"
+
+[functions.detect-ip]
+verify_jwt = false
