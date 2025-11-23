@@ -239,9 +239,9 @@ const LandingNav = () => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-background/98">
+      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm transition-all duration-300">
         <div className="container px-4 mx-auto">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16">
             {/* Logo with animation */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -261,7 +261,7 @@ const LandingNav = () => {
                   <motion.img 
                     src={lablinkLogo} 
                     alt="LabLink Logo" 
-                    className="h-12 w-auto object-contain"
+                    className="h-10 w-auto object-contain"
                     initial={{ opacity: 0, rotate: -10 }}
                     animate={{ opacity: 1, rotate: 0 }}
                     transition={{ 
@@ -271,7 +271,7 @@ const LandingNav = () => {
                     }}
                   />
                   <motion.span 
-                    className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] transition-all duration-500 group-hover:bg-[length:100%_auto]"
+                    className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] transition-all duration-500 group-hover:bg-[length:100%_auto]"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ 
@@ -290,7 +290,7 @@ const LandingNav = () => {
             </Tooltip>
             
             {/* Desktop Left Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
+            <div className="hidden lg:flex items-center gap-6">
               {leftNavLinks.map((link) => (
                 <Tooltip key={link.href}>
                   <TooltipTrigger asChild>
@@ -346,9 +346,9 @@ const LandingNav = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="relative group overflow-hidden">
+                            <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden">
                               <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                              <Truck className="h-5 w-5 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+                              <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
                             </Button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
@@ -373,9 +373,9 @@ const LandingNav = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="relative group overflow-hidden">
+                            <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden">
                               <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                              <Truck className="h-5 w-5 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+                              <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
                             </Button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
@@ -402,10 +402,10 @@ const LandingNav = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => navigate("/doctor-achievements")}
-                          className="relative group overflow-hidden"
+                          className="h-9 w-9 relative group overflow-hidden"
                         >
                           <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                          <Trophy className="h-5 w-5 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -422,10 +422,10 @@ const LandingNav = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => navigate("/lab-achievements")}
-                          className="relative group overflow-hidden"
+                          className="h-9 w-9 relative group overflow-hidden"
                         >
                           <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                          <Trophy className="h-5 w-5 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -441,10 +441,10 @@ const LandingNav = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => navigate("/notifications")}
-                        className="relative group overflow-hidden"
+                        className="h-9 w-9 relative group overflow-hidden"
                       >
                         <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                        <Bell className="h-5 w-5 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                        <Bell className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
                         {unreadCount > 0 && (
                           <motion.div
                             initial={{ scale: 0 }}
