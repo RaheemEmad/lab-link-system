@@ -982,6 +982,10 @@ export type Database = {
         Args: { order_id_param: string }
         Returns: undefined
       }
+      lab_was_refused_for_order: {
+        Args: { _order_id: string; _user_id: string }
+        Returns: boolean
+      }
       log_audit_event: {
         Args: {
           action_type_param: string
