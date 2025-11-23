@@ -11,7 +11,7 @@
     --lablink-blue-light: 221 100% 70%; /* Lighter shade */
     --dental-slate: 215 20% 24%; /* #2F3B4A - Professional Text */
     --soft-gray: 210 33% 96%; /* #F3F5F7 - Clean Background */
-    --success-green: 152 75% 46%; /* #1DCC6C - Success States */
+    --success-green: 152 69% 31%; /* Deeper green for better contrast */
     --urgent-red: 6 87% 63%; /* #F15555 - Urgent Alerts */
     --accent-teal: 174 62% 47%; /* #2DBDB6 - Medical Accent */
     
@@ -45,7 +45,7 @@
 
     --radius: 0.75rem;
 
-    --success: 152 75% 46%;
+    --success: 152 69% 31%;
     --success-foreground: 0 0% 100%;
 
     --warning: 45 87% 62%;
@@ -87,7 +87,7 @@
     --border: 215 20% 25%;
     --input: 215 20% 25%;
     --ring: 221 100% 65%;
-    --success: 152 75% 46%;
+    --success: 152 69% 36%;
     --success-foreground: 0 0% 100%;
     --warning: 45 87% 62%;
     --warning-foreground: 215 20% 10%;
@@ -162,6 +162,20 @@
     animation: pulseMedical 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
+  /* Status Badge Animations */
+  .badge-pulse {
+    animation: badgePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .badge-glow {
+    animation: badgeGlow 2s ease-in-out infinite;
+  }
+
+  /* Success Checkmark Animation */
+  .checkmark-pop {
+    animation: checkmarkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
   /* Shimmer Loading Effect */
   .shimmer {
     background: linear-gradient(
@@ -172,6 +186,18 @@
     );
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
+  }
+
+  /* Scroll Reveal Animations */
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  .scroll-reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -224,6 +250,40 @@
   }
   100% {
     background-position: 200% 0;
+  }
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(50, 105, 255, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 4px rgba(50, 105, 255, 0);
+  }
+}
+
+@keyframes badgeGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(50, 105, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(50, 105, 255, 0.6);
+  }
+}
+
+@keyframes checkmarkPop {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
   }
 }
 
