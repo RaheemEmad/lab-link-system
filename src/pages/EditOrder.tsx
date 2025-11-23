@@ -20,6 +20,9 @@ import { ShadeSelector } from "@/components/order/ShadeSelector";
 import { LabSelector } from "@/components/order/LabSelector";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { useFormAutosave } from "@/hooks/useFormAutosave";
+import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
+import { useConflictResolution } from "@/hooks/useConflictResolution";
 
 const formSchema = z.object({
   doctorName: z.string().min(2, "Doctor name is required"),
@@ -44,6 +47,7 @@ const EditOrder = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [originalData, setOriginalData] = useState<FormValues | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [orderUpdatedAt, setOrderUpdatedAt] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -60,6 +64,40 @@ const EditOrder = () => {
       htmlExport: "",
     },
   });
+
+  // Autosave functionality with conflict detection
+  const { saveData, clearSavedData, autosaveState } = useFormAutosave({
+    storageKey: `edit-order-${orderId}`,
+    debounceMs: 2000,
+    onRecover: (data) => {
+      form.reset(data);
+      toast.success("Draft Recovered", {
+        description: "Your unsaved changes have been restored.",
+      });
+    },
+  });
+
+  // Conflict resolution
+  const { checkForConflicts, resolveConflict, conflictState } = useConflictResolution({
+    tableName: 'orders',
+    recordId: orderId || '',
+    onConflict: (serverData, localData) => {
+      // For now, always prefer local changes but warn user
+      return 'use_local';
+    },
+    enabled: !!orderId,
+  });
+
+  // Watch form values for autosave
+  useEffect(() => {
+    if (!isLoading) {
+      const subscription = form.watch((values) => {
+        saveData({ ...values, timestamp: new Date().toISOString() });
+      });
+      
+      return () => subscription.unsubscribe();
+    }
+  }, [form.watch, saveData, isLoading]);
 
   // Watch form values to detect changes
   const currentValues = form.watch();
@@ -160,6 +198,7 @@ const EditOrder = () => {
       
       form.reset(formData);
       setOriginalData(formData);
+      setOrderUpdatedAt(data.updated_at);
     } catch (error: any) {
       console.error('Error fetching order:', error);
       toast.error("Failed to load order", {
@@ -180,6 +219,16 @@ const EditOrder = () => {
         description: "Please modify at least one field before saving"
       });
       return;
+    }
+
+    // Check for conflicts before saving
+    if (orderUpdatedAt) {
+      const hasConflict = await checkForConflicts(orderUpdatedAt);
+      if (hasConflict && conflictState.serverData) {
+        // Resolve conflict (currently using local data)
+        const resolvedData = resolveConflict(data);
+        // Continue with resolved data
+      }
     }
 
     setIsSaving(true);
@@ -310,8 +359,34 @@ const EditOrder = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Edit Order</CardTitle>
-              <CardDescription>Update order details</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Edit Order</CardTitle>
+                  <CardDescription>Update order details</CardDescription>
+                </div>
+                <AutosaveIndicator 
+                  isSaving={autosaveState.isSaving}
+                  lastSaved={autosaveState.lastSaved}
+                  hasRecoveredData={autosaveState.hasRecoveredData}
+                  className="hidden sm:flex"
+                />
+              </div>
+              {/* Mobile autosave indicator */}
+              <AutosaveIndicator 
+                isSaving={autosaveState.isSaving}
+                lastSaved={autosaveState.lastSaved}
+                hasRecoveredData={autosaveState.hasRecoveredData}
+                className="flex sm:hidden mt-2"
+              />
+              {/* Conflict warning */}
+              {conflictState.hasConflict && (
+                <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm font-medium text-destructive">⚠️ Conflict Detected</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This order was modified by someone else. Your changes may overwrite theirs.
+                  </p>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               <Form {...form}>
