@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft } from "lucide-react";
+import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft, FileText } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ShipmentDetailsDialog } from "@/components/order/ShipmentDetailsDialog";
+import { OrderDetailsModal } from "@/components/order/OrderDetailsModal";
 import { toast } from "sonner";
 interface LabCapacity {
   id: string;
@@ -35,6 +36,16 @@ interface OrderShipment {
   delivery_date_comment: string | null;
   carrier_name: string | null;
   carrier_phone: string | null;
+  driver_name: string | null;
+  driver_phone_whatsapp: string | null;
+  pickup_time: string | null;
+  tracking_location: string | null;
+  shipment_notes: string | null;
+  created_at: string;
+  restoration_type: string;
+  teeth_number: string;
+  teeth_shade: string;
+  biological_notes: string | null;
   assigned_lab: {
     name: string;
   } | null;
@@ -49,6 +60,7 @@ const LogisticsDashboard = () => {
   const [labCapacity, setLabCapacity] = useState<LabCapacity[]>([]);
   const [shipments, setShipments] = useState<OrderShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
   useEffect(() => {
     const checkRole = async () => {
       if (!user) return;
@@ -70,7 +82,7 @@ const LogisticsDashboard = () => {
       try {
         setLoading(true);
 
-        // Fetch shipment data (orders with tracking or handling instructions)
+        // Fetch shipment data with full order details
         let shipmentQuery = supabase.from("orders").select(`
             id,
             order_number,
@@ -86,9 +98,19 @@ const LogisticsDashboard = () => {
             delivery_date_comment,
             carrier_name,
             carrier_phone,
+            driver_name,
+            driver_phone_whatsapp,
+            pickup_time,
+            tracking_location,
+            shipment_notes,
+            created_at,
+            restoration_type,
+            teeth_number,
+            teeth_shade,
+            biological_notes,
             assigned_lab:labs(name)
-          `).not("assigned_lab_id", "is", null).order("expected_delivery_date", {
-          ascending: true
+          `).not("assigned_lab_id", "is", null).order("created_at", {
+          ascending: false
         });
 
         // Filter based on user role
@@ -160,9 +182,14 @@ const LogisticsDashboard = () => {
       label: "Low"
     };
   };
-  const urgentShipments = shipments.filter(s => s.urgency === "Urgent").length;
-  const pendingDeliveries = shipments.filter(s => s.status === "Ready for Delivery" && !s.actual_delivery_date).length;
+  // Calculate metrics
   const totalShipments = shipments.length;
+  const activeShipments = shipments.filter(s => s.driver_name || s.carrier_name).length;
+  const ordersInTransit = shipments.filter(s => s.status === "In Progress" || s.status === "Ready for QC").length;
+  const pendingDeliveries = shipments.filter(s => s.status === "Ready for Delivery" && !s.actual_delivery_date).length;
+  const readyForShipment = shipments.filter(s => s.status === "Ready for Delivery").length;
+  const urgentShipments = shipments.filter(s => s.urgency === "Urgent").length;
+  const priorityHandling = shipments.filter(s => s.urgency === "Urgent" && s.status !== "Delivered").length;
   if (loading) {
     return <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
@@ -201,8 +228,8 @@ const LogisticsDashboard = () => {
               </div>
             </div>
 
-            {/* Key Metrics */}
-            <div className="grid gap-6 md:grid-cols-3 mb-6">
+            {/* Key Metrics - Enhanced for Lab */}
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mb-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>
@@ -210,37 +237,83 @@ const LogisticsDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalShipments}</div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Active orders in transit
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">All tracked orders</p>
                 </CardContent>
               </Card>
+
+              {userRole === "lab_staff" && (
+                <>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Active Shipments</CardTitle>
+                      <Truck className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{activeShipments}</div>
+                      <p className="text-xs text-muted-foreground mt-1">With driver assigned</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">In Transit</CardTitle>
+                      <Package className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{ordersInTransit}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Active orders</p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle>
-                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{pendingDeliveries}</div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Ready for shipment
-                  </p>
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{pendingDeliveries}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Awaiting delivery</p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Urgent Orders</CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-destructive">{urgentShipments}</div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Require priority handling
-                  </p>
-                </CardContent>
-              </Card>
+              {userRole === "lab_staff" && (
+                <>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Ready for Shipment</CardTitle>
+                      <Package className="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">{readyForShipment}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Ready to ship</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Urgent Orders</CardTitle>
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-destructive">{urgentShipments}</div>
+                      <p className="text-xs text-muted-foreground mt-1">All urgent</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Priority Handling</CardTitle>
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-red-600 dark:text-red-400">{priorityHandling}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Needs attention</p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </div>
 
             {/* Shipment Tracking */}
@@ -322,11 +395,23 @@ const LogisticsDashboard = () => {
                               </div>}
                           </div>}
 
-                        {/* Edit/View Button */}
-                        <div className="mt-3">
-                          <Button size="sm" variant="outline" onClick={() => setSelectedShipment(shipment)} className="w-full">
+                        {/* Action Buttons */}
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setSelectedOrderForDetails(shipment)}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Order Details
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setSelectedShipment(shipment)}
+                          >
                             <Edit className="h-4 w-4 mr-2" />
-                            {userRole === "lab_staff" && shipment.status === "Ready for Delivery" ? "Edit Shipment Details" : "View Shipment Details & Notes"}
+                            Shipment & Notes
                           </Button>
                         </div>
                       </div>)}
@@ -343,6 +428,15 @@ const LogisticsDashboard = () => {
       setSelectedShipment(null);
       window.location.reload();
     }} userRole={userRole} />}
+
+      {/* Order Details Modal */}
+      {selectedOrderForDetails && (
+        <OrderDetailsModal
+          open={!!selectedOrderForDetails}
+          onOpenChange={(open) => !open && setSelectedOrderForDetails(null)}
+          order={selectedOrderForDetails}
+        />
+      )}
     </ProtectedRoute>;
 };
 export default LogisticsDashboard;
