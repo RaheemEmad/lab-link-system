@@ -30,6 +30,8 @@ import LabWorkflowManagement from "./pages/LabWorkflowManagement";
 import LabOrderDetail from "./pages/LabOrderDetail";
 import DesignApprovalWorkflow from "./pages/DesignApprovalWorkflow";
 import EditOrder from "./pages/EditOrder";
+import OrdersMarketplace from "./pages/OrdersMarketplace";
+import LabRequestsManagement from "./pages/LabRequestsManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +60,8 @@ const AppContent = () => {
         <Route path="/lab-order/:orderId" element={<LabOrderDetail />} />
         <Route path="/design-approval" element={<DesignApprovalWorkflow />} />
         <Route path="/edit-order/:orderId" element={<EditOrder />} />
+        <Route path="/orders-marketplace" element={<OrdersMarketplace />} />
+        <Route path="/lab-requests" element={<LabRequestsManagement />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />

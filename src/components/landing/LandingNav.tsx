@@ -138,7 +138,8 @@ const LandingNav = () => {
   const leftNavLinks = [
     { label: "Home", href: "/", type: "route" },
     { label: "How It Works", href: "/how-it-works", type: "route" },
-    { label: "Labs", href: "/labs", type: "route" },
+    ...(userRole === 'doctor' ? [{ label: "Labs", href: "/labs", type: "route" }] : []),
+    ...(userRole === 'lab_staff' ? [{ label: "Marketplace", href: "/orders-marketplace", type: "route" }] : []),
     ...(user ? [{ label: "Dashboard", href: "/dashboard", type: "route" }] : []),
   ];
 
@@ -146,6 +147,7 @@ const LandingNav = () => {
   const doctorMenuItems = user && userRole === 'doctor' ? [
     { label: "Track Orders", href: "/order-tracking" },
     { label: "Preferred Labs", href: "/preferred-labs" },
+    { label: "Lab Requests", href: "/lab-requests" },
   ] : [];
 
   const labStaffMenuItems = (userRole === 'lab_staff' || userRole === 'admin') ? [
