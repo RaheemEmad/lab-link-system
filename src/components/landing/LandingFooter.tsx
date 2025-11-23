@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const LandingFooter = () => {
   const currentYear = new Date().getFullYear();
 
@@ -10,24 +12,24 @@ const LandingFooter = () => {
           </div>
           
           <nav className="flex flex-wrap justify-center gap-4 sm:gap-8">
-            <a 
-              href="/privacy" 
+            <Link 
+              to="/privacy" 
               className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Privacy Policy
-            </a>
-            <a 
-              href="/terms" 
+            </Link>
+            <Link 
+              to="/terms" 
               className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms of Service
-            </a>
-            <a 
-              href="/contact" 
+            </Link>
+            <Link 
+              to="/contact" 
               className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Contact
-            </a>
+            </Link>
           </nav>
         </div>
       </div>
