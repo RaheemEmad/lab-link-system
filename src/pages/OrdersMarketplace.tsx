@@ -131,7 +131,13 @@ export default function OrdersMarketplace() {
   // Send request mutation
   const sendRequest = useMutation({
     mutationFn: async (orderId: string) => {
-      if (!user?.id || !labId) throw new Error("Not authenticated");
+      if (!user?.id) {
+        throw new Error("Please log in to apply to orders");
+      }
+      
+      if (!labId) {
+        throw new Error("You must be assigned to a lab to apply. Please contact an administrator.");
+      }
       
       const { error } = await supabase
         .from("lab_work_requests")
@@ -142,7 +148,13 @@ export default function OrdersMarketplace() {
           status: 'pending'
         });
       
-      if (error) throw error;
+      if (error) {
+        // Check if it's an RLS policy violation
+        if (error.code === '42501' || error.message.includes('row-level security')) {
+          throw new Error("You must be logged in as lab staff with a completed profile to apply");
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lab-requests", labId] });
