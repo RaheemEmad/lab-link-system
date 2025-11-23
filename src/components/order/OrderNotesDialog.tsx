@@ -42,7 +42,7 @@ interface OrderNote {
   profiles: {
     full_name: string | null;
     email: string;
-  };
+  } | null;
   like_count?: number;
   user_has_liked?: boolean;
 }
@@ -320,7 +320,7 @@ export default function OrderNotesDialog({
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
                             <p className="text-sm font-medium">
-                              {note.profiles.full_name || note.profiles.email}
+                              {note.profiles?.full_name || note.profiles?.email || 'Unknown User'}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {formatDistanceToNow(new Date(note.created_at), {
