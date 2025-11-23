@@ -71,10 +71,13 @@ const LogisticsDashboard = () => {
   useEffect(() => {
     const checkRole = async () => {
       if (!user) return;
-      const {
-        data
-      } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
-      if (data?.role !== "admin" && data?.role !== "lab_staff" && data?.role !== "doctor") {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (!data || (data.role !== "admin" && data.role !== "lab_staff" && data.role !== "doctor")) {
         toast.error("Access denied");
         navigate("/dashboard");
         return;
