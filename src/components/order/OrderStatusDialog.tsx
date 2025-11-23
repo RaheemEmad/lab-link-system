@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -46,6 +47,7 @@ export const OrderStatusDialog = ({
   onOpenChange,
   onStatusUpdated,
 }: OrderStatusDialogProps) => {
+  const { user } = useAuth();
   const [newStatus, setNewStatus] = useState<OrderStatus>(currentStatus);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -56,15 +58,36 @@ export const OrderStatusDialog = ({
       return;
     }
 
+    if (!user) {
+      toast.error("You must be logged in to update order status");
+      return;
+    }
+
     setIsUpdating(true);
 
     try {
-      const { error } = await supabase
+      // Update the order status
+      const { error: updateError } = await supabase
         .from("orders")
-        .update({ status: newStatus })
+        .update({ 
+          status: newStatus,
+          status_updated_at: new Date().toISOString()
+        })
         .eq("id", orderId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Insert status history record
+      const { error: historyError } = await supabase
+        .from("order_status_history")
+        .insert({
+          order_id: orderId,
+          old_status: currentStatus,
+          new_status: newStatus,
+          changed_by: user.id,
+        });
+
+      if (historyError) throw historyError;
 
       toast.success("Order status updated", {
         description: `${orderNumber} is now ${newStatus}`,
