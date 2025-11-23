@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,10 +10,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Loader2, Send, Pencil, Trash2, Heart } from "lucide-react";
+import { Loader2, Send, Pencil, Trash2, Heart, Bell, BellOff } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";
 import { SkeletonNote } from "@/components/ui/skeleton-card";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,6 +69,9 @@ export default function OrderNotesDialog({
   const [editText, setEditText] = useState("");
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const previousNoteCountRef = useRef<number>(0);
+  const { playNormalNotification } = useNotificationSound();
 
   useEffect(() => {
     const getUserId = async () => {
@@ -94,6 +98,22 @@ export default function OrderNotesDialog({
           },
           (payload) => {
             if (payload.eventType === 'INSERT') {
+              // Check if the new note is from another user
+              const newNoteUserId = (payload.new as any).user_id;
+              
+              if (newNoteUserId !== currentUserId) {
+                // Play sound for notes from other users
+                if (soundEnabled) {
+                  playNormalNotification();
+                }
+                
+                // Show toast notification
+                toast.info("New note added", {
+                  description: "A new note has been added to this order",
+                  duration: 4000,
+                });
+              }
+              
               fetchNotes(); // Refetch to get profile data and like counts
             } else if (payload.eventType === 'UPDATE') {
               fetchNotes();
@@ -122,7 +142,7 @@ export default function OrderNotesDialog({
         supabase.removeChannel(notesChannel);
       };
     }
-  }, [open, orderId]);
+  }, [open, orderId, currentUserId, soundEnabled, playNormalNotification]);
 
   const fetchNotes = async () => {
     if (!orderId) return;
@@ -298,7 +318,27 @@ export default function OrderNotesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Order Notes - {orderNumber}</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Order Notes - {orderNumber}</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="gap-2"
+            >
+              {soundEnabled ? (
+                <>
+                  <Bell className="h-4 w-4" />
+                  <span className="text-xs">Sound On</span>
+                </>
+              ) : (
+                <>
+                  <BellOff className="h-4 w-4" />
+                  <span className="text-xs">Sound Off</span>
+                </>
+              )}
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
