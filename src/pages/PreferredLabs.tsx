@@ -146,33 +146,26 @@ const PreferredLabs = () => {
     mutationFn: async (reorderedLabs: PreferredLab[]) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      // Step 1: Set all to temporary negative values to avoid conflicts
-      const tempUpdates = reorderedLabs.map((lab, index) =>
-        supabase
-          .from("preferred_labs")
-          .update({ priority_order: -(index + 1000) })
-          .eq("id", lab.id)
-          .eq("dentist_id", user.id)
-      );
+      // Delete all current preferred labs for this user
+      const { error: deleteError } = await supabase
+        .from("preferred_labs")
+        .delete()
+        .eq("dentist_id", user.id);
 
-      await Promise.all(tempUpdates);
+      if (deleteError) throw deleteError;
 
-      // Step 2: Set to final values
-      const finalUpdates = reorderedLabs.map((lab, index) =>
-        supabase
-          .from("preferred_labs")
-          .update({ priority_order: index + 1 })
-          .eq("id", lab.id)
-          .eq("dentist_id", user.id)
-      );
+      // Re-insert with new priority order
+      const newPreferredLabs = reorderedLabs.map((lab, index) => ({
+        dentist_id: user.id,
+        lab_id: lab.lab_id,
+        priority_order: index + 1,
+      }));
 
-      const results = await Promise.all(finalUpdates);
-      
-      // Check if any updates failed
-      const errors = results.filter(result => result.error);
-      if (errors.length > 0) {
-        throw new Error(errors[0].error?.message || "Failed to update priorities");
-      }
+      const { error: insertError } = await supabase
+        .from("preferred_labs")
+        .insert(newPreferredLabs);
+
+      if (insertError) throw insertError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["preferred-labs"] });
