@@ -1,4 +1,4 @@
-import { Award, Package, Truck, Star, Trophy, Zap, Target, Sparkles } from "lucide-react";
+import { Award, Package, Truck, Star, Trophy, Zap, Target, Sparkles, Database, CheckCircle, Clock, MessageSquare, Shield, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -13,6 +13,7 @@ export interface Achievement {
 }
 
 export const ACHIEVEMENTS: Record<string, Achievement> = {
+  // Doctor achievements
   first_order: {
     id: "first_order",
     name: "First Steps",
@@ -69,6 +70,113 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
     color: "hsl(45 87% 62%)",
     rarity: "rare",
   },
+  the_consult: {
+    id: "the_consult",
+    name: "The Consult",
+    description: "Reviewed and acknowledged 15 patient results",
+    icon: CheckCircle,
+    color: "hsl(152 75% 46%)",
+    rarity: "rare",
+  },
+  feedback_flow: {
+    id: "feedback_flow",
+    name: "Feedback Flow",
+    description: "Sent 5 direct questions/notes to the lab",
+    icon: MessageSquare,
+    color: "hsl(221 100% 60%)",
+    rarity: "common",
+  },
+  rapid_reviewer: {
+    id: "rapid_reviewer",
+    name: "Rapid Reviewer",
+    description: "Reviewed a STAT result within 30 minutes",
+    icon: Zap,
+    color: "hsl(45 87% 62%)",
+    rarity: "epic",
+  },
+  fast_approver: {
+    id: "fast_approver",
+    name: "Quick Decider",
+    description: "Approved a design within 24 hours",
+    icon: Zap,
+    color: "hsl(45 87% 62%)",
+    rarity: "rare",
+  },
+  four_week_streak: {
+    id: "four_week_streak",
+    name: "Consistent User",
+    description: "Placed orders for 4 consecutive weeks",
+    icon: Target,
+    color: "hsl(221 100% 60%)",
+    rarity: "rare",
+  },
+  eight_week_streak: {
+    id: "eight_week_streak",
+    name: "Dedicated Professional",
+    description: "Placed orders for 8 consecutive weeks",
+    icon: Trophy,
+    color: "hsl(280 100% 60%)",
+    rarity: "epic",
+  },
+  urgent_master: {
+    id: "urgent_master",
+    name: "Urgent Master",
+    description: "Completed 5 urgent orders",
+    icon: Clock,
+    color: "hsl(0 75% 55%)",
+    rarity: "rare",
+  },
+  urgent_expert: {
+    id: "urgent_expert",
+    name: "Urgent Expert",
+    description: "Completed 20 urgent orders",
+    icon: Clock,
+    color: "hsl(0 85% 45%)",
+    rarity: "epic",
+  },
+  perfect_timing: {
+    id: "perfect_timing",
+    name: "Perfect Timing",
+    description: "10 consecutive on-time deliveries",
+    icon: CheckCircle,
+    color: "hsl(152 75% 46%)",
+    rarity: "epic",
+  },
+  
+  // Lab staff achievements
+  data_dynamo: {
+    id: "data_dynamo",
+    name: "Data Dynamo",
+    description: "Processed 10 test results in one day",
+    icon: Database,
+    color: "hsl(221 100% 60%)",
+    rarity: "rare",
+  },
+  precision_pointer: {
+    id: "precision_pointer",
+    name: "Precision Pointer",
+    description: "Completed 5 quality checks without issues",
+    icon: Shield,
+    color: "hsl(152 75% 46%)",
+    rarity: "rare",
+  },
+  rush_hour_hero: {
+    id: "rush_hour_hero",
+    name: "Rush Hour Hero",
+    description: "Started processing a STAT order within 1 hour",
+    icon: Zap,
+    color: "hsl(0 75% 55%)",
+    rarity: "epic",
+  },
+  paperless_pro: {
+    id: "paperless_pro",
+    name: "Paperless Pro",
+    description: "Uploaded and archived 25 digital records",
+    icon: FileText,
+    color: "hsl(152 75% 46%)",
+    rarity: "epic",
+  },
+  
   early_adopter: {
     id: "early_adopter",
     name: "Early Adopter",
