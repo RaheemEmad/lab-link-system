@@ -1,72 +1,54 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Zap, TrendingUp } from "lucide-react";
+import { ArrowRight, CheckCircle2, Zap, Building2, Stethoscope } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+
 const LandingHero = () => {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
-  const handleGetStarted = () => {
-    if (user) {
-      navigate("/new-order");
-    } else {
-      navigate("/auth");
-    }
-  };
-  const stats = [{
-    value: "1,000+",
-    label: "Cases Monthly"
-  }, {
-    value: "0",
-    label: "Training Required"
-  }, {
-    value: "100%",
-    label: "Order Accuracy"
-  }];
-  const hooks = ["Stop losing orders in WhatsApp threads", "Every shade, every tooth, always tracked", "From chaos to clarity in 2 minutes"];
-  return <section className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20">
-      {/* Animated gradient orbs - hidden on small mobile */}
-      <div className="hidden sm:block absolute top-20 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" style={{
-      animationDuration: '4s'
-    }} />
-      <div className="hidden sm:block absolute bottom-20 right-10 w-64 h-64 sm:w-96 sm:h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{
-      animationDuration: '6s',
-      animationDelay: '1s'
-    }} />
+  const { user } = useAuth();
+  
+  const stats = [
+    { value: "2 min", label: "Setup Time" },
+    { value: "Zero", label: "Training Required" },
+    { value: "100%", label: "Order Visibility" }
+  ];
+  
+  const hooks = [
+    "Transform WhatsApp chaos into organized workflows",
+    "Every order tracked from intake to delivery",
+    "Connect dentists with qualified labs instantly"
+  ];
+  return (
+    <section className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background pb-12 sm:pb-16 md:pb-20">
+      {/* Animated gradient orbs */}
+      <div className="hidden sm:block absolute top-20 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+      <div className="hidden sm:block absolute bottom-20 right-10 w-64 h-64 sm:w-96 sm:h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
       
-      {/* Animated grid - reduced on mobile */}
+      {/* Animated grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.03)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[size:32px_32px] sm:bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)] animate-fade-in" />
       
-      {/* Floating elements - hidden on mobile */}
+      {/* Floating elements */}
       <div className="hidden md:block absolute top-1/4 right-1/4 animate-[float_6s_ease-in-out_infinite]">
         <CheckCircle2 className="w-8 h-8 text-primary/30" />
       </div>
-      <div className="hidden md:block absolute bottom-1/3 left-1/4 animate-[float_5s_ease-in-out_infinite]" style={{
-      animationDelay: '1s'
-    }}>
+      <div className="hidden md:block absolute bottom-1/3 left-1/4 animate-[float_5s_ease-in-out_infinite]" style={{ animationDelay: '1s' }}>
         <Zap className="w-6 h-6 text-accent/40" />
-      </div>
-      <div className="hidden md:block absolute top-1/2 right-1/3 animate-[float_7s_ease-in-out_infinite]" style={{
-      animationDelay: '2s'
-    }}>
-        <TrendingUp className="w-7 h-7 text-primary/20" />
       </div>
       
       <div className="container relative z-10 px-4 mx-auto">
         <div className="max-w-5xl mx-auto">
-          {/* Center-aligned hero content */}
           <div className="text-center space-y-6 sm:space-y-8 md:space-y-10">
-            {/* Attention-grabbing pill */}
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 animate-fade-in">
+              <Zap className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Professional Dental Lab Management</span>
+            </div>
             
-            
-            {/* Main headline with animation */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-foreground animate-fade-in px-4" style={{
-            animationDelay: '100ms'
-          }}>
-              Stop Losing Orders in{" "}
+            {/* Main headline */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-foreground animate-fade-in px-4" style={{ animationDelay: '100ms' }}>
+              From WhatsApp Chaos to{" "}
               <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-[gradient_3s_ease_infinite] bg-[length:200%_auto]">
-                WhatsApp Chaos
+                Digital Clarity
               </span>
             </h1>
             
@@ -81,30 +63,36 @@ const LandingHero = () => {
             </div>
             
             {/* Subheadline */}
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 animate-fade-in" style={{
-            animationDelay: '300ms'
-          }}>
-              LabLink transforms scattered WhatsApp messages into a crystal-clear digital workflow. Track every tooth, every shade, every delivery with zero mistakes.
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
+              The complete platform connecting dentists with qualified dental labs. Track orders, manage profiles, and streamline your entire workflow in one place.
             </p>
             
-            {/* CTA buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 animate-fade-in" style={{
-            animationDelay: '400ms'
-          }}>
-              <Button size="lg" className="text-base sm:text-lg px-8 sm:px-10 py-5 sm:py-6 h-auto group hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto" onClick={handleGetStarted}>
-                {user ? "Submit New Order" : "Launch LabLink Free"}
+            {/* Dual CTA for both user types */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+              <Button 
+                size="lg" 
+                className="text-base sm:text-lg px-8 py-6 h-auto group hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto"
+                onClick={() => navigate(user ? "/new-order" : "/auth")}
+              >
+                <Stethoscope className="mr-2 h-5 w-5" />
+                For Dentists
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               
-              <Button size="lg" variant="outline" className="text-base sm:text-lg px-8 sm:px-10 py-5 sm:py-6 h-auto hover:scale-105 transition-all duration-300 border-2 w-full sm:w-auto" onClick={() => window.location.href = "#how-it-works"}>
-                See How It Works
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="text-base sm:text-lg px-8 py-6 h-auto hover:scale-105 transition-all duration-300 border-2 w-full sm:w-auto"
+                onClick={() => navigate(user ? "/lab-admin" : "/auth")}
+              >
+                <Building2 className="mr-2 h-5 w-5" />
+                For Labs
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
             
-            <p className="text-xs sm:text-sm text-muted-foreground animate-fade-in px-4" style={{
-            animationDelay: '500ms'
-          }}>
-              No credit card • No installation • 2 minutes to launch
+            <p className="text-xs sm:text-sm text-muted-foreground animate-fade-in px-4" style={{ animationDelay: '500ms' }}>
+              Free to start • No credit card required • Launch in 2 minutes
             </p>
             
             {/* Stats bar */}
@@ -123,6 +111,8 @@ const LandingHero = () => {
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default LandingHero;
