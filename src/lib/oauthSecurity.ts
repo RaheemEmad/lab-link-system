@@ -1,13 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Get the user's IP address from a public API
+ * Get the user's IP address using server-side detection via Edge Function
+ * Falls back to client-side API if edge function fails
  * Returns null if unable to fetch (graceful degradation)
  */
 export async function getUserIP(): Promise<string | null> {
   try {
+    // Try server-side IP detection first (most reliable)
+    const { data, error } = await supabase.functions.invoke('detect-ip', {
+      method: 'GET',
+    });
+
+    if (!error && data?.ip) {
+      console.log('IP detected via edge function:', data.ip);
+      return data.ip;
+    }
+
+    console.warn('Edge function IP detection failed, trying fallback:', error);
+
+    // Fallback to client-side IP detection
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
     
     const response = await fetch('https://api.ipify.org?format=json', {
       signal: controller.signal,
@@ -15,15 +29,19 @@ export async function getUserIP(): Promise<string | null> {
     
     clearTimeout(timeoutId);
     
-    if (!response.ok) {
-      console.warn('IP detection API returned non-OK status');
-      return null;
+    if (response.ok) {
+      const fallbackData = await response.json();
+      if (fallbackData.ip) {
+        console.log('IP detected via fallback API:', fallbackData.ip);
+        return fallbackData.ip;
+      }
     }
-    
-    const data = await response.json();
-    return data.ip || null;
+
+    // Both methods failed - return null (rate limiting will be skipped)
+    console.warn('All IP detection methods failed');
+    return null;
   } catch (error) {
-    // Silently fail - IP detection is optional
+    // Silently fail - IP detection is optional for UX
     console.warn('IP detection unavailable:', error);
     return null;
   }
