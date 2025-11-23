@@ -40,7 +40,7 @@ const LandingHero = () => {
           <div className="text-center space-y-6 sm:space-y-8 md:space-y-10">
             
             {/* Main headline */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-foreground animate-fade-in px-4" style={{ animationDelay: '100ms' }}>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-foreground animate-fade-in px-4 mt-8 sm:mt-12 md:mt-16" style={{ animationDelay: '100ms' }}>
               From WhatsApp Chaos to{" "}
               <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-[gradient_3s_ease_infinite] bg-[length:200%_auto]">
                 Digital Clarity
