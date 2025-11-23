@@ -1,18 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, Package, Activity, MessageSquare, BarChart3 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Shield, Users, Package, Activity, MessageSquare, BarChart3, TrendingUp } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import AdminNotifications from "@/components/admin/AdminNotifications";
-import AdminDashboardTab from "@/components/admin/AdminDashboardTab";
-import AdminUsersTab from "@/components/admin/AdminUsersTab";
-import AdminOrdersTab from "@/components/admin/AdminOrdersTab";
-import AdminActivityTab from "@/components/admin/AdminActivityTab";
-import AdminCommunicationTab from "@/components/admin/AdminCommunicationTab";
+
+// Lazy load admin components for better performance
+const AdminDashboardTab = lazy(() => import("@/components/admin/AdminDashboardTab"));
+const AdminUsersTab = lazy(() => import("@/components/admin/AdminUsersTab"));
+const AdminOrdersTab = lazy(() => import("@/components/admin/AdminOrdersTab"));
+const AdminActivityTab = lazy(() => import("@/components/admin/AdminActivityTab"));
+const AdminCommunicationTab = lazy(() => import("@/components/admin/AdminCommunicationTab"));
+const AdminAnalyticsTab = lazy(() => import("@/components/admin/AdminAnalyticsTab"));
+
+// Loading fallback component
+const TabLoadingFallback = () => (
+  <Card>
+    <CardContent className="p-8">
+      <div className="flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    </CardContent>
+  </Card>
+);
 
 const Admin = () => {
   const { user } = useAuth();
@@ -91,10 +106,14 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
               <TabsTrigger value="dashboard" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2">
+                <TrendingUp className="h-4 w-4" />
+                <span className="hidden sm:inline">Analytics</span>
               </TabsTrigger>
               <TabsTrigger value="users" className="gap-2">
                 <Users className="h-4 w-4" />
@@ -115,23 +134,39 @@ const Admin = () => {
             </TabsList>
 
             <TabsContent value="dashboard" className="mt-6">
-              <AdminDashboardTab />
+              <Suspense fallback={<TabLoadingFallback />}>
+                <AdminDashboardTab />
+              </Suspense>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="mt-6">
+              <Suspense fallback={<TabLoadingFallback />}>
+                <AdminAnalyticsTab />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="users" className="mt-6">
-              <AdminUsersTab />
+              <Suspense fallback={<TabLoadingFallback />}>
+                <AdminUsersTab />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="orders" className="mt-6">
-              <AdminOrdersTab />
+              <Suspense fallback={<TabLoadingFallback />}>
+                <AdminOrdersTab />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="activity" className="mt-6">
-              <AdminActivityTab />
+              <Suspense fallback={<TabLoadingFallback />}>
+                <AdminActivityTab />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="communication" className="mt-6">
-              <AdminCommunicationTab />
+              <Suspense fallback={<TabLoadingFallback />}>
+                <AdminCommunicationTab />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </div>
