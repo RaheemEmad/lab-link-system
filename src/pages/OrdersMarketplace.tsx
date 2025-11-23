@@ -44,13 +44,14 @@ export default function OrdersMarketplace() {
     fetchLabId();
   }, [user]);
 
-  // Fetch unassigned orders (excluding those refused by this lab)
+  // Fetch marketplace orders (auto_assign_pending, unassigned, excluding refused)
   const { data: orders, isLoading } = useQuery({
     queryKey: ["marketplace-orders", labId],
     queryFn: async () => {
       const { data: ordersData, error } = await supabase
         .from("orders")
         .select("*")
+        .eq("auto_assign_pending", true)
         .is("assigned_lab_id", null)
         .order("created_at", { ascending: false });
       
@@ -84,7 +85,7 @@ export default function OrdersMarketplace() {
           event: 'INSERT',
           schema: 'public',
           table: 'orders',
-          filter: 'assigned_lab_id=is.null'
+          filter: 'auto_assign_pending=eq.true'
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["marketplace-orders", labId] });

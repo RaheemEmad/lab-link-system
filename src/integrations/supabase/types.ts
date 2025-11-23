@@ -621,6 +621,7 @@ export type Database = {
           actual_delivery_date: string | null
           approval_notes: string | null
           assigned_lab_id: string | null
+          auto_assign_pending: boolean | null
           biological_notes: string | null
           created_at: string
           delivery_date: string | null
@@ -651,6 +652,7 @@ export type Database = {
           actual_delivery_date?: string | null
           approval_notes?: string | null
           assigned_lab_id?: string | null
+          auto_assign_pending?: boolean | null
           biological_notes?: string | null
           created_at?: string
           delivery_date?: string | null
@@ -681,6 +683,7 @@ export type Database = {
           actual_delivery_date?: string | null
           approval_notes?: string | null
           assigned_lab_id?: string | null
+          auto_assign_pending?: boolean | null
           biological_notes?: string | null
           created_at?: string
           delivery_date?: string | null

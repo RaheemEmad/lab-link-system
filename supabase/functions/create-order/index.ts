@@ -343,6 +343,7 @@ Deno.serve(async (req) => {
         biological_notes: requestData.biologicalNotes?.trim() || '',
         urgency: requestData.urgency,
         assigned_lab_id: requestData.assignedLabId || null,
+        auto_assign_pending: !requestData.assignedLabId, // True if no lab assigned (marketplace)
         photos_link: requestData.photosLink || '',
         html_export: requestData.htmlExport || '',
         screenshot_url: requestData.screenshotUrl || '',
