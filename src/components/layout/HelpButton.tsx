@@ -13,7 +13,7 @@ export const HelpButton: React.FC = () => {
 
   return (
     <>
-      {/* Backdrop blur overlay */}
+      {/* Full-screen backdrop overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -21,7 +21,7 @@ export const HelpButton: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9998] bg-background/20 backdrop-blur-sm"
+            className="fixed inset-0 z-[9998] bg-background/80 backdrop-blur-md"
             onClick={() => setIsOpen(false)}
           />
         )}

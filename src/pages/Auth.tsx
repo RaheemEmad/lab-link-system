@@ -76,6 +76,23 @@ const Auth = () => {
       if (!user) return;
 
       try {
+        // Check if user has a role assigned
+        const { data: userRole, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (roleError) {
+          console.error('Error fetching role:', roleError);
+        }
+
+        // If no role exists, redirect to onboarding regardless of other status
+        if (!userRole) {
+          navigate("/onboarding");
+          return;
+        }
+
         // Check if user has completed onboarding
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -88,19 +105,8 @@ const Auth = () => {
           return;
         }
 
-        // Check if user has a role
-        const { data: userRole, error: roleError } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (roleError) {
-          console.error('Error fetching role:', roleError);
-        }
-
-        // Redirect based on status
-        if (!profile?.onboarding_completed || !userRole) {
+        // Redirect based on onboarding completion
+        if (!profile?.onboarding_completed) {
           navigate("/onboarding");
         } else {
           navigate("/dashboard");
