@@ -93,11 +93,19 @@ const Auth = () => {
       
       hasCheckedAuth.current = true;
 
+      // Set a timeout to redirect to onboarding if stuck loading (10 seconds)
+      const loadingTimeout = setTimeout(() => {
+        console.warn('Role check timeout - redirecting to onboarding');
+        toast.info("Setting up your account...");
+        navigate("/onboarding");
+      }, 10000);
+
       try {
         setIsLoading(true);
 
         // Check email verification
         if (!isEmailVerified(user)) {
+          clearTimeout(loadingTimeout);
           toast.error("Email not verified. Please check your email for verification link.");
           await supabase.auth.signOut();
           hasCheckedAuth.current = false;
@@ -120,6 +128,7 @@ const Auth = () => {
         // If no profile exists, this is a new user from Google OAuth
         // They need to sign up properly first
         if (!profile && !profileError) {
+          clearTimeout(loadingTimeout);
           toast.error("Email not registered. Please sign up first.");
           
           // Log failed OAuth attempt
@@ -135,14 +144,19 @@ const Auth = () => {
         }
 
         // Check if user has a role assigned
-        const { data: userRole } = await supabase
+        const { data: userRole, error: roleError } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", user.id)
           .maybeSingle();
 
-        // If no role, redirect to onboarding for role selection
-        if (!userRole) {
+        // Clear timeout since we got a response
+        clearTimeout(loadingTimeout);
+
+        // If role fetch failed or no role exists, redirect to onboarding
+        if (roleError || !userRole) {
+          console.log('No role found, redirecting to onboarding');
+          toast.info("Complete your account setup");
           navigate("/onboarding");
           return;
         }
@@ -160,8 +174,11 @@ const Auth = () => {
           navigate("/dashboard");
         }
       } catch (error) {
+        clearTimeout(loadingTimeout);
         console.error('Error checking user status:', error);
-        toast.error("Error verifying account status");
+        // On error, redirect to onboarding to allow user to complete setup
+        toast.info("Setting up your account...");
+        navigate("/onboarding");
         hasCheckedAuth.current = false;
         setIsLoading(false);
       }
