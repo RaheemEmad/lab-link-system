@@ -13,6 +13,7 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ShipmentDetailsDialog } from "@/components/order/ShipmentDetailsDialog";
 import { OrderDetailsModal } from "@/components/order/OrderDetailsModal";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { toast } from "sonner";
 
 interface LabCapacity {
@@ -146,16 +147,20 @@ const LogisticsDashboard = () => {
         setLoading(false);
       }
     };
+    
+    // Initial fetch
     fetchData();
 
-    // Set up realtime subscription
+    // Set up realtime subscription with refetch on changes
     const channel = supabase.channel("logistics-updates").on("postgres_changes", {
       event: "*",
       schema: "public",
       table: "orders"
     }, () => {
+      // Refetch data when changes detected
       fetchData();
     }).subscribe();
+    
     return () => {
       supabase.removeChannel(channel);
     };
@@ -204,23 +209,11 @@ const LogisticsDashboard = () => {
   const priorityHandling = shipments.filter(s => s.urgency === "Urgent" && s.status !== "Delivered").length;
   
   if (loading) {
-    return <ProtectedRoute>
-        <div className="min-h-screen flex flex-col">
-          <LandingNav />
-          <div className="flex-1 bg-secondary/30 py-12">
-            <div className="container px-4">
-              <Skeleton className="h-10 w-64 mb-6" />
-              <div className="grid gap-6 md:grid-cols-3 mb-6">
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-              </div>
-              <Skeleton className="h-96" />
-            </div>
-          </div>
-          <LandingFooter />
-        </div>
-      </ProtectedRoute>;
+    return (
+      <ProtectedRoute>
+        <LoadingScreen message="Loading logistics data..." />
+      </ProtectedRoute>
+    );
   }
   
   return <ProtectedRoute>

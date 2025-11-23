@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useState } from "react";
 import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
@@ -26,7 +26,7 @@ export default function LabRequestsManagement() {
   const [currentUserRole] = useState<'doctor' | 'lab_staff'>('doctor');
 
   // Fetch all requests for this doctor's orders with full lab details
-  const { data: requests, isLoading } = useQuery({
+  const { data: requests, isLoading, refetch } = useQuery({
     queryKey: ["lab-requests-doctor", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -67,7 +67,17 @@ export default function LabRequestsManagement() {
       return data?.filter((req: any) => req.orders?.doctor_id === user.id) || [];
     },
     enabled: !!user?.id,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
+  
+  if (isLoading) {
+    return (
+      <ProtectedRoute>
+        <LoadingScreen message="Loading lab applications..." />
+      </ProtectedRoute>
+    );
+  }
 
   // Update request status
   const updateRequestStatus = useMutation({
@@ -141,13 +151,7 @@ export default function LabRequestsManagement() {
               </p>
             </div>
 
-            {isLoading ? (
-              <div className="grid gap-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-48" />
-                ))}
-              </div>
-            ) : !requests || requests.length === 0 ? (
+            {!requests || requests.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
