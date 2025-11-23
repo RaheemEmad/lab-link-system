@@ -298,24 +298,24 @@ const LandingNav = () => {
                       onClick={() => handleNavClick(link)}
                       className={`relative inline-flex items-center gap-1 text-sm font-medium transition-all duration-300 group ${
                         isLinkActive(link)
-                          ? "text-primary font-semibold"
-                          : "text-muted-foreground hover:text-primary"
+                          ? "text-ocean-blue font-semibold"
+                          : "text-muted-foreground hover:text-ocean-blue"
                       }`}
                     >
                       <span className="relative z-10">{link.label}</span>
                       {isLinkActive(link) && (
                         <motion.span 
-                          className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-accent"
+                          className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-ocean-blue to-dark-teal"
                           layoutId="activeNav"
                           transition={{ type: "spring", stiffness: 380, damping: 30 }}
                         />
                       )}
                       {!isLinkActive(link) && (
-                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent transition-all duration-300 group-hover:w-full" />
+                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-ocean-blue to-dark-teal transition-all duration-300 group-hover:w-full" />
                       )}
                       {link.label === "Marketplace" && userRole === 'lab_staff' && newOrdersCount && newOrdersCount > 0 && (
                         <motion.span 
-                          className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-primary-foreground bg-gradient-to-r from-primary to-accent rounded-full shadow-glow"
+                          className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-gradient-to-r from-ocean-blue to-dark-teal rounded-full shadow-glow"
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           transition={{ type: "spring", stiffness: 500, damping: 25 }}
@@ -346,9 +346,9 @@ const LandingNav = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden">
-                              <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                              <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+                            <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300">
+                              <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
+                              <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-ocean-blue" />
                             </Button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
@@ -373,9 +373,9 @@ const LandingNav = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden">
-                              <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                              <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+                            <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300">
+                              <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
+                              <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-ocean-blue" />
                             </Button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
@@ -402,10 +402,10 @@ const LandingNav = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => navigate("/doctor-achievements")}
-                          className="h-9 w-9 relative group overflow-hidden"
+                          className="h-9 w-9 relative group overflow-hidden hover:bg-forest-green/10 hover:text-forest-green transition-all duration-300"
                         >
-                          <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                          <span className="absolute inset-0 w-0 bg-forest-green/10 transition-all duration-300 group-hover:w-full" />
+                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-forest-green" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -422,10 +422,10 @@ const LandingNav = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => navigate("/lab-achievements")}
-                          className="h-9 w-9 relative group overflow-hidden"
+                          className="h-9 w-9 relative group overflow-hidden hover:bg-forest-green/10 hover:text-forest-green transition-all duration-300"
                         >
-                          <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                          <span className="absolute inset-0 w-0 bg-forest-green/10 transition-all duration-300 group-hover:w-full" />
+                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-forest-green" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -440,35 +440,29 @@ const LandingNav = () => {
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300"
                         onClick={() => navigate("/notifications")}
-                        className="h-9 w-9 relative group overflow-hidden"
                       >
-                        <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                        <Bell className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                        <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
+                        <Bell className={`h-4 w-4 relative z-10 transition-all duration-300 ${hasUrgent ? 'animate-pulse text-destructive' : 'group-hover:scale-110 group-hover:text-ocean-blue'}`} />
                         {unreadCount > 0 && (
-                          <motion.div
+                          <motion.span 
+                            className={`absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs flex items-center justify-center font-medium shadow-md ${
+                              hasUrgent 
+                                ? 'bg-destructive text-destructive-foreground animate-pulse' 
+                                : 'bg-ocean-blue text-white'
+                            }`}
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", stiffness: 500, damping: 25 }}
                           >
-                            <Badge
-                              variant={hasUrgent ? "destructive" : "default"}
-                              className={`absolute -top-1 -right-1 h-5 min-w-5 rounded-full flex items-center justify-center text-xs px-1.5 ${
-                                hasUrgent ? "animate-pulse bg-gradient-to-r from-destructive to-urgent-red" : "bg-gradient-to-r from-primary to-accent"
-                              }`}
-                            >
-                              {unreadCount > 99 ? "99+" : unreadCount}
-                            </Badge>
-                          </motion.div>
+                            {unreadCount}
+                          </motion.span>
                         )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>
-                        {unreadCount > 0
-                          ? `${hasUrgent ? "🔴 " : ""}${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}${hasUrgent ? " (urgent)" : ""}` 
-                          : 'View all notifications'}
-                      </p>
+                      <p>{hasUrgent ? '🔔 Urgent notifications!' : `Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}`}</p>
                     </TooltipContent>
                   </Tooltip>
 

@@ -25,6 +25,13 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        "navy-blue": "hsl(var(--navy-blue))",
+        "ocean-blue": "hsl(var(--ocean-blue))",
+        "sky-blue": "hsl(var(--sky-blue))",
+        "light-blue": "hsl(var(--light-blue))",
+        "dark-teal": "hsl(var(--dark-teal))",
+        "forest-green": "hsl(var(--forest-green))",
+        "mint-green": "hsl(var(--mint-green))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

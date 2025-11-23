@@ -6,13 +6,16 @@
 
 @layer base {
   :root {
-    /* LabLink Brand Colors - Navy/Slate & Periwinkle Blue Palette */
-    --navy-slate: 215 25% 27%; /* Navy/Slate - Deep Trust */
-    --periwinkle-blue: 225 73% 70%; /* Soft Periwinkle Blue - Primary */
-    --periwinkle-light: 225 73% 80%; /* Lighter Periwinkle for hovers */
+    /* LabLink Brand Colors - Blue & Dark Green Palette */
+    --navy-blue: 220 60% 25%; /* Deep Navy Blue - Professional */
+    --ocean-blue: 210 85% 45%; /* Vibrant Ocean Blue - Primary */
+    --sky-blue: 210 90% 55%; /* Bright Sky Blue - Accent */
+    --light-blue: 210 95% 70%; /* Light Blue - Hover States */
+    --dark-teal: 180 45% 30%; /* Dark Teal/Green - Trust */
+    --forest-green: 160 50% 35%; /* Forest Green - Success */
+    --mint-green: 160 60% 45%; /* Mint Green - Highlights */
     --dental-slate: 215 20% 24%; /* Professional Text */
     --soft-gray: 210 33% 96%; /* Clean Background */
-    --success-green: 152 69% 31%; /* Deeper green for better contrast */
     --urgent-red: 6 87% 63%; /* Urgent Alerts */
     
     --background: 0 0% 100%;
@@ -24,7 +27,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 215 20% 24%;
 
-    --primary: 225 73% 70%;
+    --primary: 210 85% 45%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 33% 96%;
@@ -33,7 +36,7 @@
     --muted: 210 33% 96%;
     --muted-foreground: 215 20% 50%;
 
-    --accent: 215 25% 27%;
+    --accent: 180 45% 30%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 6 87% 63%;
@@ -41,24 +44,24 @@
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 225 73% 70%;
+    --ring: 210 85% 45%;
 
     --radius: 0.75rem;
 
-    --success: 152 69% 31%;
+    --success: 160 50% 35%;
     --success-foreground: 0 0% 100%;
 
     --warning: 45 87% 62%;
     --warning-foreground: 215 20% 24%;
 
-    --info: 225 73% 70%;
+    --info: 210 90% 55%;
     --info-foreground: 0 0% 100%;
     
-    /* Elegant Shadows */
-    --shadow-soft: 0 2px 8px rgba(47, 59, 74, 0.04);
-    --shadow-medium: 0 4px 16px rgba(47, 59, 74, 0.08);
-    --shadow-strong: 0 8px 24px rgba(47, 59, 74, 0.12);
-    --shadow-glow: 0 0 20px rgba(136, 160, 234, 0.25);
+    /* Elegant Shadows with Blue Tint */
+    --shadow-soft: 0 2px 8px rgba(34, 96, 156, 0.06);
+    --shadow-medium: 0 4px 16px rgba(34, 96, 156, 0.12);
+    --shadow-strong: 0 8px 24px rgba(34, 96, 156, 0.18);
+    --shadow-glow: 0 0 20px rgba(66, 153, 225, 0.3);
     
     /* Smooth Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -68,30 +71,30 @@
   }
 
   .dark {
-    --background: 215 25% 12%;
+    --background: 220 60% 10%;
     --foreground: 210 40% 98%;
-    --card: 215 23% 16%;
+    --card: 220 55% 14%;
     --card-foreground: 210 40% 98%;
-    --popover: 215 25% 12%;
+    --popover: 220 60% 10%;
     --popover-foreground: 210 40% 98%;
-    --primary: 225 73% 75%;
+    --primary: 210 90% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 215 20% 20%;
+    --secondary: 220 50% 18%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 215 20% 20%;
+    --muted: 220 50% 18%;
     --muted-foreground: 215 20% 65%;
-    --accent: 215 25% 35%;
+    --accent: 180 50% 35%;
     --accent-foreground: 0 0% 100%;
     --destructive: 6 87% 63%;
     --destructive-foreground: 0 0% 100%;
-    --border: 215 20% 25%;
-    --input: 215 20% 25%;
-    --ring: 225 73% 75%;
-    --success: 152 69% 36%;
+    --border: 220 45% 22%;
+    --input: 220 45% 22%;
+    --ring: 210 90% 60%;
+    --success: 160 55% 40%;
     --success-foreground: 0 0% 100%;
     --warning: 45 87% 62%;
     --warning-foreground: 215 20% 10%;
-    --info: 225 73% 75%;
+    --info: 210 95% 65%;
     --info-foreground: 0 0% 100%;
     --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.2);
     --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.3);
