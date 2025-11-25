@@ -157,18 +157,18 @@ const Dashboard = () => {
               <div className="mb-4 sm:mb-6 flex flex-col gap-3 sm:gap-4">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Order Dashboard</h1>
               
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => setRunTour(true)}
-                      className="relative group overflow-hidden bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300 flex-shrink-0"
+                      className="relative group overflow-hidden bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300 w-full sm:w-auto"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-10 animate-pulse" />
-                      <span className="ml-1.5 sm:ml-2 relative z-10 font-semibold text-xs sm:text-sm hidden xs:inline">Tour</span>
+                      <span className="ml-1.5 sm:ml-2 relative z-10 font-semibold text-xs sm:text-sm">Tour</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -182,11 +182,11 @@ const Dashboard = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => navigate("/track-orders")} 
-                      className="flex-1 sm:flex-none min-w-0"
+                      className="w-full sm:w-auto"
                       data-tour="track-orders-btn"
                     >
                       <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm truncate">Track</span>
+                      <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Track</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -200,10 +200,10 @@ const Dashboard = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => navigate("/logistics")} 
-                      className="flex-1 sm:flex-none min-w-0"
+                      className="w-full sm:w-auto"
                     >
                       <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm truncate">Logistics</span>
+                      <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Logistics</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -216,13 +216,13 @@ const Dashboard = () => {
                     <TooltipTrigger asChild>
                       <Button 
                         onClick={() => navigate("/new-order")} 
-                        className="flex-1 sm:flex-none min-w-0 relative overflow-hidden bg-gradient-to-r from-primary via-primary to-accent hover:from-primary/90 hover:via-primary/95 hover:to-accent/90 shadow-lg hover:shadow-2xl transition-all duration-500 group border-0"
+                        className="w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-primary via-primary to-accent hover:from-primary/90 hover:via-primary/95 hover:to-accent/90 shadow-lg hover:shadow-2xl transition-all duration-500 group border-0"
                         data-tour="new-order-btn"
                         size="sm"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <Plus className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="text-xs sm:text-sm relative z-10 font-semibold">Create Order</span>
+                        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
+                        <span className="text-xs sm:text-sm relative z-10 font-semibold sm:ml-0.5">Create Order</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>

@@ -225,7 +225,7 @@ const LogisticsDashboard = () => {
             </div>
 
             {/* Key Metrics */}
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mb-6">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>
@@ -359,7 +359,7 @@ const LogisticsDashboard = () => {
                           </div>}
 
                         {/* Delivery Dates */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                           {shipment.desired_delivery_date && <div className="text-sm">
                               <span className="text-muted-foreground">Desired: </span>
                               <span className="font-medium">
@@ -387,7 +387,7 @@ const LogisticsDashboard = () => {
                           </div>}
 
                         {/* Action Buttons */}
-                        <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <Button 
                             size="sm" 
                             variant="outline" 

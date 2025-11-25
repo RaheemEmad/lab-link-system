@@ -308,8 +308,8 @@ const OrderDashboard = () => {
           </div>
 
           {/* Orders Table */}
-          <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0" data-tour="orders-table">
-            <Table className="min-w-[800px]">
+          <div className="rounded-md border overflow-x-auto" data-tour="orders-table">
+            <Table className="min-w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Order ID</TableHead>
@@ -400,12 +400,12 @@ const OrderDashboard = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>
+                        <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="whitespace-nowrap">
                           {order.urgency}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={statusColors[order.status]}>
+                        <Badge variant="outline" className={`${statusColors[order.status]} whitespace-nowrap`}>
                           {order.status}
                         </Badge>
                       </TableCell>
@@ -500,13 +500,13 @@ const OrderDashboard = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-muted-foreground text-center sm:text-left">
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
               </div>
               
               <Pagination>
-                <PaginationContent>
+                <PaginationContent className="flex-wrap gap-1">
                   <PaginationItem>
                     <PaginationPrevious 
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -515,13 +515,13 @@ const OrderDashboard = () => {
                   </PaginationItem>
                   
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
+                    // On mobile, show fewer pages
+                    const showOnMobile = page === 1 || page === totalPages || page === currentPage;
+                    const showOnDesktop = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1);
+                    
+                    if (showOnDesktop) {
                       return (
-                        <PaginationItem key={page}>
+                        <PaginationItem key={page} className={!showOnMobile ? "hidden sm:inline-flex" : ""}>
                           <PaginationLink
                             onClick={() => setCurrentPage(page)}
                             isActive={currentPage === page}
@@ -533,7 +533,7 @@ const OrderDashboard = () => {
                       );
                     } else if (page === currentPage - 2 || page === currentPage + 2) {
                       return (
-                        <PaginationItem key={page}>
+                        <PaginationItem key={page} className="hidden sm:inline-flex">
                           <span className="px-4">...</span>
                         </PaginationItem>
                       );
