@@ -628,7 +628,25 @@ const LandingNav = () => {
             </div>
 
           {/* Mobile Menu */}
-          <div className="lg:hidden">
+          <div className="lg:hidden flex items-center gap-2">
+            {/* Mobile Create Order Button - Doctor Only */}
+            {user && userRole === 'doctor' && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    onClick={() => navigate("/new-order")}
+                    className="h-9 w-9 bg-gradient-to-r from-ocean-blue to-dark-teal hover:from-dark-teal hover:to-ocean-blue text-white shadow-md"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Create Order</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -662,6 +680,20 @@ const LandingNav = () => {
                         )}
                       </button>
                     ))}
+                    
+                    {/* Create Order - Doctor Only (in navigation menu) */}
+                    {userRole === 'doctor' && (
+                      <Button
+                        onClick={() => {
+                          navigate("/new-order");
+                          setIsOpen(false);
+                        }}
+                        className="w-full gap-2 bg-gradient-to-r from-ocean-blue to-dark-teal hover:from-dark-teal hover:to-ocean-blue text-white"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Create Order
+                      </Button>
+                    )}
                   </div>
 
                   {/* User Actions (when logged in) */}
@@ -705,20 +737,6 @@ const LandingNav = () => {
                           <User className="h-4 w-4" />
                           Profile
                         </button>
-
-                        {/* Create Order - Doctor Only */}
-                        {userRole === 'doctor' && (
-                          <Button
-                            onClick={() => {
-                              navigate("/new-order");
-                              setIsOpen(false);
-                            }}
-                            className="w-full gap-2 bg-gradient-to-r from-ocean-blue to-dark-teal hover:from-dark-teal hover:to-ocean-blue text-white"
-                          >
-                            <Plus className="h-4 w-4" />
-                            Create Order
-                          </Button>
-                        )}
                       </div>
                     </>
                   )}
