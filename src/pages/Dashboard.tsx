@@ -216,12 +216,12 @@ const Dashboard = () => {
                     <TooltipTrigger asChild>
                       <Button 
                         onClick={() => navigate("/new-order")} 
-                        className="flex-1 sm:flex-none min-w-0"
+                        className="flex-1 sm:flex-none min-w-0 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300"
                         data-tour="new-order-btn"
                         size="sm"
                       >
                         <Plus className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        <span className="text-xs sm:text-sm">New Order</span>
+                        <span className="text-xs sm:text-sm">Create Order</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
