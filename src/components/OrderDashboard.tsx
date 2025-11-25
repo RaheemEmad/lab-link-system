@@ -259,12 +259,25 @@ const OrderDashboard = () => {
     <TooltipProvider>
       <Card data-tour="order-dashboard">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Order Management
-            {orders.length > 0 && (
-              <Badge variant="secondary">{orders.length} total</Badge>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <CardTitle className="flex items-center gap-2">
+              Order Management
+              {orders.length > 0 && (
+                <Badge variant="secondary">{orders.length} total</Badge>
+              )}
+            </CardTitle>
+            
+            {isDoctor && (
+              <Button 
+                onClick={() => navigate("/new-order")} 
+                className="w-full sm:w-auto bg-gradient-to-r from-primary via-primary to-accent hover:from-primary/90 hover:via-primary/95 hover:to-accent/90 shadow-lg hover:shadow-2xl transition-all duration-500 group border-0"
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                <span className="font-semibold">Create Order</span>
+              </Button>
             )}
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filters and Search */}
