@@ -243,7 +243,7 @@ export default function OrderNotesDialog({
 
       toast.success("Note added successfully");
       setNewNote("");
-      fetchNotes();
+      // Note: fetchNotes is called by realtime subscription, no need to call here
     } catch (error) {
       console.error("Error adding note:", error);
       toast.error("Failed to add note");
@@ -271,7 +271,7 @@ export default function OrderNotesDialog({
       toast.success("Note updated successfully");
       setEditingNoteId(null);
       setEditText("");
-      fetchNotes();
+      // Note: fetchNotes is called by realtime subscription
     } catch (error) {
       console.error("Error updating note:", error);
       toast.error("Failed to update note");
@@ -291,7 +291,7 @@ export default function OrderNotesDialog({
 
       toast.success("Note deleted successfully");
       setDeleteNoteId(null);
-      fetchNotes();
+      // Note: DELETE event is handled by realtime subscription
     } catch (error) {
       console.error("Error deleting note:", error);
       toast.error("Failed to delete note");
@@ -321,7 +321,7 @@ export default function OrderNotesDialog({
         if (error) throw error;
       }
 
-      fetchNotes();
+      // Note: like changes are handled by realtime subscription
     } catch (error) {
       console.error("Error toggling like:", error);
       toast.error("Failed to update like");
