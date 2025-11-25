@@ -13,12 +13,12 @@ const Hero = () => {
       
       <div className="absolute top-4 right-4 z-20">
         {user ? (
-          <Button variant="outline" onClick={signOut} className="border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20">
+          <Button variant="outline" onClick={signOut} className="border-white/50 bg-white/30 text-white backdrop-blur-md hover:bg-white/40 font-semibold shadow-lg">
             <LogOut className="mr-2 h-4 w-4" />
             Sign Out
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => navigate("/auth")} className="border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20">
+          <Button variant="outline" onClick={() => navigate("/auth")} className="border-white/50 bg-white/30 text-white backdrop-blur-md hover:bg-white/40 font-semibold shadow-lg">
             <LogIn className="mr-2 h-4 w-4" />
             Sign In
           </Button>
