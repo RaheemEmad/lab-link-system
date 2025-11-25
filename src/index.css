@@ -99,6 +99,9 @@
     --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.2);
     --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.3);
     --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --stability-navy: 210 72% 12%;
+    --medical-teal: 177 93% 36%;
+    --trust-blue: 218 71% 53%;
   }
 }
 
