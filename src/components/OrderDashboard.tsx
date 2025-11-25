@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, Plus } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -259,33 +259,12 @@ const OrderDashboard = () => {
     <TooltipProvider>
       <Card data-tour="order-dashboard">
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle className="flex items-center gap-2">
-              Order Management
-              {orders.length > 0 && (
-                <Badge variant="secondary">{orders.length} total</Badge>
-              )}
-            </CardTitle>
-            
-            {isDoctor && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    onClick={() => navigate("/new-order")} 
-                    className="w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-primary via-primary to-accent hover:from-primary/90 hover:via-primary/95 hover:to-accent/90 shadow-lg hover:shadow-2xl transition-all duration-500 group border-0"
-                    size="sm"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-                    <span className="ml-1.5 text-xs sm:text-sm relative z-10 font-semibold">Create Order</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Create a new dental lab order</p>
-                </TooltipContent>
-              </Tooltip>
+          <CardTitle className="flex items-center gap-2">
+            Order Management
+            {orders.length > 0 && (
+              <Badge variant="secondary">{orders.length} total</Badge>
             )}
-          </div>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filters and Search */}
