@@ -23,7 +23,7 @@ import { DashboardReceiveAnimation } from "@/components/order/DashboardReceiveAn
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { role, isDoctor, isLoading: roleLoading } = useUserRole();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [runTour, setRunTour] = useState(false);
@@ -211,7 +211,7 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
-                {roleLoading ? (
+                {(authLoading || roleLoading) ? (
                   <div className="w-full sm:w-auto h-9 bg-primary/20 animate-pulse rounded-md" />
                 ) : (
                   isDoctor && (
