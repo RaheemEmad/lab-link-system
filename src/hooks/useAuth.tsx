@@ -10,7 +10,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any; errorCode?: AuthErrorCode }>;
-  signIn: (email: string, password: string) => Promise<{ error: any; errorCode?: AuthErrorCode }>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: any; errorCode?: AuthErrorCode }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
     try {
       // Use secure login edge function with account lockout protection
       const { data, error } = await supabase.functions.invoke('secure-login', {
@@ -101,6 +101,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token
         });
+        
+        // Handle session persistence based on remember me preference
+        if (!rememberMe) {
+          // For sessions that shouldn't persist, store a flag
+          // This will be used to clear session on browser close
+          sessionStorage.setItem('lablink_session_temporary', 'true');
+          
+          // Set up an event listener to clear session when window closes
+          window.addEventListener('beforeunload', () => {
+            if (sessionStorage.getItem('lablink_session_temporary') === 'true') {
+              supabase.auth.signOut();
+            }
+          });
+        } else {
+          // Clear temporary session flag if remember me is enabled
+          sessionStorage.removeItem('lablink_session_temporary');
+        }
         
         toast.success(AUTH_MESSAGES.SIGN_IN_SUCCESS);
         navigate("/");
@@ -148,6 +165,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   const signOut = async () => {
+    // Clear temporary session flag
+    sessionStorage.removeItem('lablink_session_temporary');
+    
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);

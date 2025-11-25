@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
 import { WelcomeModal } from "@/components/auth/WelcomeModal";
 import { Check, Eye, EyeOff, AlertCircle, Mail } from "lucide-react";
@@ -36,6 +37,7 @@ const signUpSchema = z.object({
 const signInSchema = z.object({
   email: z.string().trim().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().default(false),
 });
 
 type SignUpValues = z.infer<typeof signUpSchema>;
@@ -70,6 +72,7 @@ const Auth = () => {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: localStorage.getItem("lablink_remember_me") === "true",
     },
   });
   
@@ -213,7 +216,11 @@ const Auth = () => {
 
   const handleSignIn = async (values: SignInValues) => {
     setIsLoading(true);
-    const { error, errorCode } = await signIn(values.email, values.password);
+    
+    // Store remember me preference
+    localStorage.setItem("lablink_remember_me", values.rememberMe.toString());
+    
+    const { error, errorCode } = await signIn(values.email, values.password, values.rememberMe);
     setIsLoading(false);
     
     // Switch to sign-up if user not found
@@ -386,6 +393,24 @@ const Auth = () => {
                           </div>
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={signInForm.control}
+                    name="rememberMe"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal cursor-pointer">
+                          Remember me for 30 days
+                        </FormLabel>
                       </FormItem>
                     )}
                   />
