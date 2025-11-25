@@ -106,6 +106,7 @@ const LabOrderDetail = () => {
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newComment, setNewComment] = useState("");
+  const [htmlExportInput, setHtmlExportInput] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -197,6 +198,7 @@ const LabOrderDetail = () => {
         expected_delivery_date: data.expected_delivery_date || "",
         shipment_tracking: data.shipment_tracking || "",
       });
+      setHtmlExportInput(data.html_export || "");
       setShipmentDetails({
         driver_name: data.driver_name || "",
         driver_phone_whatsapp: data.driver_phone_whatsapp || "",
@@ -544,6 +546,62 @@ const LabOrderDetail = () => {
                         placeholder="Tracking number..."
                       />
                     </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* HTML Export Section */}
+                  <div>
+                    <div className="flex items-start justify-between mb-2">
+                      <Label htmlFor="htmlExport" className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        HTML Export (Required)
+                      </Label>
+                      {!htmlExportInput && (
+                        <Badge variant="destructive" className="text-xs">Missing</Badge>
+                      )}
+                    </div>
+                    <Textarea
+                      id="htmlExport"
+                      value={htmlExportInput}
+                      onChange={(e) => setHtmlExportInput(e.target.value)}
+                      placeholder="Paste HTML content or enter a URL to the order details..."
+                      rows={3}
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Provide HTML content or URL with complete order details for doctor's records
+                    </p>
+                    {htmlExportInput && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => {
+                          const isUrl = htmlExportInput.startsWith('http://') || htmlExportInput.startsWith('https://');
+                          if (isUrl) {
+                            window.open(htmlExportInput, '_blank', 'noopener,noreferrer');
+                          } else {
+                            const previewWindow = window.open('', '_blank');
+                            if (previewWindow) {
+                              previewWindow.document.write(htmlExportInput);
+                              previewWindow.document.close();
+                            }
+                          }
+                        }}
+                      >
+                        Preview HTML Export
+                      </Button>
+                    )}
+                    {!htmlExportInput && (
+                      <Alert className="mt-3">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="text-xs">
+                          <strong>Required:</strong> HTML export is mandatory before completing this order. Provide complete order details for the doctor's records.
+                        </AlertDescription>
+                      </Alert>
+                    )}
                   </div>
 
                   <Button onClick={handleSaveChanges} disabled={isSaving} className="w-full">

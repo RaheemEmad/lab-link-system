@@ -1426,6 +1426,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      check_lab_not_refused: {
+        Args: { _lab_id: string; _order_id: string }
+        Returns: boolean
+      }
       check_oauth_rate_limit: {
         Args: { email_param?: string; ip_address_param: string }
         Returns: Json
