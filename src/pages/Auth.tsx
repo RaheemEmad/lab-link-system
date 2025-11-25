@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Check, Eye, EyeOff } from "lucide-react";
+import { Check, Eye, EyeOff, AlertCircle, Mail } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
 import { toast } from "sonner";
 import { WelcomeModal } from "@/components/auth/WelcomeModal";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
@@ -44,7 +45,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
-  const [signUpEmail, setSignUpEmail] = useState("");
+  const [confirmedEmail, setConfirmedEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [tab, setTab] = useState<"signin" | "signup">("signin");
@@ -73,6 +74,40 @@ const Auth = () => {
   const signUpPassword = signUpForm.watch("password");
   const signUpConfirmPassword = signUpForm.watch("confirmPassword");
   const signInEmail = signInForm.watch("email");
+  const signUpEmail = signUpForm.watch("email");
+  
+  // Email validation states
+  const [signInEmailValid, setSignInEmailValid] = useState<boolean | null>(null);
+  const [signUpEmailValid, setSignUpEmailValid] = useState<boolean | null>(null);
+  const [emailCheckInProgress, setEmailCheckInProgress] = useState(false);
+  
+  // Debounced email validation for sign-in
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (signInEmail) {
+        const isValidFormat = z.string().email().safeParse(signInEmail).success;
+        setSignInEmailValid(isValidFormat);
+      } else {
+        setSignInEmailValid(null);
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [signInEmail]);
+  
+  // Debounced email validation for sign-up
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (signUpEmail) {
+        const isValidFormat = z.string().email().safeParse(signUpEmail).success;
+        setSignUpEmailValid(isValidFormat);
+      } else {
+        setSignUpEmailValid(null);
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [signUpEmail]);
 
   // Check onboarding and role status when user changes
   useEffect(() => {
@@ -168,6 +203,7 @@ const Auth = () => {
 
   const handleSignUp = async (values: SignUpValues) => {
     setIsLoading(true);
+    setEmailCheckInProgress(true);
     
     // Check if email already exists in database
     const { data: existingProfile } = await supabase
@@ -175,6 +211,8 @@ const Auth = () => {
       .select('email')
       .eq('email', values.email.toLowerCase())
       .maybeSingle();
+    
+    setEmailCheckInProgress(false);
     
     if (existingProfile) {
       setIsLoading(false);
@@ -190,13 +228,14 @@ const Auth = () => {
     setIsLoading(false);
     
     if (!error) {
-      setSignUpEmail(values.email);
+      setConfirmedEmail(values.email);
       setShowEmailConfirmation(true);
     }
   };
 
   const handleSignIn = async (values: SignInValues) => {
     setIsLoading(true);
+    setEmailCheckInProgress(true);
     
     // Check if email exists in database
     const { data: existingProfile } = await supabase
@@ -204,6 +243,8 @@ const Auth = () => {
       .select('email')
       .eq('email', values.email.toLowerCase())
       .maybeSingle();
+    
+    setEmailCheckInProgress(false);
     
     if (!existingProfile) {
       setIsLoading(false);
@@ -252,17 +293,29 @@ const Auth = () => {
           <LandingNav />
           <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
           <Card className="w-full max-w-md shadow-lg">
-            <CardHeader className="text-center px-4 sm:px-6">
-              <CardTitle className="text-xl sm:text-2xl md:text-3xl">Check Your Email</CardTitle>
-              <CardDescription className="text-sm mt-2">
-                We've sent a confirmation email to <strong>{signUpEmail}</strong>
-              </CardDescription>
-            </CardHeader>
+          <CardHeader className="text-center px-4 sm:px-6">
+            <CardTitle className="text-xl sm:text-2xl md:text-3xl">Check Your Email</CardTitle>
+            <CardDescription className="text-sm mt-2">
+              We've sent a confirmation email to <strong>{confirmedEmail}</strong>
+            </CardDescription>
+          </CardHeader>
             <CardContent className="px-4 sm:px-6 space-y-4">
-              <div className="text-center text-muted-foreground text-sm">
+              <Alert className="border-accent bg-accent/10">
+                <Mail className="h-4 w-4 text-accent" />
+                <AlertDescription className="text-sm ml-2">
+                  <strong>Email Verification Pending</strong>
+                  <p className="mt-1">We've sent a confirmation link to verify your email address.</p>
+                </AlertDescription>
+              </Alert>
+              
+              <div className="text-center text-muted-foreground text-sm space-y-2">
                 <p>Click the link in the email to verify your account.</p>
-                <p className="mt-2">Once verified, you can sign in to your account.</p>
+                <p>Once verified, you can sign in to your account.</p>
+                <p className="text-xs text-muted-foreground/70 mt-3">
+                  Didn't receive the email? Check your spam folder.
+                </p>
               </div>
+              
               <Button 
                 onClick={() => setShowEmailConfirmation(false)} 
                 variant="outline" 
@@ -313,12 +366,27 @@ const Auth = () => {
                         <FormLabel>Email</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input type="email" placeholder="doctor@example.com" {...field} />
-                            {signInEmail && z.string().email().safeParse(signInEmail).success && (
+                            <Input 
+                              type="email" 
+                              placeholder="doctor@example.com" 
+                              {...field}
+                              className={
+                                signInEmailValid === true ? "pr-10 border-green-500/50 focus:border-green-500" :
+                                signInEmailValid === false ? "pr-10 border-red-500/50 focus:border-red-500" :
+                                ""
+                              }
+                            />
+                            {signInEmailValid === true && (
                               <Check className="absolute right-3 top-3 h-4 w-4 text-green-600" />
+                            )}
+                            {signInEmailValid === false && signInEmail && (
+                              <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-red-500" />
                             )}
                           </div>
                         </FormControl>
+                        {signInEmailValid === false && signInEmail && (
+                          <p className="text-xs text-red-500 mt-1">Please enter a valid email address</p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -388,12 +456,27 @@ const Auth = () => {
                         <FormLabel>Email</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input type="email" placeholder="doctor@example.com" {...field} />
-                            {field.value && z.string().email().safeParse(field.value).success && (
+                            <Input 
+                              type="email" 
+                              placeholder="doctor@example.com" 
+                              {...field}
+                              className={
+                                signUpEmailValid === true ? "pr-10 border-green-500/50 focus:border-green-500" :
+                                signUpEmailValid === false ? "pr-10 border-red-500/50 focus:border-red-500" :
+                                ""
+                              }
+                            />
+                            {signUpEmailValid === true && (
                               <Check className="absolute right-3 top-3 h-4 w-4 text-green-600" />
+                            )}
+                            {signUpEmailValid === false && field.value && (
+                              <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-red-500" />
                             )}
                           </div>
                         </FormControl>
+                        {signUpEmailValid === false && field.value && (
+                          <p className="text-xs text-red-500 mt-1">Please enter a valid email address</p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
