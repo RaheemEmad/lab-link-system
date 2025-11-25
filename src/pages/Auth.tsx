@@ -168,6 +168,24 @@ const Auth = () => {
 
   const handleSignUp = async (values: SignUpValues) => {
     setIsLoading(true);
+    
+    // Check if email already exists in database
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('email', values.email.toLowerCase())
+      .maybeSingle();
+    
+    if (existingProfile) {
+      setIsLoading(false);
+      toast.error("This email is already registered. Please sign in instead.", {
+        duration: 5000,
+      });
+      setTab("signin");
+      signInForm.setValue("email", values.email);
+      return;
+    }
+    
     const { error } = await signUp(values.email, values.password, values.fullName);
     setIsLoading(false);
     
@@ -179,6 +197,24 @@ const Auth = () => {
 
   const handleSignIn = async (values: SignInValues) => {
     setIsLoading(true);
+    
+    // Check if email exists in database
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('email', values.email.toLowerCase())
+      .maybeSingle();
+    
+    if (!existingProfile) {
+      setIsLoading(false);
+      toast.error("This email is not registered. Please create an account first.", {
+        duration: 5000,
+      });
+      setTab("signup");
+      signUpForm.setValue("email", values.email);
+      return;
+    }
+    
     const { error } = await signIn(values.email, values.password);
     setIsLoading(false);
     
