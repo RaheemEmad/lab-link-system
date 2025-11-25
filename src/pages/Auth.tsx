@@ -1,22 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
+import { WelcomeModal } from "@/components/auth/WelcomeModal";
 import { Check, Eye, EyeOff, AlertCircle, Mail } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
-import { toast } from "sonner";
-import { WelcomeModal } from "@/components/auth/WelcomeModal";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { GoogleIcon } from "@/components/auth/GoogleIcon";
 
 const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
@@ -77,37 +78,29 @@ const Auth = () => {
   const signInEmail = signInForm.watch("email");
   const signUpEmail = signUpForm.watch("email");
   
-  // Email validation states - VISUAL ONLY, no backend checks
+  // Visual-only email format validation (no backend checks)
   const [signInEmailValid, setSignInEmailValid] = useState<boolean | null>(null);
   const [signUpEmailValid, setSignUpEmailValid] = useState<boolean | null>(null);
   
-  // Debounced email format validation for sign-in (visual feedback only)
+  // Debounced email format validation (visual feedback only)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (signInEmail) {
-        const isValidFormat = z.string().email().safeParse(signInEmail).success;
-        setSignInEmailValid(isValidFormat);
-      } else {
-        setSignInEmailValid(null);
+    const validateEmail = (email: string, setter: (valid: boolean | null) => void) => {
+      if (!email) {
+        setter(null);
+        return;
       }
-    }, 300);
+      const isValidFormat = z.string().email().safeParse(email).success;
+      setter(isValidFormat);
+    };
+
+    const signInTimer = setTimeout(() => validateEmail(signInEmail, setSignInEmailValid), 300);
+    const signUpTimer = setTimeout(() => validateEmail(signUpEmail, setSignUpEmailValid), 300);
     
-    return () => clearTimeout(timer);
-  }, [signInEmail]);
-  
-  // Debounced email format validation for sign-up (visual feedback only)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (signUpEmail) {
-        const isValidFormat = z.string().email().safeParse(signUpEmail).success;
-        setSignUpEmailValid(isValidFormat);
-      } else {
-        setSignUpEmailValid(null);
-      }
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [signUpEmail]);
+    return () => {
+      clearTimeout(signInTimer);
+      clearTimeout(signUpTimer);
+    };
+  }, [signInEmail, signUpEmail]);
 
   // Check onboarding and role status when user changes
   useEffect(() => {
@@ -201,15 +194,12 @@ const Auth = () => {
 
   const handleSignUp = async (values: SignUpValues) => {
     setIsLoading(true);
-    
-    // Let backend handle all validation - no duplicate checks here
     const { error, errorCode } = await signUp(values.email, values.password, values.fullName);
     setIsLoading(false);
     
-    // Handle specific error codes
     if (error) {
+      // Switch to sign-in if user already exists
       if (errorCode === "USER_EXISTS") {
-        // Only switch tabs if it's truly a duplicate user
         setTab("signin");
         signInForm.setValue("email", values.email);
       }
@@ -223,25 +213,19 @@ const Auth = () => {
 
   const handleSignIn = async (values: SignInValues) => {
     setIsLoading(true);
-    
-    // Let backend handle all validation - no duplicate checks here
     const { error, errorCode } = await signIn(values.email, values.password);
     setIsLoading(false);
     
-    // Handle specific error codes
+    // Switch to sign-up if user not found
     if (error && errorCode === "USER_NOT_FOUND") {
-      // Only switch tabs if user truly doesn't exist
       setTab("signup");
       signUpForm.setValue("email", values.email);
     }
-    
-    // Navigation is handled by the useEffect hook above
   };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     await signInWithGoogle();
-    // Don't set loading to false - OAuth redirect will happen
   };
 
 
@@ -428,25 +412,10 @@ const Auth = () => {
                     onClick={handleGoogleSignIn}
                     disabled={isGoogleLoading || isLoading}
                   >
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    {isGoogleLoading ? "Connecting..." : "Sign in with Google"}
+                    <GoogleIcon />
+                    <span className="ml-2">
+                      {isGoogleLoading ? "Connecting..." : "Sign in with Google"}
+                    </span>
                   </Button>
                 </form>
               </Form>
@@ -585,25 +554,10 @@ const Auth = () => {
                     onClick={handleGoogleSignIn}
                     disabled={isGoogleLoading || isLoading}
                   >
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    {isGoogleLoading ? "Connecting..." : "Sign up with Google"}
+                    <GoogleIcon />
+                    <span className="ml-2">
+                      {isGoogleLoading ? "Connecting..." : "Sign up with Google"}
+                    </span>
                   </Button>
                 </form>
               </Form>
