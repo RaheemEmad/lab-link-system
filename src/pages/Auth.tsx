@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
 import { toast } from "sonner";
+import { WelcomeModal } from "@/components/auth/WelcomeModal";
 import { 
   getUserIP, 
   checkOAuthRateLimit, 
@@ -58,6 +59,8 @@ const Auth = () => {
   const [tab, setTab] = useState<"signin" | "signup">("signin");
   const [userIP, setUserIP] = useState<string | null>(null);
   const hasCheckedAuth = useRef(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [welcomeUserName, setWelcomeUserName] = useState("");
 
   // Get user's IP address on mount
   useEffect(() => {
@@ -118,6 +121,10 @@ const Auth = () => {
           await logOAuthAttempt(user.email, true, userIP);
         }
 
+        // Get user's name for welcome modal
+        const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+        setWelcomeUserName(userName);
+
         // First check if profile exists (registered user)
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -167,12 +174,10 @@ const Auth = () => {
           return;
         }
 
-        // User has role and completed onboarding, redirect to appropriate page
-        if (userRole.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
+        // User has role and completed onboarding, show welcome modal then redirect
+        clearTimeout(loadingTimeout);
+        setShowWelcomeModal(true);
+        setIsLoading(false);
       } catch (error) {
         clearTimeout(loadingTimeout);
         console.error('Error checking user status:', error);
@@ -225,20 +230,49 @@ const Auth = () => {
         }
       }
 
-      await signInWithGoogle();
-      // Don't set loading to false here as user will be redirected
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        toast.error("Failed to sign in with Google. Please try again.");
+        setIsGoogleLoading(false);
+      }
+      // Don't set loading to false on success as user will be redirected
     } catch (error) {
       console.error('Google sign-in error:', error);
-      toast.error("Failed to sign in with Google");
+      toast.error("Unable to connect to Google. Please try again.");
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleWelcomeModalClose = async () => {
+    setShowWelcomeModal(false);
+    
+    // Get user role to determine where to redirect
+    const { data: userRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user?.id)
+      .maybeSingle();
+
+    if (userRole?.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/dashboard");
     }
   };
 
   if (showEmailConfirmation) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <LandingNav />
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
+      <>
+        <WelcomeModal 
+          isOpen={showWelcomeModal} 
+          userName={welcomeUserName}
+          onClose={handleWelcomeModalClose}
+        />
+        
+        <div className="min-h-screen flex flex-col">
+          <LandingNav />
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
           <Card className="w-full max-w-md shadow-lg">
             <CardHeader className="text-center px-4 sm:px-6">
               <CardTitle className="text-xl sm:text-2xl md:text-3xl">Check Your Email</CardTitle>
@@ -263,13 +297,21 @@ const Auth = () => {
         </div>
         <LandingFooter />
       </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <LandingNav />
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
+    <>
+      <WelcomeModal 
+        isOpen={showWelcomeModal} 
+        userName={welcomeUserName}
+        onClose={handleWelcomeModalClose}
+      />
+      
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center px-4 sm:px-6">
           <CardTitle className="text-xl sm:text-2xl md:text-3xl">Welcome to LabLink</CardTitle>
@@ -486,7 +528,8 @@ const Auth = () => {
       </Card>
       </div>
       <LandingFooter />
-    </div>
+      </div>
+    </>
   );
 };
 

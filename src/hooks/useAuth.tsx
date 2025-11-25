@@ -116,12 +116,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         options: {
           redirectTo: `${window.location.origin}/auth`,
           skipBrowserRedirect: false,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
       if (error) {
         console.error('Google OAuth error:', error);
-        toast.error(error.message || "Failed to sign in with Google");
+        toast.error(error.message || "Failed to connect to Google");
         return { error };
       }
 
@@ -129,7 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { error: null };
     } catch (error: any) {
       console.error('Google sign-in exception:', error);
-      toast.error("Unable to connect to Google. Please try again.");
+      toast.error("Connection failed. Please try again.");
       return { error };
     }
   };
