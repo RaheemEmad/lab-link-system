@@ -3,16 +3,18 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { parseAuthError, AUTH_MESSAGES, AuthErrorCode } from "@/lib/authValidation";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any; errorCode?: AuthErrorCode }>;
+  signIn: (email: string, password: string) => Promise<{ error: any; errorCode?: AuthErrorCode }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,34 +46,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          // Role is set server-side to 'doctor' by default - no client input accepted
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      // Enhanced error messages for signup
-      let errorMessage = error.message;
-      if (error.message.includes("already registered")) {
-        errorMessage = "An account with this email already exists";
-      } else if (error.message.includes("password")) {
-        errorMessage = "Password does not meet security requirements";
+      if (error) {
+        // Parse and handle auth errors consistently
+        const { message } = parseAuthError(error);
+        toast.error(message);
+        return { error, errorCode: parseAuthError(error).code };
       }
-      toast.error(errorMessage);
-      return { error };
-    }
 
-    toast.success("Account created successfully!");
-    return { error: null };
+      // Check if email confirmation is disabled (auto-confirm enabled)
+      if (data?.user && data.session) {
+        toast.success(AUTH_MESSAGES.SIGN_IN_SUCCESS);
+      } else {
+        toast.success(AUTH_MESSAGES.SIGN_UP_SUCCESS);
+      }
+      
+      return { error: null };
+    } catch (error: any) {
+      const { message } = parseAuthError(error);
+      toast.error(message);
+      return { error, errorCode: parseAuthError(error).code };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -82,9 +90,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error || data?.error) {
-        const errorMessage = data?.error || error?.message || 'Login failed';
-        toast.error(errorMessage);
-        return { error: error || new Error(errorMessage) };
+        const { message, code } = parseAuthError(data?.error || error?.message || 'Login failed');
+        toast.error(message);
+        return { error: error || new Error(message), errorCode: code };
       }
 
       // Set the session from the edge function response
@@ -94,16 +102,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           refresh_token: data.session.refresh_token
         });
         
-        toast.success("Signed in successfully!");
+        toast.success(AUTH_MESSAGES.SIGN_IN_SUCCESS);
         navigate("/");
         return { error: null };
       }
 
-      toast.error("An unexpected error occurred");
-      return { error: new Error("No session returned") };
+      toast.error(AUTH_MESSAGES.SERVER_ERROR);
+      return { error: new Error("No session returned"), errorCode: AuthErrorCode.SERVER_ERROR };
     } catch (error: any) {
       console.error('Sign in error:', error);
-      toast.error(error.message || "An unexpected error occurred");
+      const { message, code } = parseAuthError(error);
+      toast.error(message);
+      return { error, errorCode: code };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const redirectUrl = `${window.location.origin}/auth`;
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        const { message } = parseAuthError(error);
+        toast.error(message);
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      const { message } = parseAuthError(error);
+      toast.error(message);
       return { error };
     }
   };
@@ -113,7 +151,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    toast.success("Signed out successfully");
+    toast.success(AUTH_MESSAGES.SIGN_OUT_SUCCESS);
     navigate("/auth");
   };
 
@@ -149,7 +187,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPassword, updatePassword, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );
