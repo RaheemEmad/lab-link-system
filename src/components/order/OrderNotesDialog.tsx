@@ -89,78 +89,123 @@ export default function OrderNotesDialog({
   }, [isSupported, isGranted, requestPermission]);
 
   useEffect(() => {
-    if (open && orderId) {
-      fetchNotes();
-
-      // Subscribe to realtime changes
-      const notesChannel = supabase
-        .channel(`order-notes-${orderId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'order_notes',
-            filter: `order_id=eq.${orderId}`
-          },
-          (payload) => {
-            if (payload.eventType === 'INSERT') {
-              // Check if the new note is from another user
-              const newNoteUserId = (payload.new as any).user_id;
-              
-              if (newNoteUserId !== currentUserId) {
-                // Play sound for notes from other users
-                if (soundEnabled) {
-                  playNormalNotification();
-                }
-                
-                // Show browser notification (works even when tab is not focused)
-                showNotification("📝 New Note Added", {
-                  body: `A new note has been added to order ${orderNumber}`,
-                  tag: `note-${orderId}`,
-                  requireInteraction: false,
-                });
-                
-                // Show toast notification
-                toast.info("New note added", {
-                  description: "A new note has been added to this order",
-                  duration: 4000,
-                });
-              }
-              
-              fetchNotes(); // Refetch to get profile data and like counts
-            } else if (payload.eventType === 'UPDATE') {
-              fetchNotes();
-            } else if (payload.eventType === 'DELETE') {
-              setNotes(prev => prev.filter(note => note.id !== payload.old.id));
-            }
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'note_likes'
-          },
-          (payload) => {
-            // Refetch to update like counts when likes change
-            if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-              fetchNotes();
-            }
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(notesChannel);
-      };
+    if (!open || !orderId || !currentUserId) {
+      // Clear notes when dialog closes or orderId changes
+      if (!open) {
+        setNotes([]);
+      }
+      return;
     }
-  }, [open, orderId, currentUserId, soundEnabled, playNormalNotification]);
+
+    console.log('Setting up subscriptions for order:', orderId);
+    // Initial fetch
+    fetchNotes();
+
+    // Subscribe to realtime changes
+    const notesChannel = supabase
+      .channel(`order-notes-${orderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'order_notes',
+          filter: `order_id=eq.${orderId}`
+        },
+        (payload) => {
+          console.log('Note INSERT:', payload);
+          const newNoteUserId = (payload.new as any).user_id;
+          
+          if (newNoteUserId !== currentUserId) {
+            if (soundEnabled) {
+              playNormalNotification();
+            }
+            showNotification("📝 New Note Added", {
+              body: `A new note has been added to order ${orderNumber}`,
+              tag: `note-${orderId}`,
+              requireInteraction: false,
+            });
+            toast.info("New note added", {
+              description: "A new note has been added to this order",
+              duration: 4000,
+            });
+          }
+          
+          // Refetch to get complete data
+          fetchNotes();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'order_notes',
+          filter: `order_id=eq.${orderId}`
+        },
+        () => {
+          console.log('Note UPDATE');
+          fetchNotes();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'order_notes',
+          filter: `order_id=eq.${orderId}`
+        },
+        (payload) => {
+          console.log('Note DELETE:', payload);
+          setNotes(prev => prev.filter(note => note.id !== payload.old.id));
+        }
+      )
+      .subscribe((status) => {
+        console.log('Notes channel status:', status);
+      });
+
+    return () => {
+      console.log('Cleaning up notes channel');
+      supabase.removeChannel(notesChannel);
+    };
+  }, [open, orderId, currentUserId]);
+
+  // Separate subscription for like changes to avoid re-creating the main channel
+  useEffect(() => {
+    if (!open || !orderId) return;
+
+    const likesChannel = supabase
+      .channel(`note-likes-${orderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'note_likes'
+        },
+        (payload) => {
+          console.log('Like change:', payload.eventType);
+          // Update like counts without full refetch
+          if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+            fetchNotes();
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Likes channel status:', status);
+      });
+
+    return () => {
+      console.log('Cleaning up likes channel');
+      supabase.removeChannel(likesChannel);
+    };
+  }, [open, orderId, currentUserId]);
 
   const fetchNotes = async () => {
     if (!orderId) return;
 
+    console.log('Fetching notes for order:', orderId);
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -180,7 +225,12 @@ export default function OrderNotesDialog({
         .eq("order_id", orderId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching notes:", error);
+        throw error;
+      }
+
+      console.log('Fetched notes:', data?.length || 0);
 
       // Fetch like counts and user's like status for each note
       const notesWithLikes = await Promise.all(
