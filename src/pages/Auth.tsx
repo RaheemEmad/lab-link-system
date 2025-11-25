@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Chrome, Check, Eye, EyeOff } from "lucide-react";
+import { Chrome, Check, Eye, EyeOff, AlertCircle } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
 import { toast } from "sonner";
 import { WelcomeModal } from "@/components/auth/WelcomeModal";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
   getUserIP, 
   checkOAuthRateLimit, 
@@ -50,6 +51,7 @@ type SignInValues = z.infer<typeof signInSchema>;
 const Auth = () => {
   const { user, signUp, signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
@@ -61,6 +63,30 @@ const Auth = () => {
   const hasCheckedAuth = useRef(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [welcomeUserName, setWelcomeUserName] = useState("");
+  const [oauthError, setOauthError] = useState<string | null>(null);
+
+  // Handle OAuth errors from URL
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+    const errorCode = searchParams.get('error_code');
+
+    if (error) {
+      let friendlyMessage = "Google Sign-In failed. Please try again.";
+      
+      if (errorDescription?.includes("Unable to exchange external code") || error === "server_error") {
+        friendlyMessage = "Google authentication is not properly configured. Please use email/password to sign in or contact support.";
+        setOauthError(friendlyMessage);
+      } else if (error === "access_denied") {
+        friendlyMessage = "Access denied. You cancelled the Google sign-in.";
+      }
+      
+      toast.error(friendlyMessage, { duration: 6000 });
+      
+      // Clear URL parameters
+      window.history.replaceState({}, '', '/auth');
+    }
+  }, [searchParams]);
 
   // Get user's IP address on mount
   useEffect(() => {
@@ -318,6 +344,18 @@ const Auth = () => {
           <CardDescription className="text-sm">Sign in to track orders or create your account</CardDescription>
         </CardHeader>
         <CardContent className="px-4 sm:px-6">
+          {oauthError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Google Sign-In Issue</AlertTitle>
+              <AlertDescription className="text-sm">
+                {oauthError}
+                <br />
+                <span className="text-xs mt-1 block">Use email/password sign-in below to continue.</span>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
