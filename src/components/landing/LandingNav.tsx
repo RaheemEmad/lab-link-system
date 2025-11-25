@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck, Shield } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck, Shield, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
@@ -402,6 +402,25 @@ const LandingNav = () => {
                     </DropdownMenu>
                   )}
 
+                  {/* Create Order Button - Doctor Only */}
+                  {userRole === 'doctor' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          onClick={() => navigate("/new-order")}
+                          className="gap-1.5 bg-gradient-to-r from-ocean-blue to-dark-teal hover:from-dark-teal hover:to-ocean-blue text-white shadow-md hover:shadow-lg transition-all duration-300"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span className="hidden xl:inline">Create Order</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Create a new order</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
                   {/* Achievements Icon - Doctor */}
                   {userRole === 'doctor' && (
                     <Tooltip>
@@ -686,6 +705,20 @@ const LandingNav = () => {
                           <User className="h-4 w-4" />
                           Profile
                         </button>
+
+                        {/* Create Order - Doctor Only */}
+                        {userRole === 'doctor' && (
+                          <Button
+                            onClick={() => {
+                              navigate("/new-order");
+                              setIsOpen(false);
+                            }}
+                            className="w-full gap-2 bg-gradient-to-r from-ocean-blue to-dark-teal hover:from-dark-teal hover:to-ocean-blue text-white"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Create Order
+                          </Button>
+                        )}
                       </div>
                     </>
                   )}
