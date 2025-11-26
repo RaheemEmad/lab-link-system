@@ -93,17 +93,102 @@ export default function LabRequestsManagement() {
     mutationFn: async ({ requestId, status, orderId, orderNumber }: { requestId: string; status: string; orderId?: string; orderNumber?: string }) => {
       console.log('[LabRequests] Updating request status:', { requestId, status });
       
-      const { error } = await supabase
+      // Get the request details first (to get lab_id and user_id)
+      const { data: requestData, error: fetchError } = await supabase
+        .from("lab_work_requests")
+        .select("lab_id, requested_by_user_id")
+        .eq("id", requestId)
+        .single();
+      
+      if (fetchError) {
+        console.error('[LabRequests] Error fetching request data:', fetchError);
+        throw fetchError;
+      }
+      
+      if (!requestData) {
+        throw new Error("Request not found");
+      }
+      
+      // 1. Update the request status
+      const { error: requestError } = await supabase
         .from("lab_work_requests")
         .update({ status })
         .eq("id", requestId);
       
-      if (error) {
-        console.error('[LabRequests] Error updating request status:', error);
-        throw error;
+      if (requestError) {
+        console.error('[LabRequests] Error updating request status:', requestError);
+        throw requestError;
       }
       
-      console.log('[LabRequests] Request status updated successfully');
+      // If accepting, do the full assignment flow
+      if (status === 'accepted' && orderId) {
+        console.log('[LabRequests] Accepting request - starting full assignment flow');
+        
+        // 2. Update the order - assign lab and disable marketplace
+        const { error: orderError } = await supabase
+          .from("orders")
+          .update({ 
+            assigned_lab_id: requestData.lab_id,
+            auto_assign_pending: false 
+          })
+          .eq("id", orderId);
+        
+        if (orderError) {
+          console.error('[LabRequests] Error updating order:', orderError);
+          throw orderError;
+        }
+        
+        console.log('[LabRequests] Order updated - lab assigned and removed from marketplace');
+        
+        // 3. Create order assignment
+        const { error: assignmentError } = await supabase
+          .from("order_assignments")
+          .insert({
+            order_id: orderId,
+            user_id: requestData.requested_by_user_id,
+            assigned_by: user?.id
+          });
+        
+        // Ignore if assignment already exists (duplicate key)
+        if (assignmentError && !assignmentError.message?.includes('duplicate')) {
+          console.warn('[LabRequests] Assignment creation warning:', assignmentError);
+        } else {
+          console.log('[LabRequests] Order assignment created');
+        }
+        
+        // 4. Refuse all other pending requests for this order
+        const { error: refuseError } = await supabase
+          .from("lab_work_requests")
+          .update({ status: 'refused' })
+          .eq("order_id", orderId)
+          .neq("id", requestId)
+          .eq("status", "pending");
+        
+        if (refuseError) {
+          console.warn('[LabRequests] Error refusing other requests:', refuseError);
+        } else {
+          console.log('[LabRequests] Other pending requests refused');
+        }
+        
+        // 5. Send notification to accepted lab
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert({
+            user_id: requestData.requested_by_user_id,
+            order_id: orderId,
+            type: 'lab_request_accepted',
+            title: 'Application Accepted!',
+            message: `Your application for order ${orderNumber} has been accepted. You can now view full order details and begin work.`
+          });
+        
+        if (notifError) {
+          console.warn('[LabRequests] Error sending notification:', notifError);
+        } else {
+          console.log('[LabRequests] Acceptance notification sent to lab');
+        }
+      }
+      
+      console.log('[LabRequests] Request status update completed successfully');
       return { requestId, orderId, orderNumber };
     },
     onSuccess: (data, variables) => {
