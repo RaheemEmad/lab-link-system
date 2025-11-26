@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, Search, Pencil, Trash2 } from "lucide-react";
+import { Eye, Search, Pencil, Trash2, ArrowRightLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -19,6 +19,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { OrderDetailsModal } from "@/components/order/OrderDetailsModal";
+import { LabReassignDialog } from "@/components/admin/LabReassignDialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Order {
   id: string;
@@ -55,6 +57,8 @@ const AdminOrdersTab = () => {
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [orderToView, setOrderToView] = useState<Order | null>(null);
+  const [labReassignDialogOpen, setLabReassignDialogOpen] = useState(false);
+  const [orderToReassign, setOrderToReassign] = useState<Order | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -134,6 +138,11 @@ const AdminOrdersTab = () => {
   const confirmDelete = (order: Order) => {
     setOrderToDelete(order);
     setDeleteDialogOpen(true);
+  };
+
+  const handleReassignLab = (order: Order) => {
+    setOrderToReassign(order);
+    setLabReassignDialogOpen(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -348,33 +357,59 @@ const AdminOrdersTab = () => {
                     {new Date(order.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewOrder(order)}
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditOrder(order)}
-                        title="Edit Order"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => confirmDelete(order)}
-                        className="text-destructive hover:text-destructive"
-                        title="Delete Order"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <TooltipProvider>
+                      <div className="flex items-center justify-end gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewOrder(order)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>View Details</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditOrder(order)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit Order</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleReassignLab(order)}
+                            >
+                              <ArrowRightLeft className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Reassign Lab</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => confirmDelete(order)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete Order</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
               ))}
@@ -393,6 +428,14 @@ const AdminOrdersTab = () => {
             }}
           />
         )}
+
+        {/* Lab Reassignment Dialog */}
+        <LabReassignDialog
+          open={labReassignDialogOpen}
+          onOpenChange={setLabReassignDialogOpen}
+          order={orderToReassign}
+          onSuccess={fetchOrders}
+        />
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
