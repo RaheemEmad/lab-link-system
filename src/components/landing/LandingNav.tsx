@@ -407,9 +407,10 @@ const LandingNav = () => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => navigate("/new-order")}
-                          className="gap-1.5 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary text-primary-foreground shadow-md hover:shadow-lg transition-all duration-300"
+                          className="gap-1.5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300"
                         >
                           <Plus className="h-4 w-4" />
                           <span className="hidden xl:inline">Create Order</span>
@@ -666,11 +667,12 @@ const LandingNav = () => {
                     {/* Create Order - Doctor Only (in navigation menu) */}
                     {userRole === 'doctor' && (
                       <Button
+                        variant="outline"
                         onClick={() => {
                           navigate("/new-order");
                           setIsOpen(false);
                         }}
-                        className="w-full gap-2 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary text-primary-foreground"
+                        className="w-full gap-2 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300"
                       >
                         <Plus className="h-4 w-4" />
                         Create Order
