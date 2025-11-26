@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Trash2, Edit, UserCheck, UserX, Search, KeyRound } from "lucide-react";
+import { Trash2, Edit, UserCheck, UserX, Search, KeyRound, Unlock } from "lucide-react";
 import UserEditDialog from "./UserEditDialog";
 import {
   AlertDialog,
@@ -39,6 +39,7 @@ interface User {
   onboarding_completed: boolean;
   role?: string;
   lab_id?: string | null;
+  is_locked?: boolean;
 }
 
 const AdminUsersTab = () => {
@@ -69,7 +70,7 @@ const AdminUsersTab = () => {
 
       if (profilesError) throw profilesError;
 
-      // Fetch roles for each user
+      // Fetch roles and lockout status for each user
       const usersWithRoles = await Promise.all(
         (profiles || []).map(async (profile) => {
           const { data: roleData } = await supabase
@@ -78,10 +79,16 @@ const AdminUsersTab = () => {
             .eq("user_id", profile.id)
             .single();
 
+          // Check if account is locked
+          const { data: isLocked } = await supabase.rpc('is_account_locked', {
+            user_email: profile.email.toLowerCase()
+          });
+
           return {
             ...profile,
             role: roleData?.role || "none",
             lab_id: roleData?.lab_id || null,
+            is_locked: isLocked || false,
           };
         })
       );
@@ -163,6 +170,22 @@ const AdminUsersTab = () => {
       toast.error(error.message || "Failed to reset password");
     } finally {
       setUpdatingPassword(false);
+    }
+  };
+
+  const handleUnlockAccount = async (email: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-unlock-account', {
+        body: { email },
+      });
+
+      if (error) throw error;
+
+      toast.success("Account unlocked successfully");
+      fetchUsers(); // Refresh the user list
+    } catch (error: any) {
+      console.error('Unlock account error:', error);
+      toast.error(error.message || "Failed to unlock account");
     }
   };
 
@@ -370,17 +393,24 @@ const AdminUsersTab = () => {
                     </TableCell>
                     <TableCell>{user.phone || "—"}</TableCell>
                     <TableCell>
-                      {user.onboarding_completed ? (
-                        <Badge variant="outline" className="gap-1">
-                          <UserCheck className="h-3 w-3" />
-                          Active
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="gap-1">
-                          <UserX className="h-3 w-3" />
-                          Pending
-                        </Badge>
-                      )}
+                      <div className="flex gap-2">
+                        {user.onboarding_completed ? (
+                          <Badge variant="outline" className="gap-1">
+                            <UserCheck className="h-3 w-3" />
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <UserX className="h-3 w-3" />
+                            Pending
+                          </Badge>
+                        )}
+                        {user.is_locked && (
+                          <Badge variant="destructive" className="gap-1">
+                            🔒 Locked
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {new Date(user.created_at).toLocaleDateString()}
@@ -403,6 +433,17 @@ const AdminUsersTab = () => {
                         >
                           <KeyRound className="h-4 w-4" />
                         </Button>
+                        {user.is_locked && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUnlockAccount(user.email)}
+                            title="Unlock Account"
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            <Unlock className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

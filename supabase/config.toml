@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.account-health-check]
 verify_jwt = false
+
+[functions.admin-unlock-account]
+verify_jwt = false
+
+[functions.secure-login]
+verify_jwt = false
