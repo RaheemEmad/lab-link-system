@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, Truck, MapPin, Clock, Phone, User, AlertTriangle, Calendar, ArrowLeft, FileText, ExternalLink } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Package, Truck, MapPin, Clock, Phone, User, AlertTriangle, Calendar, ArrowLeft, FileText, ExternalLink, Edit, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
@@ -28,6 +32,7 @@ interface OrderShipment {
   carrier_phone: string | null;
   expected_delivery_date: string | null;
   assigned_lab_id: string | null;
+  doctor_id: string | null;
   labs: {
     name: string;
   } | null;
@@ -35,9 +40,22 @@ interface OrderShipment {
 
 const TrackOrders = () => {
   const { user } = useAuth();
+  const { role, labId, isLabStaff } = useUserRole();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderShipment[]>([]);
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    carrier_name: "",
+    carrier_phone: "",
+    shipment_tracking: "",
+    expected_delivery_date: "",
+    pickup_time: "",
+    tracking_location: "",
+    driver_name: "",
+    driver_phone_whatsapp: "",
+    shipment_notes: "",
+  });
 
   useEffect(() => {
     fetchOrders();
@@ -48,7 +66,7 @@ const TrackOrders = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("orders")
         .select(`
           id,
@@ -65,12 +83,21 @@ const TrackOrders = () => {
           carrier_phone,
           expected_delivery_date,
           assigned_lab_id,
+          doctor_id,
           labs:assigned_lab_id (
             name
           )
         `)
-        .eq("doctor_id", user.id)
         .order("created_at", { ascending: false });
+
+      // Filter based on role
+      if (isLabStaff && labId) {
+        query = query.eq("assigned_lab_id", labId).not("assigned_lab_id", "is", null);
+      } else {
+        query = query.eq("doctor_id", user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setOrders(data || []);
@@ -119,6 +146,75 @@ const TrackOrders = () => {
     window.open(`https://wa.me/${cleanPhone}`, "_blank");
   };
 
+  const startEditing = (order: OrderShipment) => {
+    setEditingOrderId(order.id);
+    setEditForm({
+      carrier_name: order.carrier_name || "",
+      carrier_phone: order.carrier_phone || "",
+      shipment_tracking: order.shipment_tracking || "",
+      expected_delivery_date: order.expected_delivery_date || "",
+      pickup_time: order.pickup_time || "",
+      tracking_location: order.tracking_location || "",
+      driver_name: order.driver_name || "",
+      driver_phone_whatsapp: order.driver_phone_whatsapp || "",
+      shipment_notes: order.shipment_notes || "",
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingOrderId(null);
+    setEditForm({
+      carrier_name: "",
+      carrier_phone: "",
+      shipment_tracking: "",
+      expected_delivery_date: "",
+      pickup_time: "",
+      tracking_location: "",
+      driver_name: "",
+      driver_phone_whatsapp: "",
+      shipment_notes: "",
+    });
+  };
+
+  const saveShipmentDetails = async (orderId: string, doctorId: string) => {
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          carrier_name: editForm.carrier_name || null,
+          carrier_phone: editForm.carrier_phone || null,
+          shipment_tracking: editForm.shipment_tracking || null,
+          expected_delivery_date: editForm.expected_delivery_date || null,
+          pickup_time: editForm.pickup_time || null,
+          tracking_location: editForm.tracking_location || null,
+          driver_name: editForm.driver_name || null,
+          driver_phone_whatsapp: editForm.driver_phone_whatsapp || null,
+          shipment_notes: editForm.shipment_notes || null,
+        })
+        .eq("id", orderId);
+
+      if (error) throw error;
+
+      // Notify doctor
+      if (doctorId) {
+        await supabase.from("notifications").insert({
+          user_id: doctorId,
+          order_id: orderId,
+          type: "shipment_update",
+          title: "Shipment Updated",
+          message: `Shipment details have been updated. Carrier: ${editForm.carrier_name || "N/A"}, Tracking: ${editForm.shipment_tracking || "N/A"}`,
+        });
+      }
+
+      toast.success("Shipment details updated successfully");
+      fetchOrders();
+      cancelEditing();
+    } catch (error) {
+      console.error("Error updating shipment:", error);
+      toast.error("Failed to update shipment details");
+    }
+  };
+
   if (loading) {
     return (
       <ProtectedRoute>
@@ -155,8 +251,14 @@ const TrackOrders = () => {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
               </Button>
-              <h1 className="text-3xl font-bold">Track Your Orders</h1>
-              <p className="text-muted-foreground mt-2">Monitor shipment status and delivery details</p>
+              <h1 className="text-3xl font-bold">
+                {isLabStaff ? "Manage Order Shipments" : "Track Your Orders"}
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                {isLabStaff 
+                  ? "Update shipment status and delivery details for your orders" 
+                  : "Monitor shipment status and delivery details"}
+              </p>
             </div>
 
             {orders.length === 0 ? (
@@ -298,11 +400,148 @@ const TrackOrders = () => {
                         </div>
                       </div>
 
-                      {!order.driver_name && !order.carrier_name && (
+                      {!order.driver_name && !order.carrier_name && !isLabStaff && (
                         <div className="mt-4 p-4 bg-muted/50 rounded-lg text-center">
                           <p className="text-sm text-muted-foreground">
                             Shipment details will appear here once the lab processes your order
                           </p>
+                        </div>
+                      )}
+
+                      {/* Lab Staff Edit Section */}
+                      {isLabStaff && (
+                        <div className="mt-6 pt-6 border-t">
+                          {editingOrderId === order.id ? (
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-semibold text-lg">Update Shipment Details</h4>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={cancelEditing}
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => saveShipmentDetails(order.id, order.doctor_id!)}
+                                  >
+                                    <Save className="h-4 w-4 mr-1" />
+                                    Save Changes
+                                  </Button>
+                                </div>
+                              </div>
+
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="carrier_name">Carrier Name</Label>
+                                  <Input
+                                    id="carrier_name"
+                                    value={editForm.carrier_name}
+                                    onChange={(e) => setEditForm({ ...editForm, carrier_name: e.target.value })}
+                                    placeholder="Enter carrier name"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="carrier_phone">Carrier Phone</Label>
+                                  <Input
+                                    id="carrier_phone"
+                                    value={editForm.carrier_phone}
+                                    onChange={(e) => setEditForm({ ...editForm, carrier_phone: e.target.value })}
+                                    placeholder="Enter carrier phone"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="driver_name">Driver Name</Label>
+                                  <Input
+                                    id="driver_name"
+                                    value={editForm.driver_name}
+                                    onChange={(e) => setEditForm({ ...editForm, driver_name: e.target.value })}
+                                    placeholder="Enter driver name"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="driver_phone">Driver Phone (WhatsApp)</Label>
+                                  <Input
+                                    id="driver_phone"
+                                    value={editForm.driver_phone_whatsapp}
+                                    onChange={(e) => setEditForm({ ...editForm, driver_phone_whatsapp: e.target.value })}
+                                    placeholder="Enter driver phone"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="shipment_tracking">Tracking Number</Label>
+                                  <Input
+                                    id="shipment_tracking"
+                                    value={editForm.shipment_tracking}
+                                    onChange={(e) => setEditForm({ ...editForm, shipment_tracking: e.target.value })}
+                                    placeholder="Enter tracking number"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="tracking_location">Tracking Location</Label>
+                                  <Input
+                                    id="tracking_location"
+                                    value={editForm.tracking_location}
+                                    onChange={(e) => setEditForm({ ...editForm, tracking_location: e.target.value })}
+                                    placeholder="Enter current location"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="expected_delivery_date">Expected Delivery Date</Label>
+                                  <Input
+                                    id="expected_delivery_date"
+                                    type="date"
+                                    value={editForm.expected_delivery_date}
+                                    onChange={(e) => setEditForm({ ...editForm, expected_delivery_date: e.target.value })}
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="pickup_time">Pickup Time</Label>
+                                  <Input
+                                    id="pickup_time"
+                                    type="datetime-local"
+                                    value={editForm.pickup_time}
+                                    onChange={(e) => setEditForm({ ...editForm, pickup_time: e.target.value })}
+                                  />
+                                </div>
+
+                                <div className="space-y-2 md:col-span-2">
+                                  <Label htmlFor="shipment_notes">Shipment Notes</Label>
+                                  <Textarea
+                                    id="shipment_notes"
+                                    value={editForm.shipment_notes}
+                                    onChange={(e) => setEditForm({ ...editForm, shipment_notes: e.target.value })}
+                                    placeholder="Add any additional notes about the shipment"
+                                    rows={3}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm text-muted-foreground">
+                                Update carrier, driver, and tracking information
+                              </p>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => startEditing(order)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit Shipment Details
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </CardContent>
