@@ -125,14 +125,36 @@ Deno.serve(async (req) => {
     }
 
     // Delete the user
+    console.log(`Admin ${user.id} attempting to delete user ${userId}`);
+    
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
-      console.error('Delete user error:', deleteError.message);
+      console.error('Delete user error:', deleteError.message, deleteError);
       return new Response(
-        JSON.stringify({ error: 'Failed to delete user' }),
+        JSON.stringify({ 
+          error: 'Failed to delete user',
+          details: deleteError.message 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
+    }
+
+    console.log(`Successfully deleted user ${userId} by admin ${user.id}`);
+
+    // Log successful deletion to audit logs
+    const { error: auditError } = await supabaseAdmin.rpc('log_audit_event', {
+      action_type_param: 'user_deleted',
+      table_name_param: 'auth.users',
+      record_id_param: userId,
+      metadata_param: {
+        deleted_by_admin: user.id,
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+    if (auditError) {
+      console.error('Failed to log audit event:', auditError);
     }
 
     return new Response(
