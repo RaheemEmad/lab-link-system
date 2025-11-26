@@ -409,7 +409,7 @@ const LandingNav = () => {
                         <Button
                           size="sm"
                           onClick={() => navigate("/new-order")}
-                          className="gap-1.5 bg-gradient-to-r from-ocean-blue to-dark-teal hover:from-dark-teal hover:to-ocean-blue text-white shadow-md hover:shadow-lg transition-all duration-300"
+                          className="gap-1.5 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary text-primary-foreground shadow-md hover:shadow-lg transition-all duration-300"
                         >
                           <Plus className="h-4 w-4" />
                           <span className="hidden xl:inline">Create Order</span>
@@ -670,7 +670,7 @@ const LandingNav = () => {
                           navigate("/new-order");
                           setIsOpen(false);
                         }}
-                        className="w-full gap-2 bg-gradient-to-r from-ocean-blue to-dark-teal hover:from-dark-teal hover:to-ocean-blue text-white"
+                        className="w-full gap-2 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary text-primary-foreground"
                       >
                         <Plus className="h-4 w-4" />
                         Create Order
