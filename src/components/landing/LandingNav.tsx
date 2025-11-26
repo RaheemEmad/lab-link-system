@@ -30,6 +30,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const LandingNav = () => {
   const navigate = useNavigate();
@@ -638,20 +639,21 @@ const LandingNav = () => {
                   {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <SheetHeader>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px] flex flex-col">
+                <SheetHeader className="flex-shrink-0">
                   <SheetTitle className="text-2xl font-bold text-primary">
                     LabLink
                   </SheetTitle>
                 </SheetHeader>
-                <div className="flex flex-col gap-4 mt-8">
+                <ScrollArea className="flex-1 -mx-6 px-6">
+                  <div className="flex flex-col gap-4 mt-8 pb-safe">
                   {/* Main Navigation */}
                   <div className="space-y-2">
                     {leftNavLinks.map((link) => (
                       <button
                         key={link.href}
                         onClick={() => handleNavClick(link)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        className={`w-full flex items-center justify-between px-4 min-h-[44px] py-3 rounded-lg text-sm font-medium transition-colors ${
                           isLinkActive(link)
                             ? "bg-primary/10 text-primary font-semibold"
                             : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
@@ -848,7 +850,8 @@ const LandingNav = () => {
                       </div>
                     )}
                   </div>
-                </div>
+                  </div>
+                </ScrollArea>
               </SheetContent>
             </Sheet>
           </div>
