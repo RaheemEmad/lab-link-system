@@ -13,9 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Search,
   Filter,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LabCard } from "@/components/labs/LabCard";
+import { cn } from "@/lib/utils";
 
 interface Lab {
   id: string;
@@ -480,34 +483,68 @@ const Labs = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(page)}
-                        className="w-10"
-                      >
-                        {page}
-                      </Button>
-                    ))}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
+                  <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left order-2 sm:order-1">
+                    Page {currentPage} of {totalPages}
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </Button>
+                  
+                  <div className="flex items-center gap-1 sm:gap-2 order-1 sm:order-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="gap-1"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <span className="hidden sm:inline">Previous</span>
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                        // On mobile, show fewer pages
+                        const showOnMobile = page === 1 || page === totalPages || page === currentPage;
+                        const showOnTablet = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1);
+                        const showOnDesktop = page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2);
+                        
+                        if (showOnDesktop) {
+                          return (
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className={cn(
+                                "w-8 h-8 sm:w-10 sm:h-10 p-0",
+                                !showOnMobile && "hidden xs:inline-flex",
+                                !showOnTablet && "xs:hidden sm:inline-flex"
+                              )}
+                            >
+                              {page}
+                            </Button>
+                          );
+                        } else if ((page === currentPage - 3 || page === currentPage + 3) && totalPages > 7) {
+                          return (
+                            <span key={page} className="hidden sm:inline-flex px-2 text-muted-foreground">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="gap-1"
+                    >
+                      <span className="hidden sm:inline">Next</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               )}
             </>

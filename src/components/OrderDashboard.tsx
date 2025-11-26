@@ -41,6 +41,7 @@ import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
 import OrderNotesDialog from "./order/OrderNotesDialog";
 import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
 import { OrderChatWindow } from "./chat/OrderChatWindow";
+import { cn } from "@/lib/utils";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
 
@@ -661,54 +662,70 @@ const OrderDashboard = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-sm text-muted-foreground text-center sm:text-left">
+              <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left order-2 sm:order-1">
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
               </div>
               
-              <Pagination>
-                <PaginationContent className="flex-wrap gap-1">
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    // On mobile, show fewer pages
-                    const showOnMobile = page === 1 || page === totalPages || page === currentPage;
-                    const showOnDesktop = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1);
+              <div className="order-1 sm:order-2">
+                <Pagination>
+                  <PaginationContent className="flex-wrap gap-1">
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        className={cn(
+                          "cursor-pointer",
+                          currentPage === 1 && "pointer-events-none opacity-50"
+                        )}
+                      />
+                    </PaginationItem>
                     
-                    if (showOnDesktop) {
-                      return (
-                        <PaginationItem key={page} className={!showOnMobile ? "hidden sm:inline-flex" : ""}>
-                          <PaginationLink
-                            onClick={() => setCurrentPage(page)}
-                            isActive={currentPage === page}
-                            className="cursor-pointer"
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      // On mobile, show fewer pages
+                      const showOnMobile = page === 1 || page === totalPages || page === currentPage;
+                      const showOnTablet = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1);
+                      const showOnDesktop = page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2);
+                      
+                      if (showOnDesktop) {
+                        return (
+                          <PaginationItem 
+                            key={page} 
+                            className={cn(
+                              !showOnMobile && "hidden xs:inline-flex",
+                              !showOnTablet && "xs:hidden sm:inline-flex"
+                            )}
                           >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    } else if (page === currentPage - 2 || page === currentPage + 2) {
-                      return (
-                        <PaginationItem key={page} className="hidden sm:inline-flex">
-                          <span className="px-4">...</span>
-                        </PaginationItem>
-                      );
-                    }
-                    return null;
-                  })}
-                  
-                  <PaginationItem>
-                    <PaginationNext 
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer w-8 h-8 sm:w-10 sm:h-10"
+                              size="sm"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      } else if ((page === currentPage - 3 || page === currentPage + 3) && totalPages > 7) {
+                        return (
+                          <PaginationItem key={page} className="hidden sm:inline-flex">
+                            <span className="px-2 text-muted-foreground">...</span>
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    })}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        className={cn(
+                          "cursor-pointer",
+                          currentPage === totalPages && "pointer-events-none opacity-50"
+                        )}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             </div>
           )}
         </CardContent>

@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
 import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
+import { cn } from "@/lib/utils";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
@@ -415,49 +416,68 @@ export default function OrdersMarketplace() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 mt-6">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                        let page = i + 1;
-                        if (totalPages > 5) {
-                          if (currentPage > 3) {
-                            page = currentPage - 2 + i;
-                          }
-                          if (currentPage > totalPages - 3) {
-                            page = totalPages - 4 + i;
-                          }
-                        }
-                        return (
-                          <Button
-                            key={page}
-                            variant={currentPage === page ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(page)}
-                            className="w-10"
-                          >
-                            {page}
-                          </Button>
-                        );
-                      })}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+                    <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left order-2 sm:order-1">
+                      Page {currentPage} of {totalPages}
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    
+                    <div className="flex items-center gap-1 sm:gap-2 order-1 sm:order-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="gap-1"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="hidden sm:inline">Previous</span>
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                          let page = i + 1;
+                          if (totalPages > 7) {
+                            if (currentPage > 4) {
+                              page = currentPage - 3 + i;
+                            }
+                            if (currentPage > totalPages - 4) {
+                              page = totalPages - 6 + i;
+                            }
+                          }
+                          
+                          // On mobile, show fewer pages
+                          const showOnMobile = page === 1 || page === totalPages || page === currentPage;
+                          const showOnTablet = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1);
+                          
+                          return (
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className={cn(
+                                "w-8 h-8 sm:w-10 sm:h-10 p-0",
+                                !showOnMobile && "hidden xs:inline-flex",
+                                !showOnTablet && "xs:hidden sm:inline-flex"
+                              )}
+                            >
+                              {page}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="gap-1"
+                      >
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </>
