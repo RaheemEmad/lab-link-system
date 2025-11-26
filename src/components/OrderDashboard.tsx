@@ -145,21 +145,11 @@ const OrderDashboard = () => {
 
       if (isDoctor) {
         query = query.eq("doctor_id", user.id);
-      } else if (isLabStaff) {
-        // Lab staff should only see orders they're assigned to via order_assignments
-        const { data: assignments } = await supabase
-          .from("order_assignments")
-          .select("order_id")
-          .eq("user_id", user.id);
-        
-        if (!assignments?.length) {
-          setOrders([]);
-          setLoading(false);
-          return;
-        }
-        
-        query = query.in("id", assignments.map(a => a.order_id));
       }
+      // For lab_staff, let RLS handle filtering (marketplace + assigned orders)
+      // No additional filtering needed - RLS policies will show:
+      // 1. Marketplace orders (auto_assign_pending = true, assigned_lab_id IS NULL)
+      // 2. Orders assigned to them (via order_assignments)
 
       const { data, error } = await query;
 
