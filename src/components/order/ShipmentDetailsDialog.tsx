@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Package, Phone, Truck, MapPin } from "lucide-react";
+import { CalendarIcon, Package, Phone, Truck, MapPin, User } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,11 @@ const shipmentSchema = z.object({
   carrierName: z.string().min(1, "Carrier name is required"),
   carrierPhone: z.string().min(1, "Carrier phone is required"),
   shipmentTracking: z.string().optional(),
+  driverName: z.string().optional(),
+  driverPhoneWhatsapp: z.string().optional(),
+  pickupTime: z.string().optional(),
+  trackingLocation: z.string().optional(),
+  shipmentNotes: z.string().optional(),
 });
 
 type ShipmentFormValues = z.infer<typeof shipmentSchema>;
@@ -54,6 +59,11 @@ interface ShipmentDetailsDialogProps {
     carrier_name?: string | null;
     carrier_phone?: string | null;
     shipment_tracking?: string | null;
+    driver_name?: string | null;
+    driver_phone_whatsapp?: string | null;
+    pickup_time?: string | null;
+    tracking_location?: string | null;
+    shipment_notes?: string | null;
   };
   onUpdate?: () => void;
   userRole?: string;
@@ -68,7 +78,7 @@ export function ShipmentDetailsDialog({
 }: ShipmentDetailsDialogProps) {
   const [loading, setLoading] = useState(false);
   const isLabStaff = userRole === "lab_staff";
-  const canEdit = isLabStaff && (!order.status || order.status === "Ready for Delivery" || order.status === "In Progress");
+  const canEdit = isLabStaff; // Lab staff can always edit shipment details
 
   const form = useForm<ShipmentFormValues>({
     resolver: zodResolver(shipmentSchema),
@@ -78,6 +88,11 @@ export function ShipmentDetailsDialog({
       carrierName: order.carrier_name || "",
       carrierPhone: order.carrier_phone || "",
       shipmentTracking: order.shipment_tracking || "",
+      driverName: order.driver_name || "",
+      driverPhoneWhatsapp: order.driver_phone_whatsapp || "",
+      pickupTime: order.pickup_time ? new Date(order.pickup_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : "",
+      trackingLocation: order.tracking_location || "",
+      shipmentNotes: order.shipment_notes || "",
     },
   });
 
@@ -96,6 +111,11 @@ export function ShipmentDetailsDialog({
           carrier_name: values.carrierName,
           carrier_phone: values.carrierPhone,
           shipment_tracking: values.shipmentTracking,
+          driver_name: values.driverName,
+          driver_phone_whatsapp: values.driverPhoneWhatsapp,
+          pickup_time: values.pickupTime ? new Date(`1970-01-01T${values.pickupTime}`).toISOString() : null,
+          tracking_location: values.trackingLocation,
+          shipment_notes: values.shipmentNotes,
         })
         .eq('id', order.id);
 
@@ -304,6 +324,98 @@ export function ShipmentDetailsDialog({
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="Shipment tracking number" disabled={!canEdit} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Driver Name */}
+                <FormField
+                  control={form.control}
+                  name="driverName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Driver Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Driver full name" disabled={!canEdit} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Driver Phone/WhatsApp */}
+                <FormField
+                  control={form.control}
+                  name="driverPhoneWhatsapp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Driver Phone/WhatsApp
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Driver contact number" disabled={!canEdit} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Pickup Time */}
+                <FormField
+                  control={form.control}
+                  name="pickupTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4" />
+                        Pickup Time
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="time" disabled={!canEdit} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Tracking Location */}
+                <FormField
+                  control={form.control}
+                  name="trackingLocation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Current Location
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Last known shipment location" disabled={!canEdit} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Shipment Notes */}
+                <FormField
+                  control={form.control}
+                  name="shipmentNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Shipment Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Any special handling instructions or notes..."
+                          className="resize-none"
+                          disabled={!canEdit}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
