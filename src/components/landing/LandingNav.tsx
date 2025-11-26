@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck, Shield, Plus } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck, Shield, Plus, FilePlus } from "lucide-react";
 import { motion } from "framer-motion";
 import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
@@ -410,10 +410,9 @@ const LandingNav = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => navigate("/new-order")}
-                          className="gap-1.5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300"
+                          className="gap-1.5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300 group"
                         >
-                          <Plus className="h-4 w-4" />
-                          <span className="hidden xl:inline">Create Order</span>
+                          <FilePlus className="h-5 w-5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
