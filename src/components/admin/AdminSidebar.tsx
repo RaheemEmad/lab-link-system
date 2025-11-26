@@ -48,8 +48,8 @@ export function AdminSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent className="pt-4">
+    <Sidebar collapsible="icon" className="border-r">
+      <SidebarContent className="pt-2 md:pt-4">
         {/* Admin Section */}
         <SidebarGroup>
           <SidebarGroupLabel className={collapsed ? "sr-only" : ""}>
@@ -60,14 +60,14 @@ export function AdminSidebar() {
               {adminMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
+                     <NavLink 
                       to={item.url} 
                       end={item.end}
-                      className="hover:bg-accent transition-colors"
+                      className="hover:bg-accent transition-colors flex items-center w-full"
                       activeClassName="bg-accent text-accent-foreground font-medium"
                     >
-                      <item.icon className={collapsed ? "" : "mr-2 h-4 w-4"} />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className={collapsed ? "h-5 w-5" : "mr-2 h-4 w-4"} />
+                      {!collapsed && <span className="truncate">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -90,20 +90,20 @@ export function AdminSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url}
-                      className="hover:bg-accent transition-colors"
+                      className="hover:bg-accent transition-colors flex items-center w-full"
                       activeClassName="bg-accent text-accent-foreground font-medium"
                     >
-                      <item.icon className={collapsed ? "" : "mr-2 h-4 w-4"} />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className={collapsed ? "h-5 w-5" : "mr-2 h-4 w-4"} />
+                      {!collapsed && <span className="truncate">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
               
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleSignOut} className="hover:bg-destructive/10 hover:text-destructive transition-colors">
-                  <LogOut className={collapsed ? "" : "mr-2 h-4 w-4"} />
-                  {!collapsed && <span>Log Out</span>}
+                <SidebarMenuButton onClick={handleSignOut} className="hover:bg-destructive/10 hover:text-destructive transition-colors flex items-center w-full">
+                  <LogOut className={collapsed ? "h-5 w-5" : "mr-2 h-4 w-4"} />
+                  {!collapsed && <span className="truncate">Log Out</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

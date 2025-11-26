@@ -92,29 +92,29 @@ const Admin = () => {
       <div className="flex min-h-screen w-full">
         <AdminSidebar />
         
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col w-full overflow-x-hidden">
           {/* Header with trigger and back button */}
-          <header className="sticky top-0 z-10 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex h-full items-center gap-4 px-6">
-              <SidebarTrigger />
+          <header className="sticky top-0 z-10 h-14 md:h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
+            <div className="flex h-full items-center gap-2 md:gap-4 px-3 md:px-6">
+              <SidebarTrigger className="shrink-0" />
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate(-1)}
-                className="gap-2"
+                className="gap-1 md:gap-2 shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                <span className="hidden sm:inline">Back</span>
               </Button>
-              <div className="flex-1">
-                <h1 className="text-xl font-semibold">Admin Panel</h1>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg md:text-xl font-semibold truncate">Admin Panel</h1>
               </div>
             </div>
           </header>
 
           {/* Main content */}
-          <main className="flex-1 p-6">
-            <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
+          <main className="flex-1 p-3 md:p-6 overflow-auto">
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4 md:space-y-6">
               <TabsList className="hidden">
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                 <TabsTrigger value="users">Users</TabsTrigger>

@@ -283,8 +283,8 @@ const AdminUsersTab = () => {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-8">
+      <Card className="overflow-hidden">
+        <CardContent className="p-6 md:p-8">
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -295,16 +295,16 @@ const AdminUsersTab = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>
+      <Card className="overflow-hidden">
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-base md:text-lg">User Management</CardTitle>
+          <CardDescription className="text-sm">
             View, edit, and manage all user accounts ({users.length} total)
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-4 flex-wrap">
-            <div className="relative flex-1 min-w-[200px]">
+        <CardContent className="p-4 md:p-6 pt-0">
+          <div className="flex gap-2 md:gap-4 mb-4 flex-col sm:flex-row">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name, email, clinic, or lab..."
@@ -316,7 +316,7 @@ const AdminUsersTab = () => {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md bg-background"
+              className="px-3 py-2 border border-input rounded-md bg-background text-sm shrink-0"
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
@@ -324,18 +324,18 @@ const AdminUsersTab = () => {
               <option value="lab_staff">Lab Staff</option>
               <option value="none">No Role</option>
             </select>
-            <Button onClick={exportUsers} variant="outline">
+            <Button onClick={exportUsers} variant="outline" className="shrink-0" size="sm">
               Export CSV
             </Button>
           </div>
 
           {selectedUsers.size > 0 && (
-            <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-md">
-              <span className="text-sm font-medium">{selectedUsers.size} selected</span>
+            <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-md flex-wrap">
+              <span className="text-xs md:text-sm font-medium">{selectedUsers.size} selected</span>
               <select
                 value={bulkAction}
                 onChange={(e) => setBulkAction(e.target.value)}
-                className="px-3 py-1 border border-input rounded-md bg-background text-sm"
+                className="px-3 py-1 border border-input rounded-md bg-background text-xs md:text-sm"
               >
                 <option value="">Bulk Actions...</option>
                 <option value="delete">Delete Selected</option>
@@ -346,119 +346,123 @@ const AdminUsersTab = () => {
             </div>
           )}
 
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.size === filteredUsers.length && filteredUsers.length > 0}
-                      onChange={toggleSelectAll}
-                      className="rounded border-gray-300"
-                    />
-                  </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.has(user.id)}
-                        onChange={() => toggleUserSelection(user.id)}
-                        className="rounded border-gray-300"
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {user.full_name || "—"}
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge className={getRoleBadgeColor(user.role || "none")}>
-                        {user.role || "none"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {user.clinic_name || user.lab_name || "—"}
-                    </TableCell>
-                    <TableCell>{user.phone || "—"}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        {user.onboarding_completed ? (
-                          <Badge variant="outline" className="gap-1">
-                            <UserCheck className="h-3 w-3" />
-                            Active
+          <div className="overflow-x-auto -mx-4 md:mx-0">
+            <div className="inline-block min-w-full align-middle">
+              <div className="overflow-hidden border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.size === filteredUsers.length && filteredUsers.length > 0}
+                          onChange={toggleSelectAll}
+                          className="rounded border-gray-300"
+                        />
+                      </TableHead>
+                      <TableHead className="min-w-[120px]">Name</TableHead>
+                      <TableHead className="min-w-[180px]">Email</TableHead>
+                      <TableHead className="min-w-[100px]">Role</TableHead>
+                      <TableHead className="min-w-[140px]">Organization</TableHead>
+                      <TableHead className="min-w-[120px]">Phone</TableHead>
+                      <TableHead className="min-w-[120px]">Status</TableHead>
+                      <TableHead className="min-w-[100px]">Joined</TableHead>
+                      <TableHead className="text-right min-w-[160px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.has(user.id)}
+                            onChange={() => toggleUserSelection(user.id)}
+                            className="rounded border-gray-300"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {user.full_name || "—"}
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Badge className={getRoleBadgeColor(user.role || "none")}>
+                            {user.role || "none"}
                           </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="gap-1">
-                            <UserX className="h-3 w-3" />
-                            Pending
-                          </Badge>
-                        )}
-                        {user.is_locked && (
-                          <Badge variant="destructive" className="gap-1">
-                            🔒 Locked
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditUserId(user.id)}
-                          title="Edit User"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setResetPasswordUserId(user.id)}
-                          title="Reset Password"
-                        >
-                          <KeyRound className="h-4 w-4" />
-                        </Button>
-                        {user.is_locked && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleUnlockAccount(user.email)}
-                            title="Unlock Account"
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            <Unlock className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteUserId(user.id)}
-                          className="text-destructive hover:text-destructive"
-                          title="Delete User"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell>
+                          {user.clinic_name || user.lab_name || "—"}
+                        </TableCell>
+                        <TableCell>{user.phone || "—"}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {user.onboarding_completed ? (
+                              <Badge variant="outline" className="gap-1">
+                                <UserCheck className="h-3 w-3" />
+                                Active
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="gap-1">
+                                <UserX className="h-3 w-3" />
+                                Pending
+                              </Badge>
+                            )}
+                            {user.is_locked && (
+                              <Badge variant="destructive" className="gap-1">
+                                🔒 Locked
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditUserId(user.id)}
+                              title="Edit User"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setResetPasswordUserId(user.id)}
+                              title="Reset Password"
+                            >
+                              <KeyRound className="h-4 w-4" />
+                            </Button>
+                            {user.is_locked && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleUnlockAccount(user.email)}
+                                title="Unlock Account"
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <Unlock className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeleteUserId(user.id)}
+                              className="text-destructive hover:text-destructive"
+                              title="Delete User"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
