@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell, Package, Compass, Truck, Trophy } from "lucide-react";
+import { Plus, Bell, Package, Compass, Truck, Trophy, ChevronDown } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -13,6 +13,14 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
@@ -192,23 +200,50 @@ const Dashboard = () => {
                 </Tooltip>
 
                 {!isLabStaff && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="default" 
-                        onClick={() => navigate("/new-order")}
-                        className={`relative group overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-accent hover:from-primary/95 hover:via-primary/85 hover:to-accent/95 text-primary-foreground transition-all duration-300 w-full sm:w-auto shadow-md hover:shadow-xl border-0 ${showCreateOrderPulse ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''}`}
-                        data-tour="new-order-btn"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-[shimmer_3s_ease-in-out_infinite]" />
-                        <Plus className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="ml-2 relative z-10 font-bold text-sm sm:text-base">Create Order</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Create a new dental lab order</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <DropdownMenu>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            size="default" 
+                            className={`relative overflow-hidden bg-foreground text-background hover:bg-foreground/90 transition-all duration-300 w-full sm:w-auto border-0 ${showCreateOrderPulse ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''}`}
+                            data-tour="new-order-btn"
+                          >
+                            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <span className="ml-2 font-semibold text-sm sm:text-base">Create Order</span>
+                            <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Create a new dental lab order or choose a template</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuLabel>Quick Templates</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate("/new-order?template=zirconia")}>
+                        <span className="font-medium">Zirconia Crown</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/new-order?template=emax")}>
+                        <span className="font-medium">E-max Crown</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/new-order?template=bridge")}>
+                        <span className="font-medium">Bridge</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/new-order?template=pfm")}>
+                        <span className="font-medium">PFM Crown</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/new-order?template=zircomax")}>
+                        <span className="font-medium">Zirco-Max</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate("/new-order")} className="text-primary">
+                        <Plus className="mr-2 h-4 w-4" />
+                        <span className="font-semibold">Custom Order</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
 
                 <div className="hidden sm:block w-px h-8 bg-border/50" />
