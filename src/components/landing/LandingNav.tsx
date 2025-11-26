@@ -407,16 +407,16 @@ const LandingNav = () => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant="ghost"
+                          size="icon"
                           onClick={() => navigate("/new-order")}
-                          className="gap-1.5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300 group"
+                          className="h-9 w-9 relative group overflow-hidden hover:bg-primary/10 hover:text-primary transition-all duration-300"
                         >
-                          <FilePlus className="h-5 w-5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
+                          <FilePlus className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Create a new order</p>
+                        <p>Create Order</p>
                       </TooltipContent>
                     </Tooltip>
                   )}
