@@ -176,6 +176,27 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
+                {!isLabStaff && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate("/new-order")}
+                        className="relative group overflow-hidden bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300 w-full sm:w-auto"
+                        data-tour="new-order-btn"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-10" />
+                        <span className="ml-1.5 sm:ml-2 relative z-10 font-semibold text-xs sm:text-sm">Create Order</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Create a new dental lab order</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -210,27 +231,6 @@ const Dashboard = () => {
                     <p>Manage shipment details and delivery coordination</p>
                   </TooltipContent>
                 </Tooltip>
-
-                {!isLabStaff && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => navigate("/new-order")}
-                        className="relative group overflow-hidden bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300 w-full sm:w-auto"
-                        data-tour="new-order-btn"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-10" />
-                        <span className="ml-1.5 sm:ml-2 relative z-10 font-semibold text-xs sm:text-sm">Create Order</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Create a new dental lab order</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
               </div>
             </div>
             
