@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import FeedbackRoomLayout from "@/components/feedback-room/FeedbackRoomLayout";
+import FeedbackRoomOrderSelector from "@/components/feedback-room/OrderSelector";
 
 const FeedbackRoom = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -16,6 +17,15 @@ const FeedbackRoom = () => {
   const { user } = useAuth();
   const { isDoctor, isLabStaff, isLoading: roleLoading } = useUserRole();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+
+  // If no orderId provided, show order selector
+  if (!orderId) {
+    return (
+      <ProtectedRoute>
+        <FeedbackRoomOrderSelector />
+      </ProtectedRoute>
+    );
+  }
 
   // Fetch order details to verify access
   const { data: order, isLoading: orderLoading } = useQuery({
