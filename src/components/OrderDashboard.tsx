@@ -94,8 +94,20 @@ const OrderDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const { user } = useAuth();
-  const { isDoctor, isLabStaff, isLoading: roleLoading, labId } = useUserRole();
+  const { isDoctor, isLabStaff, isLoading: roleLoading, labId, role } = useUserRole();
   const navigate = useNavigate();
+
+  // DEBUG: Log state on every render
+  console.debug('[OrderDashboard] Render:', {
+    roleLoading,
+    userId: user?.id,
+    role,
+    isDoctor,
+    isLabStaff,
+    labId,
+    showLoading: loading || roleLoading,
+    timestamp: new Date().toISOString()
+  });
 
   useEffect(() => {
     // Wait for both user AND role to be loaded before fetching orders
@@ -126,9 +138,25 @@ const OrderDashboard = () => {
   }, [user, roleLoading, isDoctor, isLabStaff]);
 
   const fetchOrders = async () => {
-    if (!user || roleLoading) return;
+    console.debug('[OrderDashboard] fetchOrders called:', {
+      hasUser: !!user,
+      userId: user?.id,
+      roleLoading,
+      role,
+      isDoctor,
+      isLabStaff,
+      timestamp: new Date().toISOString()
+    });
+
+    if (!user || roleLoading) {
+      console.debug('[OrderDashboard] Skipping fetch - no user or role still loading');
+      return;
+    }
 
     try {
+      setLoading(true);
+      console.debug('[OrderDashboard] Starting order fetch...', { role, isDoctor, isLabStaff });
+      
       let query = supabase
         .from("orders")
         .select(`
@@ -144,6 +172,7 @@ const OrderDashboard = () => {
         .order("timestamp", { ascending: false });
 
       if (isDoctor) {
+        console.debug('[OrderDashboard] Applying doctor filter');
         query = query.eq("doctor_id", user.id);
       }
       // For lab_staff, let RLS handle filtering (marketplace + assigned orders)
@@ -154,9 +183,15 @@ const OrderDashboard = () => {
       const { data, error } = await query;
 
       if (error) throw error;
+      
+      console.debug('[OrderDashboard] Orders fetched successfully:', {
+        orderCount: data?.length || 0,
+        timestamp: new Date().toISOString()
+      });
+      
       setOrders(data || []);
     } catch (error: any) {
-      console.error("Failed to fetch orders:", error.message);
+      console.error('[OrderDashboard] Failed to fetch orders:', error.message);
       toast.error("Failed to load orders");
     } finally {
       setLoading(false);
