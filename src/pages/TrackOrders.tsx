@@ -40,7 +40,7 @@ interface OrderShipment {
 
 const TrackOrders = () => {
   const { user } = useAuth();
-  const { role, labId, isLabStaff } = useUserRole();
+  const { role, labId, isLabStaff, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderShipment[]>([]);
@@ -58,49 +58,94 @@ const TrackOrders = () => {
   });
 
   useEffect(() => {
+    // Wait for both user auth AND role to be loaded
+    if (!user || roleLoading) return;
+    
     fetchOrders();
-    setupRealtimeSubscription();
-  }, [user]);
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
+  }, [user, roleLoading, isLabStaff, labId]);
 
   const fetchOrders = async () => {
-    if (!user) return;
+    if (!user || roleLoading) return;
 
     try {
-      let query = supabase
-        .from("orders")
-        .select(`
-          id,
-          order_number,
-          patient_name,
-          status,
-          driver_name,
-          driver_phone_whatsapp,
-          pickup_time,
-          tracking_location,
-          shipment_notes,
-          shipment_tracking,
-          carrier_name,
-          carrier_phone,
-          expected_delivery_date,
-          assigned_lab_id,
-          doctor_id,
-          labs:assigned_lab_id (
-            name
-          )
-        `)
-        .order("created_at", { ascending: false });
-
-      // Filter based on role
-      if (isLabStaff && labId) {
-        query = query.eq("assigned_lab_id", labId).not("assigned_lab_id", "is", null);
+      setLoading(true);
+      
+      if (isLabStaff) {
+        // Query via order_assignments for lab staff (matches RLS policy)
+        const { data: assignments, error: assignmentError } = await supabase
+          .from("order_assignments")
+          .select("order_id")
+          .eq("user_id", user.id);
+        
+        if (assignmentError) throw assignmentError;
+        
+        if (!assignments || assignments.length === 0) {
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+        
+        const orderIds = assignments.map(a => a.order_id);
+        
+        const { data, error } = await supabase
+          .from("orders")
+          .select(`
+            id,
+            order_number,
+            patient_name,
+            status,
+            driver_name,
+            driver_phone_whatsapp,
+            pickup_time,
+            tracking_location,
+            shipment_notes,
+            shipment_tracking,
+            carrier_name,
+            carrier_phone,
+            expected_delivery_date,
+            assigned_lab_id,
+            doctor_id,
+            labs:assigned_lab_id (
+              name
+            )
+          `)
+          .in("id", orderIds)
+          .order("created_at", { ascending: false });
+          
+        if (error) throw error;
+        setOrders(data || []);
       } else {
-        query = query.eq("doctor_id", user.id);
+        // Doctor query
+        const { data, error } = await supabase
+          .from("orders")
+          .select(`
+            id,
+            order_number,
+            patient_name,
+            status,
+            driver_name,
+            driver_phone_whatsapp,
+            pickup_time,
+            tracking_location,
+            shipment_notes,
+            shipment_tracking,
+            carrier_name,
+            carrier_phone,
+            expected_delivery_date,
+            assigned_lab_id,
+            doctor_id,
+            labs:assigned_lab_id (
+              name
+            )
+          `)
+          .eq("doctor_id", user.id)
+          .order("created_at", { ascending: false });
+          
+        if (error) throw error;
+        setOrders(data || []);
       }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setOrders(data || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast.error("Failed to load orders");
@@ -124,6 +169,30 @@ const TrackOrders = () => {
         }
       )
       .subscribe();
+
+    // Also subscribe to order_assignments changes for lab staff
+    if (isLabStaff && user) {
+      const assignmentChannel = supabase
+        .channel("order-assignments-changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public", 
+            table: "order_assignments",
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            fetchOrders();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+        supabase.removeChannel(assignmentChannel);
+      };
+    }
 
     return () => {
       supabase.removeChannel(channel);
@@ -215,7 +284,7 @@ const TrackOrders = () => {
     }
   };
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
@@ -265,11 +334,18 @@ const TrackOrders = () => {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Package className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No orders yet</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    {isLabStaff ? "No assigned orders" : "No orders yet"}
+                  </h3>
                   <p className="text-muted-foreground text-center mb-4">
-                    Create your first order to start tracking shipments
+                    {isLabStaff 
+                      ? "Orders you've been assigned to will appear here for shipment management"
+                      : "Create your first order to start tracking shipments"
+                    }
                   </p>
-                  <Button onClick={() => navigate("/new-order")}>Create Order</Button>
+                  {!isLabStaff && (
+                    <Button onClick={() => navigate("/new-order")}>Create Order</Button>
+                  )}
                 </CardContent>
               </Card>
             ) : (
