@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 
 interface UserEditDialogProps {
@@ -50,6 +51,9 @@ const UserEditDialog = ({ userId, onClose, onUpdate }: UserEditDialogProps) => {
     lab_id: null,
   });
   const [labs, setLabs] = useState<Array<{ id: string; name: string }>>([]);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [updatingPassword, setUpdatingPassword] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -157,6 +161,41 @@ const UserEditDialog = ({ userId, onClose, onUpdate }: UserEditDialogProps) => {
       toast.error(error.message || "Failed to update user");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please enter both password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-update-password', {
+        body: { userId, newPassword },
+      });
+
+      if (error) throw error;
+
+      toast.success("Password updated successfully");
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Password update error:', error);
+      toast.error(error.message || "Failed to update password");
+    } finally {
+      setUpdatingPassword(false);
     }
   };
 
@@ -271,6 +310,45 @@ const UserEditDialog = ({ userId, onClose, onUpdate }: UserEditDialogProps) => {
                 </div>
               </>
             )}
+
+            <Separator className="my-4" />
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">Password Reset</h3>
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password (min 8 characters)"
+                    disabled={updatingPassword}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    disabled={updatingPassword}
+                  />
+                </div>
+                <Button 
+                  onClick={handlePasswordUpdate} 
+                  disabled={updatingPassword || !newPassword || !confirmPassword}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  {updatingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {updatingPassword ? "Updating Password..." : "Update Password"}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 

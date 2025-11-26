@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Trash2, Edit, UserCheck, UserX, Search } from "lucide-react";
+import { Trash2, Edit, UserCheck, UserX, Search, KeyRound } from "lucide-react";
 import UserEditDialog from "./UserEditDialog";
 import {
   AlertDialog,
@@ -18,6 +18,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface User {
   id: string;
@@ -37,6 +46,10 @@ const AdminUsersTab = () => {
   const [loading, setLoading] = useState(true);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [editUserId, setEditUserId] = useState<string | null>(null);
+  const [resetPasswordUserId, setResetPasswordUserId] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [updatingPassword, setUpdatingPassword] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
@@ -111,6 +124,45 @@ const AdminUsersTab = () => {
       toast.error(message);
     } finally {
       setDeleteUserId(null);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!resetPasswordUserId) return;
+
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please enter both password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-update-password', {
+        body: { userId: resetPasswordUserId, newPassword },
+      });
+
+      if (error) throw error;
+
+      toast.success("Password reset successfully");
+      
+      setResetPasswordUserId(null);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      toast.error(error.message || "Failed to reset password");
+    } finally {
+      setUpdatingPassword(false);
     }
   };
 
@@ -339,14 +391,24 @@ const AdminUsersTab = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => setEditUserId(user.id)}
+                          title="Edit User"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => setResetPasswordUserId(user.id)}
+                          title="Reset Password"
+                        >
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setDeleteUserId(user.id)}
                           className="text-destructive hover:text-destructive"
+                          title="Delete User"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -386,6 +448,64 @@ const AdminUsersTab = () => {
         onClose={() => setEditUserId(null)}
         onUpdate={fetchUsers}
       />
+
+      <Dialog open={!!resetPasswordUserId} onOpenChange={() => {
+        setResetPasswordUserId(null);
+        setNewPassword('');
+        setConfirmPassword('');
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset User Password</DialogTitle>
+            <DialogDescription>
+              Enter a new password for this user. The password must be at least 8 characters long.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reset-new-password">New Password</Label>
+              <Input
+                id="reset-new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                disabled={updatingPassword}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reset-confirm-password">Confirm Password</Label>
+              <Input
+                id="reset-confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                disabled={updatingPassword}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setResetPasswordUserId(null);
+                setNewPassword('');
+                setConfirmPassword('');
+              }}
+              disabled={updatingPassword}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handlePasswordReset}
+              disabled={updatingPassword || !newPassword || !confirmPassword}
+            >
+              {updatingPassword ? "Resetting..." : "Reset Password"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
