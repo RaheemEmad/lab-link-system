@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import OrderForm from "@/components/OrderForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -11,6 +11,8 @@ import { toast } from "sonner";
 const NewOrder = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const template = searchParams.get('template');
 
   useEffect(() => {
     const checkRole = async () => {
@@ -41,7 +43,7 @@ const NewOrder = () => {
           <div className="container px-4">
             <div className="mx-auto max-w-3xl">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6">Create New Order</h1>
-              <OrderForm onSubmitSuccess={() => navigate("/dashboard")} />
+              <OrderForm onSubmitSuccess={() => navigate("/dashboard")} template={template} />
             </div>
           </div>
         </div>

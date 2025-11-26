@@ -52,9 +52,10 @@ const restorationTypes = ["Zirconia", "Zirconia Layer", "Zirco-Max", "PFM", "Acr
 
 interface OrderFormProps {
   onSubmitSuccess?: () => void;
+  template?: string | null;
 }
 
-const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
+const OrderForm = ({ onSubmitSuccess, template }: OrderFormProps) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -148,6 +149,30 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
         form.setValue('doctorName', profile.full_name);
       }
     };
+
+    fetchDoctorName();
+  }, [user, form]);
+
+  // Handle template pre-fill
+  useEffect(() => {
+    if (template) {
+      const templateMap: Record<string, typeof restorationTypes[number]> = {
+        'zirconia': 'Zirconia',
+        'emax': 'E-max',
+        'bridge': 'Zirconia', // Using Zirconia as default for bridge
+        'pfm': 'PFM',
+        'zircomax': 'Zirco-Max',
+      };
+      
+      const restorationType = templateMap[template.toLowerCase()];
+      if (restorationType) {
+        form.setValue('restorationType', restorationType);
+        toast.success(`Template applied: ${restorationType}`, {
+          description: "You can modify any details as needed"
+        });
+      }
+    }
+  }, [template, form]);
 
     fetchDoctorName();
   }, [user, form]);
