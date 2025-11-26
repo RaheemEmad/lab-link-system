@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight, XCircle } from "lucide-react";
+import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight, XCircle, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import LandingNav from "@/components/landing/LandingNav";
@@ -14,12 +15,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
 import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAdmin } = useUserRole();
   const [labId, setLabId] = useState<string | null>(null);
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [restorationTypeFilter, setRestorationTypeFilter] = useState<string>("all");
@@ -30,6 +33,8 @@ export default function OrdersMarketplace() {
   const [acceptedOrder, setAcceptedOrder] = useState<{ id: string; orderNumber: string } | null>(null);
   const [showChat, setShowChat] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<'doctor' | 'lab_staff'>('lab_staff');
+  const [overrideOrderId, setOverrideOrderId] = useState<string | null>(null);
+  const [selectedLabForOverride, setSelectedLabForOverride] = useState<string | null>(null);
 
   // Get lab ID and user role for current user
   useEffect(() => {
@@ -167,6 +172,21 @@ export default function OrdersMarketplace() {
     refetchOnWindowFocus: true, // Refetch when tab gains focus
   });
 
+  // Fetch all active labs (for admin override)
+  const { data: allLabs } = useQuery({
+    queryKey: ["all-active-labs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("labs")
+        .select("id, name, current_load, max_capacity, performance_score")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAdmin,
+  });
+
   // Send request mutation
   const sendRequest = useMutation({
     mutationFn: async (orderId: string) => {
@@ -218,6 +238,64 @@ export default function OrdersMarketplace() {
       toast({
         title: "Request canceled",
         description: "Your application has been withdrawn.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Admin override mutation
+  const adminOverrideAssignment = useMutation({
+    mutationFn: async ({ orderId, labId }: { orderId: string; labId: string }) => {
+      // 1. Update order with assigned lab
+      const { error: orderError } = await supabase
+        .from("orders")
+        .update({
+          assigned_lab_id: labId,
+          auto_assign_pending: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", orderId);
+      
+      if (orderError) throw orderError;
+      
+      // 2. Create order_assignment for audit trail
+      const { error: assignError } = await supabase
+        .from("order_assignments")
+        .insert({
+          order_id: orderId,
+          user_id: user?.id,
+          assigned_by: user?.id
+        });
+      
+      if (assignError) throw assignError;
+      
+      // 3. Create lab_work_request with 'accepted' status for audit
+      const { error: requestError } = await supabase
+        .from("lab_work_requests")
+        .insert({
+          order_id: orderId,
+          lab_id: labId,
+          requested_by_user_id: user?.id,
+          status: 'accepted'
+        });
+      
+      if (requestError) throw requestError;
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
+      setOverrideOrderId(null);
+      setSelectedLabForOverride(null);
+      toast({
+        title: "Lab Assigned",
+        description: "Order has been directly assigned to the selected lab.",
       });
     },
     onError: (error: any) => {
@@ -441,6 +519,21 @@ export default function OrdersMarketplace() {
                               <span className="truncate">Apply to Order</span>
                             </Button>
                           )}
+                          
+                          {isAdmin && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setOverrideOrderId(order.id);
+                                setSelectedLabForOverride(null);
+                              }}
+                              className="w-full mt-2 border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                            >
+                              <Shield className="h-4 w-4 mr-2" />
+                              Admin Override
+                            </Button>
+                          )}
                         </CardContent>
                       </Card>
                     );
@@ -518,6 +611,64 @@ export default function OrdersMarketplace() {
           </div>
         </div>
         <LandingFooter />
+
+        {/* Admin Override Dialog */}
+        <Dialog open={!!overrideOrderId} onOpenChange={() => {
+          setOverrideOrderId(null);
+          setSelectedLabForOverride(null);
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Admin Override: Assign Lab</DialogTitle>
+              <DialogDescription>
+                Directly assign a lab to this order, bypassing the normal application workflow.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Select Lab</label>
+                <Select value={selectedLabForOverride || ""} onValueChange={setSelectedLabForOverride}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a lab..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allLabs?.map(lab => (
+                      <SelectItem key={lab.id} value={lab.id}>
+                        {lab.name} ({lab.current_load}/{lab.max_capacity} capacity)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setOverrideOrderId(null);
+                  setSelectedLabForOverride(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (overrideOrderId && selectedLabForOverride) {
+                    adminOverrideAssignment.mutate({ 
+                      orderId: overrideOrderId, 
+                      labId: selectedLabForOverride 
+                    });
+                  }
+                }}
+                disabled={!selectedLabForOverride || adminOverrideAssignment.isPending}
+              >
+                {adminOverrideAssignment.isPending ? "Assigning..." : "Confirm Assignment"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRoute>
   );
