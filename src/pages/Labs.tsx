@@ -274,11 +274,11 @@ const Labs = () => {
     <div className="min-h-screen flex flex-col">
       <LandingNav />
       <div className="flex-1 bg-secondary/30">
-        <div className="container px-4 py-8 sm:py-12 max-w-7xl mx-auto">
+        <div className="container px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-12 max-w-7xl mx-auto">
           
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-2">Partner Labs</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Partner Labs</h1>
             <p className="text-muted-foreground">
               Browse our network of {allLabs?.length || 0} certified dental laboratories
             </p>

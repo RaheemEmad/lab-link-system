@@ -86,11 +86,11 @@ const HowItWorks = () => {
     <div className="min-h-screen flex flex-col">
       <LandingNav />
       <div className="flex-1 bg-background">
-        <div className="container px-4 py-8 sm:py-12 max-w-7xl mx-auto">
+        <div className="container px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-12 max-w-7xl mx-auto">
           
           {/* Hero Section */}
           <div className="text-center mb-12 sm:mb-16">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
               How <span className="text-primary">LabLink</span> Works
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">

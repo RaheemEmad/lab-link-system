@@ -286,10 +286,10 @@ const LabWorkflowManagement = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNav />
-      <div className="flex-1 bg-secondary/30 py-8">
-        <div className="container max-w-7xl mx-auto px-4">
+      <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-2">Lab Workflow Management</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Lab Workflow Management</h1>
             <p className="text-muted-foreground">
               Manage order status, upload designs, and track shipments
             </p>
@@ -304,9 +304,9 @@ const LabWorkflowManagement = () => {
             <TabsContent value="active" className="space-y-4">
               {orders.filter(o => o.status !== 'Delivered').length === 0 ? (
                 <Card>
-                  <CardContent className="py-12 text-center">
-                    <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">No Active Orders</h3>
+                  <CardContent className="py-8 sm:py-12 text-center">
+                    <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                    <h3 className="text-base sm:text-lg font-medium mb-2">No Active Orders</h3>
                     <p className="text-muted-foreground">
                       All orders are completed or there are no orders assigned to your lab.
                     </p>
@@ -365,9 +365,9 @@ const LabWorkflowManagement = () => {
             <TabsContent value="completed" className="space-y-4">
               {orders.filter(o => o.status === 'Delivered').length === 0 ? (
                 <Card>
-                  <CardContent className="py-12 text-center">
-                    <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">No Completed Orders</h3>
+                  <CardContent className="py-8 sm:py-12 text-center">
+                    <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                    <h3 className="text-base sm:text-lg font-medium mb-2">No Completed Orders</h3>
                     <p className="text-muted-foreground">
                       Completed orders will appear here.
                     </p>

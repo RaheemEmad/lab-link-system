@@ -311,8 +311,8 @@ const Profile = () => {
       <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
           <LandingNav />
-          <div className="flex-1 bg-secondary/30 py-6 sm:py-12">
-            <div className="container px-4 max-w-4xl mx-auto">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container px-3 sm:px-4 lg:px-6 max-w-4xl mx-auto">
               <h1 className="text-2xl sm:text-3xl font-bold mb-6">Profile Settings</h1>
 
               <div className="space-y-6">
@@ -368,8 +368,8 @@ const Profile = () => {
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-6 sm:py-12">
-          <div className="container px-4 max-w-4xl mx-auto">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container px-3 sm:px-4 lg:px-6 max-w-4xl mx-auto">
             <h1 className="text-2xl sm:text-3xl font-bold mb-6">Profile Settings</h1>
 
             <div className="space-y-6">

@@ -9,6 +9,9 @@ import { Building2, MapPin, Phone, Mail, Globe, Clock, Star, Users, Heart, Arrow
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 export default function LabProfile() {
   const { labId } = useParams();
@@ -220,7 +223,10 @@ export default function LabProfile() {
     : lab.performance_score || 0;
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="min-h-screen flex flex-col">
+      <LandingNav />
+      <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+        <div className="container px-3 sm:px-4 lg:px-6 max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => navigate("/labs")}>
@@ -472,6 +478,10 @@ export default function LabProfile() {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </div>
+      <LandingFooter />
+      <ScrollToTop />
     </div>
   );
 }

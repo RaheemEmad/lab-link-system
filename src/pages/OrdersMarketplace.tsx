@@ -237,10 +237,10 @@ export default function OrdersMarketplace() {
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-8">
-          <div className="container px-4">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container px-3 sm:px-4 lg:px-6">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Orders Marketplace</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Orders Marketplace</h1>
               <p className="text-muted-foreground">
                 Apply to available orders from doctors. Once approved, you'll unlock full details and can start working.
               </p>
@@ -260,7 +260,7 @@ export default function OrdersMarketplace() {
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <h3 className="font-medium">Filters</h3>
                 </div>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Urgency</label>
                     <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
@@ -319,9 +319,9 @@ export default function OrdersMarketplace() {
               </div>
             ) : !paginatedOrders || paginatedOrders.length === 0 ? (
               <Card>
-                <CardContent className="py-12 text-center">
-                  <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-lg font-medium mb-2">
+                <CardContent className="py-8 sm:py-12 text-center">
+                  <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <p className="text-base sm:text-lg font-medium mb-2">
                     {filteredOrders && filteredOrders.length > 0 ? "No orders match your filters" : "No available orders"}
                   </p>
                   <p className="text-sm text-muted-foreground">

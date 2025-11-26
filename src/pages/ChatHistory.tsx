@@ -140,10 +140,10 @@ export default function ChatHistory() {
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-8">
-          <div className="container px-4 max-w-6xl">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container px-3 sm:px-4 lg:px-6 max-w-6xl">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Chat History</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Chat History</h1>
               <p className="text-muted-foreground">
                 View all your past conversations with labs and doctors
               </p>
@@ -173,9 +173,9 @@ export default function ChatHistory() {
               </div>
             ) : !filteredConversations || filteredConversations.length === 0 ? (
               <Card>
-                <CardContent className="py-12 text-center">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-lg font-medium mb-2">No conversations found</p>
+                <CardContent className="py-8 sm:py-12 text-center">
+                  <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <p className="text-base sm:text-lg font-medium mb-2">No conversations found</p>
                   <p className="text-sm text-muted-foreground">
                     {searchQuery
                       ? 'Try adjusting your search terms'

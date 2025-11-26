@@ -208,15 +208,15 @@ const LogisticsDashboard = () => {
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-12">
-          <div className="container px-4">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container px-3 sm:px-4 lg:px-6">
             <div className="mb-6">
               <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-2 mb-4">
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
               </Button>
               <div className="flex flex-col items-center gap-2">
-                <h1 className="text-3xl font-bold">Logistics Dashboard</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Logistics Dashboard</h1>
                 <Badge variant="outline" className="text-sm">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   Real-time Updates
@@ -225,7 +225,7 @@ const LogisticsDashboard = () => {
             </div>
 
             {/* Key Metrics */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+            <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 mb-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>

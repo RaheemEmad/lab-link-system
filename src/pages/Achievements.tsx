@@ -287,13 +287,13 @@ export default function Achievements() {
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-8">
-          <div className="container px-4 max-w-6xl mx-auto">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container px-3 sm:px-4 lg:px-6 max-w-6xl mx-auto">
             {/* Header */}
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-2">
                 <Star className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold">Achievements</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Achievements</h1>
               </div>
               <p className="text-muted-foreground">
                 Track your progress and unlock achievements as you use LabLink

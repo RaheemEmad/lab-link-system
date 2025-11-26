@@ -268,8 +268,8 @@ const OrderTracking = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-8">
-          <div className="container max-w-6xl mx-auto px-4">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
             <div className="mb-8 animate-fade-in">
               <div className="h-10 w-64 bg-muted rounded-lg animate-pulse mb-2" />
               <div className="h-4 w-96 bg-muted rounded-lg animate-pulse" />
@@ -293,8 +293,8 @@ const OrderTracking = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-8">
-          <div className="container max-w-6xl mx-auto px-4">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
             <div className="mb-6">
               <Button
                 variant="ghost"
@@ -304,7 +304,7 @@ const OrderTracking = () => {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
-              <h1 className="text-3xl font-bold mb-2">My Assigned Orders</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">My Assigned Orders</h1>
               <p className="text-muted-foreground">
                 Track status and history of orders assigned to you
               </p>
@@ -312,9 +312,9 @@ const OrderTracking = () => {
 
             {orders.length === 0 ? (
               <Card>
-                <CardContent className="py-12 text-center">
-                  <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No Assigned Orders</h3>
+                <CardContent className="py-8 sm:py-12 text-center">
+                  <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <h3 className="text-base sm:text-lg font-medium mb-2">No Assigned Orders</h3>
                   <p className="text-muted-foreground mb-4">
                     You haven't been assigned to any orders yet.
                   </p>
@@ -457,8 +457,8 @@ const OrderTracking = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNav />
-      <div className="flex-1 bg-secondary/30 py-8">
-        <div className="container max-w-6xl mx-auto px-4">
+      <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+        <div className="container max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="mb-6">
             <Button
               variant="ghost"
@@ -468,7 +468,7 @@ const OrderTracking = () => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Button>
-            <h1 className="text-3xl font-bold mb-2">Order Tracking</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Order Tracking</h1>
             <p className="text-muted-foreground">
               Real-time updates on all your orders
             </p>
@@ -476,9 +476,9 @@ const OrderTracking = () => {
 
           {orders.length === 0 ? (
             <Card>
-              <CardContent className="py-12 text-center">
-                <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No Orders Yet</h3>
+              <CardContent className="py-8 sm:py-12 text-center">
+                <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <h3 className="text-base sm:text-lg font-medium mb-2">No Orders Yet</h3>
                 <p className="text-muted-foreground mb-4">
                   You haven't submitted any orders yet.
                 </p>

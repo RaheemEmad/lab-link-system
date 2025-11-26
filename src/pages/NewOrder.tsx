@@ -37,10 +37,10 @@ const NewOrder = () => {
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 md:py-12">
-          <div className="container px-4">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container px-3 sm:px-4 lg:px-6">
             <div className="mx-auto max-w-3xl">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6">Create New Order</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6">Create New Order</h1>
               <OrderForm onSubmitSuccess={() => navigate("/dashboard")} />
             </div>
           </div>
