@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft, FileText } from "lucide-react";
+import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft, FileText, Eye } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -59,7 +59,7 @@ interface OrderShipment {
 
 const LogisticsDashboard = () => {
   const { user } = useAuth();
-  const { role, isLoading: roleLoading } = useUserRole();
+  const { role, roleConfirmed, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [labCapacity, setLabCapacity] = useState<LabCapacity[]>([]);
@@ -401,8 +401,17 @@ const LogisticsDashboard = () => {
                             variant="outline" 
                             onClick={() => setSelectedShipment(shipment)}
                           >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Shipment & Notes
+                            {roleConfirmed && role === "lab_staff" ? (
+                              <>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Shipment & Notes
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Shipment & Notes
+                              </>
+                            )}
                           </Button>
                         </div>
                       </div>)}
@@ -418,7 +427,7 @@ const LogisticsDashboard = () => {
       {selectedShipment && <ShipmentDetailsDialog open={!!selectedShipment} onOpenChange={open => !open && setSelectedShipment(null)} order={selectedShipment} onUpdate={() => {
       setSelectedShipment(null);
       window.location.reload();
-    }} userRole={role || undefined} />}
+    }} userRole={roleConfirmed ? (role || undefined) : undefined} />}
 
       {/* Order Details Modal */}
       {selectedOrderForDetails && (
