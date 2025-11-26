@@ -23,8 +23,8 @@ import { DashboardReceiveAnimation } from "@/components/order/DashboardReceiveAn
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading: authLoading } = useAuth();
-  const { role, isDoctor, isLoading: roleLoading } = useUserRole();
+  const { user } = useAuth();
+  const { role, isLabStaff } = useUserRole();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [runTour, setRunTour] = useState(false);
   const [showReceiveAnimation, setShowReceiveAnimation] = useState(false);
@@ -211,28 +211,25 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
-                {(authLoading || roleLoading) ? (
-                  <div className="w-full sm:w-auto h-9 bg-primary/20 animate-pulse rounded-md" />
-                ) : (
-                  isDoctor && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          onClick={() => navigate("/new-order")} 
-                          className="w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-primary via-primary to-accent hover:from-primary/90 hover:via-primary/95 hover:to-accent/90 shadow-lg hover:shadow-2xl transition-all duration-500 group border-0"
-                          data-tour="new-order-btn"
-                          size="sm"
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-                          <span className="text-xs sm:text-sm relative z-10 font-semibold sm:ml-0.5">Create Order</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Create a new dental lab order</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )
+                {!isLabStaff && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate("/new-order")}
+                        className="relative group overflow-hidden bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300 w-full sm:w-auto"
+                        data-tour="new-order-btn"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-10" />
+                        <span className="ml-1.5 sm:ml-2 relative z-10 font-semibold text-xs sm:text-sm">Create Order</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Create a new dental lab order</p>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             </div>
