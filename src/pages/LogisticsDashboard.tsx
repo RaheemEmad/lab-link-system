@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,11 +61,13 @@ const LogisticsDashboard = () => {
   const { user } = useAuth();
   const { role, roleConfirmed, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [labCapacity, setLabCapacity] = useState<LabCapacity[]>([]);
   const [shipments, setShipments] = useState<OrderShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
+  const [defaultTab, setDefaultTab] = useState<"details" | "notes">("details");
   
   useEffect(() => {
     const fetchData = async () => {
@@ -154,6 +156,29 @@ const LogisticsDashboard = () => {
       supabase.removeChannel(channel);
     };
   }, [user, role, roleLoading]);
+
+  // Handle URL parameters for auto-opening notes dialog
+  useEffect(() => {
+    const orderId = searchParams.get('orderId');
+    const openNotes = searchParams.get('openNotes');
+    
+    if (orderId && openNotes === 'true' && shipments.length > 0) {
+      const shipment = shipments.find(s => s.id === orderId);
+      if (shipment) {
+        setDefaultTab("notes");
+        setSelectedShipment(shipment);
+        
+        // Show toast notification about new note
+        toast.success("New note received", {
+          description: `Opening notes for order ${shipment.order_number}`,
+        });
+        
+        // Clear the params after opening
+        searchParams.delete('openNotes');
+        setSearchParams(searchParams);
+      }
+    }
+  }, [searchParams, shipments, setSearchParams]);
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -424,10 +449,22 @@ const LogisticsDashboard = () => {
       </div>
 
       {/* Shipment Details Dialog */}
-      {selectedShipment && <ShipmentDetailsDialog open={!!selectedShipment} onOpenChange={open => !open && setSelectedShipment(null)} order={selectedShipment} onUpdate={() => {
-      setSelectedShipment(null);
-      window.location.reload();
-    }} userRole={roleConfirmed ? (role || undefined) : undefined} />}
+      {selectedShipment && <ShipmentDetailsDialog 
+        open={!!selectedShipment} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedShipment(null);
+            setDefaultTab("details"); // Reset to default tab
+          }
+        }} 
+        order={selectedShipment} 
+        onUpdate={() => {
+          setSelectedShipment(null);
+          window.location.reload();
+        }} 
+        userRole={roleConfirmed ? (role || undefined) : undefined}
+        defaultTab={defaultTab}
+      />}
 
       {/* Order Details Modal */}
       {selectedOrderForDetails && (
