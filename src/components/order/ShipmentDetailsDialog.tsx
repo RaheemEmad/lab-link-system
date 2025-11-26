@@ -33,8 +33,8 @@ import { OrderNotes } from "@/components/order/OrderNotes";
 const shipmentSchema = z.object({
   proposedDeliveryDate: z.date().optional(),
   deliveryDateComment: z.string().optional(),
-  carrierName: z.string().min(1, "Carrier name is required"),
-  carrierPhone: z.string().min(1, "Carrier phone is required"),
+  carrierName: z.string().optional(),
+  carrierPhone: z.string().optional(),
   shipmentTracking: z.string().optional(),
   driverName: z.string().optional(),
   driverPhoneWhatsapp: z.string().optional(),
@@ -119,7 +119,12 @@ export function ShipmentDetailsDialog({
         })
         .eq('id', order.id);
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('row-level security') || error.message.includes('permission')) {
+          throw new Error("You don't have permission to update this order. Please contact your administrator.");
+        }
+        throw error;
+      }
 
       // Create a note about the shipment update
       const noteText = `Shipment details updated:\n` +
