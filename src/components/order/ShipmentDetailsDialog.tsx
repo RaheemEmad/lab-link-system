@@ -67,6 +67,7 @@ interface ShipmentDetailsDialogProps {
   };
   onUpdate?: () => void;
   userRole?: string;
+  defaultTab?: "details" | "notes";
 }
 
 export function ShipmentDetailsDialog({
@@ -74,7 +75,8 @@ export function ShipmentDetailsDialog({
   onOpenChange,
   order,
   onUpdate,
-  userRole
+  userRole,
+  defaultTab = "details"
 }: ShipmentDetailsDialogProps) {
   const [loading, setLoading] = useState(false);
   const isLabStaff = userRole === "lab_staff";
@@ -196,7 +198,7 @@ export function ShipmentDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="details" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="details">Shipment Details</TabsTrigger>
             <TabsTrigger value="notes">Notes & Communication</TabsTrigger>

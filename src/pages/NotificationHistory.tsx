@@ -141,7 +141,7 @@ const NotificationHistory = () => {
     } else if (notification.type === 'lab_request') {
       navigate('/lab-requests');
     } else if (notification.type === 'new_note' || notification.type === 'shipment_update') {
-      navigate('/logistics');
+      navigate(`/logistics?orderId=${notification.order_id}&openNotes=true`);
     } else {
       navigate(`/dashboard?orderId=${notification.order_id}`);
     }
