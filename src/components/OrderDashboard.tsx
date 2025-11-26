@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -436,6 +436,10 @@ const OrderDashboard = () => {
                               <DropdownMenuItem onClick={() => handleOpenChat(order)}>
                                 <MessageCircle className="mr-2 h-4 w-4" />
                                 Open Chat
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(`/feedback-room/${order.id}`)}>
+                                <MessageSquareMore className="mr-2 h-4 w-4" />
+                                Feedback Room
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                             </>

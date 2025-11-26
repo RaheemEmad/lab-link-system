@@ -180,6 +180,378 @@ export type Database = {
           },
         ]
       }
+      feedback_room_activity: {
+        Row: {
+          action_description: string
+          action_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          order_id: string
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          action_description: string
+          action_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id: string
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          action_description?: string
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_room_activity_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_room_attachments: {
+        Row: {
+          category: string
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          is_latest: boolean
+          order_id: string
+          parent_id: string | null
+          uploaded_by: string
+          version_number: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          is_latest?: boolean
+          order_id: string
+          parent_id?: string | null
+          uploaded_by: string
+          version_number?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          is_latest?: boolean
+          order_id?: string
+          parent_id?: string | null
+          uploaded_by?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_room_attachments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_attachments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_room_attachments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_room_checklist_items: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          doctor_confirmed: boolean | null
+          doctor_confirmed_at: string | null
+          doctor_confirmed_by: string | null
+          id: string
+          item_description: string | null
+          item_name: string
+          lab_confirmed: boolean | null
+          lab_confirmed_at: string | null
+          lab_confirmed_by: string | null
+          order_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          doctor_confirmed?: boolean | null
+          doctor_confirmed_at?: string | null
+          doctor_confirmed_by?: string | null
+          id?: string
+          item_description?: string | null
+          item_name: string
+          lab_confirmed?: boolean | null
+          lab_confirmed_at?: string | null
+          lab_confirmed_by?: string | null
+          order_id: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          doctor_confirmed?: boolean | null
+          doctor_confirmed_at?: string | null
+          doctor_confirmed_by?: string | null
+          id?: string
+          item_description?: string | null
+          item_name?: string
+          lab_confirmed?: boolean | null
+          lab_confirmed_at?: string | null
+          lab_confirmed_by?: string | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_room_checklist_items_doctor_confirmed_by_fkey"
+            columns: ["doctor_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_checklist_items_lab_confirmed_by_fkey"
+            columns: ["lab_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_checklist_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_room_comments: {
+        Row: {
+          attachment_id: string | null
+          comment_text: string
+          created_at: string | null
+          id: string
+          is_resolved: boolean | null
+          order_id: string
+          parent_comment_id: string | null
+          pin_position: Json | null
+          updated_at: string | null
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          attachment_id?: string | null
+          comment_text: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          order_id: string
+          parent_comment_id?: string | null
+          pin_position?: Json | null
+          updated_at?: string | null
+          user_id: string
+          user_role: string
+        }
+        Update: {
+          attachment_id?: string | null
+          comment_text?: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          order_id?: string
+          parent_comment_id?: string | null
+          pin_position?: Json | null
+          updated_at?: string | null
+          user_id?: string
+          user_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_room_comments_attachment_id_fkey"
+            columns: ["attachment_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_room_attachments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_comments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_room_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_room_decisions: {
+        Row: {
+          created_at: string | null
+          decision_type: string
+          decision_value: string
+          doctor_approved: boolean | null
+          doctor_approved_at: string | null
+          doctor_approved_by: string | null
+          id: string
+          is_locked: boolean | null
+          lab_approved: boolean | null
+          lab_approved_at: string | null
+          lab_approved_by: string | null
+          locked_at: string | null
+          order_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          decision_type: string
+          decision_value: string
+          doctor_approved?: boolean | null
+          doctor_approved_at?: string | null
+          doctor_approved_by?: string | null
+          id?: string
+          is_locked?: boolean | null
+          lab_approved?: boolean | null
+          lab_approved_at?: string | null
+          lab_approved_by?: string | null
+          locked_at?: string | null
+          order_id: string
+        }
+        Update: {
+          created_at?: string | null
+          decision_type?: string
+          decision_value?: string
+          doctor_approved?: boolean | null
+          doctor_approved_at?: string | null
+          doctor_approved_by?: string | null
+          id?: string
+          is_locked?: boolean | null
+          lab_approved?: boolean | null
+          lab_approved_at?: string | null
+          lab_approved_by?: string | null
+          locked_at?: string | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_room_decisions_doctor_approved_by_fkey"
+            columns: ["doctor_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_decisions_lab_approved_by_fkey"
+            columns: ["lab_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_decisions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_room_reactions: {
+        Row: {
+          attachment_id: string | null
+          comment_id: string | null
+          created_at: string | null
+          id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          attachment_id?: string | null
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          attachment_id?: string | null
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_room_reactions_attachment_id_fkey"
+            columns: ["attachment_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_room_attachments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_room_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_room_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_application_audit: {
         Row: {
           action: string
