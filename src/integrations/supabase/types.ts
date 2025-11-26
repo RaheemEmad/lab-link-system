@@ -1932,6 +1932,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      unlock_account: { Args: { user_email_param: string }; Returns: undefined }
       user_onboarding_completed: {
         Args: { _user_id: string }
         Returns: boolean

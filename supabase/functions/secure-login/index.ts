@@ -95,7 +95,8 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ 
-          error: 'Account temporarily locked due to multiple failed login attempts. Please try again in 30 minutes or contact support.' 
+          error: 'ACCOUNT_LOCKED',
+          message: 'Account temporarily locked due to multiple failed login attempts. Please try again in 30 minutes or contact support.' 
         }),
         { 
           status: 403, 

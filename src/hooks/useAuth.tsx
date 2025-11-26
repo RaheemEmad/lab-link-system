@@ -103,6 +103,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error || data?.error) {
+        // Check for specific ACCOUNT_LOCKED error from secure-login
+        if (data?.error === 'ACCOUNT_LOCKED') {
+          const lockoutMessage = data?.message || 'Account temporarily locked. Please try again in 30 minutes or contact support.';
+          toast.error(lockoutMessage, { duration: 6000 });
+          return { error: new Error(lockoutMessage), errorCode: AuthErrorCode.ACCOUNT_LOCKED };
+        }
+        
         const { message, code } = parseAuthError(data?.error || error?.message || 'Login failed');
         toast.error(message);
         return { error: error || new Error(message), errorCode: code };
