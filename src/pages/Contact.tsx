@@ -78,10 +78,10 @@ const Contact = () => {
     <div className="min-h-screen flex flex-col">
       <LandingNav />
       <div className="flex-1 bg-secondary/30">
-        <div className="container px-4 py-8 sm:py-12 max-w-4xl mx-auto">
+        <div className="container px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-12 max-w-4xl mx-auto">
 
           <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">Get in Touch</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4">Get in Touch</h1>
             <p className="text-base sm:text-lg text-muted-foreground">
               We're here to help with any questions or concerns about LabLink
             </p>

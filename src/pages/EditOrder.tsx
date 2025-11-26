@@ -324,8 +324,8 @@ const EditOrder = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-8">
-          <div className="container max-w-4xl mx-auto px-4">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
             <Skeleton className="h-10 w-64 mb-6" />
             <Card>
               <CardContent className="pt-6">
@@ -346,8 +346,8 @@ const EditOrder = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNav />
-      <div className="flex-1 bg-secondary/30 py-8">
-        <div className="container max-w-4xl mx-auto px-4">
+      <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+        <div className="container max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
           <Button
             variant="ghost"
             onClick={() => navigate("/dashboard")}

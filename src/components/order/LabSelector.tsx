@@ -225,7 +225,7 @@ export const LabSelector = ({
                 {getSelectedLabDisplay()}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent className="max-h-[400px]">
+            <SelectContent className="bg-popover border shadow-md z-50 max-h-[400px]">
               {/* Auto-assign option */}
               <SelectItem value="auto" className="cursor-pointer">
                 <div className="flex items-start gap-2 py-2">

@@ -461,7 +461,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   };
 
   return (
-    <Card className="fixed bottom-4 right-4 w-96 h-[600px] flex flex-col shadow-2xl z-50 border-2 border-primary/20">
+    <Card className="fixed bottom-0 right-0 sm:bottom-4 sm:right-4 w-full sm:w-96 h-[100vh] sm:h-[600px] flex flex-col shadow-2xl z-50 border-2 border-primary/20 rounded-none sm:rounded-lg">
       <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground">
         <div>
           <h3 className="font-semibold">Chat - Order {orderNumber}</h3>

@@ -180,8 +180,8 @@ const NotificationHistory = () => {
         <div className="min-h-screen flex flex-col">
           <LandingNav />
           <TooltipProvider delayDuration={200}>
-            <div className="flex-1 bg-secondary/30 py-8 md:py-12">
-              <div className="container px-4 max-w-4xl mx-auto">
+          <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+            <div className="container px-3 sm:px-4 lg:px-6 max-w-4xl mx-auto">
                 <h1 className="text-2xl sm:text-3xl font-bold mb-6">Notification History</h1>
 
               <Card>
@@ -207,8 +207,8 @@ const NotificationHistory = () => {
       <div className="min-h-screen flex flex-col">
         <LandingNav />
         <TooltipProvider delayDuration={200}>
-          <div className="flex-1 bg-secondary/30 py-8 md:py-12">
-            <div className="container px-4 max-w-4xl mx-auto">
+          <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+            <div className="container px-3 sm:px-4 lg:px-6 max-w-4xl mx-auto">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <h1 className="text-2xl sm:text-3xl font-bold">Notification History</h1>
                 
@@ -277,9 +277,9 @@ const NotificationHistory = () => {
 
                 <TabsContent value={filter} className="space-y-3">
                   {!notifications || notifications.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                      <p className="text-muted-foreground">
+                    <div className="text-center py-8 sm:py-12">
+                      <Bell className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                      <p className="text-base sm:text-lg font-medium mb-2 text-foreground">
                         {filter === "unread"
                           ? "No unread notifications"
                           : "No notifications yet"}

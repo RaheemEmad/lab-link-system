@@ -243,10 +243,10 @@ export default function LabRequestsManagement() {
       
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-8">
-          <div className="container px-4">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container px-3 sm:px-4 lg:px-6">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Lab Applications</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Lab Applications</h1>
               <p className="text-muted-foreground">
                 Review lab profiles and approve or decline applications for your auto-assign orders
               </p>
@@ -254,9 +254,9 @@ export default function LabRequestsManagement() {
 
             {!requests || requests.length === 0 ? (
               <Card>
-                <CardContent className="py-12 text-center">
-                  <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">
+                <CardContent className="py-8 sm:py-12 text-center">
+                  <Clock className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <p className="text-base sm:text-lg font-medium mb-2">
                     No lab applications at the moment
                   </p>
                   <p className="text-sm text-muted-foreground mt-2">

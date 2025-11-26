@@ -164,11 +164,10 @@ const Dashboard = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => setRunTour(true)}
-                      className="relative group overflow-hidden bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300 w-full sm:w-auto"
+                      className="w-full sm:w-auto"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-10 animate-pulse" />
-                      <span className="ml-1.5 sm:ml-2 relative z-10 font-semibold text-xs sm:text-sm">Tour</span>
+                      <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Tour</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>

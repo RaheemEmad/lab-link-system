@@ -420,8 +420,8 @@ const LabOrderDetail = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-8">
-          <div className="container max-w-6xl mx-auto px-4">
+        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+          <div className="container max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
             <Skeleton className="h-10 w-64 mb-6" />
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-6">
@@ -443,8 +443,8 @@ const LabOrderDetail = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNav />
-      <div className="flex-1 bg-secondary/30 py-8">
-        <div className="container max-w-6xl mx-auto px-4">
+      <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
+        <div className="container max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
           <Button
             variant="ghost"
             onClick={() => navigate("/lab-workflow")}
@@ -457,7 +457,7 @@ const LabOrderDetail = () => {
           <div className="mb-6">
             <div className="flex items-start justify-between gap-4 mb-2">
               <div>
-                <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Order {order.order_number}</h1>
                 <p className="text-muted-foreground">
                   {order.patient_name} • Dr. {order.doctor_name}
                 </p>
