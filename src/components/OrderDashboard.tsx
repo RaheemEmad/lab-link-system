@@ -34,6 +34,7 @@ import {
 import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { OrderStatusDialog } from "./order/OrderStatusDialog";
@@ -82,7 +83,6 @@ const OrderDashboard = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string>("");
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
@@ -94,17 +94,14 @@ const OrderDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const { user } = useAuth();
+  const { isDoctor, isLabStaff, isLoading: roleLoading, labId } = useUserRole();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchUserRole();
-  }, [user]);
-
-  useEffect(() => {
-    // Only fetch orders once userRole is determined
-    if (userRole) {
-      fetchOrders();
-    }
+    // Wait for both user AND role to be loaded before fetching orders
+    if (!user || roleLoading) return;
+    
+    fetchOrders();
     
     // Set up realtime subscription for order updates
     const channel = supabase
@@ -126,27 +123,10 @@ const OrderDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, userRole]);
-
-  const fetchUserRole = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-
-      if (error) throw error;
-      setUserRole(data?.role || "");
-    } catch (error: any) {
-      console.error("Failed to fetch user role:", error.message);
-    }
-  };
+  }, [user, roleLoading, isDoctor, isLabStaff]);
 
   const fetchOrders = async () => {
-    if (!user) return;
+    if (!user || roleLoading) return;
 
     try {
       let query = supabase
@@ -163,10 +143,22 @@ const OrderDashboard = () => {
         `)
         .order("timestamp", { ascending: false });
 
-      if (userRole === "doctor") {
+      if (isDoctor) {
         query = query.eq("doctor_id", user.id);
-      } else if (userRole === "lab_staff") {
-        query = query.not("assigned_lab_id", "is", null);
+      } else if (isLabStaff) {
+        // Lab staff should only see orders they're assigned to via order_assignments
+        const { data: assignments } = await supabase
+          .from("order_assignments")
+          .select("order_id")
+          .eq("user_id", user.id);
+        
+        if (!assignments?.length) {
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+        
+        query = query.in("id", assignments.map(a => a.order_id));
       }
 
       const { data, error } = await query;
@@ -240,10 +232,7 @@ const OrderDashboard = () => {
   const endIndex = startIndex + itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
-  const isDoctor = userRole === "doctor";
-  const isLabStaff = userRole === "lab_staff";
-
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <Card>
         <CardHeader>

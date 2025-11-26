@@ -24,7 +24,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { role, isLabStaff } = useUserRole();
+  const { role, isLabStaff, isLoading: roleLoading } = useUserRole();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [runTour, setRunTour] = useState(false);
   const [showReceiveAnimation, setShowReceiveAnimation] = useState(false);
@@ -210,7 +210,7 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
-                {!isLabStaff && (
+                {!roleLoading && !isLabStaff && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
