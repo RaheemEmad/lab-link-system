@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck, Shield, Plus, FilePlus, Package } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Star, Building2, Truck, Shield, Plus, FilePlus, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
@@ -427,9 +427,12 @@ const LandingNav = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" className="relative group overflow-hidden hover:bg-amber-500/10 transition-all duration-300">
                               {userRole === 'lab_staff' || userRole === 'admin' ? (
-                                <Sparkles className="h-5 w-5" />
+                                <>
+                                  <span className="absolute inset-0 w-0 bg-amber-500/10 transition-all duration-300 group-hover:w-full" />
+                                  <Star className="h-5 w-5 text-amber-500 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
+                                </>
                               ) : (
                                 <Building2 className="h-5 w-5" />
                               )}
@@ -685,7 +688,7 @@ const LandingNav = () => {
                         <div className="space-y-2">
                           <div className="px-4 py-2">
                             <p className="text-xs text-muted-foreground font-semibold flex items-center gap-2">
-                              <Sparkles className="h-3 w-3" />
+                              <Star className="h-3 w-3 text-amber-500" />
                               Lab Tools
                             </p>
                           </div>

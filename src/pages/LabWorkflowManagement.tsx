@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { LabToolsBreadcrumb } from "@/components/layout/LabToolsBreadcrumb";
 import { 
   Package,
   Upload,
@@ -288,6 +289,8 @@ const LabWorkflowManagement = () => {
       <LandingNav />
       <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
         <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <LabToolsBreadcrumb currentPage="Lab Workflow Management" />
+          
           <div className="mb-6">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Lab Workflow Management</h1>
             <p className="text-muted-foreground">

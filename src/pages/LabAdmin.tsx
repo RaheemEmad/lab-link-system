@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { LabToolsBreadcrumb } from "@/components/layout/LabToolsBreadcrumb";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -367,6 +368,8 @@ const LabAdmin = () => {
         <LandingNav />
         <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
           <div className="container px-3 sm:px-4 lg:px-6 max-w-5xl mx-auto">
+            
+            <LabToolsBreadcrumb currentPage="Lab Admin" />
             
             {/* Header */}
             <div className="mb-8">
