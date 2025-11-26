@@ -40,7 +40,7 @@ interface OrderShipment {
 
 const TrackOrders = () => {
   const { user } = useAuth();
-  const { role, labId, isLabStaff, isLoading: roleLoading } = useUserRole();
+  const { role, labId, isLabStaff, roleConfirmed, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderShipment[]>([]);
@@ -321,10 +321,10 @@ const TrackOrders = () => {
                 Back to Dashboard
               </Button>
               <h1 className="text-3xl font-bold">
-                {isLabStaff ? "Manage Order Shipments" : "Track Your Orders"}
+                {roleConfirmed && isLabStaff ? "Manage Order Shipments" : "Track Your Orders"}
               </h1>
               <p className="text-muted-foreground mt-2">
-                {isLabStaff 
+                {roleConfirmed && isLabStaff 
                   ? "Update shipment status and delivery details for your orders" 
                   : "Monitor shipment status and delivery details"}
               </p>

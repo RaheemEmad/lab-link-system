@@ -24,7 +24,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
-  const { role, isLabStaff, isLoading: roleLoading } = useUserRole();
+  const { role, isLabStaff, roleConfirmed, isLoading: roleLoading } = useUserRole();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [runTour, setRunTour] = useState(false);
   const [showReceiveAnimation, setShowReceiveAnimation] = useState(false);
@@ -44,10 +44,11 @@ const Dashboard = () => {
   console.debug('[Dashboard] Render:', {
     authLoading,
     roleLoading,
+    roleConfirmed,
     userId: user?.id,
     role,
     isLabStaff,
-    showCreateOrderButton: !roleLoading && !isLabStaff,
+    showCreateOrderButton: roleConfirmed && !isLabStaff,
     timestamp: new Date().toISOString()
   });
 
@@ -251,7 +252,7 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
-                {!roleLoading && !isLabStaff && (
+                {roleConfirmed && !isLabStaff && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
