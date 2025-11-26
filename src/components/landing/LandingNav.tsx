@@ -348,6 +348,158 @@ const LandingNav = () => {
             <div className="hidden lg:flex items-center gap-2">
               {user ? (
                 <>
+                  {/* Profile Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="gap-2">
+                        <User className="h-4 w-4" />
+                        <span className="hidden xl:inline">Account</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={signOut} className="text-destructive">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Notifications Icon */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300"
+                        onClick={() => navigate("/notifications")}
+                      >
+                        <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
+                        <Bell className={`h-4 w-4 relative z-10 transition-all duration-300 ${hasUrgent ? 'animate-pulse text-destructive' : 'group-hover:scale-110 group-hover:text-ocean-blue'}`} />
+                        {unreadCount > 0 && (
+                          <motion.span 
+                            className={`absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg border-2 border-background ${
+                              hasUrgent 
+                                ? 'bg-destructive text-destructive-foreground' 
+                                : 'bg-ocean-blue text-white'
+                            }`}
+                            initial={{ scale: 0 }}
+                            animate={{ 
+                              scale: 1,
+                              ...(hasUrgent && {
+                                boxShadow: [
+                                  "0 0 0 0 hsl(var(--destructive) / 0.7)",
+                                  "0 0 0 8px hsl(var(--destructive) / 0)",
+                                  "0 0 0 0 hsl(var(--destructive) / 0)"
+                                ]
+                              })
+                            }}
+                            transition={{ 
+                              scale: { type: "spring", stiffness: 500, damping: 25 },
+                              boxShadow: hasUrgent ? {
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeOut"
+                              } : {}
+                            }}
+                          >
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </motion.span>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{hasUrgent ? '🔔 Urgent notifications!' : `Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}`}</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  {/* Achievements Icon - Doctor */}
+                  {userRole === 'doctor' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate("/doctor-achievements")}
+                          className="h-9 w-9 relative group overflow-hidden hover:bg-forest-green/10 hover:text-forest-green transition-all duration-300"
+                        >
+                          <span className="absolute inset-0 w-0 bg-forest-green/10 transition-all duration-300 group-hover:w-full" />
+                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-forest-green" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View your achievements</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
+                  {/* Achievements Icon - Lab Staff */}
+                  {userRole === 'lab_staff' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate("/lab-achievements")}
+                          className="h-9 w-9 relative group overflow-hidden hover:bg-forest-green/10 hover:text-forest-green transition-all duration-300"
+                        >
+                          <span className="absolute inset-0 w-0 bg-forest-green/10 transition-all duration-300 group-hover:w-full" />
+                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-forest-green" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View your lab achievements</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
+                  {/* Role-specific dropdown menu with innovative icon */}
+                  {(doctorMenuItems.length > 0 || labStaffMenuItems.length > 0) && (
+                    <DropdownMenu>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              {userRole === 'lab_staff' || userRole === 'admin' ? (
+                                <Sparkles className="h-5 w-5" />
+                              ) : (
+                                <Building2 className="h-5 w-5" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{userRole === 'lab_staff' || userRole === 'admin' ? 'Lab Tools' : 'Lab Management'}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <DropdownMenuContent align="end" className="min-w-[200px] bg-background">
+                        {doctorMenuItems.map((item) => (
+                          <DropdownMenuItem key={item.href} asChild>
+                            <Link to={item.href} className="flex items-center justify-between w-full cursor-pointer">
+                              <span>{item.label}</span>
+                              {item.badge && (
+                                <Badge 
+                                  variant="default" 
+                                  className="ml-2 min-w-[1.5rem] h-5 flex items-center justify-center px-1.5 bg-ocean-blue text-white font-bold text-xs"
+                                >
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                        {labStaffMenuItems.map((item) => (
+                          <DropdownMenuItem key={item.href} asChild>
+                            <Link to={item.href} className="cursor-pointer">{item.label}</Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
                   {/* Logistics Dropdown - Doctor */}
                   {userRole === 'doctor' && (
                     <DropdownMenu>
@@ -419,138 +571,6 @@ const LandingNav = () => {
                         <p>Create Order</p>
                       </TooltipContent>
                     </Tooltip>
-                  )}
-
-                  {/* Achievements Icon - Doctor */}
-                  {userRole === 'doctor' && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate("/doctor-achievements")}
-                          className="h-9 w-9 relative group overflow-hidden hover:bg-forest-green/10 hover:text-forest-green transition-all duration-300"
-                        >
-                          <span className="absolute inset-0 w-0 bg-forest-green/10 transition-all duration-300 group-hover:w-full" />
-                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-forest-green" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>View your achievements</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-
-                  {/* Achievements Icon - Lab Staff */}
-                  {userRole === 'lab_staff' && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate("/lab-achievements")}
-                          className="h-9 w-9 relative group overflow-hidden hover:bg-forest-green/10 hover:text-forest-green transition-all duration-300"
-                        >
-                          <span className="absolute inset-0 w-0 bg-forest-green/10 transition-all duration-300 group-hover:w-full" />
-                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-forest-green" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>View your lab achievements</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-
-                  {/* Notifications Icon */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300"
-                        onClick={() => navigate("/notifications")}
-                      >
-                        <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
-                        <Bell className={`h-4 w-4 relative z-10 transition-all duration-300 ${hasUrgent ? 'animate-pulse text-destructive' : 'group-hover:scale-110 group-hover:text-ocean-blue'}`} />
-                        {unreadCount > 0 && (
-                          <motion.span 
-                            className={`absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg border-2 border-background ${
-                              hasUrgent 
-                                ? 'bg-destructive text-destructive-foreground' 
-                                : 'bg-ocean-blue text-white'
-                            }`}
-                            initial={{ scale: 0 }}
-                            animate={{ 
-                              scale: 1,
-                              ...(hasUrgent && {
-                                boxShadow: [
-                                  "0 0 0 0 hsl(var(--destructive) / 0.7)",
-                                  "0 0 0 8px hsl(var(--destructive) / 0)",
-                                  "0 0 0 0 hsl(var(--destructive) / 0)"
-                                ]
-                              })
-                            }}
-                            transition={{ 
-                              scale: { type: "spring", stiffness: 500, damping: 25 },
-                              boxShadow: hasUrgent ? {
-                                duration: 1.5,
-                                repeat: Infinity,
-                                ease: "easeOut"
-                              } : {}
-                            }}
-                          >
-                            {unreadCount > 99 ? "99+" : unreadCount}
-                          </motion.span>
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{hasUrgent ? '🔔 Urgent notifications!' : `Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}`}</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* Role-specific dropdown menu with innovative icon */}
-                  {(doctorMenuItems.length > 0 || labStaffMenuItems.length > 0) && (
-                    <DropdownMenu>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              {userRole === 'lab_staff' || userRole === 'admin' ? (
-                                <Sparkles className="h-5 w-5" />
-                              ) : (
-                                <Building2 className="h-5 w-5" />
-                              )}
-                            </Button>
-                          </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{userRole === 'lab_staff' || userRole === 'admin' ? 'Lab Tools' : 'Lab Management'}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <DropdownMenuContent align="end" className="min-w-[200px] bg-background">
-                        {doctorMenuItems.map((item) => (
-                          <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href} className="flex items-center justify-between w-full cursor-pointer">
-                              <span>{item.label}</span>
-                              {item.badge && (
-                                <Badge 
-                                  variant="default" 
-                                  className="ml-2 min-w-[1.5rem] h-5 flex items-center justify-center px-1.5 bg-ocean-blue text-white font-bold text-xs"
-                                >
-                                  {item.badge}
-                                </Badge>
-                              )}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                        {labStaffMenuItems.map((item) => (
-                          <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href} className="cursor-pointer">{item.label}</Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   )}
 
                   {/* Admin Panel Icon - Only for Admins */}
