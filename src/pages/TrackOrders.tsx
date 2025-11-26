@@ -309,7 +309,7 @@ const TrackOrders = () => {
       <div className="min-h-screen flex flex-col">
         <LandingNav />
         <div className="flex-1 bg-secondary/30 py-12">
-          <div className="container px-4">
+          <div className="container px-3 sm:px-4 lg:px-6">
             <div className="mb-6">
               <Button
                 variant="ghost"
