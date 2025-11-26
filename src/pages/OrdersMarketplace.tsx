@@ -313,9 +313,9 @@ export default function OrdersMarketplace() {
             </Card>
 
             {isLoading ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-64" />
+                  <Skeleton key={i} className="h-56 sm:h-64" />
                 ))}
               </div>
             ) : !paginatedOrders || paginatedOrders.length === 0 ? (
@@ -332,43 +332,43 @@ export default function OrdersMarketplace() {
               </Card>
             ) : (
               <>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {paginatedOrders.map((order) => {
                     const requestStatus = getRequestStatus(order.id);
                     
                     return (
-                      <Card key={order.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg mb-1">
+                      <Card key={order.id} className="hover:shadow-lg transition-shadow min-w-0">
+                        <CardHeader className="p-4 sm:p-6">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-base sm:text-lg mb-1 truncate">
                                 {order.restoration_type}
                               </CardTitle>
-                              <p className="text-sm text-muted-foreground">
-                                Patient: {order.patient_name.split(' ').map((n: string) => n[0]).join('.')}. • Order: {order.order_number}
+                              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                                Patient: {order.patient_name.split(' ').map((n: string) => n[0]).join('.')}. • {order.order_number}
                               </p>
                             </div>
-                            <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>
+                            <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="shrink-0 text-xs">
                               {order.urgency}
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
                           <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-xs sm:text-sm">
                               <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span>Dr. {order.doctor_name}</span>
+                              <span className="truncate">Dr. {order.doctor_name}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-xs sm:text-sm">
                               <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span>
+                              <span className="truncate">
                                 Submitted: {new Date(order.created_at).toLocaleDateString()}
                               </span>
                             </div>
                             {order.biological_notes && (
                               <div className="bg-muted/50 rounded p-2 mt-2">
-                                <p className="text-xs text-muted-foreground mb-1">Notes Preview:</p>
-                                <p className="text-sm line-clamp-2">{order.biological_notes}</p>
+                                <p className="text-xs text-muted-foreground mb-1">Notes:</p>
+                                <p className="text-xs sm:text-sm line-clamp-2">{order.biological_notes}</p>
                               </div>
                             )}
                           </div>
@@ -377,24 +377,24 @@ export default function OrdersMarketplace() {
                             <div className="pt-2 space-y-2">
                               {requestStatus.status === 'pending' ? (
                                 <>
-                                  <Badge variant="outline" className="w-full justify-center py-2">
-                                    <Send className="h-4 w-4 mr-2" />
-                                    Request Sent
+                                  <Badge variant="outline" className="w-full justify-center py-2 text-xs">
+                                    <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                                    <span>Request Sent</span>
                                   </Badge>
                                   <Button
                                     onClick={() => cancelRequest.mutate(order.id)}
                                     disabled={cancelRequest.isPending}
                                     variant="outline"
-                                    className="w-full"
+                                    className="w-full text-xs sm:text-sm"
                                   >
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    Cancel Application
+                                    <XCircle className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                                    <span className="truncate">Cancel</span>
                                   </Button>
                                 </>
                               ) : requestStatus.status === 'accepted' ? (
-                                <Badge variant="default" className="w-full justify-center py-2">
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Accepted
+                                <Badge variant="default" className="w-full justify-center py-2 text-xs">
+                                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                                  <span>Accepted</span>
                                 </Badge>
                               ) : null}
                             </div>
@@ -402,10 +402,10 @@ export default function OrdersMarketplace() {
                             <Button
                               onClick={() => sendRequest.mutate(order.id)}
                               disabled={sendRequest.isPending}
-                              className="w-full"
+                              className="w-full text-xs sm:text-sm"
                             >
-                              <Send className="h-4 w-4 mr-2" />
-                              Apply to this Order
+                              <Send className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                              <span className="truncate">Apply to Order</span>
                             </Button>
                           )}
                         </CardContent>
