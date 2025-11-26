@@ -348,6 +348,25 @@ const LandingNav = () => {
             <div className="hidden lg:flex items-center gap-2">
               {user ? (
                 <>
+                  {/* Create Order Button - Doctor Only */}
+                  {userRole === 'doctor' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate("/new-order")}
+                          className="h-9 w-9 relative group overflow-hidden hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                        >
+                          <FilePlus className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Create Order</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
                   {/* Logistics Dropdown - Doctor */}
                   {userRole === 'doctor' && (
                     <DropdownMenu>
@@ -402,23 +421,48 @@ const LandingNav = () => {
                     </DropdownMenu>
                   )}
 
-                  {/* Create Order Button - Doctor Only */}
-                  {userRole === 'doctor' && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate("/new-order")}
-                          className="h-9 w-9 relative group overflow-hidden hover:bg-primary/10 hover:text-primary transition-all duration-300"
-                        >
-                          <FilePlus className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Create Order</p>
-                      </TooltipContent>
-                    </Tooltip>
+                  {/* Role-specific dropdown menu with innovative icon */}
+                  {(doctorMenuItems.length > 0 || labStaffMenuItems.length > 0) && (
+                    <DropdownMenu>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              {userRole === 'lab_staff' || userRole === 'admin' ? (
+                                <Sparkles className="h-5 w-5" />
+                              ) : (
+                                <Building2 className="h-5 w-5" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{userRole === 'lab_staff' || userRole === 'admin' ? 'Lab Tools' : 'Lab Management'}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <DropdownMenuContent align="end" className="min-w-[200px] bg-background">
+                        {doctorMenuItems.map((item) => (
+                          <DropdownMenuItem key={item.href} asChild>
+                            <Link to={item.href} className="flex items-center justify-between w-full cursor-pointer">
+                              <span>{item.label}</span>
+                              {item.badge && (
+                                <Badge 
+                                  variant="default" 
+                                  className="ml-2 min-w-[1.5rem] h-5 flex items-center justify-center px-1.5 bg-ocean-blue text-white font-bold text-xs"
+                                >
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                        {labStaffMenuItems.map((item) => (
+                          <DropdownMenuItem key={item.href} asChild>
+                            <Link to={item.href} className="cursor-pointer">{item.label}</Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
 
                   {/* Achievements Icon - Doctor */}
@@ -508,50 +552,6 @@ const LandingNav = () => {
                       <p>{hasUrgent ? '🔔 Urgent notifications!' : `Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}`}</p>
                     </TooltipContent>
                   </Tooltip>
-
-                  {/* Role-specific dropdown menu with innovative icon */}
-                  {(doctorMenuItems.length > 0 || labStaffMenuItems.length > 0) && (
-                    <DropdownMenu>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              {userRole === 'lab_staff' || userRole === 'admin' ? (
-                                <Sparkles className="h-5 w-5" />
-                              ) : (
-                                <Building2 className="h-5 w-5" />
-                              )}
-                            </Button>
-                          </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{userRole === 'lab_staff' || userRole === 'admin' ? 'Lab Tools' : 'Lab Management'}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <DropdownMenuContent align="end" className="min-w-[200px] bg-background">
-                        {doctorMenuItems.map((item) => (
-                          <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href} className="flex items-center justify-between w-full cursor-pointer">
-                              <span>{item.label}</span>
-                              {item.badge && (
-                                <Badge 
-                                  variant="default" 
-                                  className="ml-2 min-w-[1.5rem] h-5 flex items-center justify-center px-1.5 bg-ocean-blue text-white font-bold text-xs"
-                                >
-                                  {item.badge}
-                                </Badge>
-                              )}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                        {labStaffMenuItems.map((item) => (
-                          <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href} className="cursor-pointer">{item.label}</Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
 
                   {/* Admin Panel Icon - Only for Admins */}
                   {userRole === 'admin' && (
