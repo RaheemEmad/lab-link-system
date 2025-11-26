@@ -29,7 +29,6 @@ const Dashboard = () => {
   const [runTour, setRunTour] = useState(false);
   const [showReceiveAnimation, setShowReceiveAnimation] = useState(false);
   const [receivedOrderNumber, setReceivedOrderNumber] = useState<string>("");
-  const [showCreateOrderPulse, setShowCreateOrderPulse] = useState(false);
   const { playUrgentNotification } = useNotificationSound();
   const { 
     requestPermission, 
@@ -98,20 +97,6 @@ const Dashboard = () => {
 
     checkFirstLogin();
   }, [user]);
-
-  // Show pulse animation for Create Order button on first page load
-  useEffect(() => {
-    const hasSeenCreateOrderPulse = localStorage.getItem('create_order_pulse_seen');
-    if (!hasSeenCreateOrderPulse) {
-      const timer = setTimeout(() => {
-        setShowCreateOrderPulse(true);
-        localStorage.setItem('create_order_pulse_seen', 'true');
-        // Stop pulse after 5 seconds
-        setTimeout(() => setShowCreateOrderPulse(false), 5000);
-      }, 1000); // Delay 1s after page load
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
   // Check if we're receiving a newly accepted order
   useEffect(() => {
@@ -191,28 +176,6 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
 
-                {!isLabStaff && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="default" 
-                        onClick={() => navigate("/new-order")}
-                        className={`relative group overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-accent hover:from-primary/95 hover:via-primary/85 hover:to-accent/95 text-primary-foreground transition-all duration-300 w-full sm:w-auto shadow-md hover:shadow-xl border-0 ${showCreateOrderPulse ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''}`}
-                        data-tour="new-order-btn"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-[shimmer_3s_ease-in-out_infinite]" />
-                        <Plus className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="ml-2 relative z-10 font-bold text-sm sm:text-base">Create Order</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Create a new dental lab order</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-
-                <div className="hidden sm:block w-px h-8 bg-border/50" />
-
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -247,6 +210,26 @@ const Dashboard = () => {
                     <p>Manage shipment details and delivery coordination</p>
                   </TooltipContent>
                 </Tooltip>
+
+                {!isLabStaff && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate("/new-order")}
+                        className="w-full sm:w-auto"
+                        data-tour="new-order-btn"
+                      >
+                        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Create Order</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Create a new dental lab order</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </div>
             </div>
             
