@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -307,8 +307,164 @@ const OrderDashboard = () => {
             </div>
           </div>
 
-          {/* Orders Table */}
-          <div className="rounded-md border overflow-x-auto" data-tour="orders-table">
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-3" data-tour="orders-cards">
+            {paginatedOrders.length === 0 ? (
+              <div className="text-center py-8 sm:py-12">
+                <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <p className="text-base sm:text-lg font-medium mb-2">No orders found</p>
+                <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
+              </div>
+            ) : (
+              paginatedOrders.map((order) => (
+                <Card key={order.id} className="overflow-hidden">
+                  <CardContent className="p-4 space-y-3">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-mono font-bold text-sm mb-1">{order.order_number}</div>
+                        {!isDoctor && (
+                          <div className="text-xs text-muted-foreground truncate">Dr. {order.doctor_name}</div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="text-xs">
+                          {order.urgency}
+                        </Badge>
+                        <Badge variant="outline" className={`${statusColors[order.status]} text-xs`}>
+                          {order.status}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Patient Info */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium">{order.patient_name}</span>
+                    </div>
+
+                    {/* Restoration Details */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <FileText className="h-3 w-3" />
+                        <span>{order.restoration_type}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Palette className="h-3 w-3" />
+                        <span>{order.teeth_shade}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Hash className="h-3 w-3" />
+                        <span>{order.teeth_number}</span>
+                      </div>
+                    </div>
+
+                    {/* Lab Info */}
+                    <div className="pt-2 border-t border-border">
+                      {order.labs ? (
+                        <button
+                          onClick={() => navigate(`/labs/${order.labs!.id}`)}
+                          className="flex items-center gap-2 hover:text-primary transition-colors w-full text-left group"
+                        >
+                          <div className="relative w-8 h-8 rounded overflow-hidden border border-border bg-muted flex-shrink-0 group-hover:border-primary transition-colors">
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Building2 className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">{order.labs.name}</div>
+                            <div className="text-xs text-muted-foreground truncate">{order.labs.contact_email}</div>
+                          </div>
+                          <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                        </button>
+                      ) : (
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Not assigned
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2">
+                      {order.html_export && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
+                            if (isUrl) {
+                              window.open(order.html_export!, '_blank', 'noopener,noreferrer');
+                            } else {
+                              const previewWindow = window.open('', '_blank');
+                              if (previewWindow && order.html_export) {
+                                previewWindow.document.write(order.html_export);
+                                previewWindow.document.close();
+                              }
+                            }
+                          }}
+                          className="flex-1"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Preview
+                        </Button>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="min-w-[44px]">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover border shadow-md z-50">
+                          {order.assigned_lab_id && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleOpenChat(order)}>
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                Open Chat
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
+                          <DropdownMenuItem onClick={() => handleViewHistory(order)}>
+                            <History className="mr-2 h-4 w-4" />
+                            View History
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewNotes(order)}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            View Notes
+                          </DropdownMenuItem>
+                          {isLabStaff && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleStatusUpdate(order)}>
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Update Status
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleEdit(order.id)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit Order
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setDeleteOrderId(order.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Order
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden lg:block rounded-md border overflow-x-auto" data-tour="orders-table">
             <Table className="min-w-full">
               <TableHeader>
                 <TableRow>
@@ -328,8 +484,12 @@ const OrderDashboard = () => {
               <TableBody>
                 {paginatedOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDoctor ? 10 : 11} className="text-center text-muted-foreground">
-                      No orders found
+                    <TableCell colSpan={isDoctor ? 10 : 11} className="text-center py-8 sm:py-12">
+                      <div className="flex flex-col items-center justify-center">
+                        <FileText className="h-10 w-10 sm:h-12 sm:w-12 mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-base sm:text-lg font-medium mb-2">No orders found</p>
+                        <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -448,7 +608,7 @@ const OrderDashboard = () => {
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-background">
+                          <DropdownMenuContent align="end" className="bg-popover border shadow-md z-50">
                             {order.assigned_lab_id && (
                               <>
                                 <DropdownMenuItem onClick={() => handleOpenChat(order)}>
