@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell, Package, Compass, Truck, Trophy } from "lucide-react";
+import { Plus, Bell, Package, Compass, Truck, Trophy, MessageSquareMore } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -231,6 +231,23 @@ const Dashboard = () => {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Manage shipment details and delivery coordination</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/feedback-room")} 
+                      className="w-full sm:w-auto"
+                    >
+                      <MessageSquareMore className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Feedback Room</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Collaborate with lab on order details and quality</p>
                   </TooltipContent>
                 </Tooltip>
 
