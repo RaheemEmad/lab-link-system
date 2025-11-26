@@ -23,7 +23,7 @@ import { DashboardReceiveAnimation } from "@/components/order/DashboardReceiveAn
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { role, isLabStaff, isLoading: roleLoading } = useUserRole();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [runTour, setRunTour] = useState(false);
@@ -39,6 +39,17 @@ const Dashboard = () => {
   } = useBrowserNotifications();
   const previousUrgentCountRef = useRef<number>(0);
   const previousTotalCountRef = useRef<number>(0);
+
+  // DEBUG: Log every render with current state
+  console.debug('[Dashboard] Render:', {
+    authLoading,
+    roleLoading,
+    userId: user?.id,
+    role,
+    isLabStaff,
+    showCreateOrderButton: !roleLoading && !isLabStaff,
+    timestamp: new Date().toISOString()
+  });
 
   // Fetch unread notification count and check for urgent notifications
   const { data: notificationData } = useQuery({
@@ -136,6 +147,19 @@ const Dashboard = () => {
     previousUrgentCountRef.current = unreadCount;
     previousTotalCountRef.current = unreadCount;
   }, [unreadCount, hasUrgent, playUrgentNotification, showUrgentNotification, showNormalNotification]);
+
+  // CRITICAL: Prevent rendering role-conditional UI until role is fully loaded
+  if (roleLoading) {
+    console.debug('[Dashboard] Showing loading state - role not yet loaded');
+    return <ProtectedRoute>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    </ProtectedRoute>;
+  }
 
   return <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
