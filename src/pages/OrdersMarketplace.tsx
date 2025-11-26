@@ -121,6 +121,33 @@ export default function OrdersMarketplace() {
     };
   }, [user?.id, labId, queryClient]);
 
+  // Set up realtime subscription for lab work requests
+  useEffect(() => {
+    if (!user?.id || !labId) return;
+
+    const channel = supabase
+      .channel('lab-requests-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lab_work_requests',
+          filter: `lab_id=eq.${labId}`
+        },
+        () => {
+          // Invalidate both queries when lab requests change
+          queryClient.invalidateQueries({ queryKey: ["lab-requests", labId] });
+          queryClient.invalidateQueries({ queryKey: ["marketplace-orders", labId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, labId, queryClient]);
+
   // Fetch existing requests for this lab
   const { data: existingRequests } = useQuery({
     queryKey: ["lab-requests", labId],
@@ -136,6 +163,8 @@ export default function OrdersMarketplace() {
       return data;
     },
     enabled: !!labId,
+    staleTime: 10000, // Consider data stale after 10 seconds
+    refetchOnWindowFocus: true, // Refetch when tab gains focus
   });
 
   // Send request mutation
@@ -206,6 +235,10 @@ export default function OrdersMarketplace() {
 
   // Filter and sort orders
   const filteredOrders = orders?.filter(order => {
+    // Safety: Exclude orders where our request was already accepted
+    const requestStatus = existingRequests?.find(r => r.order_id === order.id);
+    if (requestStatus?.status === 'accepted') return false;
+    
     if (urgencyFilter !== "all" && order.urgency !== urgencyFilter) return false;
     if (restorationTypeFilter !== "all" && order.restoration_type !== restorationTypeFilter) return false;
     return true;
