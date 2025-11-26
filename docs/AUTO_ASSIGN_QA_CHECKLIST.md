@@ -85,6 +85,49 @@ if (userRole === 'lab_staff') {
 
 ---
 
+### 5. ✅ Create Order Button Visibility Fixed
+**File**: `src/pages/Dashboard.tsx` (Lines 26-27, 214-225)
+
+**Before (Over-engineered)**:
+```typescript
+const { user, loading: authLoading } = useAuth();
+const { role, isDoctor, isLoading: roleLoading } = useUserRole();
+
+// Complex loading logic with race conditions
+{(authLoading || roleLoading) ? (
+  <div className="skeleton..." />
+) : (
+  isDoctor && (<Button>Create Order</Button>)
+)}
+```
+
+**After (Simplified)**:
+```typescript
+const { user } = useAuth();
+const { role, isLabStaff } = useUserRole();
+
+// Simple role check - hidden from lab_staff only
+{!isLabStaff && (
+  <Button variant="outline">Create Order</Button>
+)}
+```
+
+**Why This Works**:
+| User Role | `isLabStaff` | Button Shows? |
+|-----------|--------------|---------------|
+| Doctor | `false` | ✅ Yes |
+| Lab Staff | `true` | ❌ No |
+| Admin | `false` | ✅ Yes |
+
+**Security Layers**:
+1. **Dashboard.tsx** - UI hides button from lab_staff
+2. **NewOrder.tsx** - Redirects non-doctors with toast error
+3. **Database RLS** - Only doctors can insert into `orders` table
+
+**Result**: No more loading race conditions. Button appears instantly for doctors/admins, never for lab staff.
+
+---
+
 ## Manual Testing Checklist
 
 ### Test 1: Doctor Submits Auto-Assign Order
