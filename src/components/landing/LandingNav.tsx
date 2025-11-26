@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck, Shield, Plus, FilePlus } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Sparkles, Building2, Truck, Shield, Plus, FilePlus, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
@@ -676,6 +676,65 @@ const LandingNav = () => {
                         <Plus className="h-4 w-4" />
                         Create Order
                       </Button>
+                    )}
+
+                    {/* Lab Tools Section - Lab Staff & Admin Only */}
+                    {(userRole === 'lab_staff' || userRole === 'admin') && (
+                      <>
+                        <div className="border-t border-border my-2" />
+                        <div className="space-y-2">
+                          <div className="px-4 py-2">
+                            <p className="text-xs text-muted-foreground font-semibold flex items-center gap-2">
+                              <Sparkles className="h-3 w-3" />
+                              Lab Tools
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              navigate("/lab-workflow");
+                              setIsOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                          >
+                            <Building2 className="h-4 w-4" />
+                            Lab Workflow
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigate("/lab-admin");
+                              setIsOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                          >
+                            <Shield className="h-4 w-4" />
+                            Lab Admin
+                          </button>
+                          {userRole === 'lab_staff' && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  navigate("/track-orders");
+                                  setIsOpen(false);
+                                }}
+                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                              >
+                                <Truck className="h-4 w-4" />
+                                Track Orders
+                              </button>
+                              <button
+                                onClick={() => {
+                                  navigate("/logistics");
+                                  setIsOpen(false);
+                                }}
+                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                              >
+                                <Package className="h-4 w-4" />
+                                Logistics Dashboard
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
 
