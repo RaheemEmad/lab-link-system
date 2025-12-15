@@ -18,7 +18,6 @@ import { WelcomeModal } from "@/components/auth/WelcomeModal";
 import { Check, Eye, EyeOff, AlertCircle, Mail } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
-import { GoogleIcon } from "@/components/auth/GoogleIcon";
 
 const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
@@ -44,7 +43,7 @@ type SignUpValues = z.infer<typeof signUpSchema>;
 type SignInValues = z.infer<typeof signInSchema>;
 
 const Auth = () => {
-  const { user, signUp, signIn, signInWithGoogle } = useAuth();
+  const { user, signUp, signIn } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
@@ -55,7 +54,6 @@ const Auth = () => {
   const hasCheckedAuth = useRef(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [welcomeUserName, setWelcomeUserName] = useState("");
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const signUpForm = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -229,12 +227,6 @@ const Auth = () => {
       signUpForm.setValue("email", values.email);
     }
   };
-
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    await signInWithGoogle();
-  };
-
 
   const handleWelcomeModalClose = async () => {
     setShowWelcomeModal(false);
@@ -418,30 +410,6 @@ const Auth = () => {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
-
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">
-                        Or continue with
-                      </span>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleGoogleSignIn}
-                    disabled={isGoogleLoading || isLoading}
-                  >
-                    <GoogleIcon />
-                    <span className="ml-2">
-                      {isGoogleLoading ? "Connecting..." : "Sign in with Google"}
-                    </span>
-                  </Button>
                 </form>
               </Form>
             </TabsContent>
@@ -559,30 +527,6 @@ const Auth = () => {
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creating account..." : "Create Account"}
-                  </Button>
-
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">
-                        Or continue with
-                      </span>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleGoogleSignIn}
-                    disabled={isGoogleLoading || isLoading}
-                  >
-                    <GoogleIcon />
-                    <span className="ml-2">
-                      {isGoogleLoading ? "Connecting..." : "Sign up with Google"}
-                    </span>
                   </Button>
                 </form>
               </Form>
