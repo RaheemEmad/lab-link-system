@@ -60,6 +60,7 @@ interface Order {
   html_export: string | null;
   screenshot_url: string | null;
   assigned_lab_id: string | null;
+  delivery_pending_confirmation: boolean | null;
   labs: {
     id: string;
     name: string;
@@ -69,12 +70,20 @@ interface Order {
   } | null;
 }
 
-const statusColors: Record<OrderStatus, string> = {
+const statusColors: Record<OrderStatus | "Awaiting Confirmation", string> = {
   "Pending": "bg-warning/10 text-warning border-warning/20",
   "In Progress": "bg-info/10 text-info border-info/20",
   "Ready for QC": "bg-accent/10 text-accent border-accent/20",
   "Ready for Delivery": "bg-primary/10 text-primary border-primary/20",
   "Delivered": "bg-success/10 text-success border-success/20",
+  "Awaiting Confirmation": "bg-amber-500/10 text-amber-600 border-amber-500/30",
+};
+
+const getDisplayStatus = (order: Order): string => {
+  if (order.delivery_pending_confirmation && order.status === "Ready for Delivery") {
+    return "Awaiting Confirmation";
+  }
+  return order.status;
 };
 
 const OrderDashboard = () => {
@@ -346,8 +355,8 @@ const OrderDashboard = () => {
                         <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="text-xs">
                           {order.urgency}
                         </Badge>
-                        <Badge variant="outline" className={`${statusColors[order.status]} text-xs`}>
-                          {order.status}
+                        <Badge variant="outline" className={`${statusColors[getDisplayStatus(order) as keyof typeof statusColors]} text-xs`}>
+                          {getDisplayStatus(order)}
                         </Badge>
                       </div>
                     </div>
@@ -584,8 +593,8 @@ const OrderDashboard = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={`${statusColors[order.status]} whitespace-nowrap`}>
-                          {order.status}
+                        <Badge variant="outline" className={`${statusColors[getDisplayStatus(order) as keyof typeof statusColors]} whitespace-nowrap`}>
+                          {getDisplayStatus(order)}
                         </Badge>
                       </TableCell>
                       <TableCell>

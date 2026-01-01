@@ -20,6 +20,7 @@ import { DashboardTour } from "@/components/dashboard/DashboardTour";
 import { AchievementToast } from "@/components/dashboard/AchievementToast";
 import { AchievementProgressNotification } from "@/components/dashboard/AchievementProgressNotification";
 import { DashboardReceiveAnimation } from "@/components/order/DashboardReceiveAnimation";
+import { PendingDeliveryConfirmations } from "@/components/order/PendingDeliveryConfirmations";
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -273,6 +274,11 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
+            
+            {/* Show pending delivery confirmations for doctors */}
+            {roleConfirmed && !isLabStaff && (
+              <PendingDeliveryConfirmations />
+            )}
             
             <OrderDashboard />
         </div>

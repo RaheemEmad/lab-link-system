@@ -66,20 +66,58 @@ export const OrderStatusDialog = ({
     setIsUpdating(true);
 
     try {
-      // Update the order status - the database trigger will automatically handle status history
-      const { error: updateError } = await supabase
-        .from("orders")
-        .update({ 
-          status: newStatus,
-          status_updated_at: new Date().toISOString()
-        })
-        .eq("id", orderId);
+      // Special handling for "Delivered" status - requires doctor confirmation
+      if (newStatus === "Delivered") {
+        // Get the order's doctor_id to notify them
+        const { data: order, error: orderError } = await supabase
+          .from("orders")
+          .select("doctor_id")
+          .eq("id", orderId)
+          .single();
 
-      if (updateError) throw updateError;
+        if (orderError) throw orderError;
 
-      toast.success("Order status updated", {
-        description: `${orderNumber} is now ${newStatus}`,
-      });
+        // Set pending confirmation flag instead of directly updating to Delivered
+        const { error: updateError } = await supabase
+          .from("orders")
+          .update({ 
+            delivery_pending_confirmation: true,
+            status_updated_at: new Date().toISOString()
+          })
+          .eq("id", orderId);
+
+        if (updateError) throw updateError;
+
+        // Create notification for doctor
+        if (order?.doctor_id) {
+          await supabase.from("notifications").insert({
+            user_id: order.doctor_id,
+            order_id: orderId,
+            type: "delivery_confirmation_request",
+            title: "Delivery Confirmation Requested",
+            message: `Lab has marked Order #${orderNumber} as delivered. Please confirm receipt.`,
+          });
+        }
+
+        toast.success("Delivery confirmation sent", {
+          description: `Awaiting doctor confirmation for ${orderNumber}`,
+        });
+      } else {
+        // Normal status update for other statuses
+        const { error: updateError } = await supabase
+          .from("orders")
+          .update({ 
+            status: newStatus,
+            status_updated_at: new Date().toISOString()
+          })
+          .eq("id", orderId);
+
+        if (updateError) throw updateError;
+
+        toast.success("Order status updated", {
+          description: `${orderNumber} is now ${newStatus}`,
+        });
+      }
 
       onStatusUpdated();
       onOpenChange(false);

@@ -51,6 +51,7 @@ interface Order {
   shipment_notes: string | null;
   carrier_name: string | null;
   carrier_phone: string | null;
+  delivery_pending_confirmation: boolean | null;
 }
 
 interface LabEditableFields {

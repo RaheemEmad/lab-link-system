@@ -1244,8 +1244,11 @@ export type Database = {
           carrier_name: string | null
           carrier_phone: string | null
           created_at: string
+          delivery_confirmed_at: string | null
+          delivery_confirmed_by: string | null
           delivery_date: string | null
           delivery_date_comment: string | null
+          delivery_pending_confirmation: boolean | null
           design_approved: boolean | null
           design_file_url: string | null
           desired_delivery_date: string | null
@@ -1286,8 +1289,11 @@ export type Database = {
           carrier_name?: string | null
           carrier_phone?: string | null
           created_at?: string
+          delivery_confirmed_at?: string | null
+          delivery_confirmed_by?: string | null
           delivery_date?: string | null
           delivery_date_comment?: string | null
+          delivery_pending_confirmation?: boolean | null
           design_approved?: boolean | null
           design_file_url?: string | null
           desired_delivery_date?: string | null
@@ -1328,8 +1334,11 @@ export type Database = {
           carrier_name?: string | null
           carrier_phone?: string | null
           created_at?: string
+          delivery_confirmed_at?: string | null
+          delivery_confirmed_by?: string | null
           delivery_date?: string | null
           delivery_date_comment?: string | null
+          delivery_pending_confirmation?: boolean | null
           design_approved?: boolean | null
           design_file_url?: string | null
           desired_delivery_date?: string | null
