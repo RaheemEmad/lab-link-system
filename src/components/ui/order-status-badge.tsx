@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Clock, Truck, Package, Sparkles } from "lucide-react";
+import { CheckCircle2, Clock, Truck, Package, Sparkles, Timer } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -11,6 +11,7 @@ interface OrderStatusBadgeProps {
   urgency?: UrgencyLevel;
   showIcon?: boolean;
   className?: string;
+  deliveryPendingConfirmation?: boolean;
 }
 
 const statusConfig = {
@@ -45,8 +46,25 @@ export function OrderStatusBadge({
   status, 
   urgency, 
   showIcon = true,
-  className 
+  className,
+  deliveryPendingConfirmation = false,
 }: OrderStatusBadgeProps) {
+  // Show "Awaiting Confirmation" state when delivery is pending confirmation
+  if (deliveryPendingConfirmation && status === "Ready for Delivery") {
+    return (
+      <Badge 
+        variant="outline"
+        className={cn(
+          "gap-1.5 bg-amber-500/10 text-amber-600 border-amber-500/30 dark:text-amber-400",
+          className
+        )}
+      >
+        {showIcon && <Timer className="h-3 w-3 animate-pulse" />}
+        <span>Awaiting Confirmation</span>
+      </Badge>
+    );
+  }
+
   const config = statusConfig[status];
   const Icon = config.icon;
   

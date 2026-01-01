@@ -188,19 +188,59 @@ const LabWorkflowManagement = () => {
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     setIsUpdating(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus as any })
-        .eq('id', orderId);
+      // Special handling for "Delivered" status - requires doctor confirmation
+      if (newStatus === "Delivered") {
+        // Get the order's doctor_id and order_number to notify them
+        const { data: order, error: orderError } = await supabase
+          .from("orders")
+          .select("doctor_id, order_number")
+          .eq("id", orderId)
+          .single();
 
-      if (error) throw error;
+        if (orderError) throw orderError;
 
-      toast.success("Order status updated!");
+        // Set pending confirmation flag instead of directly updating to Delivered
+        const { error: updateError } = await supabase
+          .from("orders")
+          .update({ 
+            delivery_pending_confirmation: true,
+            status_updated_at: new Date().toISOString()
+          })
+          .eq("id", orderId);
+
+        if (updateError) throw updateError;
+
+        // Create notification for doctor
+        if (order?.doctor_id) {
+          await supabase.from("notifications").insert({
+            user_id: order.doctor_id,
+            order_id: orderId,
+            type: "delivery_confirmation_request",
+            title: "Delivery Confirmation Requested",
+            message: `Lab has marked Order #${order.order_number} as delivered. Please confirm receipt.`,
+          });
+        }
+
+        toast.success("Delivery confirmation sent to doctor!", {
+          description: "Awaiting doctor's confirmation",
+        });
+      } else {
+        // Normal status update
+        const { error } = await supabase
+          .from("orders")
+          .update({ status: newStatus as any })
+          .eq("id", orderId);
+
+        if (error) throw error;
+
+        toast.success("Order status updated!");
+      }
+
       fetchOrders();
     } catch (error: any) {
-      console.error('Error updating status:', error);
+      console.error("Error updating status:", error);
       toast.error("Failed to update status", {
-        description: error.message
+        description: error.message,
       });
     } finally {
       setIsUpdating(false);
