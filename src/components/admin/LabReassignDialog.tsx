@@ -85,6 +85,16 @@ export const LabReassignDialog = ({
       const isMarketplace = selectedLabId === "marketplace";
       const newLabId = isMarketplace ? null : selectedLabId;
 
+      // Delete existing order assignments for this order
+      const { error: deleteAssignError } = await supabase
+        .from("order_assignments")
+        .delete()
+        .eq("order_id", order.id);
+
+      if (deleteAssignError) {
+        console.error("Failed to delete old assignments:", deleteAssignError);
+      }
+
       // Update the order
       const { error: updateError } = await supabase
         .from("orders")
@@ -95,6 +105,33 @@ export const LabReassignDialog = ({
         .eq("id", order.id);
 
       if (updateError) throw updateError;
+
+      // Create new order_assignments for lab staff if assigning to a lab
+      if (!isMarketplace && newLabId) {
+        const { data: labStaff, error: staffError } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("lab_id", newLabId)
+          .eq("role", "lab_staff");
+
+        if (staffError) {
+          console.error("Failed to fetch lab staff:", staffError);
+        } else if (labStaff && labStaff.length > 0) {
+          const assignments = labStaff.map((staff) => ({
+            order_id: order.id,
+            user_id: staff.user_id,
+            assigned_by: user.id,
+          }));
+
+          const { error: assignError } = await supabase
+            .from("order_assignments")
+            .insert(assignments);
+
+          if (assignError) {
+            console.error("Failed to create assignments:", assignError);
+          }
+        }
+      }
 
       // Log the change to order_status_history
       const oldLabName = order.assigned_lab?.name || "Marketplace";
