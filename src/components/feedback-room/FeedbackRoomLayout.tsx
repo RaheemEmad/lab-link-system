@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquareMore, Upload, CheckSquare, Lock, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import FeedbackRoomHeader from "./FeedbackRoomHeader";
+import AttachmentsTab from "./AttachmentsTab";
+import ChecklistTab from "./ChecklistTab";
+import DecisionsTab from "./DecisionsTab";
+import ActivityTab from "./ActivityTab";
+import { useFeedbackRoomRealtime } from "@/hooks/useFeedbackRoomRealtime";
 
 interface FeedbackRoomLayoutProps {
   order: any;
@@ -14,6 +17,9 @@ interface FeedbackRoomLayoutProps {
 const FeedbackRoomLayout = ({ order }: FeedbackRoomLayoutProps) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("attachments");
+
+  // Enable real-time updates
+  useFeedbackRoomRealtime(order.id);
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,68 +73,20 @@ const FeedbackRoomLayout = ({ order }: FeedbackRoomLayoutProps) => {
           </TabsList>
 
           <div className="mt-6">
-            <TabsContent value="attachments" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Attachments & Files</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Upload className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="font-medium mb-2">No attachments yet</p>
-                    <p className="text-sm">Upload files to start collaborating</p>
-                    <Button className="mt-4">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Files
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="attachments">
+              <AttachmentsTab orderId={order.id} />
             </TabsContent>
 
-            <TabsContent value="checklist" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quality Checklist</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    <CheckSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="font-medium mb-2">No checklist items yet</p>
-                    <p className="text-sm">Checklist will be auto-generated based on restoration type</p>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="checklist">
+              <ChecklistTab orderId={order.id} />
             </TabsContent>
 
-            <TabsContent value="decisions" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Locked Decisions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Lock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="font-medium mb-2">No decisions locked yet</p>
-                    <p className="text-sm">Lock important decisions to prevent changes</p>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="decisions">
+              <DecisionsTab orderId={order.id} />
             </TabsContent>
 
-            <TabsContent value="activity" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Activity Timeline</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="font-medium mb-2">No activity yet</p>
-                    <p className="text-sm">All actions will appear here</p>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="activity">
+              <ActivityTab orderId={order.id} />
             </TabsContent>
           </div>
         </Tabs>
