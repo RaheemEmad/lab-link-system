@@ -361,6 +361,13 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
     try {
       setStreamingMessage('');
       
+      // Get user session for authentication
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session?.access_token) {
+        console.error('No valid session for AI chat');
+        return;
+      }
+      
       const chatMessages = messages.map((msg) => ({
         role: msg.is_ai_generated ? 'assistant' : 'user',
         content: msg.message_text,
@@ -374,7 +381,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${sessionData.session.access_token}`,
           },
           body: JSON.stringify({
             messages: chatMessages,

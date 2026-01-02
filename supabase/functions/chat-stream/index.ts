@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,75 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Validate JWT and get user
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      console.error("Auth error:", authError);
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { messages, orderId } = await req.json();
+
+    // Verify user has access to this order
+    if (orderId) {
+      // Check if user is the doctor or assigned lab staff
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .select("doctor_id, assigned_lab_id")
+        .eq("id", orderId)
+        .single();
+
+      if (orderError || !order) {
+        console.error("Order not found:", orderError);
+        return new Response(
+          JSON.stringify({ error: "Order not found" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check if user is the doctor
+      const isDoctor = order.doctor_id === user.id;
+
+      // Check if user is assigned lab staff
+      let isAssignedLabStaff = false;
+      if (order.assigned_lab_id) {
+        const { data: assignment } = await supabase
+          .from("order_assignments")
+          .select("id")
+          .eq("order_id", orderId)
+          .eq("user_id", user.id)
+          .single();
+        
+        isAssignedLabStaff = !!assignment;
+      }
+
+      if (!isDoctor && !isAssignedLabStaff) {
+        console.error("User not authorized for this order:", user.id);
+        return new Response(
+          JSON.stringify({ error: "Not authorized to access this order" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
