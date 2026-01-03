@@ -7,8 +7,10 @@ import {
   Clock, 
   Zap,
   TrendingUp,
-  Award
+  Award,
+  Sparkles
 } from "lucide-react";
+import { LabBadges } from "./LabBadges";
 
 interface LabSpecialization {
   restoration_type: string;
@@ -33,6 +35,9 @@ interface Lab {
   performance_score: number;
   logo_url: string | null;
   website_url: string | null;
+  is_sponsored?: boolean;
+  subscription_tier?: string | null;
+  cancellation_visible?: boolean;
 }
 
 interface LabCardProps {
@@ -68,10 +73,17 @@ const getCapacityColor = (currentLoad: number, maxCapacity: number) => {
 
 export function LabCard({ lab, specializations, isVerified = false }: LabCardProps) {
   const capacityPercentage = (lab.current_load / lab.max_capacity) * 100;
+  const isSponsored = lab.is_sponsored;
 
   return (
     <Link to={`/labs/${lab.id}`}>
-      <Card className={`hover:shadow-lg transition-shadow h-full ${isVerified ? 'border-primary/50' : ''}`}>
+      <Card className={`hover:shadow-lg transition-shadow h-full ${isVerified ? 'border-primary/50' : ''} ${isSponsored ? 'ring-2 ring-yellow-400/50' : ''}`}>
+        {isSponsored && (
+          <div className="bg-gradient-to-r from-yellow-400/20 to-amber-400/20 px-3 py-1 text-xs font-medium text-yellow-700 flex items-center gap-1 rounded-t-lg">
+            <Sparkles className="h-3 w-3" />
+            Sponsored
+          </div>
+        )}
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-3 flex-1">
@@ -124,16 +136,19 @@ export function LabCard({ lab, specializations, isVerified = false }: LabCardPro
             <span className="font-medium">{lab.urgent_sla_days} days</span>
           </div>
 
-          {/* Capacity */}
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Capacity:</span>
-            </div>
-            <span className={`font-medium ${getCapacityColor(lab.current_load, lab.max_capacity)}`}>
-              {lab.current_load}/{lab.max_capacity} ({Math.round(capacityPercentage)}%)
-            </span>
+        {/* Capacity */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Capacity:</span>
           </div>
+          <span className={`font-medium ${getCapacityColor(lab.current_load, lab.max_capacity)}`}>
+            {lab.current_load}/{lab.max_capacity} ({Math.round(capacityPercentage)}%)
+          </span>
+        </div>
+
+        {/* Lab Badges */}
+        <LabBadges labId={lab.id} maxDisplay={2} className="pt-1" />
 
           {/* Specializations */}
           {specializations.length > 0 && (

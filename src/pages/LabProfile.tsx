@@ -5,13 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, MapPin, Phone, Mail, Globe, Clock, Star, Users, Heart, ArrowLeft, Package } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, Globe, Clock, Star, Users, Heart, ArrowLeft, Package, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { LabBadges } from "@/components/labs/LabBadges";
+import { LabPerformanceStats } from "@/components/labs/LabPerformanceStats";
+import { LabPortfolio } from "@/components/labs/LabPortfolio";
 
 export default function LabProfile() {
   const { labId } = useParams();
@@ -252,8 +255,16 @@ export default function LabProfile() {
             <div className="flex items-center gap-4">
               <Building2 className="h-12 w-12 text-primary" />
               <div>
-                <CardTitle className="text-3xl">{lab.name}</CardTitle>
-                <div className="flex items-center gap-3 mt-2">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-3xl">{lab.name}</CardTitle>
+                  {(lab as any).is_sponsored && (
+                    <Badge className="bg-gradient-to-r from-yellow-400 to-amber-400 text-yellow-900">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Sponsored
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mt-2 flex-wrap">
                   <Badge variant="secondary">{lab.pricing_tier}</Badge>
                   <div className="flex items-center gap-1">
                     <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
@@ -266,6 +277,8 @@ export default function LabProfile() {
                     {lab.current_load < lab.max_capacity ? "Available" : "At Capacity"}
                   </Badge>
                 </div>
+                {/* Lab Badges */}
+                <LabBadges labId={lab.id} showAll className="mt-3" />
               </div>
             </div>
           </div>
@@ -319,6 +332,12 @@ export default function LabProfile() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Performance Stats */}
+      <LabPerformanceStats labId={lab.id} />
+
+      {/* Portfolio */}
+      <LabPortfolio labId={lab.id} />
 
       {/* Services Card */}
       {specializations && specializations.length > 0 && (

@@ -597,35 +597,82 @@ export type Database = {
           },
         ]
       }
+      lab_badges: {
+        Row: {
+          badge_type: string
+          badge_value: string
+          earned_at: string
+          expires_at: string | null
+          id: string
+          lab_id: string
+        }
+        Insert: {
+          badge_type: string
+          badge_value: string
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          lab_id: string
+        }
+        Update: {
+          badge_type?: string
+          badge_value?: string
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          lab_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_badges_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_performance_metrics: {
         Row: {
           approval_rate: number | null
+          average_lead_time_hours: number | null
           average_turnaround_days: number | null
+          cancellation_rate: number | null
+          cancelled_orders: number | null
           completed_orders: number
           id: string
           lab_id: string
           last_calculated_at: string
           on_time_deliveries: number
+          time_accuracy_percentage: number | null
           total_orders: number
         }
         Insert: {
           approval_rate?: number | null
+          average_lead_time_hours?: number | null
           average_turnaround_days?: number | null
+          cancellation_rate?: number | null
+          cancelled_orders?: number | null
           completed_orders?: number
           id?: string
           lab_id: string
           last_calculated_at?: string
           on_time_deliveries?: number
+          time_accuracy_percentage?: number | null
           total_orders?: number
         }
         Update: {
           approval_rate?: number | null
+          average_lead_time_hours?: number | null
           average_turnaround_days?: number | null
+          cancellation_rate?: number | null
+          cancelled_orders?: number | null
           completed_orders?: number
           id?: string
           lab_id?: string
           last_calculated_at?: string
           on_time_deliveries?: number
+          time_accuracy_percentage?: number | null
           total_orders?: number
         }
         Relationships: [
@@ -669,6 +716,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "lab_photos_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_portfolio_items: {
+        Row: {
+          after_image_url: string | null
+          before_image_url: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          image_urls: Json | null
+          is_featured: boolean | null
+          lab_id: string
+          restoration_type: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          after_image_url?: string | null
+          before_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_urls?: Json | null
+          is_featured?: boolean | null
+          lab_id: string
+          restoration_type?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          after_image_url?: string | null
+          before_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_urls?: Json | null
+          is_featured?: boolean | null
+          lab_id?: string
+          restoration_type?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_portfolio_items_lab_id_fkey"
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
@@ -769,6 +869,42 @@ export type Database = {
           },
         ]
       }
+      lab_subscription_packages: {
+        Row: {
+          created_at: string
+          features: Json | null
+          id: string
+          max_cancellations_per_month: number | null
+          name: string
+          portfolio_limit: number | null
+          price_monthly: number
+          priority_in_auto_assign: boolean | null
+          sponsored_placement: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          features?: Json | null
+          id?: string
+          max_cancellations_per_month?: number | null
+          name: string
+          portfolio_limit?: number | null
+          price_monthly: number
+          priority_in_auto_assign?: boolean | null
+          sponsored_placement?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          features?: Json | null
+          id?: string
+          max_cancellations_per_month?: number | null
+          name?: string
+          portfolio_limit?: number | null
+          price_monthly?: number
+          priority_in_auto_assign?: boolean | null
+          sponsored_placement?: boolean | null
+        }
+        Relationships: []
+      }
       lab_work_requests: {
         Row: {
           created_at: string
@@ -817,6 +953,7 @@ export type Database = {
       labs: {
         Row: {
           address: string | null
+          cancellation_visible: boolean | null
           contact_email: string
           contact_phone: string | null
           created_at: string
@@ -824,18 +961,22 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_sponsored: boolean | null
           logo_url: string | null
           max_capacity: number
           name: string
           performance_score: number | null
           pricing_tier: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days: number
+          subscription_expires_at: string | null
+          subscription_tier: string | null
           updated_at: string
           urgent_sla_days: number
           website_url: string | null
         }
         Insert: {
           address?: string | null
+          cancellation_visible?: boolean | null
           contact_email: string
           contact_phone?: string | null
           created_at?: string
@@ -843,18 +984,22 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_sponsored?: boolean | null
           logo_url?: string | null
           max_capacity?: number
           name: string
           performance_score?: number | null
           pricing_tier?: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days?: number
+          subscription_expires_at?: string | null
+          subscription_tier?: string | null
           updated_at?: string
           urgent_sla_days?: number
           website_url?: string | null
         }
         Update: {
           address?: string | null
+          cancellation_visible?: boolean | null
           contact_email?: string
           contact_phone?: string | null
           created_at?: string
@@ -862,12 +1007,15 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_sponsored?: boolean | null
           logo_url?: string | null
           max_capacity?: number
           name?: string
           performance_score?: number | null
           pricing_tier?: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days?: number
+          subscription_expires_at?: string | null
+          subscription_tier?: string | null
           updated_at?: string
           urgent_sla_days?: number
           website_url?: string | null
@@ -1101,6 +1249,41 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_cancellations: {
+        Row: {
+          cancelled_by: string
+          cancelled_by_role: string
+          created_at: string
+          id: string
+          order_id: string
+          reason: string | null
+        }
+        Insert: {
+          cancelled_by: string
+          cancelled_by_role: string
+          created_at?: string
+          id?: string
+          order_id: string
+          reason?: string | null
+        }
+        Update: {
+          cancelled_by?: string
+          cancelled_by_role?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_cancellations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1794,6 +1977,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_lab_metrics: { Args: { p_lab_id: string }; Returns: undefined }
       check_and_award_achievement: {
         Args: { achievement_id_param: string; user_id_param?: string }
         Returns: boolean
@@ -1957,6 +2141,7 @@ export type Database = {
         | "Ready for QC"
         | "Ready for Delivery"
         | "Delivered"
+        | "Cancelled"
       pricing_tier: "budget" | "standard" | "premium"
       restoration_type:
         | "Zirconia"
@@ -2105,6 +2290,7 @@ export const Constants = {
         "Ready for QC",
         "Ready for Delivery",
         "Delivered",
+        "Cancelled",
       ],
       pricing_tier: ["budget", "standard", "premium"],
       restoration_type: [
