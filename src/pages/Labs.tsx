@@ -58,7 +58,7 @@ const Labs = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>(
     searchParams.get('specialty') || 'all'
   );
-  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'turnaround'>(
+  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'turnaround' | 'price_low' | 'price_high' | 'completion'>(
     (searchParams.get('sort') as any) || 'rating'
   );
   const [currentPage, setCurrentPage] = useState(
@@ -216,8 +216,13 @@ const Labs = () => {
       filtered = filtered.filter(lab => lab.current_load < lab.max_capacity);
     }
     
-    // Apply sorting
+    // Apply sorting - sponsored labs first, then by selected criteria
     filtered.sort((a, b) => {
+      // Sponsored labs always come first
+      const aSponsored = (a as any).is_sponsored ? 1 : 0;
+      const bSponsored = (b as any).is_sponsored ? 1 : 0;
+      if (bSponsored !== aSponsored) return bSponsored - aSponsored;
+
       switch (sortBy) {
         case 'name':
           return a.name.localeCompare(b.name);
@@ -225,6 +230,17 @@ const Labs = () => {
           return (b.performance_score || 0) - (a.performance_score || 0);
         case 'turnaround':
           return a.standard_sla_days - b.standard_sla_days;
+        case 'price_low':
+          const priceOrderLow = { 'budget': 0, 'standard': 1, 'premium': 2 };
+          return priceOrderLow[a.pricing_tier] - priceOrderLow[b.pricing_tier];
+        case 'price_high':
+          const priceOrderHigh = { 'premium': 0, 'standard': 1, 'budget': 2 };
+          return priceOrderHigh[a.pricing_tier] - priceOrderHigh[b.pricing_tier];
+        case 'completion':
+          // This would need performance metrics - for now use capacity as proxy
+          const aCompletion = a.max_capacity > 0 ? (a.max_capacity - a.current_load) / a.max_capacity : 0;
+          const bCompletion = b.max_capacity > 0 ? (b.max_capacity - b.current_load) / b.max_capacity : 0;
+          return bCompletion - aCompletion;
         default:
           return 0;
       }
@@ -348,8 +364,11 @@ const Labs = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="rating">Highest Rated</SelectItem>
-                      <SelectItem value="name">Name (A-Z)</SelectItem>
                       <SelectItem value="turnaround">Fastest Turnaround</SelectItem>
+                      <SelectItem value="price_low">Price: Low → High</SelectItem>
+                      <SelectItem value="price_high">Price: High → Low</SelectItem>
+                      <SelectItem value="completion">Completion Rate</SelectItem>
+                      <SelectItem value="name">Name (A-Z)</SelectItem>
                     </SelectContent>
                   </Select>
                   

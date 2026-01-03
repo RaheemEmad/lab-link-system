@@ -44,7 +44,7 @@ import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
 import { OrderChatWindow } from "./chat/OrderChatWindow";
 import { cn } from "@/lib/utils";
 
-type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered";
+type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered" | "Cancelled";
 
 interface Order {
   id: string;
@@ -76,6 +76,7 @@ const statusColors: Record<OrderStatus | "Awaiting Confirmation", string> = {
   "Ready for QC": "bg-accent/10 text-accent border-accent/20",
   "Ready for Delivery": "bg-primary/10 text-primary border-primary/20",
   "Delivered": "bg-success/10 text-success border-success/20",
+  "Cancelled": "bg-destructive/10 text-destructive border-destructive/20",
   "Awaiting Confirmation": "bg-amber-500/10 text-amber-600 border-amber-500/30",
 };
 

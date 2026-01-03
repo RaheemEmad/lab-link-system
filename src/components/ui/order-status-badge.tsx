@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Clock, Truck, Package, Sparkles, Timer } from "lucide-react";
+import { CheckCircle2, Clock, Truck, Package, Sparkles, Timer, XCircle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -14,31 +14,36 @@ interface OrderStatusBadgeProps {
   deliveryPendingConfirmation?: boolean;
 }
 
-const statusConfig = {
+const statusConfig: Record<OrderStatus, { variant: string; icon: typeof Clock; label: string }> = {
   Pending: {
-    variant: "pending" as const,
+    variant: "pending",
     icon: Clock,
     label: "Pending",
   },
   "In Progress": {
-    variant: "in-progress" as const,
+    variant: "in-progress",
     icon: Sparkles,
     label: "In Progress",
   },
   "Ready for QC": {
-    variant: "ready-qc" as const,
+    variant: "ready-qc",
     icon: Package,
     label: "Ready for QC",
   },
   "Ready for Delivery": {
-    variant: "ready-delivery" as const,
+    variant: "ready-delivery",
     icon: Truck,
     label: "Ready for Delivery",
   },
   Delivered: {
-    variant: "delivered" as const,
+    variant: "delivered",
     icon: CheckCircle2,
     label: "Delivered",
+  },
+  Cancelled: {
+    variant: "destructive",
+    icon: XCircle,
+    label: "Cancelled",
   },
 };
 
@@ -68,16 +73,18 @@ export function OrderStatusBadge({
   const config = statusConfig[status];
   const Icon = config.icon;
   
-  // Override with urgent variant if urgency is Urgent
-  const variant = urgency === "Urgent" ? "urgent" : config.variant;
+  // Override with urgent variant if urgency is Urgent (but not for Cancelled)
+  const variant = status === "Cancelled" 
+    ? "destructive" 
+    : (urgency === "Urgent" ? "urgent" : config.variant);
   
   return (
     <Badge 
-      variant={variant}
+      variant={variant as any}
       className={cn("gap-1.5", className)}
     >
       {showIcon && <Icon className="h-3 w-3" />}
-      <span>{urgency === "Urgent" ? "🔥 " : ""}{config.label}</span>
+      <span>{urgency === "Urgent" && status !== "Cancelled" ? "🔥 " : ""}{config.label}</span>
     </Badge>
   );
 }

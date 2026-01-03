@@ -3,7 +3,8 @@ export type OrderStatus =
   | "In Progress" 
   | "Ready for QC"
   | "Ready for Delivery"
-  | "Delivered";
+  | "Delivered"
+  | "Cancelled";
 
 export type RestorationType = 
   | "Zirconia"
