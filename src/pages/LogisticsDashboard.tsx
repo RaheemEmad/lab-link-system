@@ -8,15 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft, FileText, Eye } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft, FileText, Eye, Receipt } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ShipmentDetailsDialog } from "@/components/order/ShipmentDetailsDialog";
 import { OrderDetailsModal } from "@/components/order/OrderDetailsModal";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import BillingTab from "@/components/billing/BillingTab";
 import { toast } from "sonner";
-
 interface LabCapacity {
   id: string;
   name: string;
@@ -68,6 +69,7 @@ const LogisticsDashboard = () => {
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
   const [defaultTab, setDefaultTab] = useState<"details" | "notes">("details");
+  const [activeMainTab, setActiveMainTab] = useState<"shipments" | "billing">("shipments");
   
   useEffect(() => {
     const fetchData = async () => {
@@ -249,15 +251,33 @@ const LogisticsDashboard = () => {
               </div>
             </div>
 
-            {/* Key Metrics */}
-            <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{totalShipments}</div>
+            {/* Main Tabs */}
+            <Tabs value={activeMainTab} onValueChange={(v) => setActiveMainTab(v as "shipments" | "billing")} className="mb-6">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="shipments" className="gap-2">
+                  <Truck className="h-4 w-4" />
+                  Shipments
+                </TabsTrigger>
+                <TabsTrigger value="billing" className="gap-2">
+                  <Receipt className="h-4 w-4" />
+                  Billing
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="billing" className="mt-6">
+                <BillingTab />
+              </TabsContent>
+
+              <TabsContent value="shipments" className="mt-6">
+                {/* Key Metrics */}
+                <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{totalShipments}</div>
                   <p className="text-xs text-muted-foreground mt-1">All tracked orders</p>
                 </CardContent>
               </Card>
@@ -441,8 +461,10 @@ const LogisticsDashboard = () => {
                         </div>
                       </div>)}
                   </div>}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
         <LandingFooter />

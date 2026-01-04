@@ -89,6 +89,47 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          invoice_id: string
+          new_values: Json | null
+          old_values: Json | null
+          performed_by: string | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          invoice_id: string
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_by?: string | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_by?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_audit_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           attachment_name: string | null
@@ -548,6 +589,171 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_adjustments: {
+        Row: {
+          adjustment_type: string
+          amount: number
+          approved_by: string
+          created_at: string
+          id: string
+          invoice_id: string
+          reason: string
+          source_event: string | null
+          source_record_id: string | null
+        }
+        Insert: {
+          adjustment_type: string
+          amount: number
+          approved_by: string
+          created_at?: string
+          id?: string
+          invoice_id: string
+          reason: string
+          source_event?: string | null
+          source_record_id?: string | null
+        }
+        Update: {
+          adjustment_type?: string
+          amount?: number
+          approved_by?: string
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          reason?: string
+          source_event?: string | null
+          source_record_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_adjustments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_line_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          line_type: string
+          quantity: number
+          rule_applied: string | null
+          source_event: string
+          source_record_id: string | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          line_type: string
+          quantity?: number
+          rule_applied?: string | null
+          source_event: string
+          source_record_id?: string | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          line_type?: string
+          quantity?: number
+          rule_applied?: string | null
+          source_event?: string
+          source_record_id?: string | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          adjustments_total: number
+          created_at: string
+          dispute_reason: string | null
+          dispute_resolved_at: string | null
+          dispute_resolved_by: string | null
+          disputed_at: string | null
+          expenses_total: number
+          final_total: number
+          finalized_at: string | null
+          finalized_by: string | null
+          generated_at: string | null
+          id: string
+          invoice_number: string
+          locked_at: string | null
+          order_id: string
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          updated_at: string
+        }
+        Insert: {
+          adjustments_total?: number
+          created_at?: string
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          dispute_resolved_by?: string | null
+          disputed_at?: string | null
+          expenses_total?: number
+          final_total?: number
+          finalized_at?: string | null
+          finalized_by?: string | null
+          generated_at?: string | null
+          id?: string
+          invoice_number: string
+          locked_at?: string | null
+          order_id: string
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          updated_at?: string
+        }
+        Update: {
+          adjustments_total?: number
+          created_at?: string
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          dispute_resolved_by?: string | null
+          disputed_at?: string | null
+          expenses_total?: number
+          final_total?: number
+          finalized_at?: string | null
+          finalized_by?: string | null
+          generated_at?: string | null
+          id?: string
+          invoice_number?: string
+          locked_at?: string | null
+          order_id?: string
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1048,6 +1254,60 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      logistics_expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          expense_type: string
+          id: string
+          incurred_at: string
+          invoice_id: string | null
+          order_id: string
+          receipt_url: string | null
+          recorded_by: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          expense_type: string
+          id?: string
+          incurred_at?: string
+          invoice_id?: string | null
+          order_id: string
+          receipt_url?: string | null
+          recorded_by: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          expense_type?: string
+          id?: string
+          incurred_at?: string
+          invoice_id?: string | null
+          order_id?: string
+          receipt_url?: string | null
+          recorded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logistics_expenses_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logistics_expenses_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       note_likes: {
         Row: {
@@ -1602,6 +1862,57 @@ export type Database = {
           },
         ]
       }
+      pricing_rules: {
+        Row: {
+          amount: number
+          condition: Json | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_percentage: boolean
+          priority: number
+          restoration_type:
+            | Database["public"]["Enums"]["restoration_type"]
+            | null
+          rule_name: string
+          rule_type: string
+          updated_at: string
+          urgency_level: Database["public"]["Enums"]["urgency_level"] | null
+        }
+        Insert: {
+          amount: number
+          condition?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_percentage?: boolean
+          priority?: number
+          restoration_type?:
+            | Database["public"]["Enums"]["restoration_type"]
+            | null
+          rule_name: string
+          rule_type: string
+          updated_at?: string
+          urgency_level?: Database["public"]["Enums"]["urgency_level"] | null
+        }
+        Update: {
+          amount?: number
+          condition?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_percentage?: boolean
+          priority?: number
+          restoration_type?:
+            | Database["public"]["Enums"]["restoration_type"]
+            | null
+          rule_name?: string
+          rule_type?: string
+          updated_at?: string
+          urgency_level?: Database["public"]["Enums"]["urgency_level"] | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           business_address: string | null
@@ -1977,6 +2288,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_invoice_line_items: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
       calculate_lab_metrics: { Args: { p_lab_id: string }; Returns: undefined }
       check_and_award_achievement: {
         Args: { achievement_id_param: string; user_id_param?: string }
@@ -2060,6 +2375,15 @@ export type Database = {
         Args: { ip_address_param: string; user_email_param: string }
         Returns: boolean
       }
+      finalize_invoice: {
+        Args: { p_invoice_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      generate_invoice_for_order: {
+        Args: { p_order_id: string; p_user_id?: string }
+        Returns: string
+      }
+      generate_invoice_number: { Args: never; Returns: string }
       generate_order_number: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -2075,6 +2399,10 @@ export type Database = {
       is_account_locked: { Args: { user_email: string }; Returns: boolean }
       lab_was_refused_for_order: {
         Args: { _order_id: string; _user_id: string }
+        Returns: boolean
+      }
+      lock_invoice: {
+        Args: { p_invoice_id: string; p_user_id: string }
         Returns: boolean
       }
       log_audit_event: {
@@ -2118,6 +2446,10 @@ export type Database = {
         }
         Returns: string
       }
+      raise_invoice_dispute: {
+        Args: { p_invoice_id: string; p_reason: string; p_user_id: string }
+        Returns: boolean
+      }
       set_user_role: {
         Args: {
           role_param: Database["public"]["Enums"]["app_role"]
@@ -2135,6 +2467,12 @@ export type Database = {
       alert_severity: "low" | "medium" | "high" | "critical"
       app_role: "admin" | "lab_staff" | "doctor"
       expertise_level: "basic" | "intermediate" | "expert"
+      invoice_status:
+        | "draft"
+        | "generated"
+        | "locked"
+        | "finalized"
+        | "disputed"
       order_status:
         | "Pending"
         | "In Progress"
@@ -2284,6 +2622,7 @@ export const Constants = {
       alert_severity: ["low", "medium", "high", "critical"],
       app_role: ["admin", "lab_staff", "doctor"],
       expertise_level: ["basic", "intermediate", "expert"],
+      invoice_status: ["draft", "generated", "locked", "finalized", "disputed"],
       order_status: [
         "Pending",
         "In Progress",
