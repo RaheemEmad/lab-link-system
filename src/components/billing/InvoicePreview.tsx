@@ -1,0 +1,497 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { 
+  ArrowLeft, 
+  Download, 
+  Lock, 
+  CheckCircle2, 
+  AlertTriangle,
+  FileText,
+  Clock,
+  Loader2,
+  Plus
+} from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import InvoiceLineItems from "./InvoiceLineItems";
+import AdjustmentDialog from "./AdjustmentDialog";
+import DisputeDialog from "./DisputeDialog";
+import { useState } from "react";
+import { toast } from "sonner";
+
+type InvoiceStatus = 'draft' | 'generated' | 'locked' | 'finalized' | 'disputed';
+
+interface Invoice {
+  id: string;
+  order_id: string;
+  invoice_number: string;
+  status: InvoiceStatus;
+  subtotal: number;
+  adjustments_total: number;
+  expenses_total: number;
+  final_total: number;
+  generated_at: string | null;
+  locked_at: string | null;
+  finalized_at: string | null;
+  disputed_at: string | null;
+  dispute_reason: string | null;
+  created_at: string;
+  order: {
+    order_number: string;
+    patient_name: string;
+    doctor_name: string;
+    status: string;
+    restoration_type: string;
+    delivery_confirmed_at: string | null;
+  } | null;
+}
+
+interface InvoicePreviewProps {
+  invoice: Invoice;
+  onClose: () => void;
+}
+
+const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
+  const { user } = useAuth();
+  const { role } = useUserRole();
+  const queryClient = useQueryClient();
+  const [showAdjustmentDialog, setShowAdjustmentDialog] = useState(false);
+  const [showDisputeDialog, setShowDisputeDialog] = useState(false);
+
+  // Fetch adjustments
+  const { data: adjustments } = useQuery({
+    queryKey: ['invoice-adjustments', invoice.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoice_adjustments')
+        .select('*')
+        .eq('invoice_id', invoice.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch expenses
+  const { data: expenses } = useQuery({
+    queryKey: ['invoice-expenses', invoice.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('logistics_expenses')
+        .select('*')
+        .eq('invoice_id', invoice.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch audit log
+  const { data: auditLog } = useQuery({
+    queryKey: ['invoice-audit-log', invoice.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('billing_audit_log')
+        .select('*')
+        .eq('invoice_id', invoice.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Lock invoice mutation
+  const lockMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc('lock_invoice', {
+        p_invoice_id: invoice.id,
+        p_user_id: user?.id
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast.success('Invoice locked');
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to lock invoice', { description: error.message });
+    }
+  });
+
+  // Finalize invoice mutation
+  const finalizeMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc('finalize_invoice', {
+        p_invoice_id: invoice.id,
+        p_user_id: user?.id
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast.success('Invoice finalized - it is now immutable');
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to finalize invoice', { description: error.message });
+    }
+  });
+
+  const handleExportPDF = () => {
+    // Create a printable version
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Please allow popups to export PDF');
+      return;
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Invoice ${invoice.invoice_number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+            h1 { color: #1a1a1a; margin-bottom: 10px; }
+            .header { border-bottom: 2px solid #1a1a1a; padding-bottom: 20px; margin-bottom: 30px; }
+            .meta { display: flex; justify-content: space-between; margin-bottom: 30px; }
+            .meta-block { }
+            .meta-label { color: #666; font-size: 12px; }
+            .meta-value { font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+            th { background: #f5f5f5; font-weight: 600; }
+            .amount { text-align: right; }
+            .total-row { font-weight: bold; border-top: 2px solid #1a1a1a; }
+            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
+            .status { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+            .status-finalized { background: #dcfce7; color: #166534; }
+            .status-locked { background: #fef3c7; color: #92400e; }
+            .status-generated { background: #dbeafe; color: #1e40af; }
+            @media print { body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>INVOICE</h1>
+            <span class="status status-${invoice.status}">${invoice.status.toUpperCase()}</span>
+          </div>
+          
+          <div class="meta">
+            <div class="meta-block">
+              <div class="meta-label">Invoice Number</div>
+              <div class="meta-value">${invoice.invoice_number}</div>
+            </div>
+            <div class="meta-block">
+              <div class="meta-label">Order</div>
+              <div class="meta-value">${invoice.order?.order_number || '-'}</div>
+            </div>
+            <div class="meta-block">
+              <div class="meta-label">Date</div>
+              <div class="meta-value">${format(new Date(invoice.created_at), 'MMM d, yyyy')}</div>
+            </div>
+          </div>
+          
+          <div class="meta">
+            <div class="meta-block">
+              <div class="meta-label">Patient</div>
+              <div class="meta-value">${invoice.order?.patient_name || '-'}</div>
+            </div>
+            <div class="meta-block">
+              <div class="meta-label">Doctor</div>
+              <div class="meta-value">${invoice.order?.doctor_name || '-'}</div>
+            </div>
+            <div class="meta-block">
+              <div class="meta-label">Restoration</div>
+              <div class="meta-value">${invoice.order?.restoration_type || '-'}</div>
+            </div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th class="amount">Unit Price</th>
+                <th class="amount">Total</th>
+              </tr>
+            </thead>
+            <tbody id="line-items">
+              <!-- Line items will be fetched -->
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" class="amount">Subtotal</td>
+                <td class="amount">$${invoice.subtotal.toFixed(2)}</td>
+              </tr>
+              ${invoice.adjustments_total !== 0 ? `
+              <tr>
+                <td colspan="3" class="amount">Adjustments</td>
+                <td class="amount">${invoice.adjustments_total >= 0 ? '+' : ''}$${invoice.adjustments_total.toFixed(2)}</td>
+              </tr>
+              ` : ''}
+              ${invoice.expenses_total > 0 ? `
+              <tr>
+                <td colspan="3" class="amount">Expenses</td>
+                <td class="amount">-$${invoice.expenses_total.toFixed(2)}</td>
+              </tr>
+              ` : ''}
+              <tr class="total-row">
+                <td colspan="3" class="amount">TOTAL</td>
+                <td class="amount">$${invoice.final_total.toFixed(2)}</td>
+              </tr>
+            </tfoot>
+          </table>
+          
+          <div class="footer">
+            <p>Generated: ${invoice.generated_at ? format(new Date(invoice.generated_at), 'MMM d, yyyy HH:mm') : '-'}</p>
+            ${invoice.finalized_at ? `<p>Finalized: ${format(new Date(invoice.finalized_at), 'MMM d, yyyy HH:mm')}</p>` : ''}
+            <p style="margin-top: 20px;">This is an automatically generated invoice. For questions, please contact support.</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
+  const getStatusBadge = (status: InvoiceStatus) => {
+    switch (status) {
+      case 'draft':
+        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Draft</Badge>;
+      case 'generated':
+        return <Badge variant="outline" className="text-blue-600 border-blue-600"><FileText className="h-3 w-3 mr-1" />Generated</Badge>;
+      case 'locked':
+        return <Badge variant="outline" className="text-orange-600 border-orange-600"><Lock className="h-3 w-3 mr-1" />Locked</Badge>;
+      case 'finalized':
+        return <Badge className="bg-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />Finalized</Badge>;
+      case 'disputed':
+        return <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />Disputed</Badge>;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={onClose}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Invoices
+        </Button>
+        <div className="flex gap-2">
+          {(invoice.status === 'finalized' || invoice.status === 'locked') && (
+            <Button variant="outline" onClick={handleExportPDF}>
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+          )}
+          {invoice.status !== 'finalized' && invoice.status !== 'disputed' && (role === 'doctor' || role === 'lab_staff') && (
+            <Button variant="outline" onClick={() => setShowDisputeDialog(true)}>
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Dispute
+            </Button>
+          )}
+          {invoice.status === 'generated' && role === 'admin' && (
+            <Button variant="outline" onClick={() => lockMutation.mutate()} disabled={lockMutation.isPending}>
+              {lockMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Lock className="h-4 w-4 mr-2" />}
+              Lock Invoice
+            </Button>
+          )}
+          {invoice.status === 'locked' && role === 'admin' && (
+            <>
+              <Button variant="outline" onClick={() => setShowAdjustmentDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Adjustment
+              </Button>
+              <Button onClick={() => finalizeMutation.mutate()} disabled={finalizeMutation.isPending}>
+                {finalizeMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                Finalize
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Invoice Header Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl">{invoice.invoice_number}</CardTitle>
+              <p className="text-muted-foreground mt-1">
+                Order: {invoice.order?.order_number} • {invoice.order?.patient_name}
+              </p>
+            </div>
+            {getStatusBadge(invoice.status)}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Doctor</p>
+              <p className="font-medium">{invoice.order?.doctor_name || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Restoration Type</p>
+              <p className="font-medium">{invoice.order?.restoration_type || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Generated</p>
+              <p className="font-medium">
+                {invoice.generated_at 
+                  ? formatDistanceToNow(new Date(invoice.generated_at), { addSuffix: true })
+                  : '-'
+                }
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Order Status</p>
+              <p className="font-medium">{invoice.order?.status || '-'}</p>
+            </div>
+          </div>
+
+          {invoice.status === 'disputed' && invoice.dispute_reason && (
+            <div className="mt-4 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+              <div className="flex items-center gap-2 text-destructive font-medium mb-1">
+                <AlertTriangle className="h-4 w-4" />
+                Dispute Reason
+              </div>
+              <p className="text-sm">{invoice.dispute_reason}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Line Items */}
+      <InvoiceLineItems invoiceId={invoice.id} />
+
+      {/* Adjustments */}
+      {adjustments && adjustments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Adjustments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {adjustments.map((adj) => (
+                <div key={adj.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div>
+                    <Badge variant="outline" className="mb-1">{adj.adjustment_type}</Badge>
+                    <p className="text-sm">{adj.reason}</p>
+                  </div>
+                  <p className={`font-semibold ${adj.amount >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                    {adj.amount >= 0 ? '+' : ''}{adj.amount.toFixed(2)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Expenses */}
+      {expenses && expenses.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Logistics Expenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {expenses.map((exp) => (
+                <div key={exp.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div>
+                    <Badge variant="outline" className="mb-1">{exp.expense_type}</Badge>
+                    <p className="text-sm">{exp.description || 'No description'}</p>
+                  </div>
+                  <p className="font-semibold text-destructive">-${exp.amount.toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Totals */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <div className="flex justify-between text-muted-foreground">
+              <span>Subtotal</span>
+              <span>${invoice.subtotal.toFixed(2)}</span>
+            </div>
+            {invoice.adjustments_total !== 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>Adjustments</span>
+                <span className={invoice.adjustments_total >= 0 ? 'text-green-600' : 'text-destructive'}>
+                  {invoice.adjustments_total >= 0 ? '+' : ''}${invoice.adjustments_total.toFixed(2)}
+                </span>
+              </div>
+            )}
+            {invoice.expenses_total > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>Expenses</span>
+                <span className="text-destructive">-${invoice.expenses_total.toFixed(2)}</span>
+              </div>
+            )}
+            <Separator />
+            <div className="flex justify-between text-xl font-bold">
+              <span>Total</span>
+              <span>${invoice.final_total.toFixed(2)}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Audit Log */}
+      {role === 'admin' && auditLog && auditLog.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Audit Trail</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {auditLog.map((log) => (
+                <div key={log.id} className="flex items-center justify-between p-2 text-sm border-b last:border-0">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">{log.action}</Badge>
+                    {log.reason && <span className="text-muted-foreground">{log.reason}</span>}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Dialogs */}
+      <AdjustmentDialog
+        open={showAdjustmentDialog}
+        onOpenChange={setShowAdjustmentDialog}
+        invoiceId={invoice.id}
+      />
+
+      <DisputeDialog
+        open={showDisputeDialog}
+        onOpenChange={setShowDisputeDialog}
+        invoiceId={invoice.id}
+        onSuccess={onClose}
+      />
+    </div>
+  );
+};
+
+export default InvoicePreview;
