@@ -27,6 +27,7 @@ import { validateUploadFile } from "@/lib/fileValidation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
+import BudgetSection from "./order/BudgetSection";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -44,6 +45,8 @@ const formSchema = z.object({
   htmlExport: z.string().optional(),
   handlingInstructions: z.string().max(500).optional(),
   desiredDeliveryDate: z.date().optional(),
+  targetBudget: z.number().min(0).nullable().optional(),
+  budgetNotes: z.string().max(500).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -85,6 +88,8 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       htmlExport: "",
       handlingInstructions: "",
       desiredDeliveryDate: undefined,
+      targetBudget: null,
+      budgetNotes: "",
     },
   });
 
@@ -409,6 +414,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
           htmlExport: data.htmlExport || "",
           handlingInstructions: data.handlingInstructions || "",
           desiredDeliveryDate: data.desiredDeliveryDate?.toISOString().split('T')[0] || null,
+          targetBudget: data.targetBudget || null,
         }),
       });
 
@@ -653,6 +659,11 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                   </FormItem>
                 )}
               />
+            )}
+
+            {/* Budget Section - only show for marketplace orders (no lab selected) */}
+            {userRole === 'doctor' && !form.watch("assignedLabId") && (
+              <BudgetSection form={form} restorationType={form.watch("restorationType")} />
             )}
 
             <FormField
