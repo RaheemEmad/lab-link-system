@@ -1113,29 +1113,50 @@ export type Database = {
       }
       lab_work_requests: {
         Row: {
+          bid_amount: number | null
+          bid_notes: string | null
+          bid_status: string | null
           created_at: string
           id: string
           lab_id: string
           order_id: string
           requested_by_user_id: string
+          revised_amount: number | null
+          revised_at: string | null
+          revision_request_note: string | null
+          revision_requested_at: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          bid_amount?: number | null
+          bid_notes?: string | null
+          bid_status?: string | null
           created_at?: string
           id?: string
           lab_id: string
           order_id: string
           requested_by_user_id: string
+          revised_amount?: number | null
+          revised_at?: string | null
+          revision_request_note?: string | null
+          revision_requested_at?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          bid_amount?: number | null
+          bid_notes?: string | null
+          bid_status?: string | null
           created_at?: string
           id?: string
           lab_id?: string
           order_id?: string
           requested_by_user_id?: string
+          revised_amount?: number | null
+          revised_at?: string | null
+          revision_request_note?: string | null
+          revision_requested_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -1680,6 +1701,10 @@ export type Database = {
       orders: {
         Row: {
           actual_delivery_date: string | null
+          agreed_fee: number | null
+          agreed_fee_at: string | null
+          agreed_fee_by_doctor: string | null
+          agreed_fee_by_lab: string | null
           approval_notes: string | null
           assigned_lab_id: string | null
           auto_assign_pending: boolean | null
@@ -1716,6 +1741,7 @@ export type Database = {
           shipment_tracking: string | null
           status: Database["public"]["Enums"]["order_status"]
           status_updated_at: string | null
+          target_budget: number | null
           teeth_number: string
           teeth_shade: string
           timestamp: string
@@ -1725,6 +1751,10 @@ export type Database = {
         }
         Insert: {
           actual_delivery_date?: string | null
+          agreed_fee?: number | null
+          agreed_fee_at?: string | null
+          agreed_fee_by_doctor?: string | null
+          agreed_fee_by_lab?: string | null
           approval_notes?: string | null
           assigned_lab_id?: string | null
           auto_assign_pending?: boolean | null
@@ -1761,6 +1791,7 @@ export type Database = {
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           status_updated_at?: string | null
+          target_budget?: number | null
           teeth_number: string
           teeth_shade: string
           timestamp?: string
@@ -1770,6 +1801,10 @@ export type Database = {
         }
         Update: {
           actual_delivery_date?: string | null
+          agreed_fee?: number | null
+          agreed_fee_at?: string | null
+          agreed_fee_by_doctor?: string | null
+          agreed_fee_by_lab?: string | null
           approval_notes?: string | null
           assigned_lab_id?: string | null
           auto_assign_pending?: boolean | null
@@ -1806,6 +1841,7 @@ export type Database = {
           shipment_tracking?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           status_updated_at?: string | null
+          target_budget?: number | null
           teeth_number?: string
           teeth_shade?: string
           timestamp?: string
@@ -1912,6 +1948,44 @@ export type Database = {
           urgency_level?: Database["public"]["Enums"]["urgency_level"] | null
         }
         Relationships: []
+      }
+      pricing_rules_audit: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          rule_id: string | null
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          rule_id?: string | null
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          rule_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_rules_audit_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_rules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -2305,6 +2379,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      check_auto_invoice_conditions: {
+        Args: { p_order_id: string }
+        Returns: boolean
       }
       check_lab_not_refused: {
         Args: { _lab_id: string; _order_id: string }

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight, XCircle, Shield } from "lucide-react";
+import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight, XCircle, Shield, DollarSign } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
 import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import BidSubmissionDialog from "@/components/order/BidSubmissionDialog";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
@@ -35,6 +36,7 @@ export default function OrdersMarketplace() {
   const [currentUserRole, setCurrentUserRole] = useState<'doctor' | 'lab_staff'>('lab_staff');
   const [overrideOrderId, setOverrideOrderId] = useState<string | null>(null);
   const [selectedLabForOverride, setSelectedLabForOverride] = useState<string | null>(null);
+  const [bidDialogOrder, setBidDialogOrder] = useState<any>(null);
 
   // Get lab ID and user role for current user
   useEffect(() => {
@@ -476,6 +478,19 @@ export default function OrdersMarketplace() {
                                 Submitted: {new Date(order.created_at).toLocaleDateString()}
                               </span>
                             </div>
+                            {/* Budget Display */}
+                            {order.target_budget && (
+                              <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                                <DollarSign className="h-4 w-4 flex-shrink-0" />
+                                <span>Budget: ${order.target_budget.toFixed(2)}</span>
+                              </div>
+                            )}
+                            {!order.target_budget && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <DollarSign className="h-4 w-4 flex-shrink-0" />
+                                <span>Budget: Open</span>
+                              </div>
+                            )}
                             {order.biological_notes && (
                               <div className="bg-muted/50 rounded p-2 mt-2">
                                 <p className="text-xs text-muted-foreground mb-1">Notes:</p>
@@ -511,12 +526,12 @@ export default function OrdersMarketplace() {
                             </div>
                           ) : (
                             <Button
-                              onClick={() => sendRequest.mutate(order.id)}
+                              onClick={() => setBidDialogOrder(order)}
                               disabled={sendRequest.isPending}
                               className="w-full text-xs sm:text-sm"
                             >
-                              <Send className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                              <span className="truncate">Apply to Order</span>
+                              <DollarSign className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                              <span className="truncate">Submit Bid</span>
                             </Button>
                           )}
                           
@@ -669,6 +684,16 @@ export default function OrdersMarketplace() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Bid Submission Dialog */}
+        {bidDialogOrder && labId && (
+          <BidSubmissionDialog
+            order={bidDialogOrder}
+            labId={labId}
+            open={!!bidDialogOrder}
+            onOpenChange={(open) => !open && setBidDialogOrder(null)}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );

@@ -53,6 +53,7 @@ const AutosaveDemo = lazy(() => import("./pages/AutosaveDemo"));
 const DraftsManager = lazy(() => import("./pages/DraftsManager"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const PricingRulesManagement = lazy(() => import("./pages/admin/PricingRulesManagement"));
 const ChatHistory = lazy(() => import("./pages/ChatHistory"));
 const FeedbackRoom = lazy(() => import("./pages/FeedbackRoom"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -121,6 +122,7 @@ const AppContent = () => {
             <Route path="/feedback-room/:orderId" element={<PageTransition><FeedbackRoom /></PageTransition>} />
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
+            <Route path="/admin/pricing-rules" element={<PageTransition><PricingRulesManagement /></PageTransition>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
           </Routes>

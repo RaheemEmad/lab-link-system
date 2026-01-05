@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, Activity, MessageSquare, BarChart, LogOut, User, Shield, Bell } from "lucide-react";
+import { LayoutDashboard, Users, Package, Activity, MessageSquare, BarChart, LogOut, User, Shield, Bell, DollarSign } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,7 @@ const adminMenuItems = [
   { title: "Activity", url: "/admin?tab=activity", icon: Activity },
   { title: "Communication", url: "/admin?tab=communication", icon: MessageSquare },
   { title: "Analytics", url: "/admin?tab=analytics", icon: BarChart },
+  { title: "Pricing Rules", url: "/admin/pricing-rules", icon: DollarSign },
   { title: "Security", url: "/admin?tab=security", icon: Shield },
   { title: "Alerts", url: "/admin?tab=alerts", icon: Bell },
 ];
