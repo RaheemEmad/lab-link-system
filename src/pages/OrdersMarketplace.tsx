@@ -482,7 +482,7 @@ export default function OrdersMarketplace() {
                             {order.target_budget && (
                               <div className="flex items-center gap-2 text-sm font-medium text-primary">
                                 <DollarSign className="h-4 w-4 flex-shrink-0" />
-                                <span>Budget: ${order.target_budget.toFixed(2)}</span>
+                                <span>Budget: EGP {order.target_budget.toLocaleString('en-EG', { minimumFractionDigits: 2 })}</span>
                               </div>
                             )}
                             {!order.target_budget && (

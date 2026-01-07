@@ -2,7 +2,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescripti
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -20,19 +20,24 @@ interface BudgetSectionProps {
   restorationType: string;
 }
 
-// Suggested price ranges by restoration type
+// Suggested price ranges by restoration type (in EGP)
 const PRICE_RANGES: Record<string, { min: number; max: number }> = {
-  "Zirconia": { min: 120, max: 180 },
-  "Zirconia Layer": { min: 150, max: 220 },
-  "Zirco-Max": { min: 180, max: 250 },
-  "PFM": { min: 100, max: 150 },
-  "Acrylic": { min: 60, max: 100 },
-  "E-max": { min: 150, max: 200 },
+  "Zirconia": { min: 1200, max: 1800 },
+  "Zirconia Layer": { min: 1500, max: 2200 },
+  "Zirco-Max": { min: 1800, max: 2500 },
+  "PFM": { min: 1000, max: 1500 },
+  "Acrylic": { min: 600, max: 1000 },
+  "E-max": { min: 1500, max: 2000 },
+};
+
+// Helper function to format EGP currency
+const formatEGP = (amount: number) => {
+  return `EGP ${amount.toLocaleString('en-EG')}`;
 };
 
 const BudgetSection = ({ form, restorationType }: BudgetSectionProps) => {
   const [isOpen, setIsOpen] = useState(true);
-  const priceRange = PRICE_RANGES[restorationType] || { min: 100, max: 200 };
+  const priceRange = PRICE_RANGES[restorationType] || { min: 1000, max: 2000 };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -41,7 +46,7 @@ const BudgetSection = ({ form, restorationType }: BudgetSectionProps) => {
           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-primary" />
+                <span className="text-lg font-medium">EGP</span>
                 <CardTitle className="text-lg">Budget (Optional)</CardTitle>
                 <TooltipProvider>
                   <Tooltip>
@@ -71,11 +76,11 @@ const BudgetSection = ({ form, restorationType }: BudgetSectionProps) => {
                   <FormLabel>Target Budget</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">EGP</span>
                       <Input 
                         type="number"
                         placeholder="Enter your target budget"
-                        className="pl-9"
+                        className="pl-12"
                         min={0}
                         step={0.01}
                         {...field}
@@ -87,7 +92,7 @@ const BudgetSection = ({ form, restorationType }: BudgetSectionProps) => {
                   <FormDescription className="flex items-center gap-1">
                     <span>Typical range for {restorationType}:</span>
                     <span className="font-medium text-foreground">
-                      ${priceRange.min} - ${priceRange.max}
+                      {formatEGP(priceRange.min)} - {formatEGP(priceRange.max)}
                     </span>
                     <span>per unit</span>
                   </FormDescription>

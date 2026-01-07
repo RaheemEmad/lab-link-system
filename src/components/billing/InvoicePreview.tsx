@@ -24,6 +24,14 @@ import DisputeDialog from "./DisputeDialog";
 import { useState } from "react";
 import { toast } from "sonner";
 
+// Helper function to format EGP currency
+const formatEGP = (amount: number) => {
+  return `EGP ${amount.toLocaleString('en-EG', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })}`;
+};
+
 type InvoiceStatus = 'draft' | 'generated' | 'locked' | 'finalized' | 'disputed';
 
 interface Invoice {
@@ -63,6 +71,23 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
   const [showAdjustmentDialog, setShowAdjustmentDialog] = useState(false);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
 
+  // Fetch full order details for PDF
+  const { data: orderDetails } = useQuery({
+    queryKey: ['order-details-for-invoice', invoice.order_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          assigned_lab:labs(name, address, contact_email, contact_phone)
+        `)
+        .eq('id', invoice.order_id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch adjustments
   const { data: adjustments } = useQuery({
     queryKey: ['invoice-adjustments', invoice.id],
@@ -83,6 +108,20 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('logistics_expenses')
+        .select('*')
+        .eq('invoice_id', invoice.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch line items for PDF
+  const { data: lineItems } = useQuery({
+    queryKey: ['invoice-line-items', invoice.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoice_line_items')
         .select('*')
         .eq('invoice_id', invoice.id)
         .order('created_at', { ascending: true });
@@ -144,12 +183,44 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
   });
 
   const handleExportPDF = () => {
-    // Create a printable version
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error('Please allow popups to export PDF');
       return;
     }
+
+    const order = orderDetails;
+    const lab = order?.assigned_lab;
+
+    // Generate line items HTML
+    const lineItemsHtml = lineItems?.map(item => `
+      <tr>
+        <td>${item.description}</td>
+        <td class="amount">${item.quantity}</td>
+        <td class="amount">${formatEGP(item.unit_price)}</td>
+        <td class="amount">${formatEGP(item.total_price)}</td>
+      </tr>
+    `).join('') || '';
+
+    // Generate adjustments HTML
+    const adjustmentsHtml = adjustments?.map(adj => `
+      <tr>
+        <td>Adjustment: ${adj.adjustment_type} - ${adj.reason}</td>
+        <td class="amount">-</td>
+        <td class="amount">-</td>
+        <td class="amount ${adj.amount >= 0 ? 'positive' : 'negative'}">${adj.amount >= 0 ? '+' : ''}${formatEGP(adj.amount)}</td>
+      </tr>
+    `).join('') || '';
+
+    // Generate expenses HTML
+    const expensesHtml = expenses?.map(exp => `
+      <tr class="expense-row">
+        <td>Expense: ${exp.expense_type}${exp.description ? ` - ${exp.description}` : ''}</td>
+        <td class="amount">-</td>
+        <td class="amount">-</td>
+        <td class="amount negative">-${formatEGP(exp.amount)}</td>
+      </tr>
+    `).join('') || '';
 
     const html = `
       <!DOCTYPE html>
@@ -157,102 +228,278 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         <head>
           <title>Invoice ${invoice.invoice_number}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-            h1 { color: #1a1a1a; margin-bottom: 10px; }
-            .header { border-bottom: 2px solid #1a1a1a; padding-bottom: 20px; margin-bottom: 30px; }
-            .meta { display: flex; justify-content: space-between; margin-bottom: 30px; }
-            .meta-block { }
-            .meta-label { color: #666; font-size: 12px; }
-            .meta-value { font-weight: bold; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-            th { background: #f5f5f5; font-weight: 600; }
-            .amount { text-align: right; }
-            .total-row { font-weight: bold; border-top: 2px solid #1a1a1a; }
-            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
-            .status { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+            * { box-sizing: border-box; }
+            body { 
+              font-family: 'Segoe UI', Arial, sans-serif; 
+              padding: 40px; 
+              max-width: 800px; 
+              margin: 0 auto; 
+              color: #1a1a1a;
+              line-height: 1.5;
+            }
+            .header { 
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              border-bottom: 3px solid #2563eb; 
+              padding-bottom: 20px; 
+              margin-bottom: 30px; 
+            }
+            .logo-section h1 { 
+              color: #2563eb; 
+              margin: 0 0 5px 0; 
+              font-size: 28px;
+            }
+            .logo-section p { margin: 0; color: #666; }
+            .invoice-info { text-align: right; }
+            .invoice-info .invoice-number { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #1a1a1a;
+            }
+            .status { 
+              display: inline-block; 
+              padding: 6px 16px; 
+              border-radius: 20px; 
+              font-size: 12px; 
+              font-weight: 600; 
+              text-transform: uppercase;
+              margin-top: 10px;
+            }
             .status-finalized { background: #dcfce7; color: #166534; }
             .status-locked { background: #fef3c7; color: #92400e; }
             .status-generated { background: #dbeafe; color: #1e40af; }
-            @media print { body { padding: 20px; } }
+            .status-disputed { background: #fee2e2; color: #991b1b; }
+            
+            .section { 
+              margin-bottom: 25px; 
+              padding: 20px; 
+              background: #f8fafc; 
+              border-radius: 8px;
+            }
+            .section-title { 
+              font-size: 14px; 
+              font-weight: 600; 
+              color: #64748b; 
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin-bottom: 15px;
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 8px;
+            }
+            .info-grid { 
+              display: grid; 
+              grid-template-columns: repeat(2, 1fr); 
+              gap: 15px; 
+            }
+            .info-item { }
+            .info-label { font-size: 11px; color: #64748b; text-transform: uppercase; }
+            .info-value { font-weight: 600; color: #1a1a1a; }
+            
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin: 20px 0; 
+            }
+            th, td { 
+              padding: 12px; 
+              text-align: left; 
+              border-bottom: 1px solid #e2e8f0; 
+            }
+            th { 
+              background: #f1f5f9; 
+              font-weight: 600; 
+              font-size: 12px;
+              text-transform: uppercase;
+              color: #475569;
+            }
+            .amount { text-align: right; font-family: 'Courier New', monospace; }
+            .positive { color: #16a34a; }
+            .negative { color: #dc2626; }
+            .expense-row { background: #fef2f2; }
+            
+            .totals-section {
+              margin-top: 20px;
+              padding: 20px;
+              background: #f8fafc;
+              border-radius: 8px;
+            }
+            .total-row { 
+              display: flex; 
+              justify-content: space-between; 
+              padding: 8px 0;
+              border-bottom: 1px solid #e2e8f0;
+            }
+            .total-row:last-child { border-bottom: none; }
+            .total-row.final { 
+              font-size: 20px; 
+              font-weight: bold; 
+              border-top: 2px solid #2563eb;
+              padding-top: 15px;
+              margin-top: 10px;
+            }
+            
+            .timeline-section {
+              margin: 25px 0;
+              padding: 20px;
+              background: #f0fdf4;
+              border-radius: 8px;
+              border-left: 4px solid #22c55e;
+            }
+            .timeline-item {
+              display: flex;
+              justify-content: space-between;
+              padding: 5px 0;
+              font-size: 13px;
+            }
+            .timeline-label { color: #64748b; }
+            .timeline-value { font-weight: 500; }
+            
+            .footer { 
+              margin-top: 40px; 
+              padding-top: 20px; 
+              border-top: 1px solid #e2e8f0; 
+              font-size: 11px; 
+              color: #64748b; 
+              text-align: center;
+            }
+            .footer p { margin: 5px 0; }
+            
+            @media print { 
+              body { padding: 20px; } 
+              .section { break-inside: avoid; }
+            }
           </style>
         </head>
         <body>
           <div class="header">
-            <h1>INVOICE</h1>
-            <span class="status status-${invoice.status}">${invoice.status.toUpperCase()}</span>
-          </div>
-          
-          <div class="meta">
-            <div class="meta-block">
-              <div class="meta-label">Invoice Number</div>
-              <div class="meta-value">${invoice.invoice_number}</div>
+            <div class="logo-section">
+              <h1>LABLINK</h1>
+              <p>Dental Laboratory Management</p>
             </div>
-            <div class="meta-block">
-              <div class="meta-label">Order</div>
-              <div class="meta-value">${invoice.order?.order_number || '-'}</div>
-            </div>
-            <div class="meta-block">
-              <div class="meta-label">Date</div>
-              <div class="meta-value">${format(new Date(invoice.created_at), 'MMM d, yyyy')}</div>
+            <div class="invoice-info">
+              <div class="invoice-number">${invoice.invoice_number}</div>
+              <div style="color: #666; font-size: 13px;">Invoice Date: ${format(new Date(invoice.created_at), 'MMMM d, yyyy')}</div>
+              <span class="status status-${invoice.status}">${invoice.status}</span>
             </div>
           </div>
           
-          <div class="meta">
-            <div class="meta-block">
-              <div class="meta-label">Patient</div>
-              <div class="meta-value">${invoice.order?.patient_name || '-'}</div>
+          <div class="section">
+            <div class="section-title">Order Information</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Order Number</div>
+                <div class="info-value">${order?.order_number || '-'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Patient Name</div>
+                <div class="info-value">${order?.patient_name || '-'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Doctor</div>
+                <div class="info-value">${order?.doctor_name || '-'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Laboratory</div>
+                <div class="info-value">${lab?.name || '-'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Restoration Type</div>
+                <div class="info-value">${order?.restoration_type || '-'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Teeth</div>
+                <div class="info-value">${order?.teeth_number || '-'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Shade</div>
+                <div class="info-value">${order?.teeth_shade || '-'}${order?.shade_system ? ` (${order.shade_system})` : ''}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Urgency</div>
+                <div class="info-value">${order?.urgency || '-'}</div>
+              </div>
             </div>
-            <div class="meta-block">
-              <div class="meta-label">Doctor</div>
-              <div class="meta-value">${invoice.order?.doctor_name || '-'}</div>
+            ${order?.handling_instructions ? `
+              <div style="margin-top: 15px;">
+                <div class="info-label">Special Instructions</div>
+                <div class="info-value" style="font-weight: normal;">${order.handling_instructions}</div>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="timeline-section">
+            <div class="section-title" style="border-bottom: none; padding-bottom: 0;">Timeline</div>
+            <div class="timeline-item">
+              <span class="timeline-label">Order Created</span>
+              <span class="timeline-value">${order?.created_at ? format(new Date(order.created_at), 'MMM d, yyyy h:mm a') : '-'}</span>
             </div>
-            <div class="meta-block">
-              <div class="meta-label">Restoration</div>
-              <div class="meta-value">${invoice.order?.restoration_type || '-'}</div>
+            ${order?.agreed_fee_at ? `
+            <div class="timeline-item">
+              <span class="timeline-label">Fee Agreed</span>
+              <span class="timeline-value">${format(new Date(order.agreed_fee_at), 'MMM d, yyyy h:mm a')} - ${formatEGP(order.agreed_fee || 0)}</span>
             </div>
+            ` : ''}
+            <div class="timeline-item">
+              <span class="timeline-label">Expected Delivery</span>
+              <span class="timeline-value">${order?.expected_delivery_date ? format(new Date(order.expected_delivery_date), 'MMM d, yyyy') : '-'}</span>
+            </div>
+            <div class="timeline-item">
+              <span class="timeline-label">Actual Delivery</span>
+              <span class="timeline-value">${order?.actual_delivery_date ? format(new Date(order.actual_delivery_date), 'MMM d, yyyy') : '-'}</span>
+            </div>
+            ${order?.delivery_confirmed_at ? `
+            <div class="timeline-item">
+              <span class="timeline-label">Delivery Confirmed</span>
+              <span class="timeline-value">${format(new Date(order.delivery_confirmed_at), 'MMM d, yyyy h:mm a')}</span>
+            </div>
+            ` : ''}
           </div>
           
           <table>
             <thead>
               <tr>
                 <th>Description</th>
-                <th>Qty</th>
+                <th class="amount">Qty</th>
                 <th class="amount">Unit Price</th>
                 <th class="amount">Total</th>
               </tr>
             </thead>
-            <tbody id="line-items">
-              <!-- Line items will be fetched -->
+            <tbody>
+              ${lineItemsHtml}
+              ${adjustmentsHtml}
+              ${expensesHtml}
             </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="3" class="amount">Subtotal</td>
-                <td class="amount">$${invoice.subtotal.toFixed(2)}</td>
-              </tr>
-              ${invoice.adjustments_total !== 0 ? `
-              <tr>
-                <td colspan="3" class="amount">Adjustments</td>
-                <td class="amount">${invoice.adjustments_total >= 0 ? '+' : ''}$${invoice.adjustments_total.toFixed(2)}</td>
-              </tr>
-              ` : ''}
-              ${invoice.expenses_total > 0 ? `
-              <tr>
-                <td colspan="3" class="amount">Expenses</td>
-                <td class="amount">-$${invoice.expenses_total.toFixed(2)}</td>
-              </tr>
-              ` : ''}
-              <tr class="total-row">
-                <td colspan="3" class="amount">TOTAL</td>
-                <td class="amount">$${invoice.final_total.toFixed(2)}</td>
-              </tr>
-            </tfoot>
           </table>
           
+          <div class="totals-section">
+            <div class="total-row">
+              <span>Subtotal</span>
+              <span>${formatEGP(invoice.subtotal)}</span>
+            </div>
+            ${invoice.adjustments_total !== 0 ? `
+            <div class="total-row">
+              <span>Adjustments</span>
+              <span class="${invoice.adjustments_total >= 0 ? 'positive' : 'negative'}">${invoice.adjustments_total >= 0 ? '+' : ''}${formatEGP(invoice.adjustments_total)}</span>
+            </div>
+            ` : ''}
+            ${invoice.expenses_total > 0 ? `
+            <div class="total-row">
+              <span>Expenses</span>
+              <span class="negative">-${formatEGP(invoice.expenses_total)}</span>
+            </div>
+            ` : ''}
+            <div class="total-row final">
+              <span>TOTAL</span>
+              <span>${formatEGP(invoice.final_total)}</span>
+            </div>
+          </div>
+          
           <div class="footer">
-            <p>Generated: ${invoice.generated_at ? format(new Date(invoice.generated_at), 'MMM d, yyyy HH:mm') : '-'}</p>
-            ${invoice.finalized_at ? `<p>Finalized: ${format(new Date(invoice.finalized_at), 'MMM d, yyyy HH:mm')}</p>` : ''}
-            <p style="margin-top: 20px;">This is an automatically generated invoice. For questions, please contact support.</p>
+            <p><strong>Invoice Generated:</strong> ${invoice.generated_at ? format(new Date(invoice.generated_at), 'MMMM d, yyyy h:mm a') : '-'}</p>
+            ${invoice.finalized_at ? `<p><strong>Invoice Finalized:</strong> ${format(new Date(invoice.finalized_at), 'MMMM d, yyyy h:mm a')}</p>` : ''}
+            <p style="margin-top: 15px;">This invoice was automatically generated by LabLink.</p>
+            <p>For questions or disputes, please contact support within 7 days of invoice generation.</p>
           </div>
         </body>
       </html>
@@ -391,7 +638,7 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
                     <p className="text-sm">{adj.reason}</p>
                   </div>
                   <p className={`font-semibold ${adj.amount >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                    {adj.amount >= 0 ? '+' : ''}{adj.amount.toFixed(2)}
+                    {adj.amount >= 0 ? '+' : ''}{formatEGP(adj.amount)}
                   </p>
                 </div>
               ))}
@@ -414,7 +661,7 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
                     <Badge variant="outline" className="mb-1">{exp.expense_type}</Badge>
                     <p className="text-sm">{exp.description || 'No description'}</p>
                   </div>
-                  <p className="font-semibold text-destructive">-${exp.amount.toFixed(2)}</p>
+                  <p className="font-semibold text-destructive">-{formatEGP(exp.amount)}</p>
                 </div>
               ))}
             </div>
@@ -428,26 +675,26 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
           <div className="space-y-2">
             <div className="flex justify-between text-muted-foreground">
               <span>Subtotal</span>
-              <span>${invoice.subtotal.toFixed(2)}</span>
+              <span>{formatEGP(invoice.subtotal)}</span>
             </div>
             {invoice.adjustments_total !== 0 && (
               <div className="flex justify-between text-muted-foreground">
                 <span>Adjustments</span>
                 <span className={invoice.adjustments_total >= 0 ? 'text-green-600' : 'text-destructive'}>
-                  {invoice.adjustments_total >= 0 ? '+' : ''}${invoice.adjustments_total.toFixed(2)}
+                  {invoice.adjustments_total >= 0 ? '+' : ''}{formatEGP(invoice.adjustments_total)}
                 </span>
               </div>
             )}
             {invoice.expenses_total > 0 && (
               <div className="flex justify-between text-muted-foreground">
                 <span>Expenses</span>
-                <span className="text-destructive">-${invoice.expenses_total.toFixed(2)}</span>
+                <span className="text-destructive">-{formatEGP(invoice.expenses_total)}</span>
               </div>
             )}
             <Separator />
             <div className="flex justify-between text-xl font-bold">
               <span>Total</span>
-              <span>${invoice.final_total.toFixed(2)}</span>
+              <span>{formatEGP(invoice.final_total)}</span>
             </div>
           </div>
         </CardContent>

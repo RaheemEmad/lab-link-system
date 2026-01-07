@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock, MapPin, Star, TrendingUp, ExternalLink, Building2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, MapPin, Star, TrendingUp, ExternalLink, Building2, DollarSign, MessageSquare, RefreshCw, TrendingDown, Minus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import LandingNav from "@/components/landing/LandingNav";
@@ -14,6 +14,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useState, useEffect } from "react";
 import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
 import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
+import BidRevisionDialog from "@/components/order/BidRevisionDialog";
+
+// Helper function to format EGP currency
+const formatEGP = (amount: number) => {
+  return `EGP ${amount.toLocaleString('en-EG', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })}`;
+};
 
 export default function LabRequestsManagement() {
   const { user } = useAuth();
@@ -23,10 +32,11 @@ export default function LabRequestsManagement() {
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [acceptedRequest, setAcceptedRequest] = useState<{ id: string; orderId: string; orderNumber: string } | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [revisionDialogOpen, setRevisionDialogOpen] = useState(false);
+  const [selectedRequestForRevision, setSelectedRequestForRevision] = useState<any>(null);
   const currentUserRole = 'doctor' as const;
 
-  // Fetch all requests for this doctor's orders with full lab details
-  // RLS policies already filter by doctor, no need for client-side filtering
+  // Fetch all requests for this doctor's orders with full lab details and bid info
   const { data: requests, isLoading, error, refetch } = useQuery({
     queryKey: ["lab-requests-doctor", user?.id],
     queryFn: async () => {
@@ -47,13 +57,21 @@ export default function LabRequestsManagement() {
           lab_id,
           order_id,
           requested_by_user_id,
+          bid_amount,
+          bid_notes,
+          bid_status,
+          revision_requested_at,
+          revision_request_note,
+          revised_amount,
+          revised_at,
           orders!inner (
             id,
             order_number,
             patient_name,
             restoration_type,
             urgency,
-            doctor_id
+            doctor_id,
+            target_budget
           ),
           labs!inner (
             id,
@@ -88,15 +106,21 @@ export default function LabRequestsManagement() {
     retryDelay: 1000,
   });
 
-  // Update request status
+  // Update request status (Accept/Decline)
   const updateRequestStatus = useMutation({
-    mutationFn: async ({ requestId, status, orderId, orderNumber }: { requestId: string; status: string; orderId?: string; orderNumber?: string }) => {
+    mutationFn: async ({ requestId, status, orderId, orderNumber, bidAmount }: { 
+      requestId: string; 
+      status: string; 
+      orderId?: string; 
+      orderNumber?: string;
+      bidAmount?: number;
+    }) => {
       console.log('[LabRequests] Updating request status:', { requestId, status });
       
       // Get the request details first (to get lab_id and user_id)
       const { data: requestData, error: fetchError } = await supabase
         .from("lab_work_requests")
-        .select("lab_id, requested_by_user_id")
+        .select("lab_id, requested_by_user_id, bid_amount, revised_amount")
         .eq("id", requestId)
         .single();
       
@@ -109,10 +133,13 @@ export default function LabRequestsManagement() {
         throw new Error("Request not found");
       }
       
-      // 1. Update the request status
+      // 1. Update the request status and bid_status
       const { error: requestError } = await supabase
         .from("lab_work_requests")
-        .update({ status })
+        .update({ 
+          status,
+          bid_status: status === 'accepted' ? 'accepted' : status === 'refused' ? 'refused' : undefined
+        })
         .eq("id", requestId);
       
       if (requestError) {
@@ -124,12 +151,18 @@ export default function LabRequestsManagement() {
       if (status === 'accepted' && orderId) {
         console.log('[LabRequests] Accepting request - starting full assignment flow');
         
-        // 2. Update the order - assign lab and disable marketplace
+        // Determine the agreed fee (revised_amount if exists, else bid_amount)
+        const agreedFee = requestData.revised_amount || requestData.bid_amount || bidAmount;
+        
+        // 2. Update the order - assign lab, disable marketplace, set agreed fee
         const { error: orderError } = await supabase
           .from("orders")
           .update({ 
             assigned_lab_id: requestData.lab_id,
-            auto_assign_pending: false 
+            auto_assign_pending: false,
+            agreed_fee: agreedFee,
+            agreed_fee_at: new Date().toISOString(),
+            agreed_fee_by_doctor: user?.id
           })
           .eq("id", orderId);
         
@@ -159,7 +192,7 @@ export default function LabRequestsManagement() {
         // 4. Refuse all other pending requests for this order
         const { error: refuseError } = await supabase
           .from("lab_work_requests")
-          .update({ status: 'refused' })
+          .update({ status: 'refused', bid_status: 'refused' })
           .eq("order_id", orderId)
           .neq("id", requestId)
           .eq("status", "pending");
@@ -176,9 +209,9 @@ export default function LabRequestsManagement() {
           .insert({
             user_id: requestData.requested_by_user_id,
             order_id: orderId,
-            type: 'lab_request_accepted',
-            title: 'Application Accepted!',
-            message: `Your application for order ${orderNumber} has been accepted. You can now view full order details and begin work.`
+            type: 'bid_accepted',
+            title: 'Bid Accepted!',
+            message: `Your bid of ${formatEGP(agreedFee || 0)} for order ${orderNumber} has been accepted. You can now view full order details and begin work.`
           });
         
         if (notifError) {
@@ -230,19 +263,17 @@ export default function LabRequestsManagement() {
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all events: INSERT, UPDATE, DELETE
+          event: '*',
           schema: 'public',
           table: 'lab_work_requests',
         },
         (payload) => {
           console.log('[LabRequests] Real-time update received:', payload);
           
-          // Refetch data when any change occurs
           if (payload.eventType === 'INSERT') {
             console.log('[LabRequests] New lab request detected, refetching data');
             queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user.id] });
             
-            // Show toast notification
             toast({
               title: "New Lab Application",
               description: "A lab has applied to work on one of your orders.",
@@ -260,14 +291,45 @@ export default function LabRequestsManagement() {
         console.log('[LabRequests] Subscription status:', status);
       });
 
-    // Cleanup subscription on unmount
     return () => {
       console.log('[LabRequests] Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient, toast]);
 
-  // Loading state check AFTER all hooks
+  // Helper function to get bid comparison indicator
+  const getBidComparison = (bidAmount: number, targetBudget: number | null) => {
+    if (!targetBudget || !bidAmount) return null;
+    const diff = ((bidAmount - targetBudget) / targetBudget) * 100;
+    
+    if (diff > 20) {
+      return { icon: TrendingUp, text: `${diff.toFixed(0)}% over`, color: 'text-destructive', bgColor: 'bg-destructive/10' };
+    } else if (diff > 0) {
+      return { icon: TrendingUp, text: `${diff.toFixed(0)}% over`, color: 'text-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-900/10' };
+    } else if (diff < -5) {
+      return { icon: TrendingDown, text: `${Math.abs(diff).toFixed(0)}% under`, color: 'text-green-600', bgColor: 'bg-green-50 dark:bg-green-900/10' };
+    }
+    return { icon: Minus, text: 'Within budget', color: 'text-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900/10' };
+  };
+
+  // Helper function to get bid status badge
+  const getBidStatusBadge = (bidStatus: string | null) => {
+    switch (bidStatus) {
+      case 'pending':
+        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending Review</Badge>;
+      case 'revision_requested':
+        return <Badge variant="outline" className="text-orange-600 border-orange-600"><RefreshCw className="h-3 w-3 mr-1" />Revision Requested</Badge>;
+      case 'revised':
+        return <Badge variant="outline" className="text-blue-600 border-blue-600"><MessageSquare className="h-3 w-3 mr-1" />Revised Bid</Badge>;
+      case 'accepted':
+        return <Badge className="bg-green-600"><CheckCircle className="h-3 w-3 mr-1" />Accepted</Badge>;
+      case 'refused':
+        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Declined</Badge>;
+      default:
+        return null;
+    }
+  };
+
   if (isLoading) {
     return (
       <ProtectedRoute>
@@ -276,7 +338,6 @@ export default function LabRequestsManagement() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <ProtectedRoute>
@@ -325,6 +386,22 @@ export default function LabRequestsManagement() {
           onClose={() => setShowChat(false)}
         />
       )}
+
+      {selectedRequestForRevision && (
+        <BidRevisionDialog
+          requestId={selectedRequestForRevision.id}
+          orderId={selectedRequestForRevision.order_id}
+          orderNumber={selectedRequestForRevision.orders?.order_number || ''}
+          originalBid={selectedRequestForRevision.revised_amount || selectedRequestForRevision.bid_amount || 0}
+          revisionNote={null}
+          mode="request"
+          open={revisionDialogOpen}
+          onOpenChange={(open) => {
+            setRevisionDialogOpen(open);
+            if (!open) setSelectedRequestForRevision(null);
+          }}
+        />
+      )}
       
       <div className="min-h-screen flex flex-col">
         <LandingNav />
@@ -333,7 +410,7 @@ export default function LabRequestsManagement() {
             <div className="mb-8">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Lab Applications</h1>
               <p className="text-muted-foreground">
-                Review lab profiles and approve or decline applications for your auto-assign orders
+                Review lab profiles, bids, and approve or decline applications for your auto-assign orders
               </p>
             </div>
 
@@ -358,6 +435,9 @@ export default function LabRequestsManagement() {
                     ? (lab.current_load / lab.max_capacity) * 100 
                     : 0;
                   
+                  const currentBidAmount = request.revised_amount || request.bid_amount;
+                  const bidComparison = getBidComparison(currentBidAmount, order?.target_budget);
+                  
                   return (
                     <Card key={request.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader>
@@ -373,7 +453,7 @@ export default function LabRequestsManagement() {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <CardTitle className="text-xl">{lab?.name || 'Unknown Lab'}</CardTitle>
                                 <Badge 
                                   variant={
@@ -397,7 +477,7 @@ export default function LabRequestsManagement() {
                         {/* Order Info */}
                         <div className="bg-muted/50 rounded-lg p-4">
                           <h4 className="text-sm font-semibold mb-3">Order Details</h4>
-                          <div className="grid gap-3 sm:grid-cols-3">
+                          <div className="grid gap-3 sm:grid-cols-4">
                             <div>
                               <p className="text-xs text-muted-foreground mb-1">Order Number</p>
                               <p className="font-medium">{order?.order_number}</p>
@@ -410,8 +490,81 @@ export default function LabRequestsManagement() {
                               <p className="text-xs text-muted-foreground mb-1">Type</p>
                               <p className="font-medium">{order?.restoration_type}</p>
                             </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Your Budget</p>
+                              <p className="font-medium text-primary">
+                                {order?.target_budget ? formatEGP(order.target_budget) : 'Not specified'}
+                              </p>
+                            </div>
                           </div>
                         </div>
+
+                        {/* Bid Information Section */}
+                        {request.bid_amount && (
+                          <div className={`rounded-lg p-4 border-2 ${bidComparison?.bgColor || 'bg-muted/30'}`}>
+                            <div className="flex items-center gap-2 mb-3">
+                              <DollarSign className="h-5 w-5 text-primary" />
+                              <h4 className="text-sm font-semibold">Bid Information</h4>
+                              {getBidStatusBadge(request.bid_status)}
+                            </div>
+                            
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Lab's Bid</p>
+                                <p className="text-lg font-bold text-primary">
+                                  {formatEGP(request.bid_amount)}
+                                </p>
+                              </div>
+                              
+                              {request.revised_amount && (
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Revised Bid</p>
+                                  <p className="text-lg font-bold text-blue-600">
+                                    {formatEGP(request.revised_amount)}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {order?.target_budget && (
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Your Budget</p>
+                                  <p className="text-lg font-medium">
+                                    {formatEGP(order.target_budget)}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {bidComparison && (
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Comparison</p>
+                                  <div className={`flex items-center gap-1 ${bidComparison.color}`}>
+                                    <bidComparison.icon className="h-4 w-4" />
+                                    <span className="font-medium">{bidComparison.text}</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {request.bid_notes && (
+                              <div className="mt-3 pt-3 border-t">
+                                <p className="text-xs text-muted-foreground mb-1">Lab's Notes</p>
+                                <p className="text-sm">{request.bid_notes}</p>
+                              </div>
+                            )}
+
+                            {request.revision_request_note && (
+                              <div className="mt-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/20">
+                                <div className="flex items-start gap-2">
+                                  <MessageSquare className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="text-xs font-medium text-orange-700 dark:text-orange-300">Your Revision Request:</p>
+                                    <p className="text-sm text-orange-600 dark:text-orange-400">{request.revision_request_note}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         
                         {/* Lab Profile Summary */}
                         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -473,7 +626,7 @@ export default function LabRequestsManagement() {
                             View Full Profile
                           </Button>
                           
-                          {request.status === 'pending' && (
+                          {request.status === 'pending' && request.bid_status !== 'revision_requested' && (
                             <>
                               <Button
                                 variant="default"
@@ -481,13 +634,77 @@ export default function LabRequestsManagement() {
                                   requestId: request.id, 
                                   status: 'accepted',
                                   orderId: order?.id,
-                                  orderNumber: order?.order_number
+                                  orderNumber: order?.order_number,
+                                  bidAmount: currentBidAmount
                                 })}
                                 disabled={updateRequestStatus.isPending}
                                 className="flex-1"
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
-                                Accept & Assign
+                                Accept Bid
+                              </Button>
+                              {request.bid_amount && (
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedRequestForRevision(request);
+                                    setRevisionDialogOpen(true);
+                                  }}
+                                  className="flex-1"
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Request Revision
+                                </Button>
+                              )}
+                              <Button
+                                variant="destructive"
+                                onClick={() => updateRequestStatus.mutate({ 
+                                  requestId: request.id, 
+                                  status: 'refused' 
+                                })}
+                                disabled={updateRequestStatus.isPending}
+                                className="flex-1"
+                              >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Decline
+                              </Button>
+                            </>
+                          )}
+
+                          {request.bid_status === 'revision_requested' && (
+                            <div className="flex-1 flex items-center justify-center py-2 px-4 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/20">
+                              <Clock className="h-4 w-4 text-orange-500 mr-2" />
+                              <span className="text-sm text-orange-700 dark:text-orange-300">Waiting for lab's revised bid...</span>
+                            </div>
+                          )}
+
+                          {request.bid_status === 'revised' && request.status === 'pending' && (
+                            <>
+                              <Button
+                                variant="default"
+                                onClick={() => updateRequestStatus.mutate({ 
+                                  requestId: request.id, 
+                                  status: 'accepted',
+                                  orderId: order?.id,
+                                  orderNumber: order?.order_number,
+                                  bidAmount: request.revised_amount
+                                })}
+                                disabled={updateRequestStatus.isPending}
+                                className="flex-1"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Accept Revised Bid
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedRequestForRevision(request);
+                                  setRevisionDialogOpen(true);
+                                }}
+                                className="flex-1"
+                              >
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Request Again
                               </Button>
                               <Button
                                 variant="destructive"

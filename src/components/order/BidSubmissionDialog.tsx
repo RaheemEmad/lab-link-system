@@ -15,8 +15,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { toast } from "sonner";
+
+// Helper function to format EGP currency
+const formatEGP = (amount: number) => {
+  return `EGP ${amount.toLocaleString('en-EG', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })}`;
+};
 
 interface Order {
   id: string;
@@ -130,7 +138,7 @@ const BidSubmissionDialog = ({ order, labId, open, onOpenChange }: BidSubmission
             {order.target_budget && (
               <div className="flex items-center justify-between pt-2 border-t">
                 <span className="text-sm font-medium">Doctor's Budget</span>
-                <span className="font-bold text-primary">${order.target_budget.toFixed(2)}</span>
+                <span className="font-bold text-primary">{formatEGP(order.target_budget)}</span>
               </div>
             )}
           </div>
@@ -139,12 +147,12 @@ const BidSubmissionDialog = ({ order, labId, open, onOpenChange }: BidSubmission
           <div className="space-y-2">
             <Label htmlFor="bidAmount">Your Bid Amount *</Label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">EGP</span>
               <Input
                 id="bidAmount"
                 type="number"
                 placeholder="Enter your bid"
-                className="pl-9"
+                className="pl-12"
                 min={0}
                 step={0.01}
                 value={bidAmount}

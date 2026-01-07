@@ -223,7 +223,7 @@ const ExpenseTracker = ({ orderId, onClose }: ExpenseTrackerProps) => {
                 <div className="space-y-2">
                   <Label>Amount</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">EGP</span>
                     <Input
                       type="number"
                       step="0.01"
@@ -231,7 +231,7 @@ const ExpenseTracker = ({ orderId, onClose }: ExpenseTrackerProps) => {
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="pl-7"
+                      className="pl-12"
                     />
                   </div>
                 </div>
@@ -309,7 +309,7 @@ const ExpenseTracker = ({ orderId, onClose }: ExpenseTrackerProps) => {
                       </div>
                     </div>
                     <span className="font-semibold text-lg text-destructive">
-                      -${expense.amount.toFixed(2)}
+                      -EGP {expense.amount.toLocaleString('en-EG', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 ))}
@@ -319,7 +319,7 @@ const ExpenseTracker = ({ orderId, onClose }: ExpenseTrackerProps) => {
               <div className="flex justify-between items-center p-4 rounded-lg border-2 border-dashed">
                 <span className="font-medium">Total Expenses</span>
                 <span className="font-bold text-xl text-destructive">
-                  -${totalExpenses.toFixed(2)}
+                  -EGP {totalExpenses.toLocaleString('en-EG', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </>
