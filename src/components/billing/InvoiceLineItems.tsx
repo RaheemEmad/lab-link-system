@@ -19,6 +19,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+// Helper function to format EGP currency
+const formatEGP = (amount: number) => {
+  return `EGP ${amount.toLocaleString('en-EG', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })}`;
+};
+
 interface LineItem {
   id: string;
   invoice_id: string;
@@ -209,7 +217,7 @@ const InvoiceLineItems = ({ invoiceId }: InvoiceLineItemsProps) => {
                   <div className="flex items-center gap-3">
                     {item.quantity > 1 && (
                       <span className="text-sm text-muted-foreground">
-                        {item.quantity} × ${item.unit_price.toFixed(2)}
+                        {item.quantity} × {formatEGP(item.unit_price)}
                       </span>
                     )}
                     <span className={`font-semibold text-lg ${
@@ -219,7 +227,7 @@ const InvoiceLineItems = ({ invoiceId }: InvoiceLineItemsProps) => {
                           ? 'text-green-600 dark:text-green-400'
                           : ''
                     }`}>
-                      {item.total_price >= 0 ? '' : '-'}${Math.abs(item.total_price).toFixed(2)}
+                      {item.total_price >= 0 ? '' : '-'}{formatEGP(Math.abs(item.total_price))}
                     </span>
                   </div>
                 </div>
@@ -233,7 +241,7 @@ const InvoiceLineItems = ({ invoiceId }: InvoiceLineItemsProps) => {
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Line Items Total</span>
             <span className="font-bold text-xl">
-              ${lineItems.reduce((sum, item) => sum + item.total_price, 0).toFixed(2)}
+              {formatEGP(lineItems.reduce((sum, item) => sum + item.total_price, 0))}
             </span>
           </div>
         </div>

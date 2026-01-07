@@ -163,7 +163,7 @@ const AdjustmentDialog = ({ open, onOpenChange, invoiceId }: AdjustmentDialogPro
           <div className="space-y-2">
             <Label htmlFor="amount">Amount</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">EGP</span>
               <Input
                 id="amount"
                 type="number"
@@ -171,11 +171,11 @@ const AdjustmentDialog = ({ open, onOpenChange, invoiceId }: AdjustmentDialogPro
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="pl-7"
+                className="pl-12"
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Use negative for deductions (e.g., -50 for a $50 discount)
+              Use negative for deductions (e.g., -50 for an EGP 50 discount)
             </p>
           </div>
 

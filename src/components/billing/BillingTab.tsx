@@ -25,6 +25,14 @@ import InvoicePreview from "./InvoicePreview";
 import BillingAnalytics from "./BillingAnalytics";
 import ExpenseTracker from "./ExpenseTracker";
 
+// Helper function to format EGP currency
+const formatEGP = (amount: number) => {
+  return `EGP ${amount.toLocaleString('en-EG', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })}`;
+};
+
 type InvoiceStatus = 'draft' | 'generated' | 'locked' | 'finalized' | 'disputed';
 
 interface Invoice {
@@ -341,10 +349,10 @@ const BillingTab = () => {
 
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="font-semibold text-lg">${invoice.final_total.toFixed(2)}</p>
+                      <p className="font-semibold text-lg">{formatEGP(invoice.final_total)}</p>
                       {invoice.expenses_total > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          Expenses: ${invoice.expenses_total.toFixed(2)}
+                          Expenses: {formatEGP(invoice.expenses_total)}
                         </p>
                       )}
                     </div>

@@ -14,8 +14,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DollarSign, Loader2, MessageSquare, ArrowRight } from "lucide-react";
+import { Loader2, MessageSquare, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+
+// Helper function to format EGP currency
+const formatEGP = (amount: number) => {
+  return `EGP ${amount.toLocaleString('en-EG', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })}`;
+};
 
 interface BidRevisionDialogProps {
   requestId: string;
@@ -124,7 +132,7 @@ const BidRevisionDialog = ({
           order_id: orderId,
           type: 'bid_revised',
           title: 'Revised Bid Received',
-          message: `A lab has submitted a revised bid of $${revisedAmount.toFixed(2)} for order ${orderNumber}.`
+          message: `A lab has submitted a revised bid of ${formatEGP(revisedAmount)} for order ${orderNumber}.`
         });
       }
     },
@@ -197,7 +205,7 @@ const BidRevisionDialog = ({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Original Bid</span>
-              <span className="font-medium">${originalBid.toFixed(2)}</span>
+              <span className="font-medium">{formatEGP(originalBid)}</span>
             </div>
           </div>
 
@@ -233,16 +241,16 @@ const BidRevisionDialog = ({
                 <Label htmlFor="revisedAmount">Revised Bid Amount *</Label>
                 <div className="flex items-center gap-2">
                   <div className="text-sm text-muted-foreground">
-                    ${originalBid.toFixed(2)}
+                    {formatEGP(originalBid)}
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   <div className="relative flex-1">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">EGP</span>
                     <Input
                       id="revisedAmount"
                       type="number"
                       placeholder="New amount"
-                      className="pl-9"
+                      className="pl-12"
                       min={0}
                       step={0.01}
                       value={amount}
