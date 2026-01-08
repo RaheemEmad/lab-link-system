@@ -982,6 +982,53 @@ export type Database = {
           },
         ]
       }
+      lab_pricing: {
+        Row: {
+          created_at: string
+          fixed_price: number | null
+          id: string
+          includes_rush: boolean | null
+          lab_id: string
+          max_price: number | null
+          min_price: number | null
+          restoration_type: string
+          rush_surcharge_percent: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fixed_price?: number | null
+          id?: string
+          includes_rush?: boolean | null
+          lab_id: string
+          max_price?: number | null
+          min_price?: number | null
+          restoration_type: string
+          rush_surcharge_percent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fixed_price?: number | null
+          id?: string
+          includes_rush?: boolean | null
+          lab_id?: string
+          max_price?: number | null
+          min_price?: number | null
+          restoration_type?: string
+          rush_surcharge_percent?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_pricing_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_reviews: {
         Row: {
           created_at: string | null
@@ -1186,19 +1233,25 @@ export type Database = {
           created_at: string
           current_load: number
           description: string | null
+          first_active_at: string | null
           id: string
           is_active: boolean
+          is_new_lab: boolean | null
           is_sponsored: boolean | null
           logo_url: string | null
           max_capacity: number
+          max_price_egp: number | null
+          min_price_egp: number | null
           name: string
           performance_score: number | null
           pricing_tier: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days: number
           subscription_expires_at: string | null
           subscription_tier: string | null
+          trust_score: number | null
           updated_at: string
           urgent_sla_days: number
+          visibility_tier: string | null
           website_url: string | null
         }
         Insert: {
@@ -1209,19 +1262,25 @@ export type Database = {
           created_at?: string
           current_load?: number
           description?: string | null
+          first_active_at?: string | null
           id?: string
           is_active?: boolean
+          is_new_lab?: boolean | null
           is_sponsored?: boolean | null
           logo_url?: string | null
           max_capacity?: number
+          max_price_egp?: number | null
+          min_price_egp?: number | null
           name: string
           performance_score?: number | null
           pricing_tier?: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days?: number
           subscription_expires_at?: string | null
           subscription_tier?: string | null
+          trust_score?: number | null
           updated_at?: string
           urgent_sla_days?: number
+          visibility_tier?: string | null
           website_url?: string | null
         }
         Update: {
@@ -1232,19 +1291,25 @@ export type Database = {
           created_at?: string
           current_load?: number
           description?: string | null
+          first_active_at?: string | null
           id?: string
           is_active?: boolean
+          is_new_lab?: boolean | null
           is_sponsored?: boolean | null
           logo_url?: string | null
           max_capacity?: number
+          max_price_egp?: number | null
+          min_price_egp?: number | null
           name?: string
           performance_score?: number | null
           pricing_tier?: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days?: number
           subscription_expires_at?: string | null
           subscription_tier?: string | null
+          trust_score?: number | null
           updated_at?: string
           urgent_sla_days?: number
+          visibility_tier?: string | null
           website_url?: string | null
         }
         Relationships: []
@@ -1725,6 +1790,7 @@ export type Database = {
           driver_name: string | null
           driver_phone_whatsapp: string | null
           expected_delivery_date: string | null
+          flow_mode: string | null
           handling_instructions: string | null
           html_export: string | null
           id: string
@@ -1736,6 +1802,7 @@ export type Database = {
           proposed_delivery_date: string | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
           screenshot_url: string | null
+          selected_from_rank: number | null
           shade_system: string | null
           shipment_notes: string | null
           shipment_tracking: string | null
@@ -1775,6 +1842,7 @@ export type Database = {
           driver_name?: string | null
           driver_phone_whatsapp?: string | null
           expected_delivery_date?: string | null
+          flow_mode?: string | null
           handling_instructions?: string | null
           html_export?: string | null
           id?: string
@@ -1786,6 +1854,7 @@ export type Database = {
           proposed_delivery_date?: string | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
           screenshot_url?: string | null
+          selected_from_rank?: number | null
           shade_system?: string | null
           shipment_notes?: string | null
           shipment_tracking?: string | null
@@ -1825,6 +1894,7 @@ export type Database = {
           driver_name?: string | null
           driver_phone_whatsapp?: string | null
           expected_delivery_date?: string | null
+          flow_mode?: string | null
           handling_instructions?: string | null
           html_export?: string | null
           id?: string
@@ -1836,6 +1906,7 @@ export type Database = {
           proposed_delivery_date?: string | null
           restoration_type?: Database["public"]["Enums"]["restoration_type"]
           screenshot_url?: string | null
+          selected_from_rank?: number | null
           shade_system?: string | null
           shipment_notes?: string | null
           shipment_tracking?: string | null
@@ -2367,6 +2438,7 @@ export type Database = {
         Returns: undefined
       }
       calculate_lab_metrics: { Args: { p_lab_id: string }; Returns: undefined }
+      calculate_lab_trust_score: { Args: { p_lab_id: string }; Returns: number }
       check_and_award_achievement: {
         Args: { achievement_id_param: string; user_id_param?: string }
         Returns: boolean
@@ -2536,6 +2608,10 @@ export type Database = {
         Returns: undefined
       }
       unlock_account: { Args: { user_email_param: string }; Returns: undefined }
+      update_lab_visibility_tier: {
+        Args: { p_lab_id: string }
+        Returns: string
+      }
       user_onboarding_completed: {
         Args: { _user_id: string }
         Returns: boolean
