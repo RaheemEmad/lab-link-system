@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock, MapPin, Star, TrendingUp, ExternalLink, Building2, DollarSign, MessageSquare, RefreshCw, TrendingDown, Minus } from "lucide-react";
+import { CheckCircle, XCircle, Clock, MapPin, Star, TrendingUp, ExternalLink, Building2, DollarSign, MessageSquare, RefreshCw, TrendingDown, Minus, FileStack } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import LandingNav from "@/components/landing/LandingNav";
@@ -11,7 +11,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
 import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 import BidRevisionDialog from "@/components/order/BidRevisionDialog";
@@ -35,6 +35,9 @@ export default function LabRequestsManagement() {
   const [revisionDialogOpen, setRevisionDialogOpen] = useState(false);
   const [selectedRequestForRevision, setSelectedRequestForRevision] = useState<any>(null);
   const currentUserRole = 'doctor' as const;
+  
+  // Refs for scrolling to application cards
+  const applicationCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Fetch all requests for this doctor's orders with full lab details and bid info
   const { data: requests, isLoading, error, refetch } = useQuery({
@@ -297,6 +300,52 @@ export default function LabRequestsManagement() {
     };
   }, [user?.id, queryClient, toast]);
 
+  // Calculate pending applications count (memoized for real-time updates)
+  const pendingApplications = useMemo(() => {
+    if (!requests) return [];
+    return requests.filter((r: any) => r.status === 'pending');
+  }, [requests]);
+
+  const pendingCount = pendingApplications.length;
+
+  // Calculate if more pending applications exist after accepting current one
+  const hasMorePendingApplications = useMemo(() => {
+    if (!requests || !acceptedRequest) return false;
+    
+    // Count pending applications from OTHER orders (excluding accepted order)
+    const pendingFromOtherOrders = requests.filter(
+      (r: any) => 
+        r.orders?.id !== acceptedRequest.orderId && 
+        r.status === 'pending'
+    );
+    
+    return pendingFromOtherOrders.length > 0;
+  }, [requests, acceptedRequest]);
+
+  // Scroll to next pending application card
+  const scrollToNextPending = useCallback(() => {
+    if (!requests) return;
+    
+    // Find the first pending application
+    const nextPending = requests.find((r: any) => r.status === 'pending');
+    
+    if (nextPending) {
+      const cardElement = applicationCardRefs.current.get(nextPending.id);
+      if (cardElement) {
+        cardElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+        
+        // Add highlight effect
+        cardElement.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+        setTimeout(() => {
+          cardElement.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+        }, 2000);
+      }
+    }
+  }, [requests]);
+
   // Helper function to get bid comparison indicator
   const getBidComparison = (bidAmount: number, targetBudget: number | null) => {
     if (!targetBudget || !bidAmount) return null;
@@ -369,6 +418,23 @@ export default function LabRequestsManagement() {
           orderNumber={acceptedRequest.orderNumber}
           orderId={acceptedRequest.orderId}
           onChatOpen={() => setShowChat(true)}
+          hasMoreApplications={hasMorePendingApplications}
+          onStayOnPage={() => {
+            toast({
+              title: "Lab Assigned Successfully",
+              description: `Order ${acceptedRequest.orderNumber} is now in progress.`,
+              action: hasMorePendingApplications ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={scrollToNextPending}
+                  className="ml-2"
+                >
+                  Review Next
+                </Button>
+              ) : undefined,
+            });
+          }}
           onComplete={() => {
             setAcceptedRequest(null);
             queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
@@ -408,7 +474,18 @@ export default function LabRequestsManagement() {
         <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
           <div className="container px-3 sm:px-4 lg:px-6">
             <div className="mb-8">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Lab Applications</h1>
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Lab Applications</h1>
+                {pendingCount > 0 && (
+                  <Badge 
+                    variant="secondary" 
+                    className="bg-primary/10 text-primary border-primary/20"
+                  >
+                    <FileStack className="h-3 w-3 mr-1" />
+                    {pendingCount} pending
+                  </Badge>
+                )}
+              </div>
               <p className="text-muted-foreground">
                 Review lab profiles, bids, and approve or decline applications for your auto-assign orders
               </p>
@@ -439,7 +516,14 @@ export default function LabRequestsManagement() {
                   const bidComparison = getBidComparison(currentBidAmount, order?.target_budget);
                   
                   return (
-                    <Card key={request.id} className="hover:shadow-lg transition-shadow">
+                    <Card 
+                      key={request.id} 
+                      ref={(el) => {
+                        if (el) applicationCardRefs.current.set(request.id, el);
+                        else applicationCardRefs.current.delete(request.id);
+                      }}
+                      className="hover:shadow-lg transition-shadow transition-all duration-300"
+                    >
                       <CardHeader>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-4 flex-1">

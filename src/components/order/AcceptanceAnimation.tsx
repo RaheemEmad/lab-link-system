@@ -9,24 +9,40 @@ interface AcceptanceAnimationProps {
   orderNumber: string;
   orderId: string;
   onChatOpen: () => void;
+  hasMoreApplications?: boolean;
+  onStayOnPage?: () => void;
 }
 
-export const AcceptanceAnimation = ({ onComplete, orderNumber, orderId, onChatOpen }: AcceptanceAnimationProps) => {
+export const AcceptanceAnimation = ({ 
+  onComplete, 
+  orderNumber, 
+  orderId, 
+  onChatOpen,
+  hasMoreApplications = false,
+  onStayOnPage
+}: AcceptanceAnimationProps) => {
   const [stage, setStage] = useState<"initial" | "button" | "launching" | "complete">("initial");
   const navigate = useNavigate();
 
   const handleInitiate = () => {
     setStage("launching");
     
-    // After animation completes, open chat and navigate
+    // After animation completes, open chat and conditionally navigate
     setTimeout(() => {
       onChatOpen();
-      navigate("/dashboard", { 
-        state: { 
-          newOrderAccepted: true,
-          orderNumber 
-        } 
-      });
+      
+      // If there are more applications to review, stay on page
+      if (hasMoreApplications && onStayOnPage) {
+        onStayOnPage();
+      } else {
+        // Navigate to dashboard when no more applications
+        navigate("/dashboard", { 
+          state: { 
+            newOrderAccepted: true,
+            orderNumber 
+          } 
+        });
+      }
       onComplete();
     }, 1500);
   };
