@@ -13,11 +13,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { ArrowLeft, Save, FileText, Upload, Send, AlertCircle, Clock, Truck, Package } from "lucide-react";
+import { ArrowLeft, Save, FileText, Upload, Send, AlertCircle, Clock, Truck, Package, MessageSquare } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { OrderStatusDialog } from "@/components/order/OrderStatusDialog";
 import OrderNotesDialog from "@/components/order/OrderNotesDialog";
+import { OrderNotes } from "@/components/order/OrderNotes";
 import { QCChecklist } from "@/components/order/QCChecklist";
 import { OrderHistoryTimeline } from "@/components/order/OrderHistoryTimeline";
 
@@ -106,7 +107,6 @@ const LabOrderDetail = () => {
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [newComment, setNewComment] = useState("");
   const [htmlExportInput, setHtmlExportInput] = useState("");
 
   useEffect(() => {
@@ -342,30 +342,6 @@ const LabOrderDetail = () => {
       });
     } finally {
       setIsUploadingFile(false);
-    }
-  };
-
-  const handleAddComment = async () => {
-    if (!newComment.trim() || !order) return;
-
-    try {
-      const { error } = await supabase
-        .from('order_notes')
-        .insert({
-          order_id: order.id,
-          user_id: user!.id,
-          note_text: newComment.trim(),
-        });
-
-      if (error) throw error;
-
-      toast.success("Comment added");
-      setNewComment("");
-    } catch (error: any) {
-      console.error('Error adding comment:', error);
-      toast.error("Failed to add comment", {
-        description: error.message
-      });
     }
   };
 
@@ -891,29 +867,8 @@ const LabOrderDetail = () => {
                 </CardContent>
               </Card>
 
-              {/* Quick Comment */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Comment</CardTitle>
-                  <CardDescription>Send message to doctor</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Type your message..."
-                    className="min-h-[100px]"
-                  />
-                  <Button 
-                    onClick={handleAddComment} 
-                    disabled={!newComment.trim()}
-                    className="w-full"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Send Comment
-                  </Button>
-                </CardContent>
-              </Card>
+              {/* Doctor Notes - Full View */}
+              <OrderNotes orderId={order.id} />
             </div>
           </div>
         </div>
