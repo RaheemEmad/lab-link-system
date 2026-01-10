@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 interface Lab {
   id: string;
@@ -108,7 +109,7 @@ export const useLabTrustRanking = ({
       const { data, error } = await supabase
         .from("lab_specializations")
         .select("lab_id, restoration_type, expertise_level, turnaround_days")
-        .eq("restoration_type", restorationType);
+        .eq("restoration_type", restorationType as Database["public"]["Enums"]["restoration_type"]);
       
       if (error) throw error;
       return data as LabSpecialization[];
