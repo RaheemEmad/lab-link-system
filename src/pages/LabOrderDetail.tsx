@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { ArrowLeft, Save, FileText, Upload, Send, AlertCircle, Clock, Truck, Package, MessageSquare } from "lucide-react";
+import { ArrowLeft, Save, FileText, Upload, Send, AlertCircle, Clock, Truck, Package, MessageSquare, Calendar, Clipboard, Link } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { OrderStatusDialog } from "@/components/order/OrderStatusDialog";
@@ -21,6 +21,7 @@ import OrderNotesDialog from "@/components/order/OrderNotesDialog";
 import { OrderNotes } from "@/components/order/OrderNotes";
 import { QCChecklist } from "@/components/order/QCChecklist";
 import { OrderHistoryTimeline } from "@/components/order/OrderHistoryTimeline";
+import { OrderAttachmentsView } from "@/components/order/OrderAttachmentsView";
 
 interface Order {
   id: string;
@@ -45,6 +46,9 @@ interface Order {
   html_export: string | null;
   screenshot_url: string | null;
   assigned_lab_id: string | null;
+  handling_instructions: string | null;
+  photos_link: string | null;
+  desired_delivery_date: string | null;
   driver_name: string | null;
   driver_phone_whatsapp: string | null;
   pickup_time: string | null;
@@ -707,7 +711,7 @@ const LabOrderDetail = () => {
                   <CardTitle>Order Details (Doctor-Set)</CardTitle>
                   <CardDescription>Information set by the ordering doctor</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <Label className="text-xs text-muted-foreground">Patient Name</Label>
@@ -741,9 +745,84 @@ const LabOrderDetail = () => {
                         {order.urgency}
                       </Badge>
                     </div>
+                    {order.desired_delivery_date && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          Desired Delivery Date
+                        </Label>
+                        <p className="font-medium">
+                          {new Date(order.desired_delivery_date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+                    {order.photos_link && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Link className="h-3 w-3" />
+                          Photos Link
+                        </Label>
+                        <a 
+                          href={order.photos_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline truncate block"
+                        >
+                          View Photos
+                        </a>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Biological Notes from Doctor */}
+                  {order.biological_notes && (
+                    <div className="border-t pt-4">
+                      <Label className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
+                        <Clipboard className="h-3 w-3" />
+                        Biological/Clinical Notes (from Doctor)
+                      </Label>
+                      <div className="bg-secondary/50 p-3 rounded-lg">
+                        <p className="text-sm whitespace-pre-wrap">{order.biological_notes}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Handling Instructions */}
+                  {order.handling_instructions && (
+                    <div className="border-t pt-4">
+                      <Label className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
+                        <AlertCircle className="h-3 w-3" />
+                        Handling Instructions
+                      </Label>
+                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 rounded-lg">
+                        <p className="text-sm whitespace-pre-wrap text-amber-900 dark:text-amber-100">
+                          {order.handling_instructions}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Approval Notes */}
+                  {order.approval_notes && (
+                    <div className="border-t pt-4">
+                      <Label className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
+                        <FileText className="h-3 w-3" />
+                        Approval Notes
+                      </Label>
+                      <div className="bg-secondary/50 p-3 rounded-lg">
+                        <p className="text-sm whitespace-pre-wrap">{order.approval_notes}</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
+              {/* Order Attachments from Doctor */}
+              <OrderAttachmentsView orderId={order.id} />
 
               {/* Design File Upload */}
               <Card>
