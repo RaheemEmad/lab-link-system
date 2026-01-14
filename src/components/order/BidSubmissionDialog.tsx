@@ -52,7 +52,12 @@ const BidSubmissionDialog = ({ order, labId, open, onOpenChange }: BidSubmission
   const submitBid = useMutation({
     mutationFn: async () => {
       if (!user?.id || !labId) throw new Error("Not authenticated");
-      if (!bidAmount || parseFloat(bidAmount) <= 0) throw new Error("Please enter a valid bid amount");
+
+      // Bid amount is optional - only validate if provided
+      const parsedBidAmount = bidAmount ? parseFloat(bidAmount) : null;
+      if (bidAmount && parsedBidAmount !== null && parsedBidAmount <= 0) {
+        throw new Error("Please enter a valid bid amount or leave empty");
+      }
 
       const { error } = await supabase
         .from("lab_work_requests")
@@ -61,7 +66,7 @@ const BidSubmissionDialog = ({ order, labId, open, onOpenChange }: BidSubmission
           lab_id: labId,
           requested_by_user_id: user.id,
           status: 'pending',
-          bid_amount: parseFloat(bidAmount),
+          bid_amount: parsedBidAmount,
           bid_notes: bidNotes || null,
           bid_status: 'pending'
         });
@@ -145,13 +150,13 @@ const BidSubmissionDialog = ({ order, labId, open, onOpenChange }: BidSubmission
 
           {/* Bid Amount */}
           <div className="space-y-2">
-            <Label htmlFor="bidAmount">Your Bid Amount *</Label>
+            <Label htmlFor="bidAmount">Your Bid Amount (Optional)</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">EGP</span>
               <Input
                 id="bidAmount"
                 type="number"
-                placeholder="Enter your bid"
+                placeholder="Enter your bid or leave empty"
                 className="pl-12"
                 min={0}
                 step={0.01}
@@ -165,6 +170,9 @@ const BidSubmissionDialog = ({ order, labId, open, onOpenChange }: BidSubmission
                 <span>{comparison.text}</span>
               </div>
             )}
+            <p className="text-xs text-muted-foreground">
+              Leave empty to apply without a specific bid amount
+            </p>
           </div>
 
           {/* Bid Notes */}
@@ -196,15 +204,17 @@ const BidSubmissionDialog = ({ order, labId, open, onOpenChange }: BidSubmission
           </Button>
           <Button 
             onClick={() => submitBid.mutate()}
-            disabled={submitBid.isPending || !bidAmount || parseFloat(bidAmount) <= 0}
+            disabled={submitBid.isPending}
           >
             {submitBid.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Submitting...
               </>
-            ) : (
+            ) : bidAmount ? (
               'Submit Bid'
+            ) : (
+              'Apply for Order'
             )}
           </Button>
         </DialogFooter>
