@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { FileIcon, ImageIcon, Download, MessageSquare, ThumbsUp, Eye, User } from "lucide-react";
+import { FileIcon, Download, MessageSquare, Eye, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Attachment {
   id: string;
@@ -16,7 +23,21 @@ interface Attachment {
   category: string;
   created_at: string;
   uploaded_by: string;
+  order_id: string;
   uploader?: {
+    full_name: string | null;
+    email: string | null;
+  };
+}
+
+interface Comment {
+  id: string;
+  comment_text: string;
+  created_at: string;
+  user_id: string;
+  user_role: string;
+  is_resolved: boolean | null;
+  user?: {
     full_name: string | null;
     email: string | null;
   };
@@ -35,16 +56,90 @@ const categoryColors: Record<string, string> = {
 };
 
 const AttachmentCard = ({ attachment }: AttachmentCardProps) => {
+  const { user } = useAuth();
+  const { isDoctor, isLabStaff } = useUserRole();
+  const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
+  const [newComment, setNewComment] = useState("");
   const isImage = attachment.file_type?.startsWith("image/");
   const uploaderName = attachment.uploader?.full_name || attachment.uploader?.email || "Unknown";
   const uploaderInitials = uploaderName.slice(0, 2).toUpperCase();
+
+  // Fetch comments for this attachment
+  const { data: comments, isLoading: commentsLoading } = useQuery({
+    queryKey: ["attachment-comments", attachment.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("feedback_room_comments")
+        .select(`
+          id,
+          comment_text,
+          created_at,
+          user_id,
+          user_role,
+          is_resolved,
+          user:profiles!feedback_room_comments_user_id_fkey(full_name, email)
+        `)
+        .eq("attachment_id", attachment.id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data as Comment[];
+    },
+    enabled: showComments,
+  });
+
+  // Add comment mutation
+  const addComment = useMutation({
+    mutationFn: async (commentText: string) => {
+      if (!user?.id) throw new Error("Not authenticated");
+
+      const userRole = isDoctor ? "doctor" : isLabStaff ? "lab_staff" : "unknown";
+
+      const { error } = await supabase
+        .from("feedback_room_comments")
+        .insert({
+          order_id: attachment.order_id,
+          attachment_id: attachment.id,
+          user_id: user.id,
+          user_role: userRole,
+          comment_text: commentText,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attachment-comments", attachment.id] });
+      queryClient.invalidateQueries({ queryKey: ["feedback-comments", attachment.order_id] });
+      setNewComment("");
+      toast.success("Comment added");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to add comment", { description: error.message });
+    },
+  });
+
+  const handleSubmitComment = () => {
+    if (!newComment.trim()) return;
+    addComment.mutate(newComment.trim());
+  };
 
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return "Unknown size";
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case "doctor":
+        return "bg-blue-500/10 text-blue-600";
+      case "lab_staff":
+        return "bg-purple-500/10 text-purple-600";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
   };
 
   return (
@@ -112,17 +207,81 @@ const AttachmentCard = ({ attachment }: AttachmentCardProps) => {
             </Button>
           </div>
 
-          {/* Comments Toggle */}
+          {/* Comments Section */}
           <Collapsible open={showComments} onOpenChange={setShowComments}>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-full">
                 <MessageSquare className="h-3 w-3 mr-1" />
-                Comments
+                Comments {comments && comments.length > 0 && `(${comments.length})`}
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <div className="p-3 bg-muted rounded-lg text-center text-sm text-muted-foreground">
-                No comments yet
+            <CollapsibleContent className="mt-2 space-y-3">
+              {/* Comments List */}
+              <ScrollArea className="max-h-48">
+                {commentsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : comments && comments.length > 0 ? (
+                  <div className="space-y-2 pr-2">
+                    {comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className="p-2 bg-muted/50 rounded-lg text-sm space-y-1"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-5 w-5">
+                            <AvatarFallback className="text-xs">
+                              {(comment.user?.full_name || comment.user?.email || "U").slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-xs">
+                            {comment.user?.full_name || comment.user?.email || "Unknown"}
+                          </span>
+                          <Badge
+                            variant="secondary"
+                            className={`text-[10px] px-1 py-0 ${getRoleBadgeColor(comment.user_role)}`}
+                          >
+                            {comment.user_role === "doctor" ? "Doctor" : "Lab"}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground ml-auto">
+                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground pl-7">
+                          {comment.comment_text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-3 bg-muted rounded-lg text-center text-sm text-muted-foreground">
+                    No comments yet. Be the first to comment!
+                  </div>
+                )}
+              </ScrollArea>
+
+              {/* Add Comment */}
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="min-h-[60px] text-sm resize-none"
+                />
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={handleSubmitComment}
+                  disabled={!newComment.trim() || addComment.isPending}
+                >
+                  {addComment.isPending ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <Send className="h-3 w-3 mr-1" />
+                  )}
+                  Add Comment
+                </Button>
               </div>
             </CollapsibleContent>
           </Collapsible>

@@ -584,7 +584,7 @@ export default function LabRequestsManagement() {
                         </div>
 
                         {/* Bid Information Section */}
-                        {request.bid_amount && (
+                        {request.bid_amount ? (
                           <div className={`rounded-lg p-4 border-2 ${bidComparison?.bgColor || 'bg-muted/30'}`}>
                             <div className="flex items-center gap-2 mb-3">
                               <DollarSign className="h-5 w-5 text-primary" />
@@ -645,6 +645,23 @@ export default function LabRequestsManagement() {
                                     <p className="text-sm text-orange-600 dark:text-orange-400">{request.revision_request_note}</p>
                                   </div>
                                 </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="rounded-lg p-4 border-2 bg-muted/30">
+                            <div className="flex items-center gap-2 mb-3">
+                              <DollarSign className="h-5 w-5 text-muted-foreground" />
+                              <h4 className="text-sm font-semibold">Application (No Bid)</h4>
+                              {getBidStatusBadge(request.bid_status)}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              This lab has applied without submitting a specific bid amount.
+                            </p>
+                            {request.bid_notes && (
+                              <div className="mt-3 pt-3 border-t">
+                                <p className="text-xs text-muted-foreground mb-1">Lab's Notes</p>
+                                <p className="text-sm">{request.bid_notes}</p>
                               </div>
                             )}
                           </div>
@@ -725,7 +742,7 @@ export default function LabRequestsManagement() {
                                 className="flex-1"
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
-                                Accept Bid
+                                {request.bid_amount ? 'Accept Bid' : 'Accept Application'}
                               </Button>
                               {request.bid_amount && (
                                 <Button
