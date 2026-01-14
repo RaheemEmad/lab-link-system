@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { ArrowLeft, Save, FileText, Upload, Send, AlertCircle, Clock, Truck, Package, MessageSquare, Calendar, Clipboard, Link } from "lucide-react";
+import { ArrowLeft, Save, FileText, Upload, Send, AlertCircle, Clock, Truck, Package, MessageSquare, Calendar, Clipboard, Link, CheckCircle2 } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { OrderStatusDialog } from "@/components/order/OrderStatusDialog";
@@ -22,6 +22,7 @@ import { OrderNotes } from "@/components/order/OrderNotes";
 import { QCChecklist } from "@/components/order/QCChecklist";
 import { OrderHistoryTimeline } from "@/components/order/OrderHistoryTimeline";
 import { OrderAttachmentsView } from "@/components/order/OrderAttachmentsView";
+import { OrderPhotosGallery } from "@/components/order/OrderPhotosGallery";
 
 interface Order {
   id: string;
@@ -760,69 +761,77 @@ const LabOrderDetail = () => {
                         </p>
                       </div>
                     )}
-                    {order.photos_link && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Link className="h-3 w-3" />
-                          Photos Link
-                        </Label>
-                        <a 
-                          href={order.photos_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary hover:underline truncate block"
-                        >
-                          View Photos
-                        </a>
-                      </div>
-                    )}
+                    {/* Photos are now shown in dedicated gallery section below */}
                   </div>
 
-                  {/* Biological Notes from Doctor */}
-                  {order.biological_notes && (
-                    <div className="border-t pt-4">
-                      <Label className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
-                        <Clipboard className="h-3 w-3" />
-                        Biological/Clinical Notes (from Doctor)
-                      </Label>
-                      <div className="bg-secondary/50 p-3 rounded-lg">
-                        <p className="text-sm whitespace-pre-wrap">{order.biological_notes}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Handling Instructions */}
-                  {order.handling_instructions && (
-                    <div className="border-t pt-4">
-                      <Label className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
-                        <AlertCircle className="h-3 w-3" />
-                        Handling Instructions
-                      </Label>
-                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 rounded-lg">
-                        <p className="text-sm whitespace-pre-wrap text-amber-900 dark:text-amber-100">
-                          {order.handling_instructions}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Approval Notes */}
-                  {order.approval_notes && (
-                    <div className="border-t pt-4">
-                      <Label className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
-                        <FileText className="h-3 w-3" />
-                        Approval Notes
-                      </Label>
-                      <div className="bg-secondary/50 p-3 rounded-lg">
-                        <p className="text-sm whitespace-pre-wrap">{order.approval_notes}</p>
-                      </div>
-                    </div>
-                  )}
+                  {/* Notes moved to dedicated section below */}
                 </CardContent>
               </Card>
 
-              {/* Order Attachments from Doctor */}
+              {/* Doctor-Uploaded Photos Gallery */}
+              <OrderPhotosGallery photosLink={order.photos_link} showTitle={true} />
+
+              {/* Order Attachments from order_attachments table */}
               <OrderAttachmentsView orderId={order.id} />
+
+              {/* Doctor Notes & Instructions - Consolidated Section */}
+              {(order.biological_notes || order.handling_instructions || order.approval_notes) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Clipboard className="h-5 w-5 text-primary" />
+                      Doctor Notes & Instructions
+                    </CardTitle>
+                    <CardDescription>
+                      All notes and instructions from the ordering doctor
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Biological/Clinical Notes */}
+                    {order.biological_notes && (
+                      <div>
+                        <Label className="flex items-center gap-1 mb-2 text-sm font-medium">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          Clinical Notes
+                        </Label>
+                        <div className="bg-secondary/50 p-3 rounded-lg">
+                          <p className="text-sm whitespace-pre-wrap">{order.biological_notes}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Handling Instructions - Highlighted */}
+                    {order.handling_instructions && (
+                      <div>
+                        <Label className="flex items-center gap-1 mb-2 text-sm font-medium text-amber-700 dark:text-amber-400">
+                          <AlertCircle className="h-4 w-4" />
+                          Handling Instructions
+                        </Label>
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 rounded-lg">
+                          <p className="text-sm whitespace-pre-wrap text-amber-900 dark:text-amber-100">
+                            {order.handling_instructions}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Approval Notes */}
+                    {order.approval_notes && (
+                      <div>
+                        <Label className="flex items-center gap-1 mb-2 text-sm font-medium text-green-700 dark:text-green-400">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Approval Notes
+                        </Label>
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 rounded-lg">
+                          <p className="text-sm whitespace-pre-wrap text-green-900 dark:text-green-100">
+                            {order.approval_notes}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Design File Upload */}
               <Card>
