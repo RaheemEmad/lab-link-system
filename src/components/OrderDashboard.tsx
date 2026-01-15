@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -31,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore } from "lucide-react";
+import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -87,6 +90,14 @@ const getDisplayStatus = (order: Order): string => {
   return order.status;
 };
 
+// Valid status transitions for bulk updates
+const BULK_STATUS_OPTIONS: { value: OrderStatus; label: string; roles: string[] }[] = [
+  { value: "In Progress", label: "In Progress", roles: ["lab_staff"] },
+  { value: "Ready for QC", label: "Ready for QC", roles: ["lab_staff"] },
+  { value: "Ready for Delivery", label: "Ready for Delivery", roles: ["lab_staff"] },
+  { value: "Cancelled", label: "Cancelled", roles: ["doctor", "lab_staff"] },
+];
+
 const OrderDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -103,6 +114,12 @@ const OrderDashboard = () => {
   const [chatOrder, setChatOrder] = useState<Order | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  // Bulk selection state
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+  
   const { user } = useAuth();
   const { isDoctor, isLabStaff, isLoading: roleLoading, labId, role } = useUserRole();
   const navigate = useNavigate();
@@ -184,11 +201,12 @@ const OrderDashboard = () => {
       if (isDoctor) {
         console.debug('[OrderDashboard] Applying doctor filter');
         query = query.eq("doctor_id", user.id);
+      } else if (isLabStaff) {
+        // For lab staff on dashboard, only show ASSIGNED orders (not marketplace)
+        // Marketplace orders should only appear on the OrdersMarketplace page
+        console.debug('[OrderDashboard] Applying lab staff filter - assigned orders only');
+        query = query.not("assigned_lab_id", "is", null);
       }
-      // For lab_staff, let RLS handle filtering (marketplace + assigned orders)
-      // No additional filtering needed - RLS policies will show:
-      // 1. Marketplace orders (auto_assign_pending = true, assigned_lab_id IS NULL)
-      // 2. Orders assigned to them (via order_assignments)
 
       const { data, error } = await query;
 
@@ -251,6 +269,83 @@ const OrderDashboard = () => {
     setChatDialogOpen(true);
   };
 
+  // Bulk selection handlers
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllOrders = () => {
+    if (selectedOrders.size === paginatedOrders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(paginatedOrders.map(o => o.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedOrders(new Set());
+  };
+
+  // Bulk status update
+  const handleBulkStatusUpdate = async (newStatus: OrderStatus) => {
+    if (selectedOrders.size === 0) return;
+    
+    setBulkUpdating(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      for (const orderId of selectedOrders) {
+        const { error } = await supabase
+          .from("orders")
+          .update({ 
+            status: newStatus,
+            status_updated_at: new Date().toISOString()
+          })
+          .eq("id", orderId);
+
+        if (error) {
+          console.error(`Failed to update order ${orderId}:`, error);
+          failCount++;
+        } else {
+          // Log status change in history
+          await supabase.from("order_status_history").insert({
+            order_id: orderId,
+            old_status: orders.find(o => o.id === orderId)?.status || "Pending",
+            new_status: newStatus,
+            changed_by: user?.id,
+            notes: "Bulk status update"
+          });
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Updated ${successCount} order${successCount > 1 ? 's' : ''} to ${newStatus}`);
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to update ${failCount} order${failCount > 1 ? 's' : ''}`);
+      }
+
+      setSelectedOrders(new Set());
+      fetchOrders();
+    } catch (error: any) {
+      console.error("Bulk update error:", error);
+      toast.error("Failed to update orders");
+    } finally {
+      setBulkUpdating(false);
+      setBulkStatusDialogOpen(false);
+    }
+  };
+
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -266,6 +361,11 @@ const OrderDashboard = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  // Get available bulk status options based on role
+  const availableBulkStatuses = BULK_STATUS_OPTIONS.filter(opt => 
+    opt.roles.includes(isDoctor ? "doctor" : "lab_staff")
+  );
 
   if (loading || roleLoading) {
     return (
@@ -292,6 +392,34 @@ const OrderDashboard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Bulk Action Toolbar */}
+          {selectedOrders.size > 0 && (
+            <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <CheckSquare className="h-5 w-5 text-primary" />
+              <span className="font-medium text-sm">
+                {selectedOrders.size} order{selectedOrders.size > 1 ? 's' : ''} selected
+              </span>
+              <div className="flex-1" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBulkStatusDialogOpen(true)}
+                disabled={availableBulkStatuses.length === 0}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Update Status
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearSelection}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            </div>
+          )}
+
           {/* Filters and Search */}
           <div className="flex flex-col gap-3">
             <div className="relative flex-1">
@@ -342,15 +470,22 @@ const OrderDashboard = () => {
               </div>
             ) : (
               paginatedOrders.map((order) => (
-                <Card key={order.id} className="overflow-hidden">
+                <Card key={order.id} className={cn("overflow-hidden", selectedOrders.has(order.id) && "ring-2 ring-primary")}>
                   <CardContent className="p-4 space-y-3">
-                    {/* Header */}
+                    {/* Header with Checkbox */}
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-mono font-bold text-sm mb-1">{order.order_number}</div>
-                        {!isDoctor && (
-                          <div className="text-xs text-muted-foreground truncate">Dr. {order.doctor_name}</div>
-                        )}
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={selectedOrders.has(order.id)}
+                          onCheckedChange={() => toggleOrderSelection(order.id)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-mono font-bold text-sm mb-1">{order.order_number}</div>
+                          {!isDoctor && (
+                            <div className="text-xs text-muted-foreground truncate">Dr. {order.doctor_name}</div>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="text-xs">
@@ -497,6 +632,12 @@ const OrderDashboard = () => {
             <Table className="min-w-full">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedOrders.size === paginatedOrders.length && paginatedOrders.length > 0}
+                      onCheckedChange={toggleAllOrders}
+                    />
+                  </TableHead>
                   <TableHead>Order ID</TableHead>
                   {!isDoctor && <TableHead>Doctor</TableHead>}
                   <TableHead>Patient</TableHead>
@@ -513,7 +654,7 @@ const OrderDashboard = () => {
               <TableBody>
                 {paginatedOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDoctor ? 10 : 11} className="text-center py-8 sm:py-12">
+                    <TableCell colSpan={isDoctor ? 11 : 12} className="text-center py-8 sm:py-12">
                       <div className="flex flex-col items-center justify-center">
                         <FileText className="h-10 w-10 sm:h-12 sm:w-12 mb-4 text-muted-foreground opacity-50" />
                         <p className="text-base sm:text-lg font-medium mb-2">No orders found</p>
@@ -524,7 +665,13 @@ const OrderDashboard = () => {
                 ) : (
                   <>
                     {paginatedOrders.map((order) => (
-                      <TableRow key={order.id}>
+                      <TableRow key={order.id} className={cn(selectedOrders.has(order.id) && "bg-primary/5")}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedOrders.has(order.id)}
+                          onCheckedChange={() => toggleOrderSelection(order.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-mono font-medium">{order.order_number}</TableCell>
                       {!isDoctor && <TableCell>{order.doctor_name}</TableCell>}
                       <TableCell>{order.patient_name}</TableCell>
@@ -643,6 +790,10 @@ const OrderDashboard = () => {
                                 <DropdownMenuItem onClick={() => handleOpenChat(order)}>
                                   <MessageCircle className="mr-2 h-4 w-4" />
                                   Open Chat
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate(`/feedback-room/${order.id}`)}>
+                                  <MessageSquareMore className="mr-2 h-4 w-4" />
+                                  Feedback Room
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                               </>
@@ -802,6 +953,39 @@ const OrderDashboard = () => {
           }}
         />
       )}
+
+      {/* Bulk Status Update Dialog */}
+      <Dialog open={bulkStatusDialogOpen} onOpenChange={setBulkStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Status for {selectedOrders.size} Orders</DialogTitle>
+            <DialogDescription>
+              Select a new status to apply to all selected orders.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2 py-4">
+            {availableBulkStatuses.map((status) => (
+              <Button
+                key={status.value}
+                variant="outline"
+                className="justify-start"
+                onClick={() => handleBulkStatusUpdate(status.value)}
+                disabled={bulkUpdating}
+              >
+                <Badge variant="outline" className={`${statusColors[status.value]} mr-2`}>
+                  {status.label}
+                </Badge>
+                Set all to {status.label}
+              </Button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setBulkStatusDialogOpen(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!deleteOrderId} onOpenChange={() => setDeleteOrderId(null)}>
         <AlertDialogContent>

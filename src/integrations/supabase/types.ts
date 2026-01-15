@@ -2566,6 +2566,17 @@ export type Database = {
         }
         Returns: string
       }
+      log_feedback_activity: {
+        Args: {
+          p_action_description: string
+          p_action_type: string
+          p_metadata?: Json
+          p_order_id: string
+          p_user_id: string
+          p_user_role: string
+        }
+        Returns: undefined
+      }
       log_notification_status: {
         Args: {
           error_message_param?: string
