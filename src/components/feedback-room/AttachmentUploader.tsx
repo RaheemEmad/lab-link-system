@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 
 interface AttachmentUploaderProps {
@@ -21,6 +22,7 @@ const CATEGORIES = [
 
 const AttachmentUploader = ({ orderId, onUploadComplete }: AttachmentUploaderProps) => {
   const { user } = useAuth();
+  const { isDoctor, isLabStaff } = useUserRole();
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [category, setCategory] = useState("general");
@@ -54,10 +56,31 @@ const AttachmentUploader = ({ orderId, onUploadComplete }: AttachmentUploaderPro
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const logActivity = async (fileName: string, fileCategory: string) => {
+    if (!user?.id) return;
+    
+    const userRole = isDoctor ? "doctor" : isLabStaff ? "lab_staff" : "unknown";
+    
+    try {
+      await supabase.rpc("log_feedback_activity", {
+        p_order_id: orderId,
+        p_user_id: user.id,
+        p_user_role: userRole,
+        p_action_type: "attachment_uploaded",
+        p_action_description: `Uploaded file: ${fileName}`,
+        p_metadata: { file_name: fileName, category: fileCategory }
+      });
+    } catch (error) {
+      console.error("Failed to log activity:", error);
+    }
+  };
+
   const uploadFiles = async () => {
     if (!user || selectedFiles.length === 0) return;
 
     setIsUploading(true);
+    let successCount = 0;
+    
     try {
       for (const file of selectedFiles) {
         const fileExt = file.name.split(".").pop();
@@ -97,11 +120,17 @@ const AttachmentUploader = ({ orderId, onUploadComplete }: AttachmentUploaderPro
           toast.error(`Failed to save ${file.name}`);
           continue;
         }
+
+        // Log activity for successful upload
+        await logActivity(file.name, category);
+        successCount++;
       }
 
-      toast.success("Files uploaded successfully");
-      setSelectedFiles([]);
-      onUploadComplete();
+      if (successCount > 0) {
+        toast.success(`${successCount} file${successCount > 1 ? "s" : ""} uploaded successfully`);
+        setSelectedFiles([]);
+        onUploadComplete();
+      }
     } catch (error) {
       console.error("Upload error:", error);
       toast.error("Failed to upload files");

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Upload, Filter, Loader2 } from "lucide-react";
+import { Upload, Filter, Loader2, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import AttachmentUploader from "./AttachmentUploader";
@@ -25,6 +25,7 @@ const AttachmentsTab = ({ orderId }: AttachmentsTabProps) => {
   const [showUploader, setShowUploader] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
 
+  // Fetch feedback room attachments
   const { data: attachments, isLoading, refetch } = useQuery({
     queryKey: ["feedback-attachments", orderId],
     queryFn: async () => {
@@ -47,9 +48,54 @@ const AttachmentsTab = ({ orderId }: AttachmentsTabProps) => {
     enabled: !!orderId,
   });
 
-  const filteredAttachments = attachments?.filter(
+  // Fetch original order photos from photos_link
+  const { data: orderPhotos } = useQuery({
+    queryKey: ["order-photos", orderId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("photos_link, doctor_name")
+        .eq("id", orderId)
+        .single();
+
+      if (error) throw error;
+      
+      if (!data?.photos_link) return [];
+      
+      // Parse comma-separated URLs
+      return data.photos_link
+        .split(",")
+        .map((url: string) => url.trim())
+        .filter((url: string) => url.length > 0)
+        .map((url: string, index: number) => ({
+          id: `original-${index}`,
+          file_url: url,
+          file_name: `Order Photo ${index + 1}`,
+          file_type: "image/jpeg",
+          file_size: null,
+          category: "photos",
+          created_at: new Date().toISOString(),
+          uploaded_by: "doctor",
+          order_id: orderId,
+          uploader: { full_name: data.doctor_name, email: null },
+          isOriginal: true,
+        }));
+    },
+    enabled: !!orderId,
+  });
+
+  // Combine and filter attachments
+  const allAttachments = [
+    ...(orderPhotos || []),
+    ...(attachments || []),
+  ];
+
+  const filteredAttachments = allAttachments.filter(
     (a) => categoryFilter === "all" || a.category === categoryFilter
   );
+
+  // Count original photos
+  const originalPhotoCount = orderPhotos?.length || 0;
 
   if (isLoading) {
     return (
@@ -64,11 +110,31 @@ const AttachmentsTab = ({ orderId }: AttachmentsTabProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Original Order Photos Notice */}
+      {originalPhotoCount > 0 && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="py-3">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm">Original Order Photos</CardTitle>
+              <span className="text-xs text-muted-foreground">
+                ({originalPhotoCount} photos from order submission)
+              </span>
+            </div>
+          </CardHeader>
+        </Card>
+      )}
+
       {/* Upload Section */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Upload Files</CardTitle>
+            <div>
+              <CardTitle className="text-lg">Upload Files</CardTitle>
+              <CardDescription className="text-xs mt-1">
+                Share photos, designs, X-rays, and other files
+              </CardDescription>
+            </div>
             <Button
               variant={showUploader ? "secondary" : "default"}
               size="sm"
@@ -99,9 +165,9 @@ const AttachmentsTab = ({ orderId }: AttachmentsTabProps) => {
             <CardTitle className="text-lg flex items-center gap-2">
               <Filter className="h-4 w-4" />
               Attachments
-              {attachments && attachments.length > 0 && (
+              {allAttachments.length > 0 && (
                 <span className="text-sm font-normal text-muted-foreground">
-                  ({attachments.length})
+                  ({allAttachments.length})
                 </span>
               )}
             </CardTitle>
@@ -117,7 +183,7 @@ const AttachmentsTab = ({ orderId }: AttachmentsTabProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          {!filteredAttachments || filteredAttachments.length === 0 ? (
+          {filteredAttachments.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Upload className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="font-medium mb-2">No attachments yet</p>
@@ -126,7 +192,10 @@ const AttachmentsTab = ({ orderId }: AttachmentsTabProps) => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredAttachments.map((attachment) => (
-                <AttachmentCard key={attachment.id} attachment={attachment} />
+                <AttachmentCard 
+                  key={attachment.id} 
+                  attachment={attachment} 
+                />
               ))}
             </div>
           )}

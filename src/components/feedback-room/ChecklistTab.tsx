@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckSquare, Plus, Loader2 } from "lucide-react";
+import { CheckSquare, Plus, Loader2, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import ChecklistItem from "./ChecklistItem";
 
 interface ChecklistTabProps {
@@ -20,6 +21,7 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
   const { user } = useAuth();
   const { isDoctor, isLabStaff } = useUserRole();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
@@ -46,6 +48,25 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
     enabled: !!orderId,
   });
 
+  const logActivity = async (actionType: string, description: string, metadata?: Record<string, string | number | boolean>) => {
+    if (!user?.id) return;
+    
+    const userRole = isDoctor ? "doctor" : isLabStaff ? "lab_staff" : "unknown";
+    
+    try {
+      await supabase.rpc("log_feedback_activity", {
+        p_order_id: orderId,
+        p_user_id: user.id,
+        p_user_role: userRole,
+        p_action_type: actionType,
+        p_action_description: description,
+        p_metadata: (metadata || null) as never
+      });
+    } catch (error) {
+      console.error("Failed to log activity:", error);
+    }
+  };
+
   const addItemMutation = useMutation({
     mutationFn: async () => {
       const maxOrder = checklistItems?.reduce(
@@ -63,9 +84,11 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
         });
 
       if (error) throw error;
+      return newItemName;
     },
-    onSuccess: () => {
+    onSuccess: (itemName) => {
       queryClient.invalidateQueries({ queryKey: ["feedback-checklist", orderId] });
+      logActivity("checklist_item_added", `Added checklist item: ${itemName}`, { item_name: itemName });
       setNewItemName("");
       setNewItemDescription("");
       setShowAddForm(false);
@@ -78,7 +101,7 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
   });
 
   const confirmMutation = useMutation({
-    mutationFn: async ({ itemId, role }: { itemId: string; role: "doctor" | "lab" }) => {
+    mutationFn: async ({ itemId, role, itemName }: { itemId: string; role: "doctor" | "lab"; itemName: string }) => {
       const updateData =
         role === "doctor"
           ? {
@@ -98,9 +121,11 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
         .eq("id", itemId);
 
       if (error) throw error;
+      return { role, itemName };
     },
-    onSuccess: () => {
+    onSuccess: ({ role, itemName }) => {
       queryClient.invalidateQueries({ queryKey: ["feedback-checklist", orderId] });
+      logActivity("checklist_item_confirmed", `${role === "doctor" ? "Doctor" : "Lab"} confirmed: ${itemName}`, { item_name: itemName, confirmed_by: role });
       toast.success("Item confirmed");
     },
     onError: (error) => {
@@ -114,6 +139,9 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
   const confirmedItems =
     checklistItems?.filter((item) => item.doctor_confirmed && item.lab_confirmed).length || 0;
   const progressPercent = totalItems > 0 ? (confirmedItems / totalItems) * 100 : 0;
+
+  // Can add items: both doctors AND lab staff
+  const canAddItems = isDoctor || isLabStaff;
 
   if (isLoading) {
     return (
@@ -143,12 +171,17 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
         </Card>
       )}
 
-      {/* Add Item Section (Doctors Only) */}
-      {isDoctor && (
+      {/* Add Item Section (Both Doctors AND Lab Staff) */}
+      {canAddItems && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Add Checklist Item</CardTitle>
+              <div>
+                <CardTitle className="text-lg">Add Checklist Item</CardTitle>
+                <CardDescription className="text-xs mt-1">
+                  {isDoctor ? "Add requirements for the lab" : "Add items for quality tracking"}
+                </CardDescription>
+              </div>
               <Button
                 variant={showAddForm ? "secondary" : "default"}
                 size="sm"
@@ -209,9 +242,9 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
               <CheckSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="font-medium mb-2">No checklist items yet</p>
               <p className="text-sm">
-                {isDoctor
-                  ? "Add items for the lab to follow"
-                  : "Doctor will add checklist items"}
+                {canAddItems
+                  ? "Add items to track quality requirements"
+                  : "Checklist items will appear here"}
               </p>
             </div>
           ) : (
@@ -223,7 +256,7 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
                   isDoctor={isDoctor}
                   isLabStaff={isLabStaff}
                   onConfirm={(itemId, role) =>
-                    confirmMutation.mutate({ itemId, role })
+                    confirmMutation.mutate({ itemId, role, itemName: item.item_name })
                   }
                 />
               ))}
