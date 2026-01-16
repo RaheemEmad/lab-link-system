@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ClipboardCheck, Upload, Camera, Trash2, CheckCircle2, AlertCircle } from "lucide-react";
+import { ClipboardCheck, Upload, Camera, CheckCircle2, AlertCircle, MessageSquareMore } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -34,6 +35,7 @@ interface QCChecklistProps {
 
 export const QCChecklist = ({ orderId, orderStatus, onStatusUpdateAllowed }: QCChecklistProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [items, setItems] = useState<QCItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<QCItem | null>(null);
@@ -214,20 +216,32 @@ export const QCChecklist = ({ orderId, orderStatus, onStatusUpdateAllowed }: QCC
 
   return (
     <Card className={allCompleted ? 'border-green-500/50 bg-green-500/5' : ''}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex-1">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <ClipboardCheck className="h-5 w-5" />
               Quality Control Checklist
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               Complete all QC steps before marking order as Ready for Delivery
             </CardDescription>
           </div>
-          <Badge variant={allCompleted ? "default" : "secondary"}>
-            {completedCount}/{totalCount} Complete ({completionPercentage}%)
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={allCompleted ? "default" : "secondary"} className="text-xs">
+              {completedCount}/{totalCount} ({completionPercentage}%)
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/feedback-room/${orderId}`)}
+              className="gap-1.5 h-8 text-xs sm:text-sm"
+            >
+              <MessageSquareMore className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Feedback Room</span>
+              <span className="sm:hidden">Feedback</span>
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -253,18 +267,18 @@ export const QCChecklist = ({ orderId, orderStatus, onStatusUpdateAllowed }: QCC
           {items.map((item) => (
             <div
               key={item.id}
-              className={`p-4 rounded-lg border transition-colors ${
+              className={`p-3 sm:p-4 rounded-lg border transition-colors ${
                 item.is_completed 
                   ? 'bg-green-500/5 border-green-500/20' 
                   : 'bg-muted/30 border-border'
               }`}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2 sm:gap-3">
                 <Checkbox
                   id={item.id}
                   checked={item.is_completed}
                   onCheckedChange={() => toggleItemCompletion(item)}
-                  className="mt-1"
+                  className="mt-1 h-5 w-5"
                 />
                 <div className="flex-1 space-y-2">
                   <div>
@@ -295,18 +309,19 @@ export const QCChecklist = ({ orderId, orderStatus, onStatusUpdateAllowed }: QCC
                     </p>
                   )}
 
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap mt-2">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
+                          className="h-8 text-xs sm:text-sm w-full sm:w-auto justify-center"
                           onClick={() => {
                             setSelectedItem(item);
                             setItemNotes(item.notes || "");
                           }}
                         >
-                          <Camera className="h-3 w-3 mr-2" />
+                          <Camera className="h-3 w-3 mr-1.5" />
                           {item.notes ? "Edit Notes" : "Add Notes"}
                         </Button>
                       </DialogTrigger>

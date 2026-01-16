@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,8 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
+import { AlertCircle } from "lucide-react";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered" | "Cancelled";
 
@@ -48,10 +50,33 @@ export const OrderStatusDialog = ({
   onStatusUpdated,
 }: OrderStatusDialogProps) => {
   const { user } = useAuth();
+  const { isLabStaff, isAdmin, isDoctor, roleConfirmed } = useUserRole();
   const [newStatus, setNewStatus] = useState<OrderStatus>(currentStatus);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Check if user has permission (labs only)
+  const hasPermission = roleConfirmed && (isLabStaff || isAdmin);
+
+  // Close dialog if doctor opens it somehow
+  useEffect(() => {
+    if (open && roleConfirmed && isDoctor) {
+      toast.error("Access Denied", {
+        description: "Only laboratory staff can update order status",
+      });
+      onOpenChange(false);
+    }
+  }, [open, roleConfirmed, isDoctor, onOpenChange]);
+
   const handleUpdate = async () => {
+    // Double-check permission before update
+    if (!hasPermission) {
+      toast.error("Access Denied", {
+        description: "Only laboratory staff can update order status",
+      });
+      onOpenChange(false);
+      return;
+    }
+
     if (newStatus === currentStatus) {
       toast.info("Status unchanged");
       onOpenChange(false);
@@ -130,9 +155,14 @@ export const OrderStatusDialog = ({
     }
   };
 
+  // Don't render dialog for doctors at all
+  if (roleConfirmed && isDoctor) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Update Order Status</DialogTitle>
           <DialogDescription>
@@ -140,38 +170,49 @@ export const OrderStatusDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Current Status</Label>
-            <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium">
-              {currentStatus}
+        {!hasPermission && roleConfirmed ? (
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+            <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+            <p className="text-sm text-destructive">
+              Only laboratory staff can update order status.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Current Status</Label>
+              <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium">
+                {currentStatus}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="new-status">New Status *</Label>
+              <Select value={newStatus} onValueChange={(value) => setNewStatus(value as OrderStatus)}>
+                <SelectTrigger id="new-status">
+                  <SelectValue placeholder="Select new status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
+        )}
 
-          <div className="space-y-2">
-            <Label htmlFor="new-status">New Status *</Label>
-            <Select value={newStatus} onValueChange={(value) => setNewStatus(value as OrderStatus)}>
-              <SelectTrigger id="new-status">
-                <SelectValue placeholder="Select new status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating}>
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button onClick={handleUpdate} disabled={isUpdating}>
-            {isUpdating ? "Updating..." : "Update Status"}
-          </Button>
+          {hasPermission && (
+            <Button onClick={handleUpdate} disabled={isUpdating} className="w-full sm:w-auto">
+              {isUpdating ? "Updating..." : "Update Status"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
