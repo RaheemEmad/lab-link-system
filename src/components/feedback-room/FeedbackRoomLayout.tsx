@@ -25,22 +25,23 @@ const FeedbackRoomLayout = ({ order }: FeedbackRoomLayoutProps) => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card">
-        <div className="container py-4">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="container py-3 sm:py-4 px-3 sm:px-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 mb-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/dashboard")}
+              className="w-fit"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-1.5" />
               Back
             </Button>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold flex items-center gap-3">
-                <MessageSquareMore className="h-6 w-6 text-primary" />
+              <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
+                <MessageSquareMore className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 Feedback Room
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Collaborate on order details and quality
               </p>
             </div>
@@ -51,23 +52,23 @@ const FeedbackRoomLayout = ({ order }: FeedbackRoomLayoutProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="container py-6">
+      <div className="container py-4 sm:py-6 px-3 sm:px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="attachments" className="gap-2">
-              <Upload className="h-4 w-4" />
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsTrigger value="attachments" className="gap-1.5 py-2 px-1 sm:px-3 text-xs sm:text-sm">
+              <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Attachments</span>
             </TabsTrigger>
-            <TabsTrigger value="checklist" className="gap-2">
-              <CheckSquare className="h-4 w-4" />
+            <TabsTrigger value="checklist" className="gap-1.5 py-2 px-1 sm:px-3 text-xs sm:text-sm">
+              <CheckSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Checklist</span>
             </TabsTrigger>
-            <TabsTrigger value="decisions" className="gap-2">
-              <Lock className="h-4 w-4" />
+            <TabsTrigger value="decisions" className="gap-1.5 py-2 px-1 sm:px-3 text-xs sm:text-sm">
+              <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Decisions</span>
             </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-2">
-              <Activity className="h-4 w-4" />
+            <TabsTrigger value="activity" className="gap-1.5 py-2 px-1 sm:px-3 text-xs sm:text-sm">
+              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Activity</span>
             </TabsTrigger>
           </TabsList>

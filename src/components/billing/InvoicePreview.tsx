@@ -529,41 +529,42 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onClose}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="ghost" onClick={onClose} className="w-fit">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Invoices
         </Button>
-        <div className="flex gap-2">
-          {(invoice.status === 'finalized' || invoice.status === 'locked') && (
-            <Button variant="outline" onClick={handleExportPDF}>
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
+        <div className="flex flex-wrap gap-2">
+          {/* Allow PDF export for generated, locked, and finalized invoices - for all authenticated users */}
+          {(invoice.status === 'finalized' || invoice.status === 'locked' || invoice.status === 'generated') && (
+            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1.5">
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export</span> PDF
             </Button>
           )}
           {invoice.status !== 'finalized' && invoice.status !== 'disputed' && (role === 'doctor' || role === 'lab_staff') && (
-            <Button variant="outline" onClick={() => setShowDisputeDialog(true)}>
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Dispute
+            <Button variant="outline" size="sm" onClick={() => setShowDisputeDialog(true)} className="gap-1.5">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="hidden sm:inline">Dispute</span>
             </Button>
           )}
           {invoice.status === 'generated' && role === 'admin' && (
-            <Button variant="outline" onClick={() => lockMutation.mutate()} disabled={lockMutation.isPending}>
-              {lockMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Lock className="h-4 w-4 mr-2" />}
-              Lock Invoice
+            <Button variant="outline" size="sm" onClick={() => lockMutation.mutate()} disabled={lockMutation.isPending} className="gap-1.5">
+              {lockMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+              <span className="hidden sm:inline">Lock Invoice</span>
             </Button>
           )}
           {invoice.status === 'locked' && role === 'admin' && (
             <>
-              <Button variant="outline" onClick={() => setShowAdjustmentDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Adjustment
+              <Button variant="outline" size="sm" onClick={() => setShowAdjustmentDialog(true)} className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Adjustment</span>
               </Button>
-              <Button onClick={() => finalizeMutation.mutate()} disabled={finalizeMutation.isPending}>
-                {finalizeMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                Finalize
+              <Button size="sm" onClick={() => finalizeMutation.mutate()} disabled={finalizeMutation.isPending} className="gap-1.5">
+                {finalizeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                <span className="hidden sm:inline">Finalize</span>
               </Button>
             </>
           )}
@@ -572,30 +573,32 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
 
       {/* Invoice Header Card */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl">{invoice.invoice_number}</CardTitle>
-              <p className="text-muted-foreground mt-1">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-xl sm:text-2xl truncate">{invoice.invoice_number}</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1 truncate">
                 Order: {invoice.order?.order_number} • {invoice.order?.patient_name}
               </p>
             </div>
-            {getStatusBadge(invoice.status)}
+            <div className="flex-shrink-0">
+              {getStatusBadge(invoice.status)}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Doctor</p>
-              <p className="font-medium">{invoice.order?.doctor_name || '-'}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Doctor</p>
+              <p className="font-medium text-sm sm:text-base truncate">{invoice.order?.doctor_name || '-'}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Restoration Type</p>
-              <p className="font-medium">{invoice.order?.restoration_type || '-'}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Restoration Type</p>
+              <p className="font-medium text-sm sm:text-base truncate">{invoice.order?.restoration_type || '-'}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Generated</p>
-              <p className="font-medium">
+              <p className="text-xs sm:text-sm text-muted-foreground">Generated</p>
+              <p className="font-medium text-sm sm:text-base">
                 {invoice.generated_at 
                   ? formatDistanceToNow(new Date(invoice.generated_at), { addSuffix: true })
                   : '-'
@@ -603,8 +606,8 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Order Status</p>
-              <p className="font-medium">{invoice.order?.status || '-'}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Order Status</p>
+              <p className="font-medium text-sm sm:text-base">{invoice.order?.status || '-'}</p>
             </div>
           </div>
 

@@ -44,6 +44,7 @@ interface Invoice {
   adjustments_total: number;
   expenses_total: number;
   final_total: number;
+  doctor_id?: string | null;
   generated_at: string | null;
   locked_at: string | null;
   finalized_at: string | null;
@@ -72,16 +73,17 @@ const BillingTab = () => {
 
   // Fetch invoices
   const { data: invoices, isLoading } = useQuery({
-    queryKey: ['invoices', statusFilter, searchQuery],
+    queryKey: ['invoices', statusFilter, searchQuery, role, user?.id],
     queryFn: async () => {
       let query = supabase
         .from('invoices')
         .select(`
           *,
-          order:orders(
+          order:orders!inner(
             order_number,
             patient_name,
             doctor_name,
+            doctor_id,
             status,
             restoration_type,
             delivery_confirmed_at
@@ -91,6 +93,11 @@ const BillingTab = () => {
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
+      }
+
+      // For doctors, filter to only show their orders' invoices
+      if (role === 'doctor' && user?.id) {
+        query = query.eq('order.doctor_id', user.id);
       }
 
       const { data, error } = await query;
@@ -293,8 +300,8 @@ const BillingTab = () => {
         </CardHeader>
         <CardContent>
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
+          <div className="flex flex-col gap-4 mb-6">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by invoice or order number..."
@@ -303,17 +310,29 @@ const BillingTab = () => {
                 className="pl-9"
               />
             </div>
-            <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as InvoiceStatus | 'all')}>
-              <TabsList>
-                <TabsTrigger value="all">All ({statusCounts.all})</TabsTrigger>
-                <TabsTrigger value="generated">Generated ({statusCounts.generated})</TabsTrigger>
-                <TabsTrigger value="locked">Locked ({statusCounts.locked})</TabsTrigger>
-                <TabsTrigger value="finalized">Finalized ({statusCounts.finalized})</TabsTrigger>
-                {statusCounts.disputed > 0 && (
-                  <TabsTrigger value="disputed">Disputed ({statusCounts.disputed})</TabsTrigger>
-                )}
-              </TabsList>
-            </Tabs>
+            <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+              <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as InvoiceStatus | 'all')}>
+                <TabsList className="w-max sm:w-auto">
+                  <TabsTrigger value="all" className="text-xs sm:text-sm">
+                    <span className="hidden sm:inline">All </span>({statusCounts.all})
+                  </TabsTrigger>
+                  <TabsTrigger value="generated" className="text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Generated </span>({statusCounts.generated})
+                  </TabsTrigger>
+                  <TabsTrigger value="locked" className="text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Locked </span>({statusCounts.locked})
+                  </TabsTrigger>
+                  <TabsTrigger value="finalized" className="text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Finalized </span>({statusCounts.finalized})
+                  </TabsTrigger>
+                  {statusCounts.disputed > 0 && (
+                    <TabsTrigger value="disputed" className="text-xs sm:text-sm">
+                      <span className="hidden sm:inline">Disputed </span>({statusCounts.disputed})
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
 
           {/* Invoice Table */}
@@ -332,84 +351,91 @@ const BillingTab = () => {
               {invoices.map((invoice) => (
                 <div 
                   key={invoice.id} 
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border hover:bg-muted/30 transition-colors"
+                  className="flex flex-col gap-3 p-3 sm:p-4 rounded-lg border hover:bg-muted/30 transition-colors"
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-semibold">{invoice.invoice_number}</span>
-                      {getStatusBadge(invoice.status)}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Order: {invoice.order?.order_number} • {invoice.order?.patient_name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {invoice.order?.restoration_type}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-semibold text-lg">{formatEGP(invoice.final_total)}</p>
-                      {invoice.expenses_total > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          Expenses: {formatEGP(invoice.expenses_total)}
-                        </p>
-                      )}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono font-semibold text-sm sm:text-base truncate">{invoice.invoice_number}</span>
+                        {getStatusBadge(invoice.status)}
+                      </div>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                        Order: {invoice.order?.order_number} • {invoice.order?.patient_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {invoice.order?.restoration_type}
+                      </p>
                     </div>
 
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedInvoice(invoice)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                      <div className="text-left sm:text-right">
+                        <p className="font-semibold text-base sm:text-lg">{formatEGP(invoice.final_total)}</p>
+                        {invoice.expenses_total > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            Expenses: {formatEGP(invoice.expenses_total)}
+                          </p>
+                        )}
+                      </div>
 
-                      {(role === 'admin' || role === 'lab_staff') && (
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedOrderForExpense(invoice.order_id);
-                            setShowExpenseTracker(true);
-                          }}
-                        >
-                          <Receipt className="h-4 w-4" />
-                        </Button>
-                      )}
-
-                      {invoice.status === 'generated' && role === 'admin' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => lockInvoiceMutation.mutate(invoice.id)}
-                          disabled={lockInvoiceMutation.isPending}
-                        >
-                          <Lock className="h-4 w-4" />
-                        </Button>
-                      )}
-
-                      {invoice.status === 'locked' && role === 'admin' && (
-                        <Button
-                          size="sm"
-                          onClick={() => finalizeInvoiceMutation.mutate(invoice.id)}
-                          disabled={finalizeInvoiceMutation.isPending}
-                        >
-                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Finalize
-                        </Button>
-                      )}
-
-                      {invoice.status === 'finalized' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
+                          className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                           onClick={() => setSelectedInvoice(invoice)}
                         >
-                          <Download className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
+
+                        {(role === 'admin' || role === 'lab_staff') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            onClick={() => {
+                              setSelectedOrderForExpense(invoice.order_id);
+                              setShowExpenseTracker(true);
+                            }}
+                          >
+                            <Receipt className="h-4 w-4" />
+                          </Button>
+                        )}
+
+                        {invoice.status === 'generated' && role === 'admin' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            onClick={() => lockInvoiceMutation.mutate(invoice.id)}
+                            disabled={lockInvoiceMutation.isPending}
+                          >
+                            <Lock className="h-4 w-4" />
+                          </Button>
+                        )}
+
+                        {invoice.status === 'locked' && role === 'admin' && (
+                          <Button
+                            size="sm"
+                            className="h-8 sm:h-9 text-xs sm:text-sm"
+                            onClick={() => finalizeInvoiceMutation.mutate(invoice.id)}
+                            disabled={finalizeInvoiceMutation.isPending}
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                            <span className="hidden sm:inline">Finalize</span>
+                          </Button>
+                        )}
+
+                        {(invoice.status === 'finalized' || invoice.status === 'generated' || invoice.status === 'locked') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            onClick={() => setSelectedInvoice(invoice)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
