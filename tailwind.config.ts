@@ -29,6 +29,20 @@ export default {
       screens: {
         'xs': '475px',
       },
+      fontSize: {
+        // Adaptive UI density sizes
+        'ui-xs': ['0.8125rem', { lineHeight: '1.5' }],   // 13px - compact mobile
+        'ui-sm': ['0.875rem', { lineHeight: '1.5' }],    // 14px - mobile
+        'ui-base': ['0.9375rem', { lineHeight: '1.5' }], // 15px - laptop
+        'ui-lg': ['1rem', { lineHeight: '1.5' }],        // 16px - desktop
+      },
+      spacing: {
+        // Density-aware spacing
+        'density-xs': '0.375rem',  // 6px
+        'density-sm': '0.5rem',    // 8px
+        'density-base': '0.75rem', // 12px
+        'density-lg': '1rem',      // 16px
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
