@@ -105,7 +105,27 @@
   }
 }
 
+/* Adaptive UI Density System */
 @layer base {
+  html {
+    /* Default: Laptop density (13-15" screens) */
+    font-size: 15px;
+  }
+  
+  /* Mobile/Tablet: Compact density */
+  @media (max-width: 768px) {
+    html {
+      font-size: 14px;
+    }
+  }
+  
+  /* Large Desktop (16"+): Standard density */
+  @media (min-width: 1440px) {
+    html {
+      font-size: 16px;
+    }
+  }
+  
   * {
     @apply border-border;
   }
@@ -357,6 +377,25 @@
   /* Modal/Dialog Backdrop */
   .backdrop-elegant {
     @apply bg-black/40 backdrop-blur-sm;
+  }
+  
+  /* Table Horizontal Scroll on Mobile */
+  .table-responsive {
+    @apply overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0;
+  }
+  
+  .table-responsive table {
+    @apply min-w-[640px] sm:min-w-full;
+  }
+  
+  /* Density-aware card padding */
+  .card-density {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+  
+  /* Density-aware section spacing */
+  .section-density {
+    @apply py-4 sm:py-6 lg:py-8;
   }
 }
 

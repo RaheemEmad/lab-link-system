@@ -1165,13 +1165,18 @@ export type Database = {
           bid_status: string | null
           created_at: string
           id: string
+          includes_rush_snapshot: boolean | null
           lab_id: string
           order_id: string
+          price_snapshot: number | null
+          price_snapshot_at: string | null
           requested_by_user_id: string
           revised_amount: number | null
           revised_at: string | null
           revision_request_note: string | null
           revision_requested_at: string | null
+          rush_surcharge_snapshot: number | null
+          sla_days_snapshot: number | null
           status: string
           updated_at: string
         }
@@ -1181,13 +1186,18 @@ export type Database = {
           bid_status?: string | null
           created_at?: string
           id?: string
+          includes_rush_snapshot?: boolean | null
           lab_id: string
           order_id: string
+          price_snapshot?: number | null
+          price_snapshot_at?: string | null
           requested_by_user_id: string
           revised_amount?: number | null
           revised_at?: string | null
           revision_request_note?: string | null
           revision_requested_at?: string | null
+          rush_surcharge_snapshot?: number | null
+          sla_days_snapshot?: number | null
           status?: string
           updated_at?: string
         }
@@ -1197,13 +1207,18 @@ export type Database = {
           bid_status?: string | null
           created_at?: string
           id?: string
+          includes_rush_snapshot?: boolean | null
           lab_id?: string
           order_id?: string
+          price_snapshot?: number | null
+          price_snapshot_at?: string | null
           requested_by_user_id?: string
           revised_amount?: number | null
           revised_at?: string | null
           revision_request_note?: string | null
           revision_requested_at?: string | null
+          rush_surcharge_snapshot?: number | null
+          sla_days_snapshot?: number | null
           status?: string
           updated_at?: string
         }
@@ -1471,6 +1486,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_reminders: {
+        Row: {
+          created_at: string | null
+          escalation_level: number | null
+          hours_after_event: number
+          id: string
+          is_active: boolean | null
+          message_template: string
+          trigger_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          escalation_level?: number | null
+          hours_after_event: number
+          id?: string
+          is_active?: boolean | null
+          message_template: string
+          trigger_type: string
+        }
+        Update: {
+          created_at?: string | null
+          escalation_level?: number | null
+          hours_after_event?: number
+          id?: string
+          is_active?: boolean | null
+          message_template?: string
+          trigger_type?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -1777,6 +1822,7 @@ export type Database = {
           carrier_name: string | null
           carrier_phone: string | null
           created_at: string
+          delivery_acceptance_status: string | null
           delivery_confirmed_at: string | null
           delivery_confirmed_by: string | null
           delivery_date: string | null
@@ -1829,6 +1875,7 @@ export type Database = {
           carrier_name?: string | null
           carrier_phone?: string | null
           created_at?: string
+          delivery_acceptance_status?: string | null
           delivery_confirmed_at?: string | null
           delivery_confirmed_by?: string | null
           delivery_date?: string | null
@@ -1881,6 +1928,7 @@ export type Database = {
           carrier_name?: string | null
           carrier_phone?: string | null
           created_at?: string
+          delivery_acceptance_status?: string | null
           delivery_confirmed_at?: string | null
           delivery_confirmed_by?: string | null
           delivery_date?: string | null
@@ -2305,6 +2353,45 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      sent_reminders: {
+        Row: {
+          id: string
+          order_id: string | null
+          reminder_id: string | null
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          order_id?: string | null
+          reminder_id?: string | null
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          order_id?: string | null
+          reminder_id?: string | null
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sent_reminders_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sent_reminders_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "notification_reminders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_achievements: {
         Row: {
