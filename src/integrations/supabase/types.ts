@@ -690,11 +690,13 @@ export type Database = {
       invoices: {
         Row: {
           adjustments_total: number
+          amount_paid: number | null
           created_at: string
           dispute_reason: string | null
           dispute_resolved_at: string | null
           dispute_resolved_by: string | null
           disputed_at: string | null
+          due_date: string | null
           expenses_total: number
           final_total: number
           finalized_at: string | null
@@ -704,17 +706,21 @@ export type Database = {
           invoice_number: string
           locked_at: string | null
           order_id: string
+          payment_received_at: string | null
+          payment_status: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal: number
           updated_at: string
         }
         Insert: {
           adjustments_total?: number
+          amount_paid?: number | null
           created_at?: string
           dispute_reason?: string | null
           dispute_resolved_at?: string | null
           dispute_resolved_by?: string | null
           disputed_at?: string | null
+          due_date?: string | null
           expenses_total?: number
           final_total?: number
           finalized_at?: string | null
@@ -724,17 +730,21 @@ export type Database = {
           invoice_number: string
           locked_at?: string | null
           order_id: string
+          payment_received_at?: string | null
+          payment_status?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           updated_at?: string
         }
         Update: {
           adjustments_total?: number
+          amount_paid?: number | null
           created_at?: string
           dispute_reason?: string | null
           dispute_resolved_at?: string | null
           dispute_resolved_by?: string | null
           disputed_at?: string | null
+          due_date?: string | null
           expenses_total?: number
           final_total?: number
           finalized_at?: string | null
@@ -744,6 +754,8 @@ export type Database = {
           invoice_number?: string
           locked_at?: string | null
           order_id?: string
+          payment_received_at?: string | null
+          payment_status?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           updated_at?: string
