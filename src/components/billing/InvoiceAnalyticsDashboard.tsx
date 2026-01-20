@@ -21,13 +21,17 @@ interface Invoice {
   status: string;
   subtotal: number;
   final_total: number;
-  payment_status?: string;
-  amount_paid?: number;
+  payment_status?: string | null;
+  amount_paid?: number | null;
   created_at: string;
   order?: {
     restoration_type: string;
-    teeth_number: string;
-    doctor_name: string;
+    teeth_number?: string;
+    doctor_name?: string;
+    patient_name?: string;
+    order_number?: string;
+    status?: string;
+    delivery_confirmed_at?: string | null;
   } | null;
 }
 

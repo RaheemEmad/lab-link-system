@@ -18,11 +18,13 @@ import {
   Download,
   Eye,
   Loader2,
-  Receipt
+  Receipt,
+  Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import InvoicePreview from "./InvoicePreview";
-import BillingAnalytics from "./BillingAnalytics";
+import InvoiceAnalyticsDashboard from "./InvoiceAnalyticsDashboard";
+import InvoiceGenerator from "./InvoiceGenerator";
 import ExpenseTracker from "./ExpenseTracker";
 
 // Helper function to format EGP currency
@@ -70,6 +72,7 @@ const BillingTab = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showExpenseTracker, setShowExpenseTracker] = useState(false);
   const [selectedOrderForExpense, setSelectedOrderForExpense] = useState<string | null>(null);
+  const [showInvoiceGenerator, setShowInvoiceGenerator] = useState(false);
 
   // Fetch invoices
   const { data: invoices, isLoading } = useQuery({
@@ -246,46 +249,51 @@ const BillingTab = () => {
     );
   }
 
+  if (showInvoiceGenerator) {
+    return (
+      <InvoiceGenerator 
+        onClose={() => setShowInvoiceGenerator(false)}
+        onGenerated={() => {
+          queryClient.invalidateQueries({ queryKey: ['invoices'] });
+          queryClient.invalidateQueries({ queryKey: ['eligible-orders-for-billing'] });
+          setShowInvoiceGenerator(false);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Analytics Cards */}
-      <BillingAnalytics invoices={invoices || []} />
+      {/* Analytics Dashboard */}
+      <InvoiceAnalyticsDashboard invoices={invoices || []} />
 
-      {/* Eligible Orders for Invoice Generation */}
-      {(role === 'admin' || role === 'lab_staff') && eligibleOrders && eligibleOrders.length > 0 && (
+      {/* Generate Invoices Button */}
+      {(role === 'admin' || role === 'lab_staff') && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Receipt className="h-5 w-5" />
-              Ready for Billing
-            </CardTitle>
-            <CardDescription>
-              Orders with confirmed delivery - click to generate invoice
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {eligibleOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                  <div>
-                    <p className="font-mono text-sm font-medium">{order.order_number}</p>
-                    <p className="text-xs text-muted-foreground">{order.patient_name}</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => generateInvoiceMutation.mutate(order.id)}
-                    disabled={generateInvoiceMutation.isPending}
-                  >
-                    {generateInvoiceMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Generate'
-                    )}
-                  </Button>
-                </div>
-              ))}
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Receipt className="h-5 w-5" />
+                  Invoice Generation
+                </CardTitle>
+                <CardDescription>
+                  Generate invoices for delivered orders with confirmed delivery
+                </CardDescription>
+              </div>
+              <Button onClick={() => setShowInvoiceGenerator(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Generate Invoices
+              </Button>
             </div>
-          </CardContent>
+          </CardHeader>
+          {eligibleOrders && eligibleOrders.length > 0 && (
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{eligibleOrders.length}</span> orders ready for billing
+              </p>
+            </CardContent>
+          )}
         </Card>
       )}
 
