@@ -21,8 +21,7 @@ import OrderNotesDialog from "@/components/order/OrderNotesDialog";
 import { OrderNotes } from "@/components/order/OrderNotes";
 import { QCChecklist } from "@/components/order/QCChecklist";
 import { OrderHistoryTimeline } from "@/components/order/OrderHistoryTimeline";
-import { OrderAttachmentsView } from "@/components/order/OrderAttachmentsView";
-import { OrderPhotosGallery } from "@/components/order/OrderPhotosGallery";
+import { OrderAttachmentsHub } from "@/components/order/OrderAttachmentsHub";
 
 interface Order {
   id: string;
@@ -768,12 +767,6 @@ const LabOrderDetail = () => {
                 </CardContent>
               </Card>
 
-              {/* Doctor-Uploaded Photos Gallery */}
-              <OrderPhotosGallery photosLink={order.photos_link} showTitle={true} />
-
-              {/* Order Attachments from order_attachments table */}
-              <OrderAttachmentsView orderId={order.id} />
-
               {/* Doctor Notes & Instructions - Consolidated Section */}
               {(order.biological_notes || order.handling_instructions || order.approval_notes) && (
                 <Card>
@@ -870,6 +863,17 @@ const LabOrderDetail = () => {
                   </p>
                 </CardContent>
               </Card>
+
+              {/* Order Attachments Hub - All doctor notes, photos, and files in one place */}
+              <OrderAttachmentsHub 
+                orderId={order.id}
+                order={{
+                  biological_notes: order.biological_notes,
+                  handling_instructions: order.handling_instructions,
+                  approval_notes: order.approval_notes,
+                  photos_link: order.photos_link
+                }}
+              />
 
               {/* Tabs for QC and History */}
               <Tabs defaultValue="qc" className="w-full">
