@@ -238,17 +238,12 @@ export const OrderAttachmentsHub = ({ orderId, order }: OrderAttachmentsHubProps
                           <div className="space-y-2">
                             {orderNotes?.map(note => (
                               <div key={note.id} className="rounded-lg border bg-muted/30 p-3">
-                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex items-start justify-between gap-2 mb-2">
                                   <div className="flex items-center gap-2">
                                     <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
                                     <span className="text-xs font-medium">
                                       {note.user?.full_name || 'Team Member'}
                                     </span>
-                                  </div>
-                                  <span className="text-[10px] text-muted-foreground">
-                                    {format(new Date(note.created_at), 'MMM d, h:mm a')}
-                                      </Badge>
-                                    )}
                                   </div>
                                   <span className="text-[10px] text-muted-foreground">
                                     {format(new Date(note.created_at), 'MMM d, h:mm a')}
