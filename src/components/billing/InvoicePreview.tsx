@@ -15,12 +15,15 @@ import {
   FileText,
   Clock,
   Loader2,
-  Plus
+  Plus,
+  CreditCard,
+  Calendar
 } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow, format, isPast, startOfDay } from "date-fns";
 import InvoiceLineItems from "./InvoiceLineItems";
 import AdjustmentDialog from "./AdjustmentDialog";
 import DisputeDialog from "./DisputeDialog";
+import PaymentDialog from "./PaymentDialog";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -33,12 +36,17 @@ const formatEGP = (amount: number) => {
 };
 
 type InvoiceStatus = 'draft' | 'generated' | 'locked' | 'finalized' | 'disputed';
+type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
 
 interface Invoice {
   id: string;
   order_id: string;
   invoice_number: string;
   status: InvoiceStatus;
+  payment_status: PaymentStatus | null;
+  amount_paid: number;
+  due_date: string | null;
+  payment_received_at: string | null;
   subtotal: number;
   adjustments_total: number;
   expenses_total: number;
@@ -70,6 +78,7 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
   const queryClient = useQueryClient();
   const [showAdjustmentDialog, setShowAdjustmentDialog] = useState(false);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   // Fetch full order details for PDF
   const { data: orderDetails } = useQuery({
@@ -528,6 +537,19 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
     }
   };
 
+  const getPaymentBadge = (status: PaymentStatus | null) => {
+    switch (status) {
+      case 'paid':
+        return <Badge className="bg-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />Paid</Badge>;
+      case 'partial':
+        return <Badge className="bg-amber-500"><CreditCard className="h-3 w-3 mr-1" />Partial</Badge>;
+      case 'overdue':
+        return <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />Overdue</Badge>;
+      default:
+        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
@@ -581,8 +603,9 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
                 Order: {invoice.order?.order_number} • {invoice.order?.patient_name}
               </p>
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex flex-wrap gap-2 flex-shrink-0">
               {getStatusBadge(invoice.status)}
+              {getPaymentBadge(invoice.payment_status)}
             </div>
           </div>
         </CardHeader>
@@ -618,6 +641,66 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
                 Dispute Reason
               </div>
               <p className="text-sm">{invoice.dispute_reason}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Payment Status Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Payment Status
+            </CardTitle>
+            {(role === 'admin' || role === 'lab_staff') && (
+              <Button variant="outline" size="sm" onClick={() => setShowPaymentDialog(true)} className="gap-1.5">
+                <CreditCard className="h-4 w-4" />
+                Update Payment
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs sm:text-sm text-muted-foreground">Total Due</p>
+              <p className="font-semibold text-lg">{formatEGP(invoice.final_total)}</p>
+            </div>
+            <div>
+              <p className="text-xs sm:text-sm text-muted-foreground">Amount Paid</p>
+              <p className="font-semibold text-lg text-green-600">{formatEGP(invoice.amount_paid || 0)}</p>
+            </div>
+            <div>
+              <p className="text-xs sm:text-sm text-muted-foreground">Remaining</p>
+              <p className={`font-semibold text-lg ${(invoice.final_total - (invoice.amount_paid || 0)) > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                {formatEGP(Math.max(0, invoice.final_total - (invoice.amount_paid || 0)))}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Due Date
+              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-sm sm:text-base">
+                  {invoice.due_date ? format(new Date(invoice.due_date), 'MMM d, yyyy') : 'Not set'}
+                </p>
+                {invoice.due_date && isPast(startOfDay(new Date(invoice.due_date))) && invoice.payment_status !== 'paid' && (
+                  <Badge variant="destructive" className="text-xs">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Overdue
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+          {invoice.payment_received_at && (
+            <div className="mt-3 pt-3 border-t">
+              <p className="text-xs text-muted-foreground">
+                Payment received on {format(new Date(invoice.payment_received_at), 'MMMM d, yyyy')}
+              </p>
             </div>
           )}
         </CardContent>

@@ -42,6 +42,10 @@ interface Invoice {
   order_id: string;
   invoice_number: string;
   status: InvoiceStatus;
+  payment_status: 'pending' | 'partial' | 'paid' | 'overdue' | null;
+  amount_paid: number;
+  due_date: string | null;
+  payment_received_at: string | null;
   subtotal: number;
   adjustments_total: number;
   expenses_total: number;
