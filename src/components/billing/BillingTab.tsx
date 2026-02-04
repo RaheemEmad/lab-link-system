@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,13 +19,16 @@ import {
   Eye,
   Loader2,
   Receipt,
-  Plus
+  Plus,
+  CalendarDays
 } from "lucide-react";
 import { toast } from "sonner";
+import { isPast, startOfDay } from "date-fns";
 import InvoicePreview from "./InvoicePreview";
 import InvoiceAnalyticsDashboard from "./InvoiceAnalyticsDashboard";
 import InvoiceGenerator from "./InvoiceGenerator";
 import ExpenseTracker from "./ExpenseTracker";
+import MonthlyBillingSummary from "./MonthlyBillingSummary";
 
 // Helper function to format EGP currency
 const formatEGP = (amount: number) => {
@@ -77,6 +80,7 @@ const BillingTab = () => {
   const [showExpenseTracker, setShowExpenseTracker] = useState(false);
   const [selectedOrderForExpense, setSelectedOrderForExpense] = useState<string | null>(null);
   const [showInvoiceGenerator, setShowInvoiceGenerator] = useState(false);
+  const [showMonthlySummary, setShowMonthlySummary] = useState(false);
 
   // Fetch invoices
   const { data: invoices, isLoading } = useQuery({
@@ -208,6 +212,36 @@ const BillingTab = () => {
     }
   });
 
+  // Auto-overdue detection mutation
+  const updateOverdueMutation = useMutation({
+    mutationFn: async (invoiceId: string) => {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ payment_status: 'overdue' })
+        .eq('id', invoiceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    }
+  });
+
+  // Check for overdue invoices on load
+  useEffect(() => {
+    if (!invoices) return;
+    
+    invoices.forEach(invoice => {
+      if (
+        invoice.due_date &&
+        isPast(startOfDay(new Date(invoice.due_date))) &&
+        (invoice.payment_status === 'pending' || invoice.payment_status === 'partial' || !invoice.payment_status)
+      ) {
+        updateOverdueMutation.mutate(invoice.id);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invoices]);
+
   const getStatusBadge = (status: InvoiceStatus) => {
     switch (status) {
       case 'draft':
@@ -285,10 +319,16 @@ const BillingTab = () => {
                   Generate invoices for delivered orders with confirmed delivery
                 </CardDescription>
               </div>
-              <Button onClick={() => setShowInvoiceGenerator(true)} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Generate Invoices
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setShowInvoiceGenerator(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Generate Invoices
+                </Button>
+                <Button variant="outline" onClick={() => setShowMonthlySummary(true)} className="gap-2">
+                  <CalendarDays className="h-4 w-4" />
+                  Monthly Summary
+                </Button>
+              </div>
             </div>
           </CardHeader>
           {eligibleOrders && eligibleOrders.length > 0 && (
@@ -456,6 +496,12 @@ const BillingTab = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Monthly Billing Summary Dialog */}
+      <MonthlyBillingSummary 
+        open={showMonthlySummary} 
+        onOpenChange={setShowMonthlySummary} 
+      />
     </div>
   );
 };

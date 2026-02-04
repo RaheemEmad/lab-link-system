@@ -823,6 +823,17 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         invoiceId={invoice.id}
         onSuccess={onClose}
       />
+
+      <PaymentDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        invoiceId={invoice.id}
+        currentStatus={invoice.payment_status}
+        currentAmountPaid={invoice.amount_paid || 0}
+        currentDueDate={invoice.due_date}
+        currentPaymentReceivedAt={invoice.payment_received_at}
+        finalTotal={invoice.final_total}
+      />
     </div>
   );
 };
