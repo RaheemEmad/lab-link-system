@@ -1,27 +1,39 @@
-import { useState, useRef, useEffect } from "react";
-import { Upload, X, FileIcon, Image, Loader2, Box, Boxes } from "lucide-react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
+import { Upload, X, FileIcon, Image, Loader2, Box, Boxes, FileArchive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { compressImage, validateImageType, formatFileSize } from "@/lib/imageCompression";
-import { validateUploadFile } from "@/lib/fileValidation";
+import { validateUploadFile, validateZipFile } from "@/lib/fileValidation";
 import { validate3DModelFile, getValidationSummary } from "@/lib/modelFileValidation";
 import { parallelCompression } from "@/lib/batchUpload";
 import { UploadQueue } from "@/lib/uploadQueue";
 import { UploadQueueVisualization } from "./UploadQueueVisualization";
 
+// Lazy load ZIP preview component
+const ZipContentsPreview = lazy(() => import('./ZipContentsPreview'));
+
+interface ZipValidationInfo {
+  contents: { name: string; size: number; type: string }[];
+  warnings: string[];
+  totalSize: number;
+  fileCount: number;
+}
+
 interface FileUpload {
   id: string;
   file: File;
-  category: 'radiograph' | 'stl' | 'obj' | 'intraoral_photo' | 'other';
+  category: 'radiograph' | 'stl' | 'obj' | 'intraoral_photo' | 'archive' | 'other';
   preview?: string;
   uploading?: boolean;
   uploadProgress?: number;
   modelInfo?: string;
+  zipInfo?: ZipValidationInfo;
 }
 
 interface FileUploadSectionProps {
@@ -41,6 +53,7 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ACCEPTED_STL_TYPES = ["model/stl", "application/sla", "application/octet-stream", "model/obj", "application/obj"];
 const ACCEPTED_DOCUMENT_TYPES = ["application/pdf"];
+const ACCEPTED_ARCHIVE_TYPES = ["application/zip", "application/x-zip-compressed"];
 
 export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }: FileUploadSectionProps) {
   const [files, setFiles] = useState<FileUpload[]>([]);
@@ -69,12 +82,16 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
         return <Box className="h-4 w-4" />;
       case 'obj':
         return <Boxes className="h-4 w-4" />;
+      case 'archive':
+        return <FileArchive className="h-4 w-4" />;
       default:
         // Check file extension for uploaded files
         if (fileName?.toLowerCase().endsWith('.stl')) {
           return <Box className="h-4 w-4" />;
         } else if (fileName?.toLowerCase().endsWith('.obj')) {
           return <Boxes className="h-4 w-4" />;
+        } else if (fileName?.toLowerCase().endsWith('.zip')) {
+          return <FileArchive className="h-4 w-4" />;
         }
         return <FileIcon className="h-4 w-4" />;
     }
@@ -94,10 +111,11 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
       const isSTL = file.name.toLowerCase().endsWith('.stl') || ACCEPTED_STL_TYPES.includes(file.type);
       const isOBJ = file.name.toLowerCase().endsWith('.obj');
       const isDocument = ACCEPTED_DOCUMENT_TYPES.includes(file.type);
+      const isZip = file.name.toLowerCase().endsWith('.zip') || ACCEPTED_ARCHIVE_TYPES.includes(file.type);
 
-      if (!isImage && !isSTL && !isOBJ && !isDocument) {
+      if (!isImage && !isSTL && !isOBJ && !isDocument && !isZip) {
         toast.error(`Invalid file type: ${file.name}`, {
-          description: 'Accepted formats: JPEG, PNG, WebP, PDF, STL, OBJ'
+          description: 'Accepted formats: JPEG, PNG, WebP, PDF, STL, OBJ, ZIP'
         });
         continue;
       }
@@ -123,6 +141,48 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
         if (!validation.isValid) {
           toast.error(`Security check failed: ${file.name}`, {
             description: validation.errors.join(', ')
+          });
+          continue;
+        }
+      }
+
+      // ZIP file validation with QC checks
+      let zipInfo: ZipValidationInfo | undefined;
+      if (isZip) {
+        toast.loading(`Validating ZIP archive: ${file.name}...`, { id: `validate-zip-${file.name}` });
+        
+        try {
+          const zipValidation = await validateZipFile(file);
+          toast.dismiss(`validate-zip-${file.name}`);
+          
+          if (!zipValidation.isValid) {
+            toast.error(`Invalid ZIP archive: ${file.name}`, {
+              description: zipValidation.errors.join(', ')
+            });
+            continue;
+          }
+
+          if (zipValidation.warnings.length > 0) {
+            toast.warning(`ZIP archive warnings`, {
+              description: zipValidation.warnings.slice(0, 2).join(', ') + 
+                (zipValidation.warnings.length > 2 ? ` and ${zipValidation.warnings.length - 2} more` : '')
+            });
+          }
+
+          zipInfo = {
+            contents: zipValidation.contents || [],
+            warnings: zipValidation.warnings,
+            totalSize: zipValidation.totalUncompressedSize || 0,
+            fileCount: zipValidation.fileCount || 0
+          };
+
+          toast.success(`Valid ZIP archive`, {
+            description: `${zipInfo.fileCount} files, ${formatFileSize(zipInfo.totalSize)} uncompressed`
+          });
+        } catch (error) {
+          toast.dismiss(`validate-zip-${file.name}`);
+          toast.error(`Failed to validate ${file.name}`, {
+            description: 'ZIP file may be corrupted'
           });
           continue;
         }
@@ -166,17 +226,19 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
       // Note: Image compression will be handled in parallel batch at upload time
       let processedFile = file;
 
-      // Determine category for STL/OBJ
+      // Determine category for STL/OBJ/ZIP
       let finalCategory = category;
       if (isSTL) finalCategory = 'stl';
       if (isOBJ) finalCategory = 'obj';
+      if (isZip) finalCategory = 'archive';
 
       const newFile: FileUpload = {
         id: crypto.randomUUID(),
         file: processedFile,
         category: finalCategory,
         preview: isImage ? URL.createObjectURL(processedFile) : undefined,
-        modelInfo
+        modelInfo,
+        zipInfo
       };
 
       setFiles(prev => {
@@ -185,6 +247,7 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
         return updated;
       });
     }
+
 
     e.target.value = '';
   };
@@ -312,7 +375,7 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
           <span className="text-xs text-muted-foreground">Max {formatFileSize(MAX_FILE_SIZE)} per file</span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {/* Radiographs */}
           <Card className="p-4 border-2 border-dashed hover:border-primary/50 transition-colors">
             <Label htmlFor="radiograph-upload" className="cursor-pointer">
@@ -388,6 +451,25 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
               onChange={(e) => handleFileSelect(e, 'intraoral_photo')}
             />
           </Card>
+
+          {/* ZIP Archives */}
+          <Card className="p-4 border-2 border-dashed hover:border-primary/50 transition-colors">
+            <Label htmlFor="zip-upload" className="cursor-pointer">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <FileArchive className="h-8 w-8 text-muted-foreground" />
+                <span className="text-sm font-medium">ZIP Archives</span>
+                <span className="text-xs text-muted-foreground">Bundled files</span>
+              </div>
+            </Label>
+            <input
+              id="zip-upload"
+              type="file"
+              accept=".zip,application/zip,application/x-zip-compressed"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFileSelect(e, 'archive')}
+            />
+          </Card>
         </div>
       </div>
 
@@ -418,36 +500,57 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
             
             <div className="space-y-2">
               {files.map((file) => (
-                <div key={file.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    {file.preview ? (
-                      <img src={file.preview} alt={file.file.name} className="h-10 w-10 object-cover rounded" />
-                    ) : (
-                      <div className="h-10 w-10 flex items-center justify-center bg-primary/10 rounded">
-                        {getCategoryIcon(file.category, file.file.name)}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{file.file.name}</p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="secondary" className="text-xs">
-                          {file.category === 'stl' ? 'STL' : file.category === 'obj' ? 'OBJ' : file.category.replace('_', ' ')}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">{formatFileSize(file.file.size)}</span>
-                        {file.modelInfo && (
-                          <span className="text-xs text-muted-foreground">{file.modelInfo}</span>
-                        )}
+                <div key={file.id} className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {file.preview ? (
+                        <img src={file.preview} alt={file.file.name} className="h-10 w-10 object-cover rounded" />
+                      ) : (
+                        <div className="h-10 w-10 flex items-center justify-center bg-primary/10 rounded">
+                          {getCategoryIcon(file.category, file.file.name)}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{file.file.name}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="secondary" className="text-xs">
+                            {file.category === 'stl' ? 'STL' : 
+                             file.category === 'obj' ? 'OBJ' : 
+                             file.category === 'archive' ? 'ZIP' :
+                             file.category.replace('_', ' ')}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">{formatFileSize(file.file.size)}</span>
+                          {file.modelInfo && (
+                            <span className="text-xs text-muted-foreground">{file.modelInfo}</span>
+                          )}
+                          {file.zipInfo && (
+                            <span className="text-xs text-muted-foreground">
+                              {file.zipInfo.fileCount} files • {formatFileSize(file.zipInfo.totalSize)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(file.id)}
+                      disabled={uploading}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFile(file.id)}
-                    disabled={uploading}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  {/* ZIP Contents Preview (lazy loaded) */}
+                  {file.zipInfo && file.zipInfo.contents.length > 0 && (
+                    <Suspense fallback={<Skeleton className="h-32 w-full" />}>
+                      <ZipContentsPreview 
+                        contents={file.zipInfo.contents}
+                        warnings={file.zipInfo.warnings}
+                        totalSize={file.zipInfo.totalSize}
+                        fileCount={file.zipInfo.fileCount}
+                      />
+                    </Suspense>
+                  )}
                 </div>
               ))}
             </div>

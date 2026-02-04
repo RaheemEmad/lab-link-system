@@ -23,6 +23,18 @@ const FILE_SIGNATURES: FileSignature[] = [
     signature: [[0x52, 0x49, 0x46, 0x46]], // RIFF
     offset: 0,
   },
+  {
+    mimeType: 'application/zip',
+    signature: [[0x50, 0x4B, 0x03, 0x04]], // PK header (normal ZIP)
+  },
+  {
+    mimeType: 'application/zip',
+    signature: [[0x50, 0x4B, 0x05, 0x06]], // Empty archive
+  },
+  {
+    mimeType: 'application/zip',
+    signature: [[0x50, 0x4B, 0x07, 0x08]], // Spanning marker
+  },
 ];
 
 /**
@@ -218,4 +230,175 @@ export async function validateUploadFile(file: File): Promise<{
     errors,
     warnings,
   };
+}
+
+// ZIP validation types
+interface ZipValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  contents?: { name: string; size: number; type: string }[];
+  totalUncompressedSize?: number;
+  fileCount?: number;
+}
+
+// Dangerous file extensions not allowed inside ZIP
+const DANGEROUS_EXTENSIONS = [
+  '.exe', '.dll', '.scr', '.bat', '.cmd', '.com', '.pif', 
+  '.vbs', '.js', '.jse', '.wsf', '.wsh', '.msc', '.msi',
+  '.ps1', '.reg', '.hta', '.cpl', '.jar', '.sh', '.bash'
+];
+
+/**
+ * Parses ZIP central directory to extract file entries
+ * This is a lightweight parser that reads the end-of-central-directory
+ */
+async function parseZipEntries(file: File): Promise<{ name: string; compressedSize: number; uncompressedSize: number }[]> {
+  const buffer = await file.arrayBuffer();
+  const view = new DataView(buffer);
+  const entries: { name: string; compressedSize: number; uncompressedSize: number }[] = [];
+  
+  // Find End of Central Directory (EOCD) signature (0x06054b50)
+  // Search from end of file (EOCD is at least 22 bytes)
+  let eocdOffset = -1;
+  for (let i = buffer.byteLength - 22; i >= 0 && i >= buffer.byteLength - 65557; i--) {
+    if (view.getUint32(i, true) === 0x06054b50) {
+      eocdOffset = i;
+      break;
+    }
+  }
+  
+  if (eocdOffset === -1) {
+    throw new Error('Invalid ZIP: EOCD not found');
+  }
+  
+  // Read EOCD
+  const centralDirOffset = view.getUint32(eocdOffset + 16, true);
+  const totalEntries = view.getUint16(eocdOffset + 10, true);
+  
+  // Parse central directory entries
+  let offset = centralDirOffset;
+  for (let i = 0; i < totalEntries && offset < eocdOffset; i++) {
+    // Check for central directory file header signature (0x02014b50)
+    if (view.getUint32(offset, true) !== 0x02014b50) {
+      break;
+    }
+    
+    const compressedSize = view.getUint32(offset + 20, true);
+    const uncompressedSize = view.getUint32(offset + 24, true);
+    const fileNameLength = view.getUint16(offset + 28, true);
+    const extraFieldLength = view.getUint16(offset + 30, true);
+    const commentLength = view.getUint16(offset + 32, true);
+    
+    // Read filename
+    const fileNameBytes = new Uint8Array(buffer, offset + 46, fileNameLength);
+    const fileName = new TextDecoder().decode(fileNameBytes);
+    
+    entries.push({
+      name: fileName,
+      compressedSize,
+      uncompressedSize
+    });
+    
+    // Move to next entry
+    offset += 46 + fileNameLength + extraFieldLength + commentLength;
+  }
+  
+  return entries;
+}
+
+/**
+ * Validates a ZIP file with comprehensive QC checks
+ */
+export async function validateZipFile(file: File): Promise<ZipValidationResult> {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const contents: { name: string; size: number; type: string }[] = [];
+  
+  // Basic validations
+  if (file.size < 22) {
+    return { isValid: false, errors: ['File is too small to be a valid ZIP'], warnings };
+  }
+  
+  // Check signature
+  const header = await readFileHeader(file, 4);
+  const isZip = (header[0] === 0x50 && header[1] === 0x4B && 
+                 (header[2] === 0x03 || header[2] === 0x05 || header[2] === 0x07));
+  
+  if (!isZip) {
+    return { isValid: false, errors: ['File does not have valid ZIP signature'], warnings };
+  }
+  
+  try {
+    const entries = await parseZipEntries(file);
+    let totalUncompressedSize = 0;
+    
+    for (const entry of entries) {
+      const ext = '.' + entry.name.split('.').pop()?.toLowerCase();
+      const isDirectory = entry.name.endsWith('/');
+      
+      // Check for path traversal
+      if (entry.name.includes('../') || entry.name.includes('..\\')) {
+        errors.push(`Path traversal detected: ${entry.name}`);
+        continue;
+      }
+      
+      // Check for absolute paths
+      if (entry.name.startsWith('/') || /^[A-Za-z]:/.test(entry.name)) {
+        errors.push(`Absolute path detected: ${entry.name}`);
+        continue;
+      }
+      
+      // Check for dangerous file types
+      if (!isDirectory && DANGEROUS_EXTENSIONS.includes(ext)) {
+        errors.push(`Dangerous file type: ${entry.name}`);
+      }
+      
+      // Check for nested archives (warning only)
+      if (!isDirectory && (ext === '.zip' || ext === '.rar' || ext === '.7z' || ext === '.tar')) {
+        warnings.push(`Nested archive: ${entry.name}`);
+      }
+      
+      // Check for zip bombs (compression ratio)
+      if (entry.compressedSize > 0 && entry.uncompressedSize / entry.compressedSize > 100) {
+        warnings.push(`High compression ratio (possible zip bomb): ${entry.name}`);
+      }
+      
+      totalUncompressedSize += entry.uncompressedSize;
+      
+      if (!isDirectory) {
+        contents.push({
+          name: entry.name,
+          size: entry.uncompressedSize,
+          type: ext
+        });
+      }
+    }
+    
+    // Check total file count
+    if (entries.length > 100) {
+      warnings.push(`Archive contains ${entries.length} files (large archive)`);
+    }
+    
+    // Check total uncompressed size
+    if (totalUncompressedSize > 100 * 1024 * 1024) {
+      warnings.push(`Total uncompressed size is ${(totalUncompressedSize / (1024 * 1024)).toFixed(1)}MB`);
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      contents,
+      totalUncompressedSize,
+      fileCount: entries.length
+    };
+    
+  } catch (error) {
+    return {
+      isValid: false,
+      errors: [error instanceof Error ? error.message : 'Failed to parse ZIP file'],
+      warnings
+    };
+  }
 }
