@@ -1,15 +1,14 @@
 
 # Implementation Plan: Fix Delivery Confirmation, Lab Pricing Setup & Invoice Search
 
-## Summary of Issues Identified
+## ✅ COMPLETED
 
-### Issue 1: Delivery Confirmation Failure
-**Error**: `new row for relation "invoice_line_items" violates check constraint "invoice_line_items_line_type_check"`
-
-**Root Cause**: The `generate_invoice_for_order` database function uses `'agreed_fee'` as a `line_type` value (line 64), but the constraint only allows:
-- `base_price`, `urgency_fee`, `rework`, `sla_penalty`, `sla_bonus`, `multi_unit`, `adjustment`
-
-**Fix**: Add `'agreed_fee'` to the check constraint for `invoice_line_items.line_type`
+### Issue 1: Delivery Confirmation Failure - FIXED
+- Added `'agreed_fee'` to the `invoice_line_items_line_type_check` constraint
+- Updated `generate_invoice_for_order` function to use lab-specific pricing with priority:
+  1. Agreed fee from bid (revised or original)
+  2. Lab-specific pricing from `lab_pricing` table
+  3. Global pricing rules fallback
 
 ---
 

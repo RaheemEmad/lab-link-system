@@ -26,8 +26,10 @@ import {
   Eye,
   Upload,
   X,
-  Package
+  Package,
+  DollarSign
 } from "lucide-react";
+import LabPricingSetup from "@/components/billing/LabPricingSetup";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -381,11 +383,16 @@ const LabAdmin = () => {
             </div>
 
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 max-w-xl">
+              <TabsList className="grid w-full grid-cols-4 max-w-2xl">
                 <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Profile & Settings</span>
                   <span className="sm:hidden">Profile</span>
+                </TabsTrigger>
+                <TabsTrigger value="pricing" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                  <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Pricing</span>
+                  <span className="sm:hidden">Price</span>
                 </TabsTrigger>
                 <TabsTrigger value="specializations" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -792,6 +799,11 @@ const LabAdmin = () => {
                     </CardContent>
                   </Card>
                 </div>
+              </TabsContent>
+
+              {/* Pricing Tab */}
+              <TabsContent value="pricing">
+                {labId && <LabPricingSetup labId={labId} />}
               </TabsContent>
 
               {/* Inventory Tab */}
