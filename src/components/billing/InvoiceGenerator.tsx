@@ -304,10 +304,16 @@ const InvoiceGenerator = ({ onClose, onGenerated }: InvoiceGeneratorProps) => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground px-4">
             <FileText className="h-12 w-12 mb-3 opacity-50" />
             <p className="font-medium">No eligible orders</p>
-            <p className="text-sm">Orders appear here after delivery is confirmed</p>
+            <p className="text-sm text-center">
+              {eligibleOrders?.length === 0 
+                ? "No delivered orders are awaiting invoices. Orders must be delivered and have their delivery confirmed before invoicing."
+                : searchQuery 
+                  ? `No orders match "${searchQuery}". Try a different search term.`
+                  : "No orders match the current date filter. Try adjusting your filters."}
+            </p>
           </div>
         ) : (
           <ScrollArea className="flex-1 -mx-2 px-2">

@@ -2629,7 +2629,7 @@ export type Database = {
         Returns: boolean
       }
       generate_invoice_for_order: {
-        Args: { p_order_id: string; p_user_id?: string }
+        Args: { p_order_id: string; p_user_id: string }
         Returns: string
       }
       generate_invoice_number: { Args: never; Returns: string }
