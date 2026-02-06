@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, MapPin, Phone, Mail, Globe, Clock, Star, Users, Heart, ArrowLeft, Package, Sparkles, DollarSign, Zap } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, Globe, Clock, Star, Users, Heart, ArrowLeft, Package, Sparkles } from "lucide-react";
+import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -360,39 +361,13 @@ export default function LabProfile() {
       {/* Portfolio */}
       <LabPortfolio labId={lab.id} />
 
-      {/* Pricing Card */}
-      {labPricing && labPricing.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Pricing
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {labPricing.map((pricing) => (
-                <div key={pricing.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                  <div>
-                    <p className="font-medium">{pricing.restoration_type}</p>
-                    {pricing.rush_surcharge_percent && pricing.rush_surcharge_percent > 0 && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                        <Zap className="h-3 w-3 text-orange-500" />
-                        Rush: +{pricing.rush_surcharge_percent}%
-                      </p>
-                    )}
-                  </div>
-                  <p className="font-semibold text-primary">
-                    {pricing.fixed_price ? formatEGP(pricing.fixed_price) : 'Contact'}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground mt-4">
-              * Prices are per unit. Rush orders may include additional surcharges.
-            </p>
-          </CardContent>
-        </Card>
+      {/* Pricing Card - Now uses LabPricingDisplay */}
+      {lab && (
+        <LabPricingDisplay 
+          labId={lab.id}
+          pricingMode={(lab as any).pricing_mode}
+          showLabel
+        />
       )}
 
       {/* Services Card */}

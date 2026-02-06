@@ -8,7 +8,10 @@ import {
   Zap,
   TrendingUp,
   Award,
-  Sparkles
+  Sparkles,
+  DollarSign,
+  FileText,
+  Settings
 } from "lucide-react";
 import { LabBadges } from "./LabBadges";
 
@@ -38,13 +41,27 @@ interface Lab {
   is_sponsored?: boolean;
   subscription_tier?: string | null;
   cancellation_visible?: boolean;
+  pricing_mode?: 'TEMPLATE' | 'CUSTOM' | null;
+  min_price_egp?: number | null;
+  max_price_egp?: number | null;
 }
 
 interface LabCardProps {
   lab: Lab;
   specializations: LabSpecialization[];
   isVerified?: boolean;
+  minLabPrice?: number | null;
 }
+
+// Helper to format EGP
+const formatEGP = (amount: number) => {
+  return `EGP ${amount.toLocaleString('en-EG', { 
+    minimumFractionDigits: 0, 
+    maximumFractionDigits: 0
+  })}`;
+};
+
+// Removed duplicate interface definition
 
 const getPricingBadgeVariant = (tier: string) => {
   switch (tier) {
@@ -66,12 +83,12 @@ const getExpertiseBadgeVariant = (level: string) => {
 
 const getCapacityColor = (currentLoad: number, maxCapacity: number) => {
   const percentage = (currentLoad / maxCapacity) * 100;
-  if (percentage < 50) return 'text-green-600';
-  if (percentage < 80) return 'text-orange-600';
-  return 'text-red-600';
+  if (percentage < 50) return 'text-green-600 dark:text-green-400';
+  if (percentage < 80) return 'text-amber-600 dark:text-amber-400';
+  return 'text-destructive';
 };
 
-export function LabCard({ lab, specializations, isVerified = false }: LabCardProps) {
+export function LabCard({ lab, specializations, isVerified = false, minLabPrice }: LabCardProps) {
   const capacityPercentage = (lab.current_load / lab.max_capacity) * 100;
   const isSponsored = lab.is_sponsored;
 
@@ -146,6 +163,43 @@ export function LabCard({ lab, specializations, isVerified = false }: LabCardPro
             {lab.current_load}/{lab.max_capacity} ({Math.round(capacityPercentage)}%)
           </span>
         </div>
+
+          {/* Pricing Mode & Starting Price */}
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Pricing:</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {lab.pricing_mode ? (
+                <>
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs flex items-center gap-1"
+                  >
+                    {lab.pricing_mode === 'TEMPLATE' ? (
+                      <>
+                        <FileText className="h-3 w-3" />
+                        Platform
+                      </>
+                    ) : (
+                      <>
+                        <Settings className="h-3 w-3" />
+                        Custom
+                      </>
+                    )}
+                  </Badge>
+                  {(minLabPrice || lab.min_price_egp) && (
+                    <span className="font-medium text-primary">
+                      From {formatEGP(minLabPrice || lab.min_price_egp!)}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground text-xs">Not configured</span>
+              )}
+            </div>
+          </div>
 
         {/* Lab Badges */}
         <LabBadges labId={lab.id} maxDisplay={2} className="pt-1" />

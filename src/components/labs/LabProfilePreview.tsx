@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Building2, Star, Clock, Zap, TrendingUp, Award, MapPin, Phone, Mail, Globe, X } from "lucide-react";
+import { Building2, Star, Clock, Zap, TrendingUp, Award, MapPin, Phone, Mail, Globe, DollarSign, FileText, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
 
 interface LabSpecialization {
   restoration_type: string;
@@ -14,6 +14,7 @@ interface LabProfilePreviewProps {
   isOpen: boolean;
   onClose: () => void;
   labData: {
+    id?: string;
     name: string;
     description: string;
     contact_email: string;
@@ -27,6 +28,7 @@ interface LabProfilePreviewProps {
     performance_score: number;
     logo_url: string | null;
     website_url: string;
+    pricing_mode?: 'TEMPLATE' | 'CUSTOM' | null;
   };
   specializations: LabSpecialization[];
 }
@@ -51,9 +53,9 @@ const getExpertiseBadgeVariant = (level: string) => {
 
 const getCapacityColor = (currentLoad: number, maxCapacity: number) => {
   const percentage = (currentLoad / maxCapacity) * 100;
-  if (percentage < 50) return 'text-green-600';
-  if (percentage < 80) return 'text-orange-600';
-  return 'text-red-600';
+  if (percentage < 50) return 'text-green-600 dark:text-green-400';
+  if (percentage < 80) return 'text-amber-600 dark:text-amber-400';
+  return 'text-destructive';
 };
 
 export function LabProfilePreview({ isOpen, onClose, labData, specializations }: LabProfilePreviewProps) {
@@ -85,16 +87,31 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
             )}
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-2">{labData.name}</h1>
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant={getPricingBadgeVariant(labData.pricing_tier)}>
-                  {labData.pricing_tier}
-                </Badge>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                  <span className="font-medium">{labData.performance_score?.toFixed(1)}</span>
-                  <span className="text-xs">(Performance Score)</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant={getPricingBadgeVariant(labData.pricing_tier)}>
+                    {labData.pricing_tier}
+                  </Badge>
+                  {labData.pricing_mode && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      {labData.pricing_mode === 'TEMPLATE' ? (
+                        <>
+                          <FileText className="h-3 w-3" />
+                          Platform Pricing
+                        </>
+                      ) : (
+                        <>
+                          <Settings className="h-3 w-3" />
+                          Custom Pricing
+                        </>
+                      )}
+                    </Badge>
+                  )}
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                    <span className="font-medium">{labData.performance_score?.toFixed(1)}</span>
+                    <span className="text-xs">(Performance Score)</span>
+                  </div>
                 </div>
-              </div>
             </div>
           </div>
 
@@ -181,6 +198,15 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
               </div>
             </CardContent>
           </Card>
+
+          {/* Pricing Section */}
+          {labData.id && (
+            <LabPricingDisplay 
+              labId={labData.id} 
+              pricingMode={labData.pricing_mode}
+              showLabel
+            />
+          )}
 
           {/* Specializations */}
           {specializations.length > 0 && (

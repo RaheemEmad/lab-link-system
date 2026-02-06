@@ -997,43 +997,99 @@ export type Database = {
       lab_pricing: {
         Row: {
           created_at: string
+          effective_from: string | null
+          effective_until: string | null
           fixed_price: number | null
           id: string
           includes_rush: boolean | null
+          is_current: boolean | null
           lab_id: string
           max_price: number | null
           min_price: number | null
           restoration_type: string
           rush_surcharge_percent: number | null
           updated_at: string
+          version: number | null
         }
         Insert: {
           created_at?: string
+          effective_from?: string | null
+          effective_until?: string | null
           fixed_price?: number | null
           id?: string
           includes_rush?: boolean | null
+          is_current?: boolean | null
           lab_id: string
           max_price?: number | null
           min_price?: number | null
           restoration_type: string
           rush_surcharge_percent?: number | null
           updated_at?: string
+          version?: number | null
         }
         Update: {
           created_at?: string
+          effective_from?: string | null
+          effective_until?: string | null
           fixed_price?: number | null
           id?: string
           includes_rush?: boolean | null
+          is_current?: boolean | null
           lab_id?: string
           max_price?: number | null
           min_price?: number | null
           restoration_type?: string
           rush_surcharge_percent?: number | null
           updated_at?: string
+          version?: number | null
         }
         Relationships: [
           {
             foreignKeyName: "lab_pricing_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_pricing_history: {
+        Row: {
+          change_reason: string | null
+          changed_by: string | null
+          created_at: string | null
+          effective_from: string
+          id: string
+          lab_id: string
+          pricing_data: Json
+          pricing_mode: string | null
+          version: number
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          effective_from: string
+          id?: string
+          lab_id: string
+          pricing_data: Json
+          pricing_mode?: string | null
+          version: number
+        }
+        Update: {
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          effective_from?: string
+          id?: string
+          lab_id?: string
+          pricing_data?: Json
+          pricing_mode?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_pricing_history_lab_id_fkey"
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
@@ -1271,6 +1327,8 @@ export type Database = {
           min_price_egp: number | null
           name: string
           performance_score: number | null
+          pricing_configured_at: string | null
+          pricing_mode: string | null
           pricing_tier: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days: number
           subscription_expires_at: string | null
@@ -1300,6 +1358,8 @@ export type Database = {
           min_price_egp?: number | null
           name: string
           performance_score?: number | null
+          pricing_configured_at?: string | null
+          pricing_mode?: string | null
           pricing_tier?: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days?: number
           subscription_expires_at?: string | null
@@ -1329,6 +1389,8 @@ export type Database = {
           min_price_egp?: number | null
           name?: string
           performance_score?: number | null
+          pricing_configured_at?: string | null
+          pricing_mode?: string | null
           pricing_tier?: Database["public"]["Enums"]["pricing_tier"]
           standard_sla_days?: number
           subscription_expires_at?: string | null
