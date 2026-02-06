@@ -14,8 +14,16 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import { Progress } from "@/components/ui/progress";
 import { Building2, Stethoscope, ArrowRight } from "lucide-react";
 import WelcomeAnimation from "@/components/onboarding/WelcomeAnimation";
+import { PricingModeSelector } from "@/components/labs/PricingModeSelector";
 
-type OnboardingStep = "role" | "profile" | "welcome";
+type OnboardingStep = "role" | "profile" | "pricing" | "welcome";
+type PricingMode = 'TEMPLATE' | 'CUSTOM';
+
+interface PricingEntry {
+  restoration_type: string;
+  fixed_price: number;
+  rush_surcharge_percent: number;
+}
 
 const Onboarding = () => {
   const { user, session } = useAuth();
@@ -34,6 +42,10 @@ const Onboarding = () => {
   const [labLicense, setLabLicense] = useState("");
   const [taxId, setTaxId] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
+  
+  // Pricing state for labs
+  const [pricingMode, setPricingMode] = useState<PricingMode | null>(null);
+  const [customPricing, setCustomPricing] = useState<PricingEntry[]>([]);
 
   // Check if user already has a role
   const { data: userRole } = useQuery({
@@ -135,17 +147,47 @@ const Onboarding = () => {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // For lab staff, go to pricing step instead of completing
+    if (selectedRole === "lab_staff") {
+      setStep("pricing");
+      return;
+    }
+    
+    // For doctors, complete onboarding directly
     setLoading(true);
-
-    const profileData = selectedRole === "doctor"
-      ? { phone, clinic_name: clinicName, specialty }
-      : { phone, lab_name: labName, lab_license_number: labLicense, tax_id: taxId, business_address: businessAddress };
-
+    const profileData = { phone, clinic_name: clinicName, specialty };
     await completeOnboardingMutation.mutateAsync(profileData);
     setLoading(false);
   };
 
-  const progress = step === "role" ? 33 : step === "profile" ? 66 : 100;
+  const handlePricingComplete = async (mode: PricingMode, pricing?: PricingEntry[]) => {
+    setPricingMode(mode);
+    if (pricing) setCustomPricing(pricing);
+    
+    setLoading(true);
+    const profileData = {
+      phone,
+      lab_name: labName,
+      lab_license_number: labLicense,
+      tax_id: taxId,
+      business_address: businessAddress,
+      pricing_mode: mode,
+      pricing_entries: pricing || []
+    };
+    
+    await completeOnboardingMutation.mutateAsync(profileData);
+    setLoading(false);
+  };
+
+  const getProgress = () => {
+    if (step === "role") return 25;
+    if (step === "profile") return selectedRole === "lab_staff" ? 50 : 66;
+    if (step === "pricing") return 75;
+    return 100;
+  };
+  
+  const progress = getProgress();
 
   // Show welcome animation after onboarding
   if (step === "welcome" && selectedRole) {
@@ -351,11 +393,25 @@ const Onboarding = () => {
                     className="w-full"
                     size="lg"
                   >
-                    {loading ? "Completing..." : "Complete Onboarding"}
+                    {selectedRole === "lab_staff" ? (
+                      <>
+                        Continue to Pricing
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    ) : (
+                      loading ? "Completing..." : "Complete Onboarding"
+                    )}
                   </Button>
                 </form>
               </CardContent>
             </Card>
+          )}
+
+          {step === "pricing" && selectedRole === "lab_staff" && (
+            <PricingModeSelector
+              onComplete={handlePricingComplete}
+              isLoading={loading}
+            />
           )}
         </div>
       </div>

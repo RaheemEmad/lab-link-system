@@ -81,11 +81,16 @@ serve(async (req) => {
         throw new Error(error.message);
       }
     } else if (role === 'lab_staff') {
-      const { phone, lab_name, lab_license_number, tax_id, business_address } = requestData;
+      const { phone, lab_name, lab_license_number, tax_id, business_address, pricing_mode, pricing_entries } = requestData;
 
       // Validate required fields
       if (!phone || !lab_name || !lab_license_number || !tax_id || !business_address) {
         throw new Error('Missing required fields: phone, lab_name, lab_license_number, tax_id, business_address');
+      }
+
+      // Validate pricing mode
+      if (!pricing_mode || !['TEMPLATE', 'CUSTOM'].includes(pricing_mode)) {
+        throw new Error('Pricing mode must be configured (TEMPLATE or CUSTOM)');
       }
 
       // Call lab onboarding function
@@ -102,6 +107,68 @@ serve(async (req) => {
         console.error('Error completing lab onboarding:', error);
         throw new Error(error.message);
       }
+
+      // Get the lab ID that was created/assigned
+      const { data: userRole } = await supabaseClient
+        .from('user_roles')
+        .select('lab_id')
+        .eq('user_id', user.id)
+        .eq('role', 'lab_staff')
+        .single();
+
+      if (!userRole?.lab_id) {
+        throw new Error('Lab not found after onboarding');
+      }
+
+      // Update lab with pricing mode
+      const { error: labUpdateError } = await supabaseClient
+        .from('labs')
+        .update({
+          pricing_mode,
+          pricing_configured_at: new Date().toISOString()
+        })
+        .eq('id', userRole.lab_id);
+
+      if (labUpdateError) {
+        console.error('Error updating lab pricing mode:', labUpdateError);
+        throw new Error(labUpdateError.message);
+      }
+
+      // If custom pricing mode, save pricing entries
+      if (pricing_mode === 'CUSTOM' && pricing_entries && pricing_entries.length > 0) {
+        const pricingRecords = pricing_entries.map((entry: any) => ({
+          lab_id: userRole.lab_id,
+          restoration_type: entry.restoration_type,
+          fixed_price: entry.fixed_price,
+          rush_surcharge_percent: entry.rush_surcharge_percent || 25,
+          includes_rush: true,
+          version: 1,
+          effective_from: new Date().toISOString(),
+          is_current: true
+        }));
+
+        const { error: pricingError } = await supabaseClient
+          .from('lab_pricing')
+          .insert(pricingRecords);
+
+        if (pricingError) {
+          console.error('Error saving lab pricing:', pricingError);
+          // Don't fail the whole onboarding, just log the error
+        }
+      }
+
+      // Log pricing history
+      await supabaseClient
+        .from('lab_pricing_history')
+        .insert({
+          lab_id: userRole.lab_id,
+          changed_by: user.id,
+          pricing_mode,
+          pricing_data: pricing_entries || [],
+          version: 1,
+          effective_from: new Date().toISOString(),
+          change_reason: 'Initial onboarding configuration'
+        });
     } else {
       throw new Error('Invalid role');
     }
