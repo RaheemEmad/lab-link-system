@@ -1358,6 +1358,7 @@ export type Database = {
         Row: {
           address: string | null
           cancellation_visible: boolean | null
+          completed_order_count: number | null
           contact_email: string
           contact_phone: string | null
           created_at: string
@@ -1368,6 +1369,8 @@ export type Database = {
           is_active: boolean
           is_new_lab: boolean | null
           is_sponsored: boolean | null
+          is_verified: boolean | null
+          last_risk_check_at: string | null
           logo_url: string | null
           max_capacity: number
           max_price_egp: number | null
@@ -1383,12 +1386,16 @@ export type Database = {
           trust_score: number | null
           updated_at: string
           urgent_sla_days: number
+          verification_risk_score: number | null
+          verification_status: string | null
+          verified_at: string | null
           visibility_tier: string | null
           website_url: string | null
         }
         Insert: {
           address?: string | null
           cancellation_visible?: boolean | null
+          completed_order_count?: number | null
           contact_email: string
           contact_phone?: string | null
           created_at?: string
@@ -1399,6 +1406,8 @@ export type Database = {
           is_active?: boolean
           is_new_lab?: boolean | null
           is_sponsored?: boolean | null
+          is_verified?: boolean | null
+          last_risk_check_at?: string | null
           logo_url?: string | null
           max_capacity?: number
           max_price_egp?: number | null
@@ -1414,12 +1423,16 @@ export type Database = {
           trust_score?: number | null
           updated_at?: string
           urgent_sla_days?: number
+          verification_risk_score?: number | null
+          verification_status?: string | null
+          verified_at?: string | null
           visibility_tier?: string | null
           website_url?: string | null
         }
         Update: {
           address?: string | null
           cancellation_visible?: boolean | null
+          completed_order_count?: number | null
           contact_email?: string
           contact_phone?: string | null
           created_at?: string
@@ -1430,6 +1443,8 @@ export type Database = {
           is_active?: boolean
           is_new_lab?: boolean | null
           is_sponsored?: boolean | null
+          is_verified?: boolean | null
+          last_risk_check_at?: string | null
           logo_url?: string | null
           max_capacity?: number
           max_price_egp?: number | null
@@ -1445,6 +1460,9 @@ export type Database = {
           trust_score?: number | null
           updated_at?: string
           urgent_sla_days?: number
+          verification_risk_score?: number | null
+          verification_status?: string | null
+          verified_at?: string | null
           visibility_tier?: string | null
           website_url?: string | null
         }
@@ -2668,6 +2686,7 @@ export type Database = {
         Args: { _lab_id: string; _order_id: string }
         Returns: boolean
       }
+      check_lab_verification_risk: { Args: never; Returns: undefined }
       check_oauth_rate_limit: {
         Args: { email_param?: string; ip_address_param: string }
         Returns: Json

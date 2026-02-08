@@ -14,6 +14,14 @@ const POPUP_NOTIFICATION_TYPES = [
   'new_lab_request',
   'status_update',
   'delivery_issue',
+  'new_order',
+  'bid_submitted',
+  'bid_accepted',
+  'bid_declined',
+  'order_assigned',
+  'invoice_disputed',
+  'dispute_resolved',
+  'invoice_request',
 ];
 
 interface Notification {

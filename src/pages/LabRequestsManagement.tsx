@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock, MapPin, Star, TrendingUp, ExternalLink, Building2, DollarSign, MessageSquare, RefreshCw, TrendingDown, Minus, FileStack } from "lucide-react";
+import { CheckCircle, XCircle, Clock, MapPin, Star, TrendingUp, ExternalLink, Building2, DollarSign, MessageSquare, RefreshCw, TrendingDown, Minus, FileStack, AlertCircle, FileText, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import LandingNav from "@/components/landing/LandingNav";
@@ -15,6 +15,8 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { AcceptanceAnimation } from "@/components/order/AcceptanceAnimation";
 import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 import BidRevisionDialog from "@/components/order/BidRevisionDialog";
+import { LabVerificationBadge } from "@/components/labs/LabVerificationBadge";
+import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
 
 // Helper function to format EGP currency
 const formatEGP = (amount: number) => {
@@ -90,7 +92,11 @@ export default function LabRequestsManagement() {
             standard_sla_days,
             urgent_sla_days,
             current_load,
-            max_capacity
+            max_capacity,
+            pricing_mode,
+            is_verified,
+            verification_status,
+            completed_order_count
           )
         `)
         .eq('orders.doctor_id', user.id)
@@ -153,6 +159,24 @@ export default function LabRequestsManagement() {
       // If accepting, do the full assignment flow
       if (status === 'accepted' && orderId) {
         console.log('[LabRequests] Accepting request - starting full assignment flow');
+        
+        // Pre-check: Verify lab has pricing configured
+        const { data: labPricingCheck, error: pricingError } = await supabase
+          .from('labs')
+          .select('pricing_mode, name')
+          .eq('id', requestData.lab_id)
+          .single();
+        
+        if (pricingError) {
+          console.error('[LabRequests] Error checking lab pricing:', pricingError);
+          throw new Error('Failed to verify lab pricing configuration.');
+        }
+        
+        if (!labPricingCheck?.pricing_mode) {
+          throw new Error(
+            `Cannot accept this lab's application. ${labPricingCheck?.name || 'The lab'} has not configured their pricing yet. Please decline and choose a lab with pricing configured, or ask the lab to set up their pricing in Lab Admin > Pricing.`
+          );
+        }
         
         // Determine the agreed fee (revised_amount if exists, else bid_amount)
         const agreedFee = requestData.revised_amount || requestData.bid_amount || bidAmount;
@@ -713,6 +737,53 @@ export default function LabRequestsManagement() {
                           </div>
                         </div>
 
+                        {/* Pricing Information - NEW */}
+                        <div className="mt-4 pt-4 border-t space-y-3">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <span>Lab Pricing</span>
+                            {(lab as any)?.pricing_mode ? (
+                              <Badge variant="outline" className="text-xs flex items-center gap-1">
+                                {(lab as any)?.pricing_mode === 'TEMPLATE' ? (
+                                  <>
+                                    <FileText className="h-3 w-3" />
+                                    Platform
+                                  </>
+                                ) : (
+                                  <>
+                                    <Settings className="h-3 w-3" />
+                                    Custom
+                                  </>
+                                )}
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive" className="text-xs">Not Configured</Badge>
+                            )}
+                          </div>
+                          
+                          {!(lab as any)?.pricing_mode && (
+                            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+                              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Pricing Not Configured</p>
+                                <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                                  This lab cannot be assigned orders until they configure their pricing.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {(lab as any)?.pricing_mode && (
+                            <LabPricingDisplay 
+                              labId={lab?.id || ''}
+                              pricingMode={(lab as any)?.pricing_mode}
+                              showCard={false}
+                              compact
+                              showLabel={false}
+                            />
+                          )}
+                        </div>
+
                         {/* Actions */}
                         <div className="flex flex-col sm:flex-row gap-2 pt-2">
                           <Button
@@ -738,7 +809,8 @@ export default function LabRequestsManagement() {
                                   orderNumber: order?.order_number,
                                   bidAmount: currentBidAmount
                                 })}
-                                disabled={updateRequestStatus.isPending}
+                                disabled={updateRequestStatus.isPending || !(lab as any)?.pricing_mode}
+                                title={!(lab as any)?.pricing_mode ? "Lab has not configured pricing" : undefined}
                                 className="flex-1"
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
