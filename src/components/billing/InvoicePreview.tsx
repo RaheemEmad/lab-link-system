@@ -17,13 +17,15 @@ import {
   Loader2,
   Plus,
   CreditCard,
-  Calendar
+  Calendar,
+  Gavel
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, startOfDay } from "date-fns";
 import InvoiceLineItems from "./InvoiceLineItems";
 import AdjustmentDialog from "./AdjustmentDialog";
 import DisputeDialog from "./DisputeDialog";
 import PaymentDialog from "./PaymentDialog";
+import DisputeResolutionDialog from "./DisputeResolutionDialog";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -79,6 +81,7 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
   const [showAdjustmentDialog, setShowAdjustmentDialog] = useState(false);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showResolutionDialog, setShowResolutionDialog] = useState(false);
 
   // Fetch full order details for PDF
   const { data: orderDetails } = useQuery({
@@ -572,6 +575,12 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
               <span className="hidden sm:inline">Dispute</span>
             </Button>
           )}
+          {invoice.status === 'disputed' && role === 'admin' && (
+            <Button variant="default" size="sm" onClick={() => setShowResolutionDialog(true)} className="gap-1.5">
+              <Gavel className="h-4 w-4" />
+              <span className="hidden sm:inline">Resolve Dispute</span>
+            </Button>
+          )}
           {invoice.status === 'generated' && role === 'admin' && (
             <Button variant="outline" size="sm" onClick={() => lockMutation.mutate()} disabled={lockMutation.isPending} className="gap-1.5">
               {lockMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
@@ -821,6 +830,14 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         open={showDisputeDialog}
         onOpenChange={setShowDisputeDialog}
         invoiceId={invoice.id}
+        onSuccess={onClose}
+      />
+
+      <DisputeResolutionDialog
+        open={showResolutionDialog}
+        onOpenChange={setShowResolutionDialog}
+        invoiceId={invoice.id}
+        disputeReason={invoice.dispute_reason}
         onSuccess={onClose}
       />
 

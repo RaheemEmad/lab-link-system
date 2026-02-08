@@ -687,6 +687,53 @@ export type Database = {
           },
         ]
       }
+      invoice_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          processed_at: string | null
+          processed_by: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          requested_by: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          requested_by: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          requested_by?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           adjustments_total: number
@@ -2770,6 +2817,16 @@ export type Database = {
       }
       raise_invoice_dispute: {
         Args: { p_invoice_id: string; p_reason: string; p_user_id: string }
+        Returns: boolean
+      }
+      resolve_invoice_dispute: {
+        Args: {
+          p_adjustment_amount?: number
+          p_invoice_id: string
+          p_resolution_action: string
+          p_resolution_notes?: string
+          p_user_id: string
+        }
         Returns: boolean
       }
       set_user_role: {

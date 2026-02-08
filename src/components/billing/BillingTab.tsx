@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,7 +20,8 @@ import {
   Loader2,
   Receipt,
   Plus,
-  CalendarDays
+  CalendarDays,
+  Bell
 } from "lucide-react";
 import { toast } from "sonner";
 import { isPast, startOfDay } from "date-fns";
@@ -29,6 +30,7 @@ import InvoiceAnalyticsDashboard from "./InvoiceAnalyticsDashboard";
 import InvoiceGenerator from "./InvoiceGenerator";
 import ExpenseTracker from "./ExpenseTracker";
 import MonthlyBillingSummary from "./MonthlyBillingSummary";
+import InvoiceSortControls, { SortField, SortDirection } from "./InvoiceSortControls";
 
 // Helper function to format EGP currency
 const formatEGP = (amount: number) => {
@@ -81,9 +83,27 @@ const BillingTab = () => {
   const [selectedOrderForExpense, setSelectedOrderForExpense] = useState<string | null>(null);
   const [showInvoiceGenerator, setShowInvoiceGenerator] = useState(false);
   const [showMonthlySummary, setShowMonthlySummary] = useState(false);
+  
+  // Sorting state with localStorage persistence
+  const [sortField, setSortField] = useState<SortField>(() => {
+    const saved = localStorage.getItem('invoice-sort-field');
+    return (saved as SortField) || 'created_at';
+  });
+  const [sortDirection, setSortDirection] = useState<SortDirection>(() => {
+    const saved = localStorage.getItem('invoice-sort-direction');
+    return (saved as SortDirection) || 'desc';
+  });
+
+  // Persist sort preferences
+  const handleSortChange = (field: SortField, direction: SortDirection) => {
+    setSortField(field);
+    setSortDirection(direction);
+    localStorage.setItem('invoice-sort-field', field);
+    localStorage.setItem('invoice-sort-direction', direction);
+  };
 
   // Fetch invoices
-  const { data: invoices, isLoading } = useQuery({
+  const { data: invoicesRaw, isLoading } = useQuery({
     queryKey: ['invoices', statusFilter, searchQuery, role, user?.id],
     queryFn: async () => {
       let query = supabase
@@ -128,6 +148,50 @@ const BillingTab = () => {
       return filtered;
     },
     enabled: !!user,
+  });
+
+  // Sort invoices client-side
+  const invoices = useMemo(() => {
+    if (!invoicesRaw) return [];
+    
+    return [...invoicesRaw].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'created_at':
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case 'final_total':
+          comparison = a.final_total - b.final_total;
+          break;
+        case 'status':
+          comparison = (a.status || '').localeCompare(b.status || '');
+          break;
+        case 'payment_status':
+          comparison = (a.payment_status || '').localeCompare(b.payment_status || '');
+          break;
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [invoicesRaw, sortField, sortDirection]);
+
+  // Fetch pending invoice requests (for lab staff/admin)
+  const { data: pendingRequests } = useQuery({
+    queryKey: ['pending-invoice-requests'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoice_requests')
+        .select(`
+          *,
+          order:orders(order_number, patient_name, doctor_name)
+        `)
+        .eq('status', 'pending')
+        .order('requested_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && (role === 'admin' || role === 'lab_staff'),
   });
 
   // Fetch orders eligible for invoice generation (delivered + confirmed)
@@ -341,6 +405,55 @@ const BillingTab = () => {
         </Card>
       )}
 
+      {/* Pending Invoice Requests (for lab staff/admin) */}
+      {(role === 'admin' || role === 'lab_staff') && pendingRequests && pendingRequests.length > 0 && (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg text-amber-700 dark:text-amber-400">
+                  <Bell className="h-5 w-5" />
+                  Invoice Requests
+                </CardTitle>
+                <CardDescription>
+                  Doctors have requested invoices for these orders
+                </CardDescription>
+              </div>
+              <Badge variant="secondary" className="bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                {pendingRequests.length} pending
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {pendingRequests.slice(0, 5).map((request: any) => (
+                <div key={request.id} className="flex items-center justify-between p-3 rounded-lg bg-background border">
+                  <div>
+                    <p className="font-medium text-sm">{request.order?.order_number}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {request.order?.patient_name} • Requested by doctor
+                    </p>
+                    {request.notes && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">"{request.notes}"</p>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      generateInvoiceMutation.mutate(request.order_id);
+                    }}
+                    disabled={generateInvoiceMutation.isPending}
+                  >
+                    <FileText className="h-4 w-4 mr-1" />
+                    Generate
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Invoice List */}
       <Card>
         <CardHeader>
@@ -364,26 +477,35 @@ const BillingTab = () => {
             </div>
             <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
               <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as InvoiceStatus | 'all')}>
-                <TabsList className="w-max sm:w-auto">
-                  <TabsTrigger value="all" className="text-xs sm:text-sm">
-                    <span className="hidden sm:inline">All </span>({statusCounts.all})
+                <TabsList className="w-max sm:w-auto min-w-0 flex-wrap">
+                  <TabsTrigger value="all" className="text-xs sm:text-sm px-2 sm:px-3">
+                    All ({statusCounts.all})
                   </TabsTrigger>
-                  <TabsTrigger value="generated" className="text-xs sm:text-sm">
-                    <span className="hidden sm:inline">Generated </span>({statusCounts.generated})
+                  <TabsTrigger value="generated" className="text-xs sm:text-sm px-2 sm:px-3">
+                    Generated ({statusCounts.generated})
                   </TabsTrigger>
-                  <TabsTrigger value="locked" className="text-xs sm:text-sm">
-                    <span className="hidden sm:inline">Locked </span>({statusCounts.locked})
+                  <TabsTrigger value="locked" className="text-xs sm:text-sm px-2 sm:px-3">
+                    Locked ({statusCounts.locked})
                   </TabsTrigger>
-                  <TabsTrigger value="finalized" className="text-xs sm:text-sm">
-                    <span className="hidden sm:inline">Finalized </span>({statusCounts.finalized})
+                  <TabsTrigger value="finalized" className="text-xs sm:text-sm px-2 sm:px-3">
+                    Finalized ({statusCounts.finalized})
                   </TabsTrigger>
                   {statusCounts.disputed > 0 && (
-                    <TabsTrigger value="disputed" className="text-xs sm:text-sm">
-                      <span className="hidden sm:inline">Disputed </span>({statusCounts.disputed})
+                    <TabsTrigger value="disputed" className="text-xs sm:text-sm px-2 sm:px-3">
+                      Disputed ({statusCounts.disputed})
                     </TabsTrigger>
                   )}
                 </TabsList>
               </Tabs>
+            </div>
+
+            {/* Sort Controls */}
+            <div className="flex justify-end">
+              <InvoiceSortControls
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSortChange={handleSortChange}
+              />
             </div>
           </div>
 
