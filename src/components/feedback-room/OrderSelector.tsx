@@ -12,7 +12,7 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 const OrderSelector = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isDoctor, isLabStaff, isLoading: roleLoading } = useUserRole();
+  const { isDoctor, isLabStaff, isLoading: roleLoading, roleConfirmed } = useUserRole();
 
   // Fetch orders that qualify for Feedback Room
   const { data: orders, isLoading: ordersLoading } = useQuery({
@@ -55,10 +55,16 @@ const OrderSelector = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user && !roleLoading && (isDoctor || isLabStaff),
+    // CRITICAL FIX: Wait for roleConfirmed before enabling query
+    enabled: !!user && roleConfirmed && (isDoctor || isLabStaff),
   });
 
-  if (roleLoading || ordersLoading) {
+  // Show loading while role is still being determined
+  if (roleLoading || !roleConfirmed) {
+    return <LoadingScreen message="Checking access..." />;
+  }
+
+  if (ordersLoading) {
     return <LoadingScreen message="Loading available orders..." />;
   }
 

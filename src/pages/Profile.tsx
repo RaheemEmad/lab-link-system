@@ -122,22 +122,25 @@ const Profile = () => {
   }, [fullName, phone, emailNotifications, smsNotifications, notificationStatusChange, notificationNewNotes, saveData, isLoading, user?.id]);
 
   // Fetch user role with timeout detection
-  const { data: userRole, isLoading: roleLoading, isError: roleError } = useQuery({
+  const { data: userRoleData, isLoading: roleLoading, isError: roleError } = useQuery({
     queryKey: ["user-role", user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error("No user");
       
       const { data, error } = await supabase
         .from("user_roles")
-        .select("role")
+        .select("role, lab_id")
         .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
-      return data.role;
+      return data;
     },
     enabled: !!user?.id,
   });
+
+  // Extract role string from data for safe rendering
+  const userRole = userRoleData?.role;
 
   // Detect if role is stuck loading (after 5 seconds)
   useEffect(() => {
