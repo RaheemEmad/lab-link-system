@@ -180,7 +180,7 @@ export default function OrdersMarketplace() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("labs")
-        .select("id, name, current_load, max_capacity, performance_score")
+        .select("id, name, current_load, max_capacity, performance_score, pricing_mode")
         .eq("is_active", true)
         .order("name");
       if (error) throw error;
@@ -254,6 +254,23 @@ export default function OrdersMarketplace() {
   // Admin override mutation
   const adminOverrideAssignment = useMutation({
     mutationFn: async ({ orderId, labId }: { orderId: string; labId: string }) => {
+      // Pre-check: Verify lab has pricing configured
+      const { data: labPricingCheck, error: pricingError } = await supabase
+        .from('labs')
+        .select('pricing_mode, name')
+        .eq('id', labId)
+        .single();
+      
+      if (pricingError) {
+        throw new Error('Failed to verify lab pricing configuration.');
+      }
+      
+      if (!labPricingCheck?.pricing_mode) {
+        throw new Error(
+          `Cannot assign order to ${labPricingCheck?.name || 'this lab'}. The lab has not configured their pricing yet. Please ask the lab to set up pricing in Lab Admin > Pricing first.`
+        );
+      }
+      
       // 1. Update order with assigned lab
       const { error: orderError } = await supabase
         .from("orders")

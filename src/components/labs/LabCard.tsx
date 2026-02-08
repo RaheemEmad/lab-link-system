@@ -11,9 +11,11 @@ import {
   Sparkles,
   DollarSign,
   FileText,
-  Settings
+  Settings,
+  AlertCircle
 } from "lucide-react";
 import { LabBadges } from "./LabBadges";
+import { LabVerificationBadge } from "./LabVerificationBadge";
 
 interface LabSpecialization {
   restoration_type: string;
@@ -44,6 +46,9 @@ interface Lab {
   pricing_mode?: 'TEMPLATE' | 'CUSTOM' | null;
   min_price_egp?: number | null;
   max_price_egp?: number | null;
+  is_verified?: boolean;
+  verification_status?: 'pending' | 'verified' | 'at_risk' | 'revoked';
+  completed_order_count?: number;
 }
 
 interface LabCardProps {
@@ -91,10 +96,15 @@ const getCapacityColor = (currentLoad: number, maxCapacity: number) => {
 export function LabCard({ lab, specializations, isVerified = false, minLabPrice }: LabCardProps) {
   const capacityPercentage = (lab.current_load / lab.max_capacity) * 100;
   const isSponsored = lab.is_sponsored;
+  
+  // Use database is_verified if available, otherwise fall back to prop
+  const labIsVerified = lab.is_verified ?? isVerified;
+  const verificationStatus = lab.verification_status || (labIsVerified ? 'verified' : 'pending');
+  const completedOrderCount = lab.completed_order_count || 0;
 
   return (
     <Link to={`/labs/${lab.id}`}>
-      <Card className={`hover:shadow-lg transition-shadow h-full ${isVerified ? 'border-primary/50' : ''} ${isSponsored ? 'ring-2 ring-yellow-400/50' : ''}`}>
+      <Card className={`hover:shadow-lg transition-shadow h-full ${labIsVerified ? 'border-primary/50' : ''} ${isSponsored ? 'ring-2 ring-yellow-400/50' : ''}`}>
         {isSponsored && (
           <div className="bg-gradient-to-r from-yellow-400/20 to-amber-400/20 px-3 py-1 text-xs font-medium text-yellow-700 flex items-center gap-1 rounded-t-lg">
             <Sparkles className="h-3 w-3" />
@@ -112,9 +122,14 @@ export function LabCard({ lab, specializations, isVerified = false, minLabPrice 
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <CardTitle className="text-lg truncate">{lab.name}</CardTitle>
-                  {isVerified && <Badge variant="default" className="text-xs">✓</Badge>}
+                  <LabVerificationBadge 
+                    isVerified={labIsVerified}
+                    verificationStatus={verificationStatus as any}
+                    completedOrderCount={completedOrderCount}
+                    showTooltip={true}
+                  />
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant={getPricingBadgeVariant(lab.pricing_tier)}>

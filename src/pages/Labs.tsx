@@ -95,11 +95,15 @@ const Labs = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("labs")
-        .select("*")
+        .select("*, is_verified, verification_status, completed_order_count")
         .eq("is_active", true);
 
       if (error) throw error;
-      return data as Lab[];
+      return data as (Lab & { 
+        is_verified?: boolean; 
+        verification_status?: string;
+        completed_order_count?: number;
+      })[];
     },
   });
 
@@ -153,7 +157,12 @@ const Labs = () => {
     },
   });
 
-  // Check if a lab has completed profile
+  // Check if a lab is verified (now using database column)
+  const isLabVerified = (lab: any) => {
+    return lab.is_verified === true;
+  };
+
+  // Legacy function for backwards compatibility
   const hasCompletedProfile = (labId: string) => {
     const labUsers = labUserRoles?.filter(role => role.lab_id === labId);
     if (!labUsers || labUsers.length === 0) return false;
@@ -246,12 +255,12 @@ const Labs = () => {
       }
     });
     
-    // Separate verified and unverified
-    const verified = filtered.filter(lab => hasCompletedProfile(lab.id));
-    const unverified = filtered.filter(lab => !hasCompletedProfile(lab.id));
+    // Separate verified and unverified using the is_verified column
+    const verified = filtered.filter(lab => isLabVerified(lab));
+    const unverified = filtered.filter(lab => !isLabVerified(lab));
     
     return { verifiedLabs: verified, unverifiedLabs: unverified };
-  }, [allLabs, searchQuery, selectedPricingTier, selectedSpecialty, sortBy, minRating, maxTurnaround, availableOnly, specializations, labUserRoles]);
+  }, [allLabs, searchQuery, selectedPricingTier, selectedSpecialty, sortBy, minRating, maxTurnaround, availableOnly, specializations]);
 
   const filteredAndSortedLabs = useMemo(() => {
     return [...verifiedLabs, ...unverifiedLabs];
@@ -471,7 +480,7 @@ const Labs = () => {
                     {paginatedVerified.map((lab) => (
                       <LabCard 
                         key={lab.id} 
-                        lab={lab} 
+                        lab={lab as any} 
                         specializations={getLabSpecializations(lab.id)}
                         isVerified={true}
                       />
@@ -491,7 +500,7 @@ const Labs = () => {
                     {paginatedUnverified.map((lab) => (
                       <LabCard 
                         key={lab.id} 
-                        lab={lab} 
+                        lab={lab as any} 
                         specializations={getLabSpecializations(lab.id)}
                         isVerified={false}
                       />

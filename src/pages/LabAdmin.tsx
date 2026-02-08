@@ -27,9 +27,11 @@ import {
   Upload,
   X,
   Package,
-  DollarSign
+  DollarSign,
+  ShieldCheck
 } from "lucide-react";
 import LabPricingSetup from "@/components/billing/LabPricingSetup";
+import { LabVerificationStatus } from "@/components/labs/LabVerificationStatus";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -381,6 +383,13 @@ const LabAdmin = () => {
                 Manage your lab profile, specializations, and settings
               </p>
             </div>
+
+            {/* Verification Status Card - Always visible above tabs */}
+            {labId && (
+              <div className="mb-6">
+                <LabVerificationStatus labId={labId} />
+              </div>
+            )}
 
             <Tabs defaultValue="profile" className="space-y-6">
               <TabsList className="grid w-full grid-cols-4 max-w-2xl">
