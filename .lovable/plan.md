@@ -1,69 +1,233 @@
 
-# Pricing Configuration, Visibility & Governance Implementation Plan
+# Implementation Plan: Invoice Dispute Resolution, Doctor Invoice Requests, and Bug Fixes
 
-## Executive Summary
-This plan addresses the fundamental pricing governance gap in LabLink by making pricing an explicit, mandatory configuration for every lab. Labs will be required to choose a pricing mode during onboarding, and pricing will be visible consistently across all surfaces.
+## Summary of Issues Identified
+
+### Issue 1: Delivery Confirmation Still Failing
+**Error**: `new row for relation "invoice_line_items" violates check constraint "invoice_line_items_source_event_check"`
+
+**Root Cause**: The `generate_invoice_for_order` function uses `'order_delivery'` as the `source_event` value (line 108 of the function), but the constraint only allows:
+- `'order_created'`, `'lab_accepted'`, `'delivery_confirmed'`, `'feedback_approved'`, `'admin_override'`, `'rework_detected'`, `'sla_calculation'`
+
+**Fix**: Change the function to use `'delivery_confirmed'` instead of `'order_delivery'`.
 
 ---
 
-## Current State Analysis
+### Issue 2: Disputed Invoice Flow Missing
+**Current State**: 
+- When a dispute is raised, the invoice status changes to `'disputed'` and is frozen
+- There is NO `resolve_invoice_dispute` function
+- There is NO way for admins to resolve disputes and revert the badge to normal
 
-### What Exists
-1. **`pricing_rules` table** - Global/template pricing rules owned by platform admins (13 active rules with base prices for all restoration types + urgency fees)
-2. **`lab_pricing` table** - Lab-specific custom pricing (currently empty, no onboarding integration)
-3. **`LabPricingSetup` component** - Allows labs to configure custom pricing in Lab Admin
-4. **`LabProfile` page** - Shows pricing if `lab_pricing` has data, otherwise shows nothing
-5. **`LabProfilePreview` component** - Does NOT display pricing at all
-6. **`LabCard` component** - Shows pricing tier badge but no actual prices
+**Missing Features**:
+- Dispute resolution workflow for admins
+- Resolution actions: Accept (adjust invoice), Reject (dismiss dispute), or Dismiss (requires explanation)
+- Status reversion after resolution
+- Notification to disputing party
 
-### What's Missing
-1. **No `pricing_mode` field** on labs table to track TEMPLATE vs CUSTOM choice
-2. **No mandatory pricing configuration** during lab onboarding
-3. **No visibility of template pricing** for labs or doctors
-4. **No pricing display** in LabProfilePreview dialog
-5. **No price versioning** with effective dates for historical accuracy
-6. **No blocking mechanism** if pricing is not configured
+**Solution**: Create a complete dispute resolution workflow with:
+- New `resolve_invoice_dispute` database function
+- DisputeResolutionDialog component for admins
+- Ability to apply adjustments as part of resolution
+- Audit trail of resolution
+
+---
+
+### Issue 3: Doctors Cannot Request or Generate Invoices
+**Current State**: 
+- Only `admin` and `lab_staff` can generate invoices
+- Doctors can only VIEW invoices for their orders
+- No mechanism for doctors to request invoice generation
+
+**Solution**:
+1. Add "Request Invoice" button for doctors on delivered orders
+2. Create `invoice_requests` table to track requests
+3. Notify lab staff when doctor requests an invoice
+4. Show pending requests in lab billing dashboard
+
+---
+
+### Issue 4: Invoice Detail Enhancement
+**Current State**: Invoice preview shows basic order info and line items
+
+**Enhancements Needed**:
+- Show all timestamps (created, assigned, started, completed, delivered, confirmed)
+- Show order history/status changes
+- Show any notes or special instructions
+- Display pricing source (agreed fee vs lab pricing vs template)
+- Show who confirmed delivery
+
+---
+
+### Issue 5: Invoice Sorting and Monthly Bundling
+**Current State**: Invoices are sorted by `created_at` descending only
+
+**Solution**:
+- Add sortable columns (date, amount, status, payment status)
+- Add date range filter for creating bundled monthly views
+- Enhance MonthlyBillingSummary to show grouped invoices
+
+---
+
+### Issue 6: Feedback Room Shows No Orders Initially
+**Current State**: The `OrderSelector` component query has `enabled: !!user && !roleLoading && (isDoctor || isLabStaff)`
+
+**Root Cause**: When role is still loading or role check returns false before data loads, the query doesn't run initially. The user sees "No Orders Available" which then refreshes correctly.
+
+**Fix**: Ensure the loading state is shown until role is definitively confirmed, and only then show "No Orders" if truly empty.
+
+---
+
+### Issue 7: React Error #31 on Profile Page
+**Error**: `Object with keys {role, lab_id}` rendered as React children
+
+**Root Cause Analysis**: In Profile.tsx line 125-140, the `userRole` query fetches `{ role, lab_id }` from user_roles. Looking at the code, the issue is likely somewhere this object is accidentally rendered.
+
+Looking at Profile.tsx lines 417-452:
+```tsx
+<Badge variant={userRole ? formatRole(userRole).variant : "default"}>
+  {userRole ? formatRole(userRole).label : "Loading..."}
+</Badge>
+```
+
+The `userRole` here is the result of the query which returns `{ role, lab_id }` object, NOT just the role string! The `formatRole()` function expects a string but receives an object.
+
+**Fix**: Change to use `userRole?.role` instead of `userRole` when calling `formatRole()`.
+
+---
+
+### Issue 8: Invoice Status Tabs Inconsistency
+**Current State**: The tabs use inline styles that can look inconsistent on different screens
+
+**Fix**: Improve responsive layout and ensure consistent spacing/sizing across tabs.
 
 ---
 
 ## Database Changes
 
-### 1. Add `pricing_mode` to Labs Table
-```sql
-ALTER TABLE labs 
-ADD COLUMN pricing_mode TEXT CHECK (pricing_mode IN ('TEMPLATE', 'CUSTOM')) DEFAULT NULL;
+### 1. Fix `generate_invoice_for_order` Function
+Update the `source_event` value from `'order_delivery'` to `'delivery_confirmed'`:
 
-ALTER TABLE labs 
-ADD COLUMN pricing_configured_at TIMESTAMPTZ DEFAULT NULL;
+```sql
+-- In the INSERT INTO invoice_line_items statement
+source_event = 'delivery_confirmed'
+-- Instead of 'order_delivery'
 ```
 
-### 2. Add Versioning to Lab Pricing
+### 2. Create `resolve_invoice_dispute` Function
 ```sql
-ALTER TABLE lab_pricing
-ADD COLUMN version INTEGER DEFAULT 1;
-
-ALTER TABLE lab_pricing  
-ADD COLUMN effective_from TIMESTAMPTZ DEFAULT now();
-
-ALTER TABLE lab_pricing
-ADD COLUMN effective_until TIMESTAMPTZ DEFAULT NULL;
-
-ALTER TABLE lab_pricing
-ADD COLUMN is_current BOOLEAN DEFAULT true;
+CREATE OR REPLACE FUNCTION resolve_invoice_dispute(
+  p_invoice_id uuid,
+  p_user_id uuid,
+  p_resolution_action text,  -- 'accepted', 'rejected', 'adjusted'
+  p_resolution_notes text DEFAULT NULL,
+  p_adjustment_amount numeric DEFAULT NULL
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_invoice RECORD;
+  v_previous_status text;
+BEGIN
+  SELECT * INTO v_invoice FROM invoices WHERE id = p_invoice_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Invoice not found';
+  END IF;
+  
+  IF v_invoice.status != 'disputed' THEN
+    RAISE EXCEPTION 'Invoice is not in disputed status';
+  END IF;
+  
+  -- Store previous status for reversion
+  v_previous_status := COALESCE(
+    (SELECT old_values->>'status' FROM billing_audit_log 
+     WHERE invoice_id = p_invoice_id AND action = 'disputed' 
+     ORDER BY created_at DESC LIMIT 1),
+    'generated'
+  );
+  
+  -- Handle adjustment if provided
+  IF p_adjustment_amount IS NOT NULL AND p_adjustment_amount != 0 THEN
+    INSERT INTO invoice_adjustments (
+      invoice_id,
+      adjustment_type,
+      amount,
+      reason,
+      created_by
+    ) VALUES (
+      p_invoice_id,
+      'dispute_resolution',
+      p_adjustment_amount,
+      p_resolution_notes,
+      p_user_id
+    );
+    
+    -- Update invoice totals
+    UPDATE invoices SET
+      adjustments_total = adjustments_total + p_adjustment_amount,
+      final_total = subtotal + adjustments_total + p_adjustment_amount - expenses_total
+    WHERE id = p_invoice_id;
+  END IF;
+  
+  -- Update invoice status back to previous or locked
+  UPDATE invoices SET
+    status = v_previous_status,
+    dispute_resolved_at = now(),
+    dispute_resolved_by = p_user_id,
+    updated_at = now()
+  WHERE id = p_invoice_id;
+  
+  -- Log the resolution
+  INSERT INTO billing_audit_log (
+    invoice_id, action, performed_by, 
+    old_values, new_values, reason
+  ) VALUES (
+    p_invoice_id, 'dispute_resolved', p_user_id,
+    jsonb_build_object('status', 'disputed'),
+    jsonb_build_object(
+      'status', v_previous_status,
+      'resolution_action', p_resolution_action,
+      'adjustment', p_adjustment_amount
+    ),
+    p_resolution_notes
+  );
+  
+  RETURN true;
+END;
+$$;
 ```
 
-### 3. Add Pricing Audit Table for Change Tracking
+### 3. Create `invoice_requests` Table
 ```sql
-CREATE TABLE lab_pricing_history (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  lab_id UUID REFERENCES labs(id) NOT NULL,
-  changed_by UUID REFERENCES auth.users(id),
-  pricing_mode TEXT,
-  pricing_data JSONB NOT NULL,
-  version INTEGER NOT NULL,
-  effective_from TIMESTAMPTZ NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  change_reason TEXT
+CREATE TABLE IF NOT EXISTS invoice_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id uuid REFERENCES orders(id) NOT NULL,
+  requested_by uuid REFERENCES auth.users(id) NOT NULL,
+  status text CHECK (status IN ('pending', 'generated', 'rejected')) DEFAULT 'pending',
+  requested_at timestamptz DEFAULT now(),
+  processed_at timestamptz,
+  processed_by uuid REFERENCES auth.users(id),
+  notes text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- RLS policies
+ALTER TABLE invoice_requests ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Doctors can request invoices for their orders"
+ON invoice_requests FOR INSERT TO authenticated
+WITH CHECK (
+  EXISTS (SELECT 1 FROM orders WHERE id = order_id AND doctor_id = auth.uid())
+);
+
+CREATE POLICY "Users can view their own requests"
+ON invoice_requests FOR SELECT TO authenticated
+USING (
+  requested_by = auth.uid() OR
+  has_role(auth.uid(), 'admin'::app_role) OR
+  has_role(auth.uid(), 'lab_staff'::app_role)
 );
 ```
 
@@ -71,177 +235,109 @@ CREATE TABLE lab_pricing_history (
 
 ## Component Changes
 
-### 1. New Component: `PricingModeSelector`
-A modal/card component for lab onboarding that:
-- Displays both pricing options side-by-side
-- Shows template pricing read-only preview
-- Shows custom pricing entry form if selected
-- Requires explicit choice before proceeding
-- Stores selection in `labs.pricing_mode`
+### 1. Fix Profile.tsx - React Error #31
+**File**: `src/pages/Profile.tsx`
 
-Location: `src/components/labs/PricingModeSelector.tsx`
-
-UI Layout:
-```text
-+----------------------------------------------------------+
-| Choose Your Pricing Strategy                              |
-+----------------------------------------------------------+
-|                                                          |
-| [Platform Template Pricing]    [Custom Lab Pricing]       |
-|                                                          |
-| Use our standard prices       Set your own prices         |
-| across all restoration        for each restoration        |
-| types. Simple, no setup.      type. Full control.         |
-|                                                          |
-| Zirconia: EGP 150             [Enter your prices]         |
-| E-max: EGP 180                                            |
-| PFM: EGP 120                                              |
-| ...                                                       |
-|                                                          |
-| Rush Surcharge: +25%          Rush Surcharge: [__]%       |
-|                                                          |
-|      [Select Template]        [Configure Custom]          |
-+----------------------------------------------------------+
+**Current code (line ~422)**:
+```tsx
+<Badge variant={userRole ? formatRole(userRole).variant : "default"}>
+  {userRole ? formatRole(userRole).label : "Loading..."}
+</Badge>
 ```
 
-### 2. New Component: `TemplatePricingViewer`
-A read-only component that displays global pricing rules:
-- Fetches from `pricing_rules` table
-- Shows base prices per restoration type
-- Shows urgency surcharge
-- Used in Lab Admin, Lab Profile, and onboarding
+**Fixed code**:
+```tsx
+<Badge variant={userRole?.role ? formatRole(userRole.role).variant : "default"}>
+  {userRole?.role ? formatRole(userRole.role).label : "Loading..."}
+</Badge>
+```
 
-Location: `src/components/billing/TemplatePricingViewer.tsx`
-
-### 3. Update: `LabProfilePreview.tsx`
-Add pricing section that shows:
-- Pricing mode indicator (Template or Custom)
-- Actual prices from appropriate source
-- Rush surcharge info
-
-### 4. Update: `LabCard.tsx`
-Add pricing preview:
-- Show 1-2 sample prices (e.g., "From EGP 120")
-- Label indicating pricing mode
-
-### 5. Update: `LabProfile.tsx`
-Enhance existing pricing section:
-- If `pricing_mode = 'TEMPLATE'`: Show template prices with "Using Platform Pricing" label
-- If `pricing_mode = 'CUSTOM'`: Show lab-specific prices with "Custom Pricing" label
-- If `pricing_mode = NULL`: Show warning "Pricing not configured"
-
-### 6. Update: `LabAdmin.tsx`
-Add pricing mode management:
-- Show current pricing mode with option to switch
-- If TEMPLATE: Show read-only template pricing viewer
-- If CUSTOM: Show editable LabPricingSetup
-- Add change confirmation dialog explaining impact
-
-### 7. Update: `Onboarding.tsx`
-Add pricing configuration step for labs:
-- After profile info, show PricingModeSelector
-- Block completion until pricing is configured
-- Update `onboarding-complete` edge function
+Also update line 427:
+```tsx
+{userRole?.role ? formatRole(userRole.role).description : "Fetching your role information..."}
+```
 
 ---
 
-## Edge Function Updates
+### 2. New Component: DisputeResolutionDialog
+**File**: `src/components/billing/DisputeResolutionDialog.tsx`
 
-### Update: `onboarding-complete/index.ts`
-Add pricing mode validation:
-```typescript
-// For lab_staff role
-if (!pricing_mode || !['TEMPLATE', 'CUSTOM'].includes(pricing_mode)) {
-  throw new Error('Pricing mode must be configured');
-}
+Features:
+- View dispute reason
+- Resolution options: Accept & Close, Reject & Close, Adjust & Close
+- Optional adjustment amount field
+- Resolution notes (required)
+- Confirm dialog with impact explanation
+- Triggers notification to disputing party
 
-// Store pricing_mode in labs table
-await supabaseClient
-  .from('labs')
-  .update({ 
-    pricing_mode,
-    pricing_configured_at: new Date().toISOString()
-  })
-  .eq('id', labId);
+---
 
-// If CUSTOM mode, save pricing entries
-if (pricing_mode === 'CUSTOM' && pricing_entries?.length > 0) {
-  await supabaseClient
-    .from('lab_pricing')
-    .insert(pricing_entries.map(p => ({
-      lab_id: labId,
-      ...p
-    })));
+### 3. Update InvoicePreview.tsx for Dispute Resolution
+Add dispute resolution button for admin when `status === 'disputed'`:
+
+```tsx
+{invoice.status === 'disputed' && role === 'admin' && (
+  <Button onClick={() => setShowResolutionDialog(true)}>
+    Resolve Dispute
+  </Button>
+)}
+```
+
+---
+
+### 4. New Component: InvoiceRequestButton
+**File**: `src/components/billing/InvoiceRequestButton.tsx`
+
+For doctors to request invoice generation on their delivered orders:
+- Shows on order detail page when order is delivered but no invoice exists
+- Creates entry in `invoice_requests` table
+- Shows confirmation with estimated processing time
+
+---
+
+### 5. Update BillingTab.tsx for Sorting
+Add sorting controls:
+- Sort by: Date Created, Amount, Status, Payment Status
+- Sort direction: Ascending/Descending
+- Persist preference in localStorage
+
+---
+
+### 6. Fix OrderSelector.tsx Loading State
+**File**: `src/components/feedback-room/OrderSelector.tsx`
+
+Current:
+```tsx
+const { data: orders, isLoading: ordersLoading } = useQuery({
+  ...
+  enabled: !!user && !roleLoading && (isDoctor || isLabStaff),
+});
+```
+
+The problem is that `isDoctor` and `isLabStaff` return `false` during the loading phase.
+
+Fixed:
+```tsx
+const { data: orders, isLoading: ordersLoading } = useQuery({
+  ...
+  enabled: !!user && roleConfirmed && (isDoctor || isLabStaff),
+});
+
+// Show loading while role is being determined
+if (roleLoading || !roleConfirmed) {
+  return <LoadingScreen message="Checking access..." />;
 }
 ```
 
 ---
 
-## Visibility Implementation
-
-### Where Pricing Should Be Visible
-
-| Surface | Template Mode | Custom Mode |
-|---------|---------------|-------------|
-| Homepage Lab Cards | "From EGP 120" + "Platform Pricing" badge | "From EGP XX" + "Custom Pricing" badge |
-| Lab Profile Preview (Modal) | Full template prices | Full custom prices |
-| Lab Profile Page | Full template prices with label | Full custom prices with label |
-| Lab Admin Dashboard | Read-only template viewer | Editable pricing setup |
-| Order Summary | Locked price snapshot | Locked price snapshot |
-
-### Price Display Component Hierarchy
-```text
-<LabPricingDisplay>
-  ├── props: labId, pricingMode, showLabel
-  ├── if TEMPLATE → <TemplatePricingViewer readOnly />
-  └── if CUSTOM → <LabPricingSetup labId readOnly />
-```
-
----
-
-## Backend Enforcement
-
-### Order Creation Validation
-Update order creation to check:
-```sql
--- Block order creation if lab has no pricing configured
-CREATE OR REPLACE FUNCTION validate_lab_pricing()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM labs 
-    WHERE id = NEW.assigned_lab_id 
-    AND pricing_mode IS NOT NULL
-  ) THEN
-    RAISE EXCEPTION 'Lab has not configured pricing';
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-```
-
-### Invoice Generation
-Already implemented to check:
-1. `agreed_fee` from bid (highest priority)
-2. `lab_pricing` for custom pricing
-3. `pricing_rules` for template pricing (fallback)
-
----
-
-## Price Locking & Versioning
-
-### At Order Creation
-When an order is placed:
-1. Lock the active price to `lab_work_requests.price_snapshot`
-2. Store `sla_days_snapshot` and `rush_surcharge_snapshot`
-3. Reference this snapshot in invoice generation
-
-### Pricing Changes
-When a lab updates pricing:
-1. Set `is_current = false` on old records
-2. Insert new records with `version = old_version + 1`
-3. Set `effective_from = now()`, `effective_until = NULL`
-4. Log change to `lab_pricing_history`
+### 7. Enhanced Invoice Details
+Update InvoicePreview.tsx to include:
+- Order history timeline (status changes with timestamps)
+- All order notes (biological, handling, approval)
+- Pricing source indicator
+- Delivery confirmation details (who confirmed, when)
+- Lab information
 
 ---
 
@@ -249,102 +345,98 @@ When a lab updates pricing:
 
 | File | Purpose |
 |------|---------|
-| `src/components/labs/PricingModeSelector.tsx` | Onboarding pricing choice modal |
-| `src/components/billing/TemplatePricingViewer.tsx` | Read-only template pricing display |
-| `src/components/billing/LabPricingDisplay.tsx` | Wrapper that shows correct pricing based on mode |
+| `src/components/billing/DisputeResolutionDialog.tsx` | Admin dialog to resolve disputed invoices |
+| `src/components/billing/InvoiceRequestButton.tsx` | Doctor button to request invoice |
+| `src/components/billing/InvoiceSortControls.tsx` | Sorting controls for invoice list |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/pages/Onboarding.tsx` | Add pricing step for labs |
-| `src/pages/LabAdmin.tsx` | Add pricing mode management, template viewer |
-| `src/pages/LabProfile.tsx` | Show pricing with mode label |
-| `src/components/labs/LabProfilePreview.tsx` | Add pricing section |
-| `src/components/labs/LabCard.tsx` | Add price preview |
-| `src/pages/Labs.tsx` | Fetch pricing data for labs |
-| `supabase/functions/onboarding-complete/index.ts` | Add pricing mode validation |
-| Migration SQL | Add columns and tables |
+| Migration SQL | Fix source_event, create resolve function, create invoice_requests table |
+| `src/pages/Profile.tsx` | Fix React Error #31 - use `userRole?.role` instead of `userRole` |
+| `src/components/feedback-room/OrderSelector.tsx` | Use `roleConfirmed` flag for query enabling |
+| `src/components/billing/InvoicePreview.tsx` | Add dispute resolution, enhance details |
+| `src/components/billing/BillingTab.tsx` | Add sorting, show invoice requests for lab staff |
+| `src/pages/Dashboard.tsx` | Add invoice request button for doctors on delivered orders |
 
 ---
 
-## User Experience Flow
+## Dispute Resolution Workflow
 
-### Lab Onboarding (New)
 ```text
-Step 1: Choose Role → "Lab Staff"
-Step 2: Lab Information → Name, License, Tax ID, Address
-Step 3: Pricing Configuration → [NEW]
-        ├── Option A: Use Platform Template Pricing
-        │   └── Review template prices → Confirm
-        └── Option B: Configure Custom Pricing
-            └── Enter prices per restoration type → Save
-Step 4: Welcome Animation
-```
-
-### Lab Pricing Change (Post-Onboarding)
-```text
-Lab Admin → Pricing Tab
-├── Current Mode: [TEMPLATE | CUSTOM]
-├── [Switch Mode] Button
-│   └── Warning: "Changes apply to future orders only"
-├── Pricing Display:
-│   ├── If TEMPLATE: Read-only template viewer
-│   └── If CUSTOM: Editable LabPricingSetup
-└── [View Pricing History] → Audit log
+Invoice Disputed
+      |
+      v
+Admin Reviews in Billing Tab
+      |
+      v
+Admin Opens Resolution Dialog
+      |
+      +-- View dispute reason
+      |
+      +-- Choose resolution action:
+      |     ├── "Accept" - Agree with dispute, optionally add adjustment
+      |     ├── "Reject" - Dismiss dispute, no changes
+      |     └── "Adjust" - Partial agreement, add credit/debit
+      |
+      +-- Enter resolution notes (required)
+      |
+      v
+Confirm Resolution
+      |
+      v
+Update Invoice:
+  ├── status → previous status (generated/locked)
+  ├── dispute_resolved_at → now()
+  ├── dispute_resolved_by → admin id
+  └── If adjustment: update adjustments_total and final_total
+      |
+      v
+Notify disputing party
+      |
+      v
+Log in audit trail
 ```
 
 ---
 
-## Technical Implementation Notes
+## Doctor Invoice Request Workflow
 
-### Pricing Mode State
-```typescript
-type PricingMode = 'TEMPLATE' | 'CUSTOM';
-
-interface Lab {
-  // ... existing fields
-  pricing_mode: PricingMode | null;
-  pricing_configured_at: string | null;
-}
-```
-
-### Template Pricing Fetch
-```typescript
-// Fetch platform template pricing
-const { data: templatePricing } = useQuery({
-  queryKey: ['template-pricing'],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from('pricing_rules')
-      .select('*')
-      .eq('rule_type', 'base_price')
-      .eq('is_active', true);
-    return data;
-  }
-});
-```
-
-### Price Display Logic
-```typescript
-const getPricingData = (lab: Lab) => {
-  if (lab.pricing_mode === 'TEMPLATE') {
-    return { source: 'template', data: templatePricing };
-  } else if (lab.pricing_mode === 'CUSTOM') {
-    return { source: 'custom', data: labPricing };
-  }
-  return { source: 'none', data: null };
-};
+```text
+Doctor views delivered order
+      |
+      v
+Clicks "Request Invoice" button
+      |
+      v
+Creates entry in invoice_requests
+      |
+      v
+Notification sent to lab staff
+      |
+      v
+Lab staff sees pending requests in Billing Tab
+      |
+      v
+Lab staff generates invoice
+      |
+      v
+Request marked as processed
+      |
+      v
+Notification sent to doctor
 ```
 
 ---
 
 ## Expected Outcomes
 
-1. Every lab must explicitly choose TEMPLATE or CUSTOM pricing
-2. Labs cannot be listed or receive orders without pricing configuration
-3. Template pricing is visible to labs (read-only) and doctors (always)
-4. Custom pricing is visible on lab profiles
-5. All pricing changes are versioned and auditable
-6. Orders are locked to pricing at creation time
-7. Consistent pricing display across all surfaces
+1. Delivery confirmation will work without constraint violations
+2. Disputed invoices can be resolved by admins with full audit trail
+3. Doctors can request invoices for their delivered orders
+4. Invoices show comprehensive order details and timestamps
+5. Invoice list can be sorted by multiple criteria
+6. Feedback Room loads correctly without needing refresh
+7. Profile page works without React Error #31
+8. Invoice tabs are consistently styled
