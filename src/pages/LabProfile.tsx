@@ -50,7 +50,7 @@ export default function LabProfile() {
         .from("labs")
         .select("*")
         .eq("id", labId)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
