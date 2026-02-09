@@ -1,8 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Star, Clock, Zap, TrendingUp, Award, MapPin, Phone, Mail, Globe, DollarSign, FileText, Settings } from "lucide-react";
+import { Building2, Star, Clock, Zap, TrendingUp, Award, MapPin, Phone, Mail, Globe, DollarSign, FileText, Settings, CheckCircle, Package } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
+import { LabVerificationBadge } from "@/components/labs/LabVerificationBadge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface LabSpecialization {
   restoration_type: string;
@@ -30,7 +34,7 @@ interface LabProfilePreviewProps {
     website_url: string;
     pricing_mode?: 'TEMPLATE' | 'CUSTOM' | null;
   };
-  specializations: LabSpecialization[];
+  specializations?: LabSpecialization[];
 }
 
 const getPricingBadgeVariant = (tier: string) => {
@@ -58,16 +62,63 @@ const getCapacityColor = (currentLoad: number, maxCapacity: number) => {
   return 'text-destructive';
 };
 
-export function LabProfilePreview({ isOpen, onClose, labData, specializations }: LabProfilePreviewProps) {
+export function LabProfilePreview({ isOpen, onClose, labData, specializations: propSpecializations }: LabProfilePreviewProps) {
   const capacityPercentage = (labData.current_load / labData.max_capacity) * 100;
+
+  // Auto-fetch specializations if not provided
+  const { data: fetchedSpecializations } = useQuery({
+    queryKey: ['lab-specializations-preview', labData.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lab_specializations')
+        .select('restoration_type, expertise_level, turnaround_days')
+        .eq('lab_id', labData.id!);
+      if (error) throw error;
+      return data as LabSpecialization[];
+    },
+    enabled: isOpen && !!labData.id && (!propSpecializations || propSpecializations.length === 0),
+  });
+
+  // Auto-fetch lab verification and order count
+  const { data: labDetails } = useQuery({
+    queryKey: ['lab-details-preview', labData.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('labs')
+        .select('is_verified, verification_status, completed_order_count')
+        .eq('id', labData.id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: isOpen && !!labData.id,
+  });
+
+  // Fetch reviews summary
+  const { data: reviewsSummary } = useQuery({
+    queryKey: ['lab-reviews-summary', labData.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lab_reviews')
+        .select('rating')
+        .eq('lab_id', labData.id!);
+      if (error) throw error;
+      const count = data?.length || 0;
+      const avg = count > 0 ? data.reduce((acc, r) => acc + r.rating, 0) / count : 0;
+      return { count, average: avg };
+    },
+    enabled: isOpen && !!labData.id,
+  });
+
+  const specializations = (propSpecializations && propSpecializations.length > 0) ? propSpecializations : (fetchedSpecializations || []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Lab Profile Preview</DialogTitle>
+          <DialogTitle>Lab Profile</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            This is how dentists will see your lab profile
+            Full lab details, pricing, and capabilities
           </p>
         </DialogHeader>
 
@@ -86,41 +137,52 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
               </div>
             )}
             <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">{labData.name}</h1>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant={getPricingBadgeVariant(labData.pricing_tier)}>
-                    {labData.pricing_tier}
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-bold">{labData.name}</h1>
+                {labData.id && labDetails && (
+                  <LabVerificationBadge
+                    isVerified={labDetails.is_verified || false}
+                    verificationStatus={(labDetails.verification_status as 'pending' | 'verified' | 'at_risk' | 'revoked') || 'pending'}
+                    completedOrderCount={labDetails.completed_order_count || 0}
+                  />
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap mt-2">
+                <Badge variant={getPricingBadgeVariant(labData.pricing_tier)}>
+                  {labData.pricing_tier}
+                </Badge>
+                {labData.pricing_mode && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    {labData.pricing_mode === 'TEMPLATE' ? (
+                      <><FileText className="h-3 w-3" />Platform Pricing</>
+                    ) : (
+                      <><Settings className="h-3 w-3" />Custom Pricing</>
+                    )}
                   </Badge>
-                  {labData.pricing_mode && (
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      {labData.pricing_mode === 'TEMPLATE' ? (
-                        <>
-                          <FileText className="h-3 w-3" />
-                          Platform Pricing
-                        </>
-                      ) : (
-                        <>
-                          <Settings className="h-3 w-3" />
-                          Custom Pricing
-                        </>
-                      )}
-                    </Badge>
+                )}
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                  <span className="font-medium">
+                    {reviewsSummary ? reviewsSummary.average.toFixed(1) : labData.performance_score?.toFixed(1)}
+                  </span>
+                  {reviewsSummary && (
+                    <span className="text-xs">({reviewsSummary.count} reviews)</span>
                   )}
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                    <span className="font-medium">{labData.performance_score?.toFixed(1)}</span>
-                    <span className="text-xs">(Performance Score)</span>
-                  </div>
                 </div>
+                {labDetails?.completed_order_count != null && labDetails.completed_order_count > 0 && (
+                  <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                    <Package className="h-3 w-3" />
+                    {labDetails.completed_order_count} completed
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Description */}
           {labData.description && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">About</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-lg">About</CardTitle></CardHeader>
               <CardContent>
                 <p className="text-muted-foreground whitespace-pre-wrap">{labData.description}</p>
               </CardContent>
@@ -129,9 +191,7 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
 
           {/* Contact Information */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Contact Information</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg">Contact Information</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-muted-foreground" />
@@ -152,12 +212,7 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
               {labData.website_url && (
                 <div className="flex items-center gap-3">
                   <Globe className="h-4 w-4 text-muted-foreground" />
-                  <a 
-                    href={labData.website_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline"
-                  >
+                  <a href={labData.website_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
                     {labData.website_url}
                   </a>
                 </div>
@@ -167,9 +222,7 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
 
           {/* Service Details */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Service Details</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg">Service Details</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -178,7 +231,6 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
                 </div>
                 <span className="font-medium">{labData.standard_sla_days} days</span>
               </div>
-
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Zap className="h-4 w-4 text-muted-foreground" />
@@ -186,7 +238,6 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
                 </div>
                 <span className="font-medium">{labData.urgent_sla_days} days</span>
               </div>
-
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -199,7 +250,7 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
             </CardContent>
           </Card>
 
-          {/* Pricing Section */}
+          {/* Pricing Section - Full Display */}
           {labData.id && (
             <LabPricingDisplay 
               labId={labData.id} 
@@ -216,9 +267,7 @@ export function LabProfilePreview({ isOpen, onClose, labData, specializations }:
                   <Award className="h-5 w-5" />
                   Specializations
                 </CardTitle>
-                <CardDescription>
-                  Our expertise in various restoration types
-                </CardDescription>
+                <CardDescription>Expertise in various restoration types</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3">
