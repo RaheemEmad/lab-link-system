@@ -17,6 +17,7 @@ import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 import BidRevisionDialog from "@/components/order/BidRevisionDialog";
 import { LabVerificationBadge } from "@/components/labs/LabVerificationBadge";
 import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
+import { LabProfilePreview } from "@/components/labs/LabProfilePreview";
 
 // Helper function to format EGP currency
 const formatEGP = (amount: number) => {
@@ -905,139 +906,31 @@ export default function LabRequestsManagement() {
               </div>
             )}
             
-            {/* Lab Profile Dialog */}
-            <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-3">
-                    {selectedLab?.logo_url && (
-                      <img 
-                        src={selectedLab.logo_url} 
-                        alt={selectedLab.name}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
-                    )}
-                    {selectedLab?.name}
-                  </DialogTitle>
-                  <DialogDescription>
-                    Complete lab profile and capabilities
-                  </DialogDescription>
-                </DialogHeader>
-                
-                {selectedLab && (
-                  <div className="space-y-6">
-                    {/* About */}
-                    {selectedLab.description && (
-                      <div>
-                        <h4 className="font-semibold mb-2">About</h4>
-                        <p className="text-sm text-muted-foreground">{selectedLab.description}</p>
-                      </div>
-                    )}
-                    
-                    {/* Key Metrics */}
-                    <div>
-                      <h4 className="font-semibold mb-3">Performance</h4>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                          <Star className="h-5 w-5 text-yellow-500" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">Performance Score</p>
-                            <p className="font-semibold">{selectedLab.performance_score?.toFixed(1)}/5.0</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                          <Clock className="h-5 w-5 text-blue-500" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">Standard Turnaround</p>
-                            <p className="font-semibold">{selectedLab.standard_sla_days} days</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                          <TrendingUp className="h-5 w-5 text-green-500" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">Urgent Turnaround</p>
-                            <p className="font-semibold">{selectedLab.urgent_sla_days} days</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                          <Badge variant="outline" className="text-sm">
-                            {selectedLab.pricing_tier}
-                          </Badge>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Pricing Tier</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Contact Info */}
-                    <div>
-                      <h4 className="font-semibold mb-3">Contact Information</h4>
-                      <div className="space-y-2">
-                        {selectedLab.address && (
-                          <div className="flex items-start gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                            <p className="text-sm">{selectedLab.address}</p>
-                          </div>
-                        )}
-                        {selectedLab.contact_email && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Email:</span>
-                            <a href={`mailto:${selectedLab.contact_email}`} className="text-sm text-primary hover:underline">
-                              {selectedLab.contact_email}
-                            </a>
-                          </div>
-                        )}
-                        {selectedLab.contact_phone && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Phone:</span>
-                            <a href={`tel:${selectedLab.contact_phone}`} className="text-sm text-primary hover:underline">
-                              {selectedLab.contact_phone}
-                            </a>
-                          </div>
-                        )}
-                        {selectedLab.website_url && (
-                          <div className="flex items-center gap-2">
-                            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                            <a 
-                              href={selectedLab.website_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-sm text-primary hover:underline"
-                            >
-                              Visit Website
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Capacity Status */}
-                    <div>
-                      <h4 className="font-semibold mb-3">Current Capacity</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Current Load: {selectedLab.current_load} / {selectedLab.max_capacity}</span>
-                          <span>{((selectedLab.current_load / selectedLab.max_capacity) * 100).toFixed(0)}%</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full transition-all ${
-                              (selectedLab.current_load / selectedLab.max_capacity) > 0.8 
-                                ? 'bg-destructive' 
-                                : (selectedLab.current_load / selectedLab.max_capacity) > 0.5 
-                                  ? 'bg-yellow-500' 
-                                  : 'bg-success'
-                            }`}
-                            style={{ width: `${Math.min((selectedLab.current_load / selectedLab.max_capacity) * 100, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
+            {/* Lab Profile Dialog - Full Profile Preview */}
+            {selectedLab && (
+              <LabProfilePreview
+                isOpen={profileDialogOpen}
+                onClose={() => setProfileDialogOpen(false)}
+                labData={{
+                  id: selectedLab.id,
+                  name: selectedLab.name || '',
+                  description: selectedLab.description || '',
+                  contact_email: selectedLab.contact_email || '',
+                  contact_phone: selectedLab.contact_phone || '',
+                  address: selectedLab.address || '',
+                  max_capacity: selectedLab.max_capacity || 10,
+                  current_load: selectedLab.current_load || 0,
+                  standard_sla_days: selectedLab.standard_sla_days || 7,
+                  urgent_sla_days: selectedLab.urgent_sla_days || 3,
+                  pricing_tier: selectedLab.pricing_tier || 'standard',
+                  performance_score: selectedLab.performance_score || 0,
+                  logo_url: selectedLab.logo_url || null,
+                  website_url: selectedLab.website_url || '',
+                  pricing_mode: selectedLab.pricing_mode || null,
+                }}
+                specializations={[]}
+              />
+            )}
           </div>
         </div>
         <LandingFooter />
