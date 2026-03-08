@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CalendarGrid } from "@/components/lab/CalendarGrid";
 import { AvailabilityManager } from "@/components/lab/AvailabilityManager";
+import { useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
