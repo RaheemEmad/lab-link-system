@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,9 +14,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { format, addDays, subDays, differenceInDays, isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Clock, Plus, MapPin, CheckCircle2, XCircle, Truck } from "lucide-react";
+import { CalendarIcon, Clock, Plus, MapPin, CheckCircle2, XCircle, Truck, Zap, Calendar as CalIcon, ArrowLeft, ArrowRight, Target } from "lucide-react";
 import { toast } from "sonner";
 
 interface Appointment {
@@ -27,6 +28,19 @@ interface Appointment {
   created_at: string; order?: { order_number: string; patient_name: string } | null;
 }
 
+interface OrderForScheduling {
+  id: string;
+  order_number: string;
+  patient_name: string;
+  assigned_lab_id: string | null;
+  desired_delivery_date: string | null;
+  proposed_delivery_date: string | null;
+  expected_delivery_date: string | null;
+  urgency: string | null;
+  restoration_type: string | null;
+  status: string | null;
+}
+
 const TIME_SLOTS = [
   "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
   "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
@@ -35,7 +49,7 @@ const TIME_SLOTS = [
 
 export const SchedulingTabContent = () => {
   const { user } = useAuth();
-  const { isDoctor, isLabStaff } = useUserRole();
+  const { isDoctor } = useUserRole();
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
@@ -62,11 +76,11 @@ export const SchedulingTabContent = () => {
   const { data: userOrders = [] } = useQuery({
     queryKey: ["appointment-orders", user?.id],
     queryFn: async () => {
-      let query = supabase.from("orders").select("id, order_number, patient_name, assigned_lab_id").not("status", "in", '("Cancelled","Delivered")').order("created_at", { ascending: false }).limit(50);
+      let query = supabase.from("orders").select("id, order_number, patient_name, assigned_lab_id, desired_delivery_date, proposed_delivery_date, expected_delivery_date, urgency, restoration_type, status").not("status", "in", '("Cancelled","Delivered")').order("created_at", { ascending: false }).limit(50);
       if (isDoctor) query = query.eq("doctor_id", user!.id);
       const { data, error } = await query;
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as OrderForScheduling[];
     },
     enabled: !!user?.id,
     staleTime: 30_000,
@@ -74,6 +88,16 @@ export const SchedulingTabContent = () => {
 
   const selectedOrder = userOrders.find((o) => o.id === selectedOrderId);
   const selectedLabId = selectedOrder?.assigned_lab_id;
+
+  // Auto-set appointment type based on order status
+  useEffect(() => {
+    if (!selectedOrder) return;
+    if (selectedOrder.status === "Ready for Delivery") {
+      setAppointmentType("delivery");
+    } else if (selectedOrder.status === "Pending" || selectedOrder.status === "In Progress") {
+      setAppointmentType("pickup");
+    }
+  }, [selectedOrder]);
 
   const { data: labAvailability = [] } = useQuery({
     queryKey: ["lab-availability-for-booking", selectedLabId],
@@ -95,6 +119,37 @@ export const SchedulingTabContent = () => {
         return TIME_SLOTS.filter((t) => t >= start && t < end);
       })
     : TIME_SLOTS;
+
+  // Quick-pick date helpers
+  const isDateDisabled = (date: Date) => {
+    if (isPast(date) && !isToday(date)) return true;
+    if (hasAvailability && !availableDays.has(date.getDay())) return true;
+    return false;
+  };
+
+  const quickPickDates = (() => {
+    if (!selectedOrder) return [];
+    const desired = selectedOrder.desired_delivery_date ? new Date(selectedOrder.desired_delivery_date) : null;
+    const proposed = selectedOrder.proposed_delivery_date ? new Date(selectedOrder.proposed_delivery_date) : null;
+    const picks: { label: string; date: Date; icon: typeof Target; variant: "default" | "outline" }[] = [];
+
+    if (desired) {
+      picks.push({ label: "Day before", date: subDays(desired, 1), icon: ArrowLeft, variant: "outline" });
+      picks.push({ label: "Desired date", date: desired, icon: Target, variant: "default" });
+      picks.push({ label: "Day after", date: addDays(desired, 1), icon: ArrowRight, variant: "outline" });
+    }
+    if (proposed && desired && format(proposed, "yyyy-MM-dd") !== format(desired, "yyyy-MM-dd")) {
+      picks.push({ label: "Proposed date", date: proposed, icon: CalIcon, variant: "outline" });
+    } else if (proposed && !desired) {
+      picks.push({ label: "Proposed date", date: proposed, icon: CalIcon, variant: "default" });
+    }
+    return picks;
+  })();
+
+  const daysRemaining = (() => {
+    if (!selectedOrder?.desired_delivery_date) return null;
+    return differenceInDays(new Date(selectedOrder.desired_delivery_date), new Date());
+  })();
 
   const createAppointment = useMutation({
     mutationFn: async () => {
@@ -177,9 +232,10 @@ export const SchedulingTabContent = () => {
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Schedule Appointment</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
+            {/* Order selector */}
             <div className="space-y-2">
               <Label>Order *</Label>
               <Select value={selectedOrderId} onValueChange={setSelectedOrderId}>
@@ -187,8 +243,52 @@ export const SchedulingTabContent = () => {
                 <SelectContent>{userOrders.map((o) => <SelectItem key={o.id} value={o.id}>#{o.order_number} — {o.patient_name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+
+            {/* Order context card */}
+            {selectedOrder && (
+              <OrderContextCard order={selectedOrder} daysRemaining={daysRemaining} />
+            )}
+
+            {/* Quick-pick dates */}
+            {selectedOrder && quickPickDates.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Quick pick a date</Label>
+                <TooltipProvider delayDuration={200}>
+                  <div className="flex flex-wrap gap-2">
+                    {quickPickDates.map((pick) => {
+                      const disabled = isDateDisabled(pick.date);
+                      const isSelected = selectedDate && format(selectedDate, "yyyy-MM-dd") === format(pick.date, "yyyy-MM-dd");
+                      const Icon = pick.icon;
+                      const btn = (
+                        <Button
+                          key={pick.label}
+                          type="button"
+                          size="sm"
+                          variant={isSelected ? "default" : "outline"}
+                          disabled={disabled}
+                          className={cn("text-xs gap-1.5", isSelected && "ring-2 ring-primary/30")}
+                          onClick={() => setSelectedDate(pick.date)}
+                        >
+                          <Icon className="h-3 w-3" />
+                          <span>{pick.label}</span>
+                          <span className="text-[10px] opacity-70">({format(pick.date, "MMM d")})</span>
+                        </Button>
+                      );
+                      return disabled ? (
+                        <Tooltip key={pick.label}>
+                          <TooltipTrigger asChild>{btn}</TooltipTrigger>
+                          <TooltipContent>Unavailable — past date or lab closed</TooltipContent>
+                        </Tooltip>
+                      ) : btn;
+                    })}
+                  </div>
+                </TooltipProvider>
+              </div>
+            )}
+
             {selectedLabId && hasAvailability && <p className="text-xs text-muted-foreground bg-primary/5 rounded p-2">📅 Dates and times filtered by lab availability</p>}
             {selectedLabId && !hasAvailability && <p className="text-xs text-muted-foreground bg-muted rounded p-2">⚠️ Lab hasn't configured availability — all times shown</p>}
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Type</Label>
@@ -204,7 +304,7 @@ export const SchedulingTabContent = () => {
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{selectedDate ? format(selectedDate, "PPP") : "Pick date"}</Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} disabled={(date) => { if (date < new Date()) return true; if (hasAvailability && !availableDays.has(date.getDay())) return true; return false; }} initialFocus className="p-3 pointer-events-auto" />
+                    <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} disabled={isDateDisabled} initialFocus className="p-3 pointer-events-auto" />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -233,6 +333,46 @@ export const SchedulingTabContent = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+};
+
+// --- Order Context Card ---
+const OrderContextCard = ({ order, daysRemaining }: { order: OrderForScheduling; daysRemaining: number | null }) => {
+  const desired = order.desired_delivery_date ? new Date(order.desired_delivery_date) : null;
+  const proposed = order.proposed_delivery_date ? new Date(order.proposed_delivery_date) : null;
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-medium text-sm truncate">{order.patient_name}</span>
+            {order.restoration_type && <Badge variant="secondary" className="text-[10px] shrink-0">{order.restoration_type}</Badge>}
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {order.urgency === "Urgent" && <Badge variant="destructive" className="text-[10px] gap-1"><Zap className="h-2.5 w-2.5" />Urgent</Badge>}
+            {order.status && <Badge variant="outline" className="text-[10px]">{order.status}</Badge>}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          {desired && (
+            <span className="flex items-center gap-1">
+              <Target className="h-3 w-3" /> Desired: <strong className="text-foreground">{format(desired, "MMM d")}</strong>
+            </span>
+          )}
+          {proposed && (
+            <span className="flex items-center gap-1">
+              <CalIcon className="h-3 w-3" /> Proposed: <strong className="text-foreground">{format(proposed, "MMM d")}</strong>
+            </span>
+          )}
+          {daysRemaining !== null && (
+            <span className={cn("font-medium", daysRemaining <= 1 ? "text-destructive" : daysRemaining <= 3 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+              {daysRemaining < 0 ? `${Math.abs(daysRemaining)}d overdue` : daysRemaining === 0 ? "Due today" : `${daysRemaining}d remaining`}
+            </span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
