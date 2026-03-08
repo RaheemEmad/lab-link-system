@@ -347,7 +347,8 @@ const LandingNav = () => {
             </div>
             
             {/* Desktop Right Section (Auth & User Actions) */}
-            <div className="hidden lg:flex items-center gap-2">
+             <div className="hidden lg:flex items-center gap-2">
+              <ThemeToggle />
               {user ? (
                 <>
                   {/* Create Order Button - Doctor Only */}
