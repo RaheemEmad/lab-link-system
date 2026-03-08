@@ -254,9 +254,23 @@ export const DeliveryConfirmationDialog = ({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              By confirming, you acknowledge that you have received the dental work and it meets initial expectations.
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                By confirming, you acknowledge that you have received the dental work and it meets initial expectations.
+              </p>
+              {restorationData?.restoration_type && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={saveAsCase}
+                    onCheckedChange={(checked) => setSaveAsCase(checked === true)}
+                  />
+                  <span className="text-sm flex items-center gap-1.5">
+                    <BookmarkPlus className="h-3.5 w-3.5" />
+                    Save to Patient Case Library
+                  </span>
+                </label>
+              )}
+            </div>
           )}
         </div>
 
