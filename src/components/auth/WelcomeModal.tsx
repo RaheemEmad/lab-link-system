@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import type { CreateTypes } from "canvas-confetti";
+import { fireConfetti } from "@/lib/confetti";
 import { Sparkles } from "lucide-react";
 
 interface WelcomeModalProps {
