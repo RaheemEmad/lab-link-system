@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { openSanitizedHtmlPreview } from "@/lib/htmlSanitize";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
