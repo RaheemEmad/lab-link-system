@@ -383,19 +383,25 @@ interface LabStatsData {
 }
 
 const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => {
-  const handleExport = async () => {
+  const buildLabExportRows = () => [
+    { Metric: "Total Orders", Value: String(stats.totalOrders) },
+    { Metric: "Completed", Value: String(stats.completedCount) },
+    { Metric: "In Progress", Value: String(stats.inProgressCount) },
+    { Metric: "Total Revenue (EGP)", Value: String(stats.totalRevenue) },
+    { Metric: "Received (EGP)", Value: String(stats.totalReceived) },
+    { Metric: "On-Time Rate", Value: `${stats.onTimeRate}%` },
+    ...stats.monthlyRevenue.map((m) => ({ Metric: `Revenue ${m.month}`, Value: String(m.revenue) })),
+    ...stats.topClients.map((c) => ({ Metric: `Client: ${c.name}`, Value: `${c.count} orders` })),
+  ];
+
+  const handleExportCSV = async () => {
     const { exportToCSV } = await import("@/lib/exportUtils");
-    const rows = [
-      { Metric: "Total Orders", Value: String(stats.totalOrders) },
-      { Metric: "Completed", Value: String(stats.completedCount) },
-      { Metric: "In Progress", Value: String(stats.inProgressCount) },
-      { Metric: "Total Revenue (EGP)", Value: String(stats.totalRevenue) },
-      { Metric: "Received (EGP)", Value: String(stats.totalReceived) },
-      { Metric: "On-Time Rate", Value: `${stats.onTimeRate}%` },
-      ...stats.monthlyRevenue.map((m) => ({ Metric: `Revenue ${m.month}`, Value: String(m.revenue) })),
-      ...stats.topClients.map((c) => ({ Metric: `Client: ${c.name}`, Value: `${c.count} orders` })),
-    ];
-    exportToCSV(rows, `lab-analytics-${new Date().toISOString().slice(0, 10)}`);
+    exportToCSV(buildLabExportRows(), `lab-analytics-${new Date().toISOString().slice(0, 10)}`);
+  };
+
+  const handleExportPDF = async () => {
+    const { exportToPDF } = await import("@/lib/exportUtils");
+    exportToPDF(buildLabExportRows(), "Lab Analytics", `lab-analytics-${new Date().toISOString().slice(0, 10)}`);
   };
 
   return (
