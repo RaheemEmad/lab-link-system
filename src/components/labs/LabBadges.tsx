@@ -100,7 +100,7 @@ export function LabBadges({ labId, maxDisplay = 3, showAll = false, className }:
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_badges")
-        .select("*")
+        .select("id, badge_type, badge_value, earned_at, expires_at")
         .eq("lab_id", labId)
         .or("expires_at.is.null,expires_at.gt.now()");
       

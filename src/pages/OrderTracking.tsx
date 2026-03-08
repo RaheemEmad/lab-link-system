@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { openSanitizedHtmlPreview } from "@/lib/htmlSanitize";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -69,49 +70,29 @@ const OrderTracking = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { role: userRole, isLoading: roleLoading } = useUserRole();
   const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<string | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !roleLoading) {
       navigate("/auth");
-      return;
     }
-
-    fetchUserRole();
-  }, [user, navigate]);
+  }, [user, roleLoading, navigate]);
 
   useEffect(() => {
     if (userRole) {
       fetchOrders();
 
-      // Set up realtime subscription for order updates
       const channel = supabase
         .channel('order-tracking-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
-          },
-          (payload) => {
-            console.log('Order update received:', payload);
-            fetchOrders(); // Refetch all orders on any change
-            
-            if (payload.eventType === 'UPDATE') {
-              toast.success("Order Updated", {
-                description: `Order ${(payload.new as any).order_number} has been updated`
-              });
-            }
-          }
-        )
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => fetchOrders())
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+          setOrders(prev => prev.map(o => o.id === (payload.new as any).id ? { ...o, ...(payload.new as any) } : o));
+        })
         .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      return () => { supabase.removeChannel(channel); };
     }
   }, [userRole, user]);
 
@@ -131,20 +112,6 @@ const OrderTracking = () => {
       }
     }
   }, [searchParams, orders, setSearchParams]);
-
-  const fetchUserRole = async () => {
-    if (!user) return;
-    
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (data) {
-      setUserRole(data.role);
-    }
-  };
 
   const fetchOrders = async () => {
     if (!user || !userRole) return;

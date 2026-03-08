@@ -73,9 +73,10 @@ export const OrderReceiptPDF = ({ orderId, onClose }: OrderReceiptPDFProps) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("chat_messages")
-        .select("*")
+        .select("id, message_text, sender_role, created_at")
         .eq("order_id", orderId)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .limit(100);
       
       if (error) throw error;
       return data;
@@ -127,7 +128,7 @@ export const OrderReceiptPDF = ({ orderId, onClose }: OrderReceiptPDFProps) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*")
+        .select("id, invoice_number, subtotal, adjustments_total, expenses_total, final_total, status, payment_status, amount_paid, due_date, late_fee_applied")
         .eq("order_id", orderId)
         .single();
       

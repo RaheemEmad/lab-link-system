@@ -304,7 +304,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       
       // Log metadata if available (for debugging)
       if (metadata) {
-        console.log(`Image metadata for ${file.name}:`, metadata);
+        
       }
       
       let finalFile = processedFile;

@@ -78,7 +78,7 @@ class SLAMonitor {
     const metricKey = `${metric.name}_${metric.severity}`;
     
     if (!this.shouldAlert(metricKey)) {
-      console.log(`Alert cooldown active for ${metricKey}`);
+      
       return;
     }
 
@@ -98,7 +98,7 @@ class SLAMonitor {
       });
 
       this.alertCooldowns.set(metricKey, Date.now());
-      console.log(`SLA alert sent: ${metric.name} - ${metric.severity}`);
+      
     } catch (error) {
       console.error('Failed to create SLA alert:', error);
     }

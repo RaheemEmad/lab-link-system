@@ -10,6 +10,7 @@ import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
@@ -27,14 +28,9 @@ export default function LabProfile() {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(5);
 
-  // Fetch current user
-  const { data: user } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use auth hook instead of direct supabase.auth.getUser()
+  const { user } = useAuth();
+
 
   // Fetch lab details
   const { data: lab, isLoading: labLoading } = useQuery({
@@ -42,7 +38,7 @@ export default function LabProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("labs")
-        .select("*")
+        .select("id, name, description, contact_email, contact_phone, address, is_active, max_capacity, current_load, standard_sla_days, urgent_sla_days, pricing_tier, performance_score, logo_url, website_url, is_sponsored, pricing_mode")
         .eq("id", labId)
         .maybeSingle();
       if (error) throw error;
@@ -56,7 +52,7 @@ export default function LabProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_specializations")
-        .select("*")
+        .select("id, lab_id, restoration_type, expertise_level, turnaround_days, is_preferred")
         .eq("lab_id", labId);
       if (error) throw error;
       return data;
@@ -69,7 +65,7 @@ export default function LabProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_photos")
-        .select("*")
+        .select("id, photo_url, caption, display_order")
         .eq("lab_id", labId)
         .order("display_order");
       if (error) throw error;
@@ -83,7 +79,7 @@ export default function LabProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_pricing")
-        .select("*")
+        .select("id, lab_id, restoration_type, fixed_price, min_price, max_price, includes_rush, rush_surcharge_percent, is_current")
         .eq("lab_id", labId);
       if (error) throw error;
       return data;

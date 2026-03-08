@@ -102,7 +102,7 @@ export const SchedulingTabContent = () => {
   const { data: labAvailability = [] } = useQuery({
     queryKey: ["lab-availability-for-booking", selectedLabId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("lab_availability_slots").select("*").eq("lab_id", selectedLabId!).eq("is_active", true).order("day_of_week").order("start_time");
+      const { data, error } = await supabase.from("lab_availability_slots").select("id, day_of_week, start_time, end_time, is_active, max_bookings").eq("lab_id", selectedLabId!).eq("is_active", true).order("day_of_week").order("start_time");
       if (error) throw error;
       return data ?? [];
     },

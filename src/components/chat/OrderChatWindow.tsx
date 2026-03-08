@@ -308,7 +308,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
         // Retry with exponential backoff
         if (retryAttempt < 3) {
           const delay = Math.min(1000 * Math.pow(2, retryAttempt), 10000);
-          console.log(`Retrying message send in ${delay}ms (attempt ${retryAttempt + 1})`);
+          
           
           toast(`Retrying... (${retryAttempt + 1}/3)`);
 

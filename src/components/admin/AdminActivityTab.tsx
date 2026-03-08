@@ -30,7 +30,7 @@ const AdminActivityTab = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("audit_logs")
-        .select("*")
+        .select("id, action_type, table_name, user_id, created_at, ip_address, metadata")
         .order("created_at", { ascending: false })
         .limit(100);
 

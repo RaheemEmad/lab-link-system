@@ -66,7 +66,7 @@ const AdminUsersTab = () => {
       setLoading(true);
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, full_name, email, phone, clinic_name, lab_name, onboarding_completed, created_at")
         .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;

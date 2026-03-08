@@ -42,11 +42,11 @@ export default function LabRequestsManagement() {
     queryKey: ["lab-requests-doctor", user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('[LabRequests] No user ID, returning empty array');
+        
         return [];
       }
       
-      console.log('[LabRequests] Fetching lab work requests for doctor:', user.id);
+      
       
       const { data, error } = await supabase
         .from("lab_work_requests")
@@ -103,7 +103,7 @@ export default function LabRequestsManagement() {
         throw error;
       }
       
-      console.log('[LabRequests] Successfully fetched requests:', data?.length || 0);
+      
       return data || [];
     },
     enabled: !!user?.id,
@@ -120,7 +120,7 @@ export default function LabRequestsManagement() {
       orderNumber?: string;
       bidAmount?: number;
     }) => {
-      console.log('[LabRequests] Updating request status:', { requestId, status });
+      
       
       // Get the request details first (to get lab_id and user_id)
       const { data: requestData, error: fetchError } = await supabase
@@ -165,7 +165,7 @@ export default function LabRequestsManagement() {
       
       // If accepting, do the full assignment flow
       if (status === 'accepted' && orderId) {
-        console.log('[LabRequests] Accepting request - starting full assignment flow');
+        
         
         // Pre-check: Verify lab has pricing configured
         const { data: labPricingCheck, error: pricingError } = await supabase
@@ -205,7 +205,7 @@ export default function LabRequestsManagement() {
           throw orderError;
         }
         
-        console.log('[LabRequests] Order updated - lab assigned and removed from marketplace');
+        
         
         // 3. Create order assignment
         const { error: assignmentError } = await supabase
@@ -220,7 +220,7 @@ export default function LabRequestsManagement() {
         if (assignmentError && !assignmentError.message?.includes('duplicate')) {
           console.warn('[LabRequests] Assignment creation warning:', assignmentError);
         } else {
-          console.log('[LabRequests] Order assignment created');
+          
         }
         
         // 4. Refuse all other pending requests for this order
@@ -234,7 +234,7 @@ export default function LabRequestsManagement() {
         if (refuseError) {
           console.warn('[LabRequests] Error refusing other requests:', refuseError);
         } else {
-          console.log('[LabRequests] Other pending requests refused');
+          
         }
         
         // 5. Send notification to accepted lab
@@ -251,19 +251,19 @@ export default function LabRequestsManagement() {
         if (notifError) {
           console.warn('[LabRequests] Error sending notification:', notifError);
         } else {
-          console.log('[LabRequests] Acceptance notification sent to lab');
+          
         }
       }
       
-      console.log('[LabRequests] Request status update completed successfully');
+      
       return { requestId, orderId, orderNumber };
     },
     onSuccess: (data, variables) => {
       if (variables.status === 'accepted' && data.orderNumber && data.orderId) {
-        console.log('[LabRequests] Request accepted, showing animation');
+        
         setAcceptedRequest({ id: variables.requestId, orderId: data.orderId, orderNumber: data.orderNumber });
       } else {
-        console.log('[LabRequests] Request declined, invalidating queries');
+        
         queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
         queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
         queryClient.invalidateQueries({ queryKey: ["orders"] });

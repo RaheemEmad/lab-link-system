@@ -147,7 +147,7 @@ const Auth = () => {
         // If no profile exists, this is an OAuth user without profile - redirect to onboarding
         if (!profile && !profileError) {
           clearTimeout(loadingTimeout);
-          console.log('OAuth user without profile, redirecting to onboarding');
+          
           toast.info("Complete your profile to get started");
           navigate("/onboarding");
           return;
@@ -165,7 +165,7 @@ const Auth = () => {
 
         // If role fetch failed or no role exists, redirect to onboarding
         if (roleError || !userRole) {
-          console.log('No role found, redirecting to onboarding');
+          
           toast.info("Complete your account setup");
           navigate("/onboarding");
           return;
