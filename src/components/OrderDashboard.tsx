@@ -1270,6 +1270,7 @@ const OrderDashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </TooltipProvider>
   );
 };
