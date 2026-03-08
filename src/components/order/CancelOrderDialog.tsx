@@ -85,39 +85,69 @@ export function CancelOrderDialog({
       }
     },
     onSuccess: async () => {
-      // Notify the other party
-      if (userRole === 'doctor') {
-        // Notify assigned lab staff
-        const { data: assignments } = await supabase
-          .from("order_assignments")
+      // Fetch order details for notifications
+      const { data: orderData } = await supabase
+        .from("orders")
+        .select("doctor_id, assigned_lab_id")
+        .eq("id", orderId)
+        .single();
+
+      // Get all lab staff for the assigned lab (if any)
+      const notifiedUserIds = new Set<string>();
+
+      if (orderData?.assigned_lab_id) {
+        // Notify all lab staff at this lab
+        const { data: labStaff } = await supabase
+          .from("user_roles")
           .select("user_id")
-          .eq("order_id", orderId);
-        for (const a of assignments || []) {
+          .eq("lab_id", orderData.assigned_lab_id)
+          .eq("role", "lab_staff");
+
+        for (const staff of labStaff || []) {
+          if (staff.user_id !== user?.id) {
+            notifiedUserIds.add(staff.user_id);
+            await createNotification({
+              user_id: staff.user_id,
+              order_id: orderId,
+              type: "order_cancelled",
+              title: "Order Cancelled",
+              message: `Order ${orderNumber} has been cancelled by the ${userRole}.`,
+            });
+          }
+        }
+      }
+
+      // Also notify via order_assignments (deduplicate)
+      const { data: assignments } = await supabase
+        .from("order_assignments")
+        .select("user_id")
+        .eq("order_id", orderId);
+
+      for (const a of assignments || []) {
+        if (!notifiedUserIds.has(a.user_id) && a.user_id !== user?.id) {
+          notifiedUserIds.add(a.user_id);
           await createNotification({
             user_id: a.user_id,
             order_id: orderId,
             type: "order_cancelled",
             title: "Order Cancelled",
-            message: `Order ${orderNumber} has been cancelled by the doctor.`,
-          });
-        }
-      } else {
-        // Notify doctor
-        const { data: orderData } = await supabase
-          .from("orders")
-          .select("doctor_id")
-          .eq("id", orderId)
-          .single();
-        if (orderData?.doctor_id) {
-          await createNotification({
-            user_id: orderData.doctor_id,
-            order_id: orderId,
-            type: "order_cancelled",
-            title: "Order Cancelled",
-            message: `Order ${orderNumber} has been cancelled by the lab.`,
+            message: `Order ${orderNumber} has been cancelled by the ${userRole}.`,
           });
         }
       }
+
+      // Notify doctor (if lab cancelled)
+      if (userRole === 'lab' && orderData?.doctor_id) {
+        await createNotification({
+          user_id: orderData.doctor_id,
+          order_id: orderId,
+          type: "order_cancelled",
+          title: "Order Cancelled",
+          message: `Order ${orderNumber} has been cancelled by the lab.`,
+        });
+      }
+
+      // Notify doctor (if doctor cancelled, no need — they initiated it)
 
       toast({
         title: "Order Cancelled",

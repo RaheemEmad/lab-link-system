@@ -207,9 +207,18 @@ const OrderDashboard = () => {
 
   const handleDelete = async (orderId: string) => {
     try {
-      const { error } = await supabase.from("orders").delete().eq("id", orderId);
+      const order = orders.find(o => o.id === orderId);
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          deleted_by: user?.id,
+          pre_delete_status: order?.status || "Pending",
+        })
+        .eq("id", orderId);
       if (error) throw error;
-      toast.success("Order deleted successfully");
+      toast.success("Order moved to trash. You can restore it from Deleted Orders.");
       fetchOrders();
     } catch (error: any) {
       console.error("Failed to delete order:", error.message);
@@ -218,6 +227,29 @@ const OrderDashboard = () => {
       setDeleteOrderId(null);
     }
   };
+
+  const fetchDeletedOrders = async () => {
+    if (!user || !isDoctor) return;
+    setDeletedLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`*, labs (id, name, contact_email, contact_phone, description)`)
+        .eq("is_deleted", true)
+        .eq("doctor_id", user.id)
+        .order("deleted_at", { ascending: false });
+      if (error) throw error;
+      setDeletedOrders((data || []) as any);
+    } catch (error: any) {
+      toast.error("Failed to load deleted orders");
+    } finally {
+      setDeletedLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showDeletedOrders) fetchDeletedOrders();
+  }, [showDeletedOrders]);
 
   const handleEdit = (orderId: string) => navigate(`/edit-order/${orderId}`);
   const handleStatusUpdate = (order: Order) => dialog.open("status", order);

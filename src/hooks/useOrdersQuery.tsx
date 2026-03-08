@@ -243,7 +243,7 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
       toast.error("Failed to delete order");
     },
     onSuccess: () => {
-      toast.success("Order deleted successfully");
+      toast.success("Order moved to trash. You can restore it from Deleted Orders.");
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
