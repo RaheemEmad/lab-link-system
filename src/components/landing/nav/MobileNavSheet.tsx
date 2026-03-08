@@ -23,7 +23,7 @@ interface MobileNavSheetProps {
   hasUrgent: boolean;
   newOrdersCount?: number;
   isInstallable: boolean;
-  t: TranslationType;
+  t: Translations;
   signOut: () => void;
   onNavClick: (link: NavLink) => void;
   isLinkActive: (link: NavLink) => boolean;
