@@ -134,6 +134,8 @@ export const PostDeliveryReviewDialog = ({
           <RatingRow label="Quality" value={qualityRating} onChange={setQualityRating} />
           <RatingRow label="Turnaround" value={turnaroundRating} onChange={setTurnaroundRating} />
           <RatingRow label="Communication" value={communicationRating} onChange={setCommunicationRating} />
+          <RatingRow label="Value for Money" value={valueRating} onChange={setValueRating} />
+          <RatingRow label="Accuracy" value={accuracyRating} onChange={setAccuracyRating} />
 
           <div className="space-y-2 pt-2">
             <Label htmlFor="review-text">Review (optional)</Label>
