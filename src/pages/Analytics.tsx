@@ -407,9 +407,7 @@ const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => {
   return (
   <div className="space-y-6">
     <div className="flex justify-end">
-      <Button variant="outline" size="sm" onClick={handleExport}>
-        <Download className="h-4 w-4 mr-1.5" /> Export CSV
-      </Button>
+      <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
     </div>
     {/* KPI Cards */}
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
