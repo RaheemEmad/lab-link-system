@@ -2258,6 +2258,8 @@ export type Database = {
           carrier_name: string | null
           carrier_phone: string | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           delivery_acceptance_status: string | null
           delivery_confirmed_at: string | null
           delivery_confirmed_by: string | null
@@ -2276,10 +2278,12 @@ export type Database = {
           handling_instructions: string | null
           html_export: string | null
           id: string
+          is_deleted: boolean
           order_number: string
           patient_name: string
           photos_link: string | null
           pickup_time: string | null
+          pre_delete_status: string | null
           price: number | null
           proposed_delivery_date: string | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
@@ -2311,6 +2315,8 @@ export type Database = {
           carrier_name?: string | null
           carrier_phone?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           delivery_acceptance_status?: string | null
           delivery_confirmed_at?: string | null
           delivery_confirmed_by?: string | null
@@ -2329,10 +2335,12 @@ export type Database = {
           handling_instructions?: string | null
           html_export?: string | null
           id?: string
+          is_deleted?: boolean
           order_number: string
           patient_name: string
           photos_link?: string | null
           pickup_time?: string | null
+          pre_delete_status?: string | null
           price?: number | null
           proposed_delivery_date?: string | null
           restoration_type: Database["public"]["Enums"]["restoration_type"]
@@ -2364,6 +2372,8 @@ export type Database = {
           carrier_name?: string | null
           carrier_phone?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           delivery_acceptance_status?: string | null
           delivery_confirmed_at?: string | null
           delivery_confirmed_by?: string | null
@@ -2382,10 +2392,12 @@ export type Database = {
           handling_instructions?: string | null
           html_export?: string | null
           id?: string
+          is_deleted?: boolean
           order_number?: string
           patient_name?: string
           photos_link?: string | null
           pickup_time?: string | null
+          pre_delete_status?: string | null
           price?: number | null
           proposed_delivery_date?: string | null
           restoration_type?: Database["public"]["Enums"]["restoration_type"]
