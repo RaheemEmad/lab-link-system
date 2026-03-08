@@ -63,6 +63,7 @@ const ChatHistory = lazy(() => import("./pages/ChatHistory"));
 const FeedbackRoom = lazy(() => import("./pages/FeedbackRoom"));
 const PatientCases = lazy(() => import("./pages/PatientCases"));
 const SharedInvoice = lazy(() => import("./pages/SharedInvoice"));
+const Inbox = lazy(() => import("./pages/Inbox"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized QueryClient with better caching and stale time settings
