@@ -155,17 +155,19 @@ const AppContent = () => {
 const App = () => (
   <ErrorBoundary>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <AppContent />
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AuthProvider>
+                <AppContent />
+              </AuthProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </LanguageProvider>
     </ThemeProvider>
   </ErrorBoundary>
 );
