@@ -17,12 +17,16 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, Loader2, AlertTriangle } from "lucide-react";
 import { format, isPast, startOfDay } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { formatEGP } from "@/lib/formatters";
 
 type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
+
+const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Mobile Wallet', 'Check'] as const;
 
 interface PaymentDialogProps {
   open: boolean;
@@ -32,10 +36,10 @@ interface PaymentDialogProps {
   currentAmountPaid: number;
   currentDueDate: string | null;
   currentPaymentReceivedAt: string | null;
+  currentPaymentMethod?: string | null;
+  currentPaymentReference?: string | null;
   finalTotal: number;
 }
-
-import { formatEGP } from "@/lib/formatters";
 
 const PaymentDialog = ({
   open,
