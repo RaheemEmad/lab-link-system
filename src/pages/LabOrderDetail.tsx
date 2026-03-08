@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { openSanitizedHtmlPreview } from "@/lib/htmlSanitize";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -944,11 +945,7 @@ const LabOrderDetail = () => {
                         if (isUrl) {
                           window.open(order.html_export!, '_blank', 'noopener,noreferrer');
                         } else {
-                          const previewWindow = window.open('', '_blank');
-                          if (previewWindow && order.html_export) {
-                            previewWindow.document.write(order.html_export);
-                            previewWindow.document.close();
-                          }
+                          openSanitizedHtmlPreview(order.html_export!);
                         }
                       }}
                     >

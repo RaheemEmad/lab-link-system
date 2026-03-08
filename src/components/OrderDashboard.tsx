@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useMemo, useRef } from "react";
+import { openSanitizedHtmlPreview } from "@/lib/htmlSanitize";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -694,11 +695,7 @@ const OrderDashboard = () => {
                             if (isUrl) {
                               window.open(order.html_export!, '_blank', 'noopener,noreferrer');
                             } else {
-                              const previewWindow = window.open('', '_blank');
-                              if (previewWindow && order.html_export) {
-                                previewWindow.document.write(order.html_export);
-                                previewWindow.document.close();
-                              }
+                              openSanitizedHtmlPreview(order.html_export!);
                             }
                           }}
                           className="flex-1"
@@ -939,11 +936,7 @@ const OrderDashboard = () => {
                                 if (isUrl) {
                                   window.open(order.html_export!, '_blank', 'noopener,noreferrer');
                                 } else {
-                                  const previewWindow = window.open('', '_blank');
-                                  if (previewWindow && order.html_export) {
-                                    previewWindow.document.write(order.html_export);
-                                    previewWindow.document.close();
-                                  }
+                                  openSanitizedHtmlPreview(order.html_export!);
                                 }
                               }}
                               className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted hover:border-primary hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"

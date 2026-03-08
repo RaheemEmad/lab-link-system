@@ -14,7 +14,8 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, serviceKey);
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const serviceSupabase = createClient(supabaseUrl, serviceKey);
 
   try {
     // GET: Fetch invoice by share token (public, no auth)
@@ -27,7 +28,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data: invoice, error } = await supabase
+      const { data: invoice, error } = await serviceSupabase
         .from("invoices")
         .select(`
           id, invoice_number, status, subtotal, adjustments_total, expenses_total,
@@ -46,7 +47,7 @@ Deno.serve(async (req) => {
       }
 
       // Fetch line items
-      const { data: lineItems } = await supabase
+      const { data: lineItems } = await serviceSupabase
         .from("invoice_line_items")
         .select("id, description, quantity, unit_price, total_price")
         .eq("invoice_id", invoice.id)
@@ -58,15 +59,29 @@ Deno.serve(async (req) => {
       );
     }
 
-    // POST: Generate share token (requires auth)
+    // POST: Generate share token (requires authenticated user who owns the invoice)
     if (req.method === "POST") {
       const authHeader = req.headers.get("Authorization");
-      if (!authHeader) {
+      if (!authHeader?.startsWith("Bearer ")) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      // Validate the JWT and get user identity
+      const token = authHeader.replace("Bearer ", "");
+      const authedSupabase = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: claimsData, error: claimsError } = await authedSupabase.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const userId = claimsData.claims.sub as string;
 
       const { invoice_id } = await req.json();
       if (!invoice_id) {
@@ -76,8 +91,54 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Verify the caller owns this invoice (doctor of the order, or admin, or assigned lab staff)
+      const { data: invoiceOwnership } = await serviceSupabase
+        .from("invoices")
+        .select("id, order:orders!inner(doctor_id)")
+        .eq("id", invoice_id)
+        .single();
+
+      if (!invoiceOwnership) {
+        return new Response(JSON.stringify({ error: "Invoice not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const orderData = invoiceOwnership.order as any;
+      const isOwner = orderData?.doctor_id === userId;
+
+      // Check if admin or assigned lab staff
+      let isAuthorized = isOwner;
+      if (!isAuthorized) {
+        const { data: roleData } = await serviceSupabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .single();
+
+        if (roleData?.role === "admin") {
+          isAuthorized = true;
+        } else if (roleData?.role === "lab_staff") {
+          const { data: assignment } = await serviceSupabase
+            .from("order_assignments")
+            .select("id")
+            .eq("order_id", (invoiceOwnership as any).order?.id || invoice_id)
+            .eq("user_id", userId)
+            .maybeSingle();
+          isAuthorized = !!assignment;
+        }
+      }
+
+      if (!isAuthorized) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // Check if already has a token
-      const { data: existing } = await supabase
+      const { data: existing } = await serviceSupabase
         .from("invoices")
         .select("share_token")
         .eq("id", invoice_id)
@@ -91,10 +152,10 @@ Deno.serve(async (req) => {
       }
 
       // Generate token
-      const token = crypto.randomUUID();
-      const { error } = await supabase
+      const shareToken = crypto.randomUUID();
+      const { error } = await serviceSupabase
         .from("invoices")
-        .update({ share_token: token })
+        .update({ share_token: shareToken })
         .eq("id", invoice_id);
 
       if (error) {
@@ -105,7 +166,7 @@ Deno.serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ token }),
+        JSON.stringify({ token: shareToken }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -115,7 +176,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
