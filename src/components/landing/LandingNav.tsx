@@ -646,7 +646,7 @@ const LandingNav = () => {
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 -mx-6 px-6">
-                  <div className="flex flex-col gap-4 mt-8 pb-safe">
+                  <div className="flex flex-col gap-4 mt-8 pb-safe stagger-fade-in">
                   {/* Main Navigation */}
                   <div className="space-y-2">
                     {leftNavLinks.map((link) => (
