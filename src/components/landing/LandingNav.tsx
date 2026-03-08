@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from "react";
+import { useState, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
@@ -12,9 +12,8 @@ import { motion } from "framer-motion";
 import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { useUnreadCount } from "@/hooks/useUnreadCount";
-import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   Tooltip,
   TooltipContent,
@@ -44,45 +43,9 @@ const LandingNav = () => {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
-  const { playUrgentNotification } = useNotificationSound();
-  const { 
-    requestPermission, 
-    showUrgentNotification, 
-    showNormalNotification,
-    isGranted,
-    isSupported 
-  } = useBrowserNotifications();
-  const previousUrgentCountRef = useRef<number>(0);
-  const previousTotalCountRef = useRef<number>(0);
 
-  // Unified unread count from shared hook
+  // Notifications handled centrally by NotificationPopup - only read counts here
   const { unreadCount, hasUrgent } = useUnreadCount();
-
-  // Request notification permission on mount if user is logged in
-  useEffect(() => {
-    if (user && isSupported && !isGranted) {
-      const timer = setTimeout(() => {
-        requestPermission();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [user, isSupported, isGranted, requestPermission]);
-
-  // Play sound and show browser notification when new urgent notifications arrive
-  useEffect(() => {
-    const isNewUrgent = hasUrgent && unreadCount > previousUrgentCountRef.current && previousUrgentCountRef.current > 0;
-    const isNewNotification = unreadCount > previousTotalCountRef.current && previousTotalCountRef.current > 0;
-
-    if (isNewUrgent) {
-      playUrgentNotification();
-      showUrgentNotification(unreadCount);
-    } else if (isNewNotification) {
-      showNormalNotification(unreadCount);
-    }
-
-    previousUrgentCountRef.current = unreadCount;
-    previousTotalCountRef.current = unreadCount;
-  }, [unreadCount, hasUrgent, playUrgentNotification, showUrgentNotification, showNormalNotification]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -94,28 +57,8 @@ const LandingNav = () => {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Fetch user role and lab ID
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [labId, setLabId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      if (!user?.id) return;
-      
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role, lab_id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data) {
-        setUserRole(data.role);
-        setLabId(data.lab_id);
-      }
-    };
-    
-    fetchUserRole();
-  }, [user]);
+  // Use centralized role hook instead of manual fetch
+  const { role: userRole, labId } = useUserRole();
 
   // Fetch count of new unassigned orders - OPTIMIZED
   const { data: newOrdersCount } = useQuery({
@@ -188,6 +131,7 @@ const LandingNav = () => {
       href: "/lab-requests",
       badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined
     },
+    { label: "Order Templates", href: "/templates" },
   ] : [];
 
   const labStaffMenuItems = (userRole === 'lab_staff' || userRole === 'admin') ? [

@@ -1,9 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell, Package, Compass, Truck, Trophy, MessageSquareMore, FolderOpen } from "lucide-react";
+import { Plus, Compass, Truck, MessageSquareMore, FolderOpen, FileText } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -13,8 +13,7 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useNotificationSound } from "@/hooks/useNotificationSound";
-import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
 import { DashboardTour } from "@/components/dashboard/DashboardTour";
 import { AchievementToast } from "@/components/dashboard/AchievementToast";
@@ -59,7 +58,7 @@ const OverdueInvoiceBanner = () => {
               You have {overdueCount} overdue invoice{overdueCount > 1 ? 's' : ''}
             </span>
           </div>
-          <Button size="sm" variant="outline" onClick={() => navigate("/dashboard")} className="text-xs">
+          <Button size="sm" variant="outline" onClick={() => navigate("/logistics?tab=billing")} className="text-xs">
             View Billing
           </Button>
         </div>
@@ -77,16 +76,9 @@ const Dashboard = () => {
   const [runTour, setRunTour] = useState(false);
   const [showReceiveAnimation, setShowReceiveAnimation] = useState(false);
   const [receivedOrderNumber, setReceivedOrderNumber] = useState<string>("");
-  const { playUrgentNotification } = useNotificationSound();
-  const { 
-    requestPermission, 
-    showUrgentNotification, 
-    showNormalNotification,
-    isGranted,
-    isSupported 
-  } = useBrowserNotifications();
-  const previousUrgentCountRef = useRef<number>(0);
-  const previousTotalCountRef = useRef<number>(0);
+  
+  // Use shared unread count hook - notifications are handled centrally by NotificationPopup
+  const { unreadCount, hasUrgent } = useUnreadCount();
 
   // DEBUG: Log every render with current state
   console.debug('[Dashboard] Render:', {
@@ -99,34 +91,6 @@ const Dashboard = () => {
     showCreateOrderButton: roleConfirmed && !isLabStaff,
     timestamp: new Date().toISOString()
   });
-
-  // Fetch unread notification count and check for urgent notifications
-  const { data: notificationData } = useQuery({
-    queryKey: ["unread-notifications", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return { count: 0, hasUrgent: false };
-
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("type")
-        .eq("user_id", user.id)
-        .eq("read", false);
-
-      if (error) throw error;
-      
-      // Check if any notification is of urgent type (status_change or urgent types)
-      const hasUrgent = data?.some(n => 
-        n.type === "status_change" || n.type === "urgent"
-      ) || false;
-
-      return { count: data?.length || 0, hasUrgent };
-    },
-    enabled: !!user?.id,
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
-
-  const unreadCount = notificationData?.count || 0;
-  const hasUrgent = notificationData?.hasUrgent || false;
 
   // Check if this is first login and show onboarding modal
   useEffect(() => {
@@ -167,35 +131,6 @@ const Dashboard = () => {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
-
-  // Request notification permission on mount if user is logged in
-  useEffect(() => {
-    if (user && isSupported && !isGranted) {
-      // Delay the request slightly to avoid disrupting the user experience
-      const timer = setTimeout(() => {
-        requestPermission();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [user, isSupported, isGranted, requestPermission]);
-
-  // Play sound and show browser notification when new urgent notifications arrive
-  useEffect(() => {
-    const isNewUrgent = hasUrgent && unreadCount > previousUrgentCountRef.current && previousUrgentCountRef.current > 0;
-    const isNewNotification = unreadCount > previousTotalCountRef.current && previousTotalCountRef.current > 0;
-
-    if (isNewUrgent) {
-      playUrgentNotification();
-      showUrgentNotification(unreadCount);
-      console.log('🔔 Urgent notification: sound + desktop notification');
-    } else if (isNewNotification) {
-      showNormalNotification(unreadCount);
-      console.log('📬 Normal notification: desktop notification');
-    }
-
-    previousUrgentCountRef.current = unreadCount;
-    previousTotalCountRef.current = unreadCount;
-  }, [unreadCount, hasUrgent, playUrgentNotification, showUrgentNotification, showNormalNotification]);
 
   // CRITICAL: Prevent rendering role-conditional UI until role is fully loaded
   if (roleLoading) {
@@ -304,6 +239,22 @@ const Dashboard = () => {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>View patient case library and reorder</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => navigate("/templates")}
+                          className="w-full sm:w-auto min-h-[44px] sm:min-h-0 press-feedback"
+                        >
+                          <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Templates</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Manage your saved order templates</p>
                       </TooltipContent>
                     </Tooltip>
                     <Tooltip>
