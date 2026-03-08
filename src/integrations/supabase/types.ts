@@ -1284,6 +1284,7 @@ export type Database = {
       }
       lab_reviews: {
         Row: {
+          accuracy_rating: number | null
           communication_rating: number | null
           created_at: string | null
           dentist_id: string
@@ -1295,8 +1296,10 @@ export type Database = {
           review_text: string | null
           turnaround_rating: number | null
           updated_at: string | null
+          value_rating: number | null
         }
         Insert: {
+          accuracy_rating?: number | null
           communication_rating?: number | null
           created_at?: string | null
           dentist_id: string
@@ -1308,8 +1311,10 @@ export type Database = {
           review_text?: string | null
           turnaround_rating?: number | null
           updated_at?: string | null
+          value_rating?: number | null
         }
         Update: {
+          accuracy_rating?: number | null
           communication_rating?: number | null
           created_at?: string | null
           dentist_id?: string
@@ -1321,6 +1326,7 @@ export type Database = {
           review_text?: string | null
           turnaround_rating?: number | null
           updated_at?: string | null
+          value_rating?: number | null
         }
         Relationships: [
           {
