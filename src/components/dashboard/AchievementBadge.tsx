@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Award, Package, Truck, Star, Trophy, Zap, Target, Sparkles, Database, CheckCircle, Clock, MessageSquare, Shield, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
