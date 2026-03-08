@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePatientCases, PatientCase } from "@/hooks/usePatientCases";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PageLayout from "@/components/layouts/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,11 +36,15 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  ClipboardList,
+  ExternalLink,
 } from "lucide-react";
 import { CasePhotoUploader } from "@/components/patient-cases/CasePhotoUploader";
+import { format } from "date-fns";
 
 const PatientCases = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isDoctor, isLoading: roleLoading, roleConfirmed } = useUserRole();
   const { cases, isLoading, deleteCase } = usePatientCases();
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,6 +52,9 @@ const PatientCases = () => {
   const [photoCase, setPhotoCase] = useState<PatientCase | null>(null);
   const [lightboxPhotos, setLightboxPhotos] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [ordersCase, setOrdersCase] = useState<PatientCase | null>(null);
+  const [caseOrders, setCaseOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   const openLightbox = useCallback((photos: string[], index: number) => {
     setLightboxPhotos(photos);
@@ -67,6 +76,25 @@ const PatientCases = () => {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [lightboxPhotos, closeLightbox]);
+
+  const openOrdersDialog = useCallback(async (c: PatientCase) => {
+    setOrdersCase(c);
+    setOrdersLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, order_number, status, created_at, restoration_type, patient_name")
+        .eq("doctor_id", user!.id)
+        .eq("patient_name", c.patient_name)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setCaseOrders(data ?? []);
+    } catch {
+      setCaseOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [user]);
 
   const filteredCases = useMemo(() => {
     if (!searchQuery.trim()) return cases;
@@ -183,6 +211,11 @@ const PatientCases = () => {
                       <CardTitle className="text-base">{c.patient_name}</CardTitle>
                       <CardDescription className="mt-0.5">
                         {c.order_count} order{c.order_count !== 1 ? "s" : ""}
+                        {c.last_order && (
+                          <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">
+                            {c.last_order.status}
+                          </Badge>
+                        )}
                       </CardDescription>
                     </div>
                     <Badge variant="secondary" className="text-xs shrink-0">
@@ -236,7 +269,10 @@ const PatientCases = () => {
                       <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                       Reorder
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setPhotoCase(c)}>
+                    <Button size="sm" variant="outline" onClick={() => openOrdersDialog(c)} title="View Orders">
+                      <ClipboardList className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setPhotoCase(c)} title="Photos">
                       <Camera className="h-3.5 w-3.5" />
                     </Button>
                     <Button
@@ -286,6 +322,48 @@ const PatientCases = () => {
             </DialogHeader>
             {photoCase && (
               <CasePhotoUploader caseId={photoCase.id} photos={photoCase.photos} />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* View Orders Dialog */}
+        <Dialog open={!!ordersCase} onOpenChange={() => setOrdersCase(null)}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{ordersCase?.patient_name} — Orders</DialogTitle>
+            </DialogHeader>
+            {ordersLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            ) : caseOrders.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-6">No orders found for this patient.</p>
+            ) : (
+              <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+                {caseOrders.map((o) => (
+                  <div key={o.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                    <div>
+                      <p className="text-sm font-medium">{o.order_number}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(o.created_at), "MMM d, yyyy")} · {o.restoration_type}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">{o.status}</Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setOrdersCase(null);
+                          navigate(`/track-orders?orderId=${o.id}`);
+                        }}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </DialogContent>
         </Dialog>
