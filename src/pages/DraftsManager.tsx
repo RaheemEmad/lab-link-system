@@ -5,6 +5,7 @@ import { getAllDrafts, deleteDraft, deleteAllDrafts } from "@/hooks/useDraftClea
 import { useState } from "react";
 import { toast } from "sonner";
 import { Trash2, RefreshCw, FileText } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,

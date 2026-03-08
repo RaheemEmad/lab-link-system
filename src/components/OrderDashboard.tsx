@@ -55,6 +55,7 @@ import { WorkloadHeatmap } from "./dashboard/WorkloadHeatmap";
 import { OrderQuickView } from "./dashboard/OrderQuickView";
 import { SavedFilters } from "./dashboard/SavedFilters";
 import { format, isAfter, isBefore, addDays, startOfWeek, startOfMonth, subDays } from "date-fns";
+import { EmptyState } from "@/components/ui/empty-state";
 
 // Lazy-load heavy dialog components
 const OrderNotesDialog = lazy(() => import("./order/OrderNotesDialog"));

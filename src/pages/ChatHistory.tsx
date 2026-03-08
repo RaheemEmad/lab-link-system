@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, MessageSquare, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { EmptyState } from "@/components/ui/empty-state";
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import LandingNav from '@/components/landing/LandingNav';

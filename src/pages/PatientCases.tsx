@@ -40,6 +40,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { CasePhotoUploader } from "@/components/patient-cases/CasePhotoUploader";
+import { EmptyState } from "@/components/ui/empty-state";
 import { format } from "date-fns";
 
 const PatientCases = () => {
