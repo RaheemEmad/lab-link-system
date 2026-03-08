@@ -124,17 +124,7 @@ const OrderDashboard = () => {
   const { isDoctor, isLabStaff, isLoading: roleLoading, labId, role } = useUserRole();
   const navigate = useNavigate();
 
-  // DEBUG: Log state on every render
-  console.debug('[OrderDashboard] Render:', {
-    roleLoading,
-    userId: user?.id,
-    role,
-    isDoctor,
-    isLabStaff,
-    labId,
-    showLoading: loading || roleLoading,
-    timestamp: new Date().toISOString()
-  });
+  // Debug logging removed for performance (was logging on every render)
 
   useEffect(() => {
     // Wait for both user AND role to be loaded before fetching orders
