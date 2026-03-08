@@ -12,8 +12,9 @@ import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
 import { HelpButton } from "@/components/layout/HelpButton";
 import { NotificationPopup } from "@/components/notifications/NotificationPopup";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 
 // Eager load critical pages
 import Home from "./pages/Home";
@@ -76,12 +77,19 @@ const AppContent = () => {
   useServiceWorkerUpdate();
   const location = useLocation();
   usePageTitle();
+
+  // Add bottom nav body spacing class on mobile when authenticated
+  useEffect(() => {
+    document.body.classList.add("has-bottom-nav");
+    return () => document.body.classList.remove("has-bottom-nav");
+  }, []);
   
   return (
     <>
       <HelpButton />
       <SessionTimeoutWarning />
       <NotificationPopup />
+      <MobileBottomNav />
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingScreen />}>
           <Routes location={location} key={location.pathname}>

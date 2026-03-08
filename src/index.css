@@ -434,6 +434,22 @@
   }
 }
 
+/* Mobile bottom nav body spacing */
+.has-bottom-nav {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Touch-friendly dropdown items on mobile */
+@media (pointer: coarse) {
+  [role="menuitem"],
+  [role="option"],
+  [data-radix-collection-item] {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
 /* Safe area utilities for notched devices */
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));

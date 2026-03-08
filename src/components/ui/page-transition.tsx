@@ -1,42 +1,43 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ReactNode } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PageTransitionProps {
   children: ReactNode;
   className?: string;
 }
 
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-    scale: 0.98,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-  },
-  exit: {
-    opacity: 0,
-    y: -20,
-    scale: 0.98,
-  },
-};
-
-const pageTransition = {
-  duration: 0.5,
-  ease: [0.22, 1, 0.36, 1] as const,
-};
-
 export const PageTransition = ({ children, className }: PageTransitionProps) => {
+  const isMobile = useIsMobile();
+  const prefersReduced = useReducedMotion();
+
+  const shouldSimplify = isMobile || prefersReduced;
+
+  const variants = {
+    initial: {
+      opacity: 0,
+      ...(shouldSimplify ? {} : { y: 20, scale: 0.98 }),
+    },
+    animate: {
+      opacity: 1,
+      ...(shouldSimplify ? {} : { y: 0, scale: 1 }),
+    },
+    exit: {
+      opacity: 0,
+      ...(shouldSimplify ? {} : { y: -20, scale: 0.98 }),
+    },
+  };
+
   return (
     <motion.div
       initial="initial"
       animate="animate"
       exit="exit"
-      variants={pageVariants}
-      transition={pageTransition}
+      variants={variants}
+      transition={{
+        duration: shouldSimplify ? 0.25 : 0.5,
+        ease: [0.22, 1, 0.36, 1],
+      }}
       className={className}
     >
       {children}

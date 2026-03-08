@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useMemo, useRef } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { openSanitizedHtmlPreview } from "@/lib/htmlSanitize";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X, ArrowUpDown, ArrowUp, ArrowDown, Download, Copy, Calendar, RotateCcw, Archive } from "lucide-react";
+import { Search, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X, ArrowUpDown, ArrowUp, ArrowDown, Download, Copy, Calendar, RotateCcw, Archive, SlidersHorizontal } from "lucide-react";
 import { RestoreOrderDialog } from "./order/RestoreOrderDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -530,9 +531,77 @@ const OrderDashboard = () => {
                 className="pl-9"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+
+            {/* Mobile: Collapsible Filters */}
+            <div className="lg:hidden">
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between min-h-[44px] press-feedback">
+                    <span className="flex items-center gap-2">
+                      <SlidersHorizontal className="h-4 w-4" />
+                      Filters
+                    </span>
+                    {(statusFilter !== "all" || dateRange !== "all") && (
+                      <Badge variant="secondary" className="ml-2">
+                        {[statusFilter !== "all", dateRange !== "all"].filter(Boolean).length}
+                      </Badge>
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2 space-y-2">
+                  <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setKpiFilter(null); setCurrentPage(1); }}>
+                    <SelectTrigger className="w-full min-h-[44px]">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="Ready for QC">Ready for QC</SelectItem>
+                      <SelectItem value="Ready for Delivery">Ready for Delivery</SelectItem>
+                      <SelectItem value="Delivered">Delivered</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={dateRange} onValueChange={(v) => { setDateRange(v); setCurrentPage(1); }}>
+                    <SelectTrigger className="w-full min-h-[44px]">
+                      <SelectValue placeholder="Date range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Time</SelectItem>
+                      <SelectItem value="week">This Week</SelectItem>
+                      <SelectItem value="month">This Month</SelectItem>
+                      <SelectItem value="30days">Last 30 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={itemsPerPage.toString()} onValueChange={(val) => setItemsPerPage(Number(val))}>
+                    <SelectTrigger className="w-full min-h-[44px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 / page</SelectItem>
+                      <SelectItem value="10">10 / page</SelectItem>
+                      <SelectItem value="25">25 / page</SelectItem>
+                      <SelectItem value="50">50 / page</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-2">
+                    {user && (
+                      <SavedFilters
+                        userId={user.id}
+                        currentFilters={{ statusFilter, dateRange, searchTerm }}
+                        onLoadPreset={handleLoadPreset}
+                      />
+                    )}
+                    <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} disabled={filteredOrders.length === 0} />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            {/* Desktop: Inline Filters */}
+            <div className="hidden lg:flex flex-row gap-2 flex-wrap">
               <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setKpiFilter(null); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-[180px] min-h-[44px] sm:min-h-0">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -544,10 +613,8 @@ const OrderDashboard = () => {
                   <SelectItem value="Delivered">Delivered</SelectItem>
                 </SelectContent>
               </Select>
-
-              {/* Date Range Filter */}
               <Select value={dateRange} onValueChange={(v) => { setDateRange(v); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-[160px] min-h-[44px] sm:min-h-0">
+                <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Date range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -557,9 +624,8 @@ const OrderDashboard = () => {
                   <SelectItem value="30days">Last 30 Days</SelectItem>
                 </SelectContent>
               </Select>
-
               <Select value={itemsPerPage.toString()} onValueChange={(val) => setItemsPerPage(Number(val))}>
-                <SelectTrigger className="w-full sm:w-[120px] min-h-[44px] sm:min-h-0">
+                <SelectTrigger className="w-[120px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -569,8 +635,6 @@ const OrderDashboard = () => {
                   <SelectItem value="50">50 / page</SelectItem>
                 </SelectContent>
               </Select>
-
-              {/* Saved Filters & Export */}
               <div className="flex gap-2">
                 {user && (
                   <SavedFilters
@@ -698,7 +762,7 @@ const OrderDashboard = () => {
                               openSanitizedHtmlPreview(order.html_export!);
                             }
                           }}
-                          className="flex-1"
+                          className="flex-1 min-h-[44px] press-feedback"
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           Preview
