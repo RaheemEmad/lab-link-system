@@ -158,6 +158,22 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     fetchDoctorName();
   }, [user, form]);
 
+  // Pre-fill from URL search params (reorder flow)
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const paramMap: Record<string, string> = {};
+    searchParams.forEach((value, key) => { paramMap[key] = value; });
+    if (Object.keys(paramMap).length > 0) {
+      if (paramMap.patientName) form.setValue("patientName", paramMap.patientName);
+      if (paramMap.restorationType) form.setValue("restorationType", paramMap.restorationType as any);
+      if (paramMap.teethNumber) form.setValue("teethNumber", paramMap.teethNumber);
+      if (paramMap.teethShade) form.setValue("teethShade", paramMap.teethShade);
+      if (paramMap.shadeSystem) form.setValue("shadeSystem", paramMap.shadeSystem as any);
+      if (paramMap.biologicalNotes) form.setValue("biologicalNotes", paramMap.biologicalNotes);
+      if (paramMap.assignedLabId) form.setValue("assignedLabId", paramMap.assignedLabId);
+    }
+  }, []); // Run once on mount
+
   // Cleanup thumbnails on unmount
   useEffect(() => {
     return () => {
