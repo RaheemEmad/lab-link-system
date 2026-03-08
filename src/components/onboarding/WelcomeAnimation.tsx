@@ -21,7 +21,7 @@ const WelcomeAnimation = ({ role, userName }: WelcomeAnimationProps) => {
     const end = Date.now() + duration;
 
     const frame = () => {
-      confetti({
+      fireConfetti({
         particleCount: 2,
         angle: 60,
         spread: 55,
