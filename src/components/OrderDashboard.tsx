@@ -477,7 +477,7 @@ const OrderDashboard = () => {
               </Select>
 
               <Select value={itemsPerPage.toString()} onValueChange={(val) => setItemsPerPage(Number(val))}>
-                <SelectTrigger className="w-full sm:w-[120px]">
+                <SelectTrigger className="w-full sm:w-[120px] min-h-[44px] sm:min-h-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
