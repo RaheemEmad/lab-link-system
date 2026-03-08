@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Star, Building2, Truck, Shield, Plus, FilePlus, Package } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Star, Building2, Truck, Shield, Plus, FilePlus, Package, Settings } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { motion } from "framer-motion";
 import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
@@ -346,7 +347,8 @@ const LandingNav = () => {
             </div>
             
             {/* Desktop Right Section (Auth & User Actions) */}
-            <div className="hidden lg:flex items-center gap-2">
+             <div className="hidden lg:flex items-center gap-2">
+              <ThemeToggle />
               {user ? (
                 <>
                   {/* Create Order Button - Doctor Only */}
@@ -588,6 +590,12 @@ const LandingNav = () => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
                         <Link to="/profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Settings
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut} className="text-destructive">

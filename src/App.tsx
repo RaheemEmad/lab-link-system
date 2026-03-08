@@ -12,6 +12,9 @@ import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
 import { HelpButton } from "@/components/layout/HelpButton";
 import { NotificationPopup } from "@/components/notifications/NotificationPopup";
+import { OfflineBanner } from "@/components/ui/offline-banner";
+import { CommandPalette } from "@/components/ui/command-palette";
+import { ThemeProvider } from "next-themes";
 import { lazy, Suspense, useEffect } from "react";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
@@ -46,6 +49,7 @@ const EditOrder = lazy(() => import("./pages/EditOrder"));
 const OrdersMarketplace = lazy(() => import("./pages/OrdersMarketplace"));
 const LabRequestsManagement = lazy(() => import("./pages/LabRequestsManagement"));
 const LogisticsDashboard = lazy(() => import("./pages/LogisticsDashboard"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 const Achievements = lazy(() => import("./pages/Achievements"));
 const DoctorAchievements = lazy(() => import("./pages/DoctorAchievements"));
@@ -86,6 +90,8 @@ const AppContent = () => {
   
   return (
     <>
+      <OfflineBanner />
+      <CommandPalette />
       <HelpButton />
       <SessionTimeoutWarning />
       <NotificationPopup />
@@ -113,6 +119,7 @@ const AppContent = () => {
             <Route path="/orders-marketplace" element={<PageTransition><OrdersMarketplace /></PageTransition>} />
             <Route path="/lab-requests" element={<PageTransition><LabRequestsManagement /></PageTransition>} />
             <Route path="/logistics" element={<PageTransition><LogisticsDashboard /></PageTransition>} />
+            <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
             
             <Route path="/achievements" element={<PageTransition><Achievements /></PageTransition>} />
             <Route path="/doctor-achievements" element={<PageTransition><DoctorAchievements /></PageTransition>} />
@@ -146,17 +153,19 @@ const AppContent = () => {
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <AppContent />
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </ErrorBoundary>
 );
 
