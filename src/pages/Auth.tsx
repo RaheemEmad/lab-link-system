@@ -18,6 +18,7 @@ import { WelcomeModal } from "@/components/auth/WelcomeModal";
 import { Check, Eye, EyeOff, AlertCircle, Mail } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
