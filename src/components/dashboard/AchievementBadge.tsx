@@ -195,7 +195,7 @@ interface AchievementBadgeProps {
   earnedAt?: string;
 }
 
-export function AchievementBadge({ 
+export const AchievementBadge = memo(function AchievementBadge({ 
   achievementId, 
   size = "md", 
   showName = true,
