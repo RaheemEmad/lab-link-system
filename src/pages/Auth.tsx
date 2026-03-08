@@ -261,9 +261,9 @@ const Auth = () => {
           <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
           <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center px-4 sm:px-6">
-            <CardTitle className="text-xl sm:text-2xl md:text-3xl">Check Your Email</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl md:text-3xl">{t.auth.checkEmail}</CardTitle>
             <CardDescription className="text-sm mt-2">
-              We've sent a confirmation email to <strong>{confirmedEmail}</strong>
+              {t.auth.emailSentTo} <strong>{confirmedEmail}</strong>
             </CardDescription>
           </CardHeader>
             <CardContent className="px-4 sm:px-6 space-y-4">
