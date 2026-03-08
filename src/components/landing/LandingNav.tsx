@@ -196,11 +196,11 @@ const LandingNav = () => {
 
   // Left navigation links - role-based and cleaner
   const leftNavLinks = [
-    { label: "Home", href: "/", type: "route" },
-    { label: "How It Works", href: "/how-it-works", type: "route" },
-    ...(userRole === 'doctor' ? [{ label: "Labs", href: "/labs", type: "route" }] : []),
-    ...(userRole === 'lab_staff' ? [{ label: "Marketplace", href: "/orders-marketplace", type: "route" }] : []),
-    ...(user ? [{ label: "Dashboard", href: "/dashboard", type: "route" }] : []),
+    { label: t.nav.home, href: "/", type: "route" },
+    { label: t.nav.howItWorks, href: "/how-it-works", type: "route" },
+    ...(userRole === 'doctor' ? [{ label: t.nav.labs, href: "/labs", type: "route" }] : []),
+    ...(userRole === 'lab_staff' ? [{ label: t.nav.marketplace, href: "/orders-marketplace", type: "route" }] : []),
+    ...(user ? [{ label: t.nav.dashboard, href: "/dashboard", type: "route" }] : []),
   ];
 
   // Role-specific dropdown menu items
