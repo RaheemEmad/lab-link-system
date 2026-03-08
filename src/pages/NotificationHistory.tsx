@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, Check, CheckCheck, Eye, Trash2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -277,17 +278,13 @@ const NotificationHistory = () => {
 
                 <TabsContent value={filter} className="space-y-3">
                   {!notifications || notifications.length === 0 ? (
-                    <div className="text-center py-8 sm:py-12">
-                      <Bell className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                      <p className="text-base sm:text-lg font-medium mb-2 text-foreground">
-                        {filter === "unread"
-                          ? "No unread notifications"
-                          : "No notifications yet"}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        You'll receive notifications when order statuses change or notes are added
-                      </p>
-                    </div>
+                    <EmptyState
+                      icon={Bell}
+                      title={filter === "unread" ? "No unread notifications" : "No notifications yet"}
+                      description="You'll receive notifications when order statuses change or notes are added."
+                      actionLabel="Go to Dashboard"
+                      onAction={() => navigate("/dashboard")}
+                    />
                   ) : (
                     <div className="space-y-2">
                       {notifications.map((notification) => (

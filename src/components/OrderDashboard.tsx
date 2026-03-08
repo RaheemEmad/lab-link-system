@@ -55,6 +55,7 @@ import { WorkloadHeatmap } from "./dashboard/WorkloadHeatmap";
 import { OrderQuickView } from "./dashboard/OrderQuickView";
 import { SavedFilters } from "./dashboard/SavedFilters";
 import { format, isAfter, isBefore, addDays, startOfWeek, startOfMonth, subDays } from "date-fns";
+import { EmptyState } from "@/components/ui/empty-state";
 
 // Lazy-load heavy dialog components
 const OrderNotesDialog = lazy(() => import("./order/OrderNotesDialog"));
@@ -651,11 +652,13 @@ const OrderDashboard = () => {
           {/* Mobile Card View */}
           <div className="lg:hidden space-y-3 stagger-fade-in" data-tour="orders-cards">
             {paginatedOrders.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-base sm:text-lg font-medium mb-2">No orders found</p>
-                <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
-              </div>
+              <EmptyState
+                icon={FileText}
+                title="No orders found"
+                description="Try adjusting your search or filters, or create a new order to get started."
+                actionLabel={isDoctor ? "Create New Order" : undefined}
+                onAction={isDoctor ? () => navigate("/new-order") : undefined}
+              />
             ) : (
               paginatedOrders.map((order) => (
                 <Card
@@ -879,11 +882,13 @@ const OrderDashboard = () => {
                 {paginatedOrders.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={isDoctor ? 13 : 14} className="text-center py-8 sm:py-12">
-                      <div className="flex flex-col items-center justify-center">
-                        <FileText className="h-10 w-10 sm:h-12 sm:w-12 mb-4 text-muted-foreground opacity-50" />
-                        <p className="text-base sm:text-lg font-medium mb-2">No orders found</p>
-                        <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
-                      </div>
+                      <EmptyState
+                        icon={FileText}
+                        title="No orders found"
+                        description="Try adjusting your search or filters, or create a new order to get started."
+                        actionLabel={isDoctor ? "Create New Order" : undefined}
+                        onAction={isDoctor ? () => navigate("/new-order") : undefined}
+                      />
                     </TableCell>
                   </TableRow>
                 ) : (

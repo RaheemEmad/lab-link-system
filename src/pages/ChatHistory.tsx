@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, MessageSquare, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { EmptyState } from "@/components/ui/empty-state";
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import LandingNav from '@/components/landing/LandingNav';
@@ -156,17 +157,13 @@ export default function ChatHistory() {
                 ))}
               </div>
             ) : !filteredConversations || filteredConversations.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 sm:py-12 text-center">
-                  <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-base sm:text-lg font-medium mb-2">No conversations found</p>
-                  <p className="text-sm text-muted-foreground">
-                    {searchQuery
-                      ? 'Try adjusting your search terms'
-                      : 'Start a conversation by accepting an order'}
-                  </p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={MessageSquare}
+                title="No conversations found"
+                description={searchQuery ? "Try adjusting your search terms." : "Start a conversation by accepting an order."}
+                actionLabel="Go to Dashboard"
+                onAction={() => window.location.href = "/dashboard"}
+              />
             ) : (
               <>
                 <div className="space-y-4">
