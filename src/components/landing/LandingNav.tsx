@@ -653,7 +653,7 @@ const LandingNav = () => {
                       <button
                         key={link.href}
                         onClick={() => handleNavClick(link)}
-                        className={`w-full flex items-center justify-between px-4 min-h-[44px] py-3 rounded-lg text-sm font-medium transition-colors ${
+                        className={`w-full flex items-center justify-between px-4 min-h-[44px] py-3 rounded-lg text-sm font-medium transition-colors active:bg-primary/10 ${
                           isLinkActive(link)
                             ? "bg-primary/10 text-primary font-semibold"
                             : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
