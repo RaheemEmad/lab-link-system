@@ -38,6 +38,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { LabProfilePreview } from "@/components/labs/LabProfilePreview";
+import { InventoryManager } from "@/components/lab/InventoryManager";
 
 const labProfileSchema = z.object({
   name: z.string().min(2, "Lab name is required").max(100),
