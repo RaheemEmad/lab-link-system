@@ -459,7 +459,6 @@ const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => {
       </Card>
     </div>
   </div>
-  </div>
   );
 };
 
