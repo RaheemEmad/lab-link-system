@@ -120,7 +120,7 @@ export default function LabRequestsManagement() {
       orderNumber?: string;
       bidAmount?: number;
     }) => {
-      console.log('[LabRequests] Updating request status:', { requestId, status });
+      
       
       // Get the request details first (to get lab_id and user_id)
       const { data: requestData, error: fetchError } = await supabase
