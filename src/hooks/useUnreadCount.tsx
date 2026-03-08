@@ -1,38 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useNotificationData } from "./useNotificationData";
 
+/**
+ * Thin wrapper over useNotificationData for backward compatibility.
+ * No longer makes its own DB query — shares the single cache entry.
+ */
 export function useUnreadCount() {
-  const { user } = useAuth();
-
-  const { data } = useQuery({
-    queryKey: ["unread-notifications", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return { count: 0, hasUrgent: false };
-
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("type")
-        .eq("user_id", user.id)
-        .eq("read", false);
-
-      if (error) throw error;
-
-      const hasUrgent =
-        data?.some(
-          (n) => n.type === "status_change" || n.type === "urgent" || n.type === "sla_warning"
-        ) || false;
-
-      return { count: data?.length || 0, hasUrgent };
-    },
-    enabled: !!user?.id,
-    staleTime: 30_000,
-    refetchInterval: 60_000,
-    retry: 1,
-  });
-
-  return {
-    unreadCount: data?.count || 0,
-    hasUrgent: data?.hasUrgent || false,
-  };
+  const { unreadCount, hasUrgent } = useNotificationData();
+  return { unreadCount, hasUrgent };
 }

@@ -1,31 +1,8 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
+import { useNotificationData } from "./useNotificationData";
 
 type TabKey = "shipments" | "tracking" | "calendar" | "analytics" | "scheduling" | "billing";
-
 type TabBadges = Record<TabKey, number>;
-
-const NOTIFICATION_TYPE_TO_TAB: Record<string, TabKey> = {
-  shipment_update: "shipments",
-  order_cancelled: "shipments",
-  delivery_confirmed: "tracking",
-  appointment_scheduled: "scheduling",
-  payment_recorded: "billing",
-  invoice_generated: "billing",
-  invoice_request: "billing",
-  invoice_disputed: "billing",
-  credit_note_issued: "billing",
-  dispute_resolved: "billing",
-};
-
-const EMPTY_BADGES: TabBadges = {
-  shipments: 0,
-  tracking: 0,
-  calendar: 0,
-  analytics: 0,
-  scheduling: 0,
-  billing: 0,
-};
 
 interface OrderShipmentMinimal {
   status: string;
@@ -34,13 +11,17 @@ interface OrderShipmentMinimal {
   expected_delivery_date: string | null;
 }
 
+/**
+ * Derives logistics tab badges from the shared notification cache
+ * plus shipment-specific overdue/urgent counts.
+ * No longer makes its own DB query.
+ */
 export function useLogisticsTabBadges(
-  userId: string | undefined,
+  _userId: string | undefined,
   shipments: OrderShipmentMinimal[]
 ): TabBadges {
-  const [badges, setBadges] = useState<TabBadges>(EMPTY_BADGES);
+  const { tabBadgeCounts } = useNotificationData();
 
-  // Shipment-derived counts — recompute whenever shipments change
   const shipmentBadgeCount = useMemo(() => {
     const now = new Date();
     const overdueCount = shipments.filter((s) => {
@@ -54,57 +35,11 @@ export function useLogisticsTabBadges(
     return overdueCount + urgentUndelivered;
   }, [shipments]);
 
-  const computeBadges = useCallback(
-    (notificationTypes: string[]) => {
-      const counts = { ...EMPTY_BADGES };
-
-      for (const type of notificationTypes) {
-        const tab = NOTIFICATION_TYPE_TO_TAB[type];
-        if (tab) counts[tab]++;
-      }
-
-      counts.shipments += shipmentBadgeCount;
-
-      setBadges(counts);
-    },
-    [shipmentBadgeCount]
+  return useMemo(
+    () => ({
+      ...tabBadgeCounts,
+      shipments: tabBadgeCounts.shipments + shipmentBadgeCount,
+    }),
+    [tabBadgeCounts, shipmentBadgeCount]
   );
-
-  useEffect(() => {
-    if (!userId) {
-      setBadges(EMPTY_BADGES);
-      return;
-    }
-
-    const fetchUnread = async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("type")
-        .eq("user_id", userId)
-        .eq("read", false);
-
-      if (error) {
-        console.error("[useLogisticsTabBadges] fetch error:", error);
-        return;
-      }
-      computeBadges((data ?? []).map((n) => n.type));
-    };
-
-    fetchUnread();
-
-    const channel = supabase
-      .channel("logistics-tab-badges")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
-        () => fetchUnread()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, computeBadges]);
-
-  return badges;
 }
