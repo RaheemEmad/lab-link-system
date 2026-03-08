@@ -33,6 +33,8 @@ import {
   Users,
   FolderOpen,
   Camera,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { CasePhotoUploader } from "@/components/patient-cases/CasePhotoUploader";
 
