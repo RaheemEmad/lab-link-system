@@ -169,8 +169,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   const signOut = async () => {
-    // Clear temporary session flag
-    sessionStorage.removeItem('lablink_session_temporary');
     
     await supabase.auth.signOut();
     setUser(null);
