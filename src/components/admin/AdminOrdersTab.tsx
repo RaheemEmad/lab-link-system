@@ -48,6 +48,7 @@ interface Order {
 }
 
 const AdminOrdersTab = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
