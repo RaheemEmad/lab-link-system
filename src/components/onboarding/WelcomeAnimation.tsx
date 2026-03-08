@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Stethoscope, Building2, ArrowRight, Sparkles, CheckCircle } from "lucide-react";
-import type { CreateTypes } from "canvas-confetti";
+import { fireConfetti } from "@/lib/confetti";
 
 interface WelcomeAnimationProps {
   role: "doctor" | "lab_staff";
