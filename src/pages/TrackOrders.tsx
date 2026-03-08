@@ -266,7 +266,7 @@ const TrackOrders = () => {
 
       // Notify doctor
       if (doctorId) {
-        await supabase.from("notifications").insert({
+        await createNotification({
           user_id: doctorId,
           order_id: orderId,
           type: "shipment_update",
