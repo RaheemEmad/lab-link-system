@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquareMore, Upload, CheckSquare, Lock, Activity } from "lucide-react";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FeedbackRoomHeader from "./FeedbackRoomHeader";
@@ -22,7 +24,8 @@ const FeedbackRoomLayout = ({ order }: FeedbackRoomLayoutProps) => {
   useFeedbackRoomRealtime(order.id);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <LandingNav />
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container py-3 sm:py-4 px-3 sm:px-4">
@@ -52,7 +55,7 @@ const FeedbackRoomLayout = ({ order }: FeedbackRoomLayoutProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="container py-4 sm:py-6 px-3 sm:px-4">
+      <div className="flex-1 container py-4 sm:py-6 px-3 sm:px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 h-auto">
             <TabsTrigger value="attachments" className="gap-1.5 py-2 px-1 sm:px-3 text-xs sm:text-sm">
@@ -92,6 +95,7 @@ const FeedbackRoomLayout = ({ order }: FeedbackRoomLayoutProps) => {
           </div>
         </Tabs>
       </div>
+      <LandingFooter />
     </div>
   );
 };

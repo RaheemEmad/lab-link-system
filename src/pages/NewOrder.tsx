@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { ArrowLeft } from "lucide-react";
 import OrderForm from "@/components/OrderForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,6 +42,15 @@ const NewOrder = () => {
         <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
           <div className="container px-3 sm:px-4 lg:px-6">
             <div className="mx-auto max-w-3xl">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/dashboard")}
+                className="mb-4 w-fit"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1.5" />
+                Back to Dashboard
+              </Button>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6">Create New Order</h1>
               <OrderForm onSubmitSuccess={() => navigate("/dashboard")} />
             </div>
