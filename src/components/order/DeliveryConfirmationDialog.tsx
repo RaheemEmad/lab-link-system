@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { createNotifications } from "@/lib/notifications";
 import { CheckCircle2, AlertTriangle, Package } from "lucide-react";
 
 interface DeliveryConfirmationDialogProps {
