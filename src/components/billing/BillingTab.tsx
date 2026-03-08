@@ -81,6 +81,9 @@ const BillingTab = () => {
   const [selectedOrderForExpense, setSelectedOrderForExpense] = useState<string | null>(null);
   const [showInvoiceGenerator, setShowInvoiceGenerator] = useState(false);
   const [showMonthlySummary, setShowMonthlySummary] = useState(false);
+  const [showAgingReport, setShowAgingReport] = useState(false);
+  const [showBulkPayment, setShowBulkPayment] = useState(false);
+  const [showStatementGenerator, setShowStatementGenerator] = useState(false);
   
   // Sorting state with localStorage persistence
   const [sortField, setSortField] = useState<SortField>(() => {
