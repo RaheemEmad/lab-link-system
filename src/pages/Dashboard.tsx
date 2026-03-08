@@ -347,6 +347,11 @@ const Dashboard = () => {
               </div>
             </div>
             
+            {/* Overdue Invoice Banner for Doctors */}
+            {roleConfirmed && !isLabStaff && (
+              <OverdueInvoiceBanner />
+            )}
+
             {/* Show pending delivery confirmations for doctors */}
             {roleConfirmed && !isLabStaff && (
               <PendingDeliveryConfirmations />
