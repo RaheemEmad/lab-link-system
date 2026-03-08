@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { createNotifications } from "@/lib/notifications";
 import { CheckCircle2, AlertTriangle, Package, BookmarkPlus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PostDeliveryReviewDialog } from "./PostDeliveryReviewDialog";
 
 interface DeliveryConfirmationDialogProps {
   orderId: string;
