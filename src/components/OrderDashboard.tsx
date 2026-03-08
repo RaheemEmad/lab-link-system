@@ -450,7 +450,7 @@ const OrderDashboard = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
               <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] min-h-[44px] sm:min-h-0">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -465,7 +465,7 @@ const OrderDashboard = () => {
 
               {/* Date Range Filter */}
               <Select value={dateRange} onValueChange={(v) => { setDateRange(v); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px] min-h-[44px] sm:min-h-0">
                   <SelectValue placeholder="Date range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -477,7 +477,7 @@ const OrderDashboard = () => {
               </Select>
 
               <Select value={itemsPerPage.toString()} onValueChange={(val) => setItemsPerPage(Number(val))}>
-                <SelectTrigger className="w-full sm:w-[120px]">
+                <SelectTrigger className="w-full sm:w-[120px] min-h-[44px] sm:min-h-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -506,7 +506,7 @@ const OrderDashboard = () => {
           </div>
 
           {/* Mobile Card View */}
-          <div className="lg:hidden space-y-3" data-tour="orders-cards">
+          <div className="lg:hidden space-y-3 stagger-fade-in" data-tour="orders-cards">
             {paginatedOrders.length === 0 ? (
               <div className="text-center py-8 sm:py-12">
                 <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
@@ -517,7 +517,7 @@ const OrderDashboard = () => {
               paginatedOrders.map((order) => (
                 <Card
                   key={order.id}
-                  className={cn("overflow-hidden cursor-pointer hover:border-primary/40 transition-colors", selectedOrders.has(order.id) && "ring-2 ring-primary")}
+                  className={cn("overflow-hidden cursor-pointer hover:border-primary/40 transition-all duration-200 active:scale-[0.98]", selectedOrders.has(order.id) && "ring-2 ring-primary")}
                   onClick={() => setQuickViewOrder(order)}
                 >
                   <CardContent className="p-4 space-y-3">
@@ -631,7 +631,7 @@ const OrderDashboard = () => {
                       )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="min-w-[44px]">
+                          <Button variant="outline" size="sm" className="min-w-[44px] min-h-[44px]">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -985,7 +985,7 @@ const OrderDashboard = () => {
                             <PaginationLink
                               onClick={() => setCurrentPage(page)}
                               isActive={currentPage === page}
-                              className="cursor-pointer w-8 h-8 sm:w-10 sm:h-10"
+                              className="cursor-pointer w-8 h-8 sm:w-10 sm:h-10 active:scale-95 transition-transform"
                               size="sm"
                             >
                               {page}

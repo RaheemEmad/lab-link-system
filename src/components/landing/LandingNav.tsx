@@ -635,7 +635,7 @@ const LandingNav = () => {
           <div className="lg:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]">
                   {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
               </SheetTrigger>
@@ -646,14 +646,14 @@ const LandingNav = () => {
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 -mx-6 px-6">
-                  <div className="flex flex-col gap-4 mt-8 pb-safe">
+                  <div className="flex flex-col gap-4 mt-8 pb-safe stagger-fade-in">
                   {/* Main Navigation */}
                   <div className="space-y-2">
                     {leftNavLinks.map((link) => (
                       <button
                         key={link.href}
                         onClick={() => handleNavClick(link)}
-                        className={`w-full flex items-center justify-between px-4 min-h-[44px] py-3 rounded-lg text-sm font-medium transition-colors ${
+                        className={`w-full flex items-center justify-between px-4 min-h-[44px] py-3 rounded-lg text-sm font-medium transition-colors active:bg-primary/10 ${
                           isLinkActive(link)
                             ? "bg-primary/10 text-primary font-semibold"
                             : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
@@ -699,7 +699,7 @@ const LandingNav = () => {
                               navigate("/lab-workflow");
                               setIsOpen(false);
                             }}
-                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
                           >
                             <Building2 className="h-4 w-4" />
                             Lab Workflow
@@ -709,7 +709,7 @@ const LandingNav = () => {
                               navigate("/lab-admin");
                               setIsOpen(false);
                             }}
-                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
                           >
                             <Shield className="h-4 w-4" />
                             Lab Admin
@@ -721,7 +721,7 @@ const LandingNav = () => {
                                   navigate("/logistics?tab=tracking");
                                   setIsOpen(false);
                                 }}
-                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
                               >
                                 <Truck className="h-4 w-4" />
                                 Track Orders
@@ -731,7 +731,7 @@ const LandingNav = () => {
                                   navigate("/logistics");
                                   setIsOpen(false);
                                 }}
-                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
                               >
                                 <Package className="h-4 w-4" />
                                 Logistics Dashboard
@@ -753,7 +753,7 @@ const LandingNav = () => {
                             navigate("/notifications");
                             setIsOpen(false);
                           }}
-                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center justify-between"
+                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center justify-between min-h-[44px]"
                         >
                           <span className="flex items-center gap-2">
                             <Bell className="h-4 w-4" />
@@ -779,7 +779,7 @@ const LandingNav = () => {
                             navigate("/profile");
                             setIsOpen(false);
                           }}
-                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
                         >
                           <User className="h-4 w-4" />
                           Profile
@@ -816,7 +816,7 @@ const LandingNav = () => {
                         </div>
                         <Button
                           variant="outline"
-                          className="w-full gap-2"
+                          className="w-full gap-2 min-h-[44px]"
                           onClick={() => {
                             signOut();
                             setIsOpen(false);

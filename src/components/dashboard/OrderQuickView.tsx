@@ -42,7 +42,7 @@ export const OrderQuickView = ({ order, open, onClose, onOpenChat, isDoctor }: O
           <SheetTitle className="font-mono">{order.order_number}</SheetTitle>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-6 fade-in-up">
           {/* Status & Progress */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -103,7 +103,7 @@ export const OrderQuickView = ({ order, open, onClose, onOpenChat, isDoctor }: O
                 <h4 className="text-sm font-semibold">Assigned Lab</h4>
                 <button
                   onClick={() => navigate(`/labs/${order.labs!.id}`)}
-                  className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                  className="flex items-center gap-2 text-sm hover:text-primary transition-colors min-h-[44px]"
                 >
                   <Building2 className="h-4 w-4" />
                   <span>{order.labs.name}</span>
@@ -116,12 +116,12 @@ export const OrderQuickView = ({ order, open, onClose, onOpenChat, isDoctor }: O
           {/* Actions */}
           <div className="flex flex-col gap-2">
             {order.assigned_lab_id && (
-              <Button variant="outline" onClick={() => { onClose(); setTimeout(() => onOpenChat(order), 300); }}>
+              <Button variant="outline" className="min-h-[44px] active:scale-[0.98] transition-transform" onClick={() => { onClose(); setTimeout(() => onOpenChat(order), 300); }}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Open Chat
               </Button>
             )}
-            <Button variant="outline" onClick={() => navigate(`/edit-order/${order.id}`)}>
+            <Button variant="outline" className="min-h-[44px] active:scale-[0.98] transition-transform" onClick={() => navigate(`/edit-order/${order.id}`)}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit Order
             </Button>

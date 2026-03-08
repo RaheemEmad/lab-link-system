@@ -228,16 +228,21 @@ const Dashboard = () => {
           <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
             <div className="container px-3 sm:px-4 lg:px-6">
               <div className="mb-4 sm:mb-6 flex flex-col gap-3 sm:gap-4">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Order Dashboard</h1>
+                <div>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Order Dashboard</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    {isLabStaff ? "Lab View" : "Doctor View"}
+                  </p>
+                </div>
               
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => setRunTour(true)}
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto min-h-[44px] sm:min-h-0 press-feedback"
                     >
                       <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Tour</span>
@@ -254,7 +259,7 @@ const Dashboard = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => navigate("/logistics")} 
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto min-h-[44px] sm:min-h-0 press-feedback"
                       data-tour="track-orders-btn"
                     >
                       <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -272,7 +277,7 @@ const Dashboard = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => navigate("/feedback-room")} 
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto min-h-[44px] sm:min-h-0 press-feedback"
                     >
                       <MessageSquareMore className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Feedback Room</span>
@@ -291,7 +296,7 @@ const Dashboard = () => {
                           variant="outline" 
                           size="sm" 
                           onClick={() => navigate("/patient-cases")}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto min-h-[44px] sm:min-h-0 press-feedback"
                         >
                           <FolderOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Cases</span>
@@ -307,7 +312,7 @@ const Dashboard = () => {
                           variant="outline" 
                           size="sm" 
                           onClick={() => navigate("/new-order")}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto min-h-[44px] sm:min-h-0 press-feedback"
                           data-tour="new-order-btn"
                         >
                           <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

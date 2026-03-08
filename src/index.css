@@ -143,6 +143,15 @@
     @apply min-h-[44px] min-w-[44px];
   }
 
+  .touch-target-enforced {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Press Feedback for Touch */
+  .press-feedback {
+    @apply active:scale-[0.97] transition-transform duration-100;
+  }
+
   .tap-highlight-none {
     -webkit-tap-highlight-color: transparent;
   }
@@ -298,6 +307,32 @@
     box-shadow: 0 0 16px rgba(59, 130, 246, 0.6);
   }
 }
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-fade-in > * {
+  animation: staggerFadeIn 0.3s ease-out both;
+}
+
+.stagger-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-fade-in > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-fade-in > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-fade-in > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-fade-in > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-fade-in > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-fade-in > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-fade-in > *:nth-child(8) { animation-delay: 350ms; }
+.stagger-fade-in > *:nth-child(9) { animation-delay: 400ms; }
+.stagger-fade-in > *:nth-child(10) { animation-delay: 450ms; }
 
 @keyframes checkmarkPop {
   0% {
