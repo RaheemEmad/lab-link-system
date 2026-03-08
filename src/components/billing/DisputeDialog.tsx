@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
+import { createNotification } from "@/lib/notifications";
 
 interface DisputeDialogProps {
   open: boolean;
@@ -41,8 +42,31 @@ const DisputeDialog = ({ open, onOpenChange, invoiceId, onSuccess }: DisputeDial
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+
+      // Notify assigned lab staff
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("order_id")
+        .eq("id", invoiceId)
+        .single();
+      if (invoice?.order_id) {
+        const { data: assignments } = await supabase
+          .from("order_assignments")
+          .select("user_id")
+          .eq("order_id", invoice.order_id);
+        for (const a of assignments || []) {
+          await createNotification({
+            user_id: a.user_id,
+            order_id: invoice.order_id,
+            type: "invoice_disputed",
+            title: "Invoice Disputed",
+            message: `A dispute has been raised on an invoice. Reason: ${reason.substring(0, 80)}...`,
+          });
+        }
+      }
+
       toast.success('Dispute raised successfully', {
         description: 'The invoice has been frozen and an admin will review it.',
       });

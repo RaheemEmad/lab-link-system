@@ -23,6 +23,7 @@ import { format, isPast, startOfDay } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatEGP } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
 
@@ -145,8 +146,26 @@ const PaymentDialog = ({
         reason: `Payment status: ${paymentStatus}, Amount: ${formatEGP(numAmount)}`,
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+
+      // Notify the doctor about the payment
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("order_id, orders!inner(doctor_id)")
+        .eq("id", invoiceId)
+        .single();
+      const doctorId = (invoice as any)?.orders?.doctor_id;
+      if (doctorId) {
+        await createNotification({
+          user_id: doctorId,
+          order_id: invoice!.order_id,
+          type: "payment_recorded",
+          title: "Payment Updated",
+          message: `Payment of ${formatEGP(parseFloat(amountPaid) || 0)} recorded. Status: ${paymentStatus}.`,
+        });
+      }
+
       toast.success('Payment information updated');
       onOpenChange(false);
     },

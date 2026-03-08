@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
 import { HelpButton } from "@/components/layout/HelpButton";
+import { NotificationPopup } from "@/components/notifications/NotificationPopup";
 import { lazy, Suspense } from "react";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 
@@ -83,6 +84,7 @@ const AppContent = () => {
     <>
       <HelpButton />
       <SessionTimeoutWarning />
+      <NotificationPopup />
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingScreen />}>
           <Routes location={location} key={location.pathname}>

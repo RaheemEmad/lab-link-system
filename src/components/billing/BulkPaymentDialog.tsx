@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { formatEGP } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 interface Invoice {
   id: string;
@@ -99,8 +100,28 @@ const BulkPaymentDialog = ({ open, onOpenChange, invoices }: BulkPaymentDialogPr
         remaining -= allocated;
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+
+      // Notify affected doctors
+      for (const inv of selectedInvoices) {
+        const { data: invoice } = await supabase
+          .from("invoices")
+          .select("order_id, orders!inner(doctor_id)")
+          .eq("id", inv.id)
+          .single();
+        const doctorId = (invoice as any)?.orders?.doctor_id;
+        if (doctorId) {
+          await createNotification({
+            user_id: doctorId,
+            order_id: invoice!.order_id,
+            type: "payment_recorded",
+            title: "Payment Received",
+            message: `A payment has been recorded for invoice ${inv.invoice_number}.`,
+          });
+        }
+      }
+
       toast.success("Bulk payment recorded");
       setSelectedIds(new Set());
       setTotalReceived("");

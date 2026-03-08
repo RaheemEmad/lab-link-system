@@ -19,6 +19,7 @@ import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-re
 import { toast } from "sonner";
 
 import { formatEGP } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 interface Order {
   id: string;
@@ -67,9 +68,27 @@ const BidSubmissionDialog = ({ order, labId, open, onOpenChange }: BidSubmission
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["lab-requests", labId] });
       queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
+
+      // Notify the doctor (order owner)
+      const { data: orderData } = await supabase
+        .from("orders")
+        .select("doctor_id")
+        .eq("id", order.id)
+        .single();
+
+      if (orderData?.doctor_id) {
+        await createNotification({
+          user_id: orderData.doctor_id,
+          order_id: order.id,
+          type: "bid_submitted",
+          title: "New Lab Bid Received",
+          message: `A lab submitted a bid${bidAmount ? ` of EGP ${parseFloat(bidAmount).toFixed(2)}` : ""} for order ${order.order_number}.`,
+        });
+      }
+
       toast.success("Bid submitted successfully", {
         description: "The doctor will review your bid and respond."
       });

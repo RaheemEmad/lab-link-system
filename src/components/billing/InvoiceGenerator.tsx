@@ -43,6 +43,7 @@ interface EligibleOrder {
 }
 
 import { formatEGP, countTeeth } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 const InvoiceGenerator = ({ onClose, onGenerated }: InvoiceGeneratorProps) => {
   const { user } = useAuth();
@@ -176,6 +177,24 @@ const InvoiceGenerator = ({ onClose, onGenerated }: InvoiceGeneratorProps) => {
         if (error) {
           console.error(`Failed to generate invoice for ${orderId}:`, error);
           throw error;
+        }
+      }
+
+      // Notify doctors for each generated invoice
+      for (const orderId of orderIds) {
+        const { data: orderData } = await supabase
+          .from("orders")
+          .select("doctor_id, order_number")
+          .eq("id", orderId)
+          .single();
+        if (orderData?.doctor_id) {
+          await createNotification({
+            user_id: orderData.doctor_id,
+            order_id: orderId,
+            type: "invoice_generated",
+            title: "Invoice Generated",
+            message: `An invoice has been generated for order ${orderData.order_number}.`,
+          });
         }
       }
 

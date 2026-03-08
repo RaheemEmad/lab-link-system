@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { XCircle, AlertTriangle } from "lucide-react";
+import { createNotification } from "@/lib/notifications";
 
 interface CancelOrderDialogProps {
   orderId: string;
@@ -83,7 +84,41 @@ export function CancelOrderDialog({
         console.error("Failed to log status history:", historyError);
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Notify the other party
+      if (userRole === 'doctor') {
+        // Notify assigned lab staff
+        const { data: assignments } = await supabase
+          .from("order_assignments")
+          .select("user_id")
+          .eq("order_id", orderId);
+        for (const a of assignments || []) {
+          await createNotification({
+            user_id: a.user_id,
+            order_id: orderId,
+            type: "order_cancelled",
+            title: "Order Cancelled",
+            message: `Order ${orderNumber} has been cancelled by the doctor.`,
+          });
+        }
+      } else {
+        // Notify doctor
+        const { data: orderData } = await supabase
+          .from("orders")
+          .select("doctor_id")
+          .eq("id", orderId)
+          .single();
+        if (orderData?.doctor_id) {
+          await createNotification({
+            user_id: orderData.doctor_id,
+            order_id: orderId,
+            type: "order_cancelled",
+            title: "Order Cancelled",
+            message: `Order ${orderNumber} has been cancelled by the lab.`,
+          });
+        }
+      }
+
       toast({
         title: "Order Cancelled",
         description: `Order ${orderNumber} has been cancelled.`,
