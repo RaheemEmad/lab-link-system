@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
-import Joyride, { CallBackProps, STATUS, Step } from "react-joyride";
+import { lazy, Suspense, useCallback } from "react";
+import { CallBackProps, STATUS, Step } from "react-joyride";
 import { useAuth } from "@/hooks/useAuth";
+
+// Dynamic import — react-joyride (~30KB) only loads when tour runs
+const Joyride = lazy(() => import("react-joyride"));
 
 interface DashboardTourProps {
   userRole: string;
@@ -11,7 +14,7 @@ interface DashboardTourProps {
 export function DashboardTour({ userRole, run, onComplete }: DashboardTourProps) {
   const { user } = useAuth();
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
+  const handleJoyrideCallback = useCallback((data: CallBackProps) => {
     const { status } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
@@ -21,7 +24,7 @@ export function DashboardTour({ userRole, run, onComplete }: DashboardTourProps)
       }
       onComplete();
     }
-  };
+  }, [user?.id, onComplete]);
 
   const doctorSteps: Step[] = [
     {
@@ -153,68 +156,72 @@ export function DashboardTour({ userRole, run, onComplete }: DashboardTourProps)
 
   const steps = userRole === "doctor" ? doctorSteps : labStaffSteps;
 
+  if (!run) return null;
+
   return (
-    <Joyride
-      steps={steps}
-      run={run}
-      continuous
-      showProgress
-      showSkipButton
-      callback={handleJoyrideCallback}
-      styles={{
-        options: {
-          primaryColor: "hsl(var(--primary))",
-          textColor: "hsl(var(--foreground))",
-          backgroundColor: "hsl(var(--background))",
-          arrowColor: "hsl(var(--background))",
-          zIndex: 100000,
-          overlayColor: "hsl(var(--background) / 0.85)",
-        },
-        overlay: {
-          backdropFilter: "blur(4px)",
-        },
-        tooltip: {
-          borderRadius: 16,
-          padding: 24,
-          boxShadow: "0 20px 60px -15px hsl(var(--primary) / 0.3), 0 0 0 1px hsl(var(--border))",
-        },
-        tooltipContent: {
-          padding: "8px 0",
-        },
-        buttonNext: {
-          backgroundColor: "hsl(var(--primary))",
-          borderRadius: 8,
-          padding: "10px 20px",
-          fontSize: "14px",
-          fontWeight: 600,
-          transition: "all 0.2s ease",
-        },
-        buttonBack: {
-          color: "hsl(var(--muted-foreground))",
-          marginRight: 12,
-          fontSize: "14px",
-        },
-        buttonSkip: {
-          color: "hsl(var(--muted-foreground))",
-          fontSize: "14px",
-        },
-      }}
-      locale={{
-        back: "← Back",
-        close: "Close",
-        last: "Finish Tour ✨",
-        next: "Next →",
-        skip: "Skip Tour",
-      }}
-      floaterProps={{
-        disableAnimation: false,
-        styles: {
-          arrow: {
-            length: 8,
-            spread: 16,
+    <Suspense fallback={null}>
+      <Joyride
+        steps={steps}
+        run={run}
+        continuous
+        showProgress
+        showSkipButton
+        callback={handleJoyrideCallback}
+        styles={{
+          options: {
+            primaryColor: "hsl(var(--primary))",
+            textColor: "hsl(var(--foreground))",
+            backgroundColor: "hsl(var(--background))",
+            arrowColor: "hsl(var(--background))",
+            zIndex: 100000,
+            overlayColor: "hsl(var(--background) / 0.85)",
           },
-        },
-      }}
-    />
+          overlay: {
+            backdropFilter: "blur(4px)",
+          },
+          tooltip: {
+            borderRadius: 16,
+            padding: 24,
+            boxShadow: "0 20px 60px -15px hsl(var(--primary) / 0.3), 0 0 0 1px hsl(var(--border))",
+          },
+          tooltipContent: {
+            padding: "8px 0",
+          },
+          buttonNext: {
+            backgroundColor: "hsl(var(--primary))",
+            borderRadius: 8,
+            padding: "10px 20px",
+            fontSize: "14px",
+            fontWeight: 600,
+            transition: "all 0.2s ease",
+          },
+          buttonBack: {
+            color: "hsl(var(--muted-foreground))",
+            marginRight: 12,
+            fontSize: "14px",
+          },
+          buttonSkip: {
+            color: "hsl(var(--muted-foreground))",
+            fontSize: "14px",
+          },
+        }}
+        locale={{
+          back: "← Back",
+          close: "Close",
+          last: "Finish Tour ✨",
+          next: "Next →",
+          skip: "Skip Tour",
+        }}
+        floaterProps={{
+          disableAnimation: false,
+          styles: {
+            arrow: {
+              length: 8,
+              spread: 16,
+            },
+          },
+        }}
+      />
+    </Suspense>
   );
 }

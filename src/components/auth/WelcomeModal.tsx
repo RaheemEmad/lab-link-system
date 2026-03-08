@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import confetti from "canvas-confetti";
+import { fireConfetti } from "@/lib/confetti";
 import { Sparkles } from "lucide-react";
 
 interface WelcomeModalProps {
@@ -36,7 +36,7 @@ export const WelcomeModal = ({ isOpen, userName, onClose }: WelcomeModalProps) =
 
         const particleCount = 50 * (timeLeft / duration);
 
-        confetti({
+        fireConfetti({
           particleCount,
           startVelocity: 30,
           spread: 360,

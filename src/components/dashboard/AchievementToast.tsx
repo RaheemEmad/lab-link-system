@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ACHIEVEMENTS } from "./AchievementBadge";
-import confetti from "canvas-confetti";
+import { fireConfetti } from "@/lib/confetti";
 import { useAchievementSound } from "@/hooks/useAchievementSound";
 
 export function AchievementToast() {
@@ -165,13 +165,13 @@ export function AchievementToast() {
           const particleCount = 50 * (timeLeft / duration);
           
           // Launch confetti from multiple points
-          confetti({
+          fireConfetti({
             ...defaults,
             particleCount,
             origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
             colors: [achievementData.color, "#3269FF", "#1DCC6C", "#FFD700", "#FF6B6B"],
           });
-          confetti({
+          fireConfetti({
             ...defaults,
             particleCount,
             origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },

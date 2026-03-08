@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Stethoscope, Building2, ArrowRight, Sparkles, CheckCircle } from "lucide-react";
-import confetti from "canvas-confetti";
+import { fireConfetti } from "@/lib/confetti";
 
 interface WelcomeAnimationProps {
   role: "doctor" | "lab_staff";
@@ -21,14 +21,14 @@ const WelcomeAnimation = ({ role, userName }: WelcomeAnimationProps) => {
     const end = Date.now() + duration;
 
     const frame = () => {
-      confetti({
+      fireConfetti({
         particleCount: 2,
         angle: 60,
         spread: 55,
         origin: { x: 0, y: 0.6 },
         colors: ['#2D6CDF', '#0FB8B1', '#3CCB7F'],
       });
-      confetti({
+      fireConfetti({
         particleCount: 2,
         angle: 120,
         spread: 55,
