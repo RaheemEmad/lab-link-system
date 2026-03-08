@@ -256,6 +256,7 @@ const Dashboard = () => {
                       <TooltipContent>
                         <p>Manage your saved order templates</p>
                       </TooltipContent>
+                    </Tooltip>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button 
