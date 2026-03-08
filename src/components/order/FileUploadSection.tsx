@@ -60,6 +60,7 @@ const ACCEPTED_ARCHIVE_TYPES = ["application/zip", "application/x-zip-compressed
 export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }: FileUploadSectionProps) {
   const { user } = useAuth();
   const [files, setFiles] = useState<FileUpload[]>([]);
+  const [uploading, setUploading] = useState(false);
   const uploadQueue = useRef(new UploadQueue({
     maxRetries: 3,
     initialRetryDelay: 1000,
