@@ -24,10 +24,7 @@ export default function DraftsManager() {
 
   const refreshDrafts = () => {
     setDrafts(getAllDrafts());
-    toast({
-      title: "Refreshed",
-      description: "Draft list has been updated.",
-    });
+    toast.success("Draft list has been updated");
   };
 
   const handleDeleteDraft = (key: string) => {
