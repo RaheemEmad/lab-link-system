@@ -897,6 +897,62 @@ export type Database = {
           },
         ]
       }
+      lab_inventory: {
+        Row: {
+          category: string
+          cost_per_unit: number | null
+          created_at: string | null
+          current_stock: number
+          id: string
+          lab_id: string
+          last_restocked_at: string | null
+          material_name: string
+          minimum_stock: number
+          notes: string | null
+          supplier_name: string | null
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string
+          cost_per_unit?: number | null
+          created_at?: string | null
+          current_stock?: number
+          id?: string
+          lab_id: string
+          last_restocked_at?: string | null
+          material_name: string
+          minimum_stock?: number
+          notes?: string | null
+          supplier_name?: string | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          cost_per_unit?: number | null
+          created_at?: string | null
+          current_stock?: number
+          id?: string
+          lab_id?: string
+          last_restocked_at?: string | null
+          material_name?: string
+          minimum_stock?: number
+          notes?: string | null
+          supplier_name?: string | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_inventory_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_performance_metrics: {
         Row: {
           approval_rate: number | null
@@ -2120,6 +2176,79 @@ export type Database = {
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_cases: {
+        Row: {
+          biological_notes: string | null
+          created_at: string | null
+          doctor_id: string
+          id: string
+          last_order_id: string | null
+          order_count: number | null
+          patient_name: string
+          photos_link: string | null
+          preferred_lab_id: string | null
+          restoration_type: string
+          shade_system: string | null
+          teeth_number: string
+          teeth_shade: string
+          updated_at: string | null
+        }
+        Insert: {
+          biological_notes?: string | null
+          created_at?: string | null
+          doctor_id: string
+          id?: string
+          last_order_id?: string | null
+          order_count?: number | null
+          patient_name: string
+          photos_link?: string | null
+          preferred_lab_id?: string | null
+          restoration_type: string
+          shade_system?: string | null
+          teeth_number: string
+          teeth_shade: string
+          updated_at?: string | null
+        }
+        Update: {
+          biological_notes?: string | null
+          created_at?: string | null
+          doctor_id?: string
+          id?: string
+          last_order_id?: string | null
+          order_count?: number | null
+          patient_name?: string
+          photos_link?: string | null
+          preferred_lab_id?: string | null
+          restoration_type?: string
+          shade_system?: string | null
+          teeth_number?: string
+          teeth_shade?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_cases_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_cases_last_order_id_fkey"
+            columns: ["last_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_cases_preferred_lab_id_fkey"
+            columns: ["preferred_lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
             referencedColumns: ["id"]
           },
         ]
