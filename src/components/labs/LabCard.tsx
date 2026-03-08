@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -87,7 +88,7 @@ const getCapacityColor = (currentLoad: number, maxCapacity: number) => {
   return 'text-destructive';
 };
 
-export function LabCard({ lab, specializations, isVerified = false, minLabPrice }: LabCardProps) {
+export const LabCard = memo(function LabCard({ lab, specializations, isVerified = false, minLabPrice }: LabCardProps) {
   const capacityPercentage = (lab.current_load / lab.max_capacity) * 100;
   const isSponsored = lab.is_sponsored;
   
@@ -242,4 +243,4 @@ export function LabCard({ lab, specializations, isVerified = false, minLabPrice 
       </Card>
     </Link>
   );
-}
+});

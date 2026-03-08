@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -42,10 +42,13 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { OrderStatusDialog } from "./order/OrderStatusDialog";
 import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
-import OrderNotesDialog from "./order/OrderNotesDialog";
 import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
-import { OrderChatWindow } from "./chat/OrderChatWindow";
 import { cn } from "@/lib/utils";
+import { useDialogState } from "./dashboard/useDialogState";
+
+// Lazy-load heavy dialog components
+const OrderNotesDialog = lazy(() => import("./order/OrderNotesDialog"));
+const OrderChatWindow = lazy(() => import("./chat/OrderChatWindow").then(m => ({ default: m.OrderChatWindow })));
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered" | "Cancelled";
 
@@ -103,15 +106,10 @@ const OrderDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  // Consolidated dialog state - replaces 12 individual useState pairs
+  const dialog = useDialogState<Order>();
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
-  const [historyOrder, setHistoryOrder] = useState<Order | null>(null);
-  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
-  const [notesOrder, setNotesOrder] = useState<Order | null>(null);
-  const [chatDialogOpen, setChatDialogOpen] = useState(false);
-  const [chatOrder, setChatOrder] = useState<Order | null>(null);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
@@ -220,23 +218,19 @@ const OrderDashboard = () => {
   };
 
   const handleStatusUpdate = (order: Order) => {
-    setSelectedOrder(order);
-    setStatusDialogOpen(true);
+    dialog.open("status", order);
   };
 
   const handleViewHistory = (order: Order) => {
-    setHistoryOrder(order);
-    setHistoryDialogOpen(true);
+    dialog.open("history", order);
   };
 
   const handleViewNotes = (order: Order) => {
-    setNotesOrder(order);
-    setNotesDialogOpen(true);
+    dialog.open("notes", order);
   };
 
   const handleOpenChat = (order: Order) => {
-    setChatOrder(order);
-    setChatDialogOpen(true);
+    dialog.open("chat", order);
   };
 
   // Bulk selection handlers
@@ -880,48 +874,49 @@ const OrderDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Dialogs */}
-      {selectedOrder && (
+      {/* Dialogs - using consolidated dialog state */}
+      {dialog.state.data && dialog.isOpen("status") && (
         <OrderStatusDialog
-          open={statusDialogOpen}
-          onOpenChange={setStatusDialogOpen}
-          orderId={selectedOrder.id}
-          orderNumber={selectedOrder.order_number}
-          currentStatus={selectedOrder.status as OrderStatus}
+          open={true}
+          onOpenChange={() => dialog.close()}
+          orderId={dialog.state.data.id}
+          orderNumber={dialog.state.data.order_number}
+          currentStatus={dialog.state.data.status as OrderStatus}
           onStatusUpdated={fetchOrders}
         />
       )}
 
-      {historyOrder && (
-        <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+      {dialog.state.data && dialog.isOpen("history") && (
+        <Dialog open={true} onOpenChange={() => dialog.close()}>
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Order History: {historyOrder.order_number}</DialogTitle>
+              <DialogTitle>Order History: {dialog.state.data.order_number}</DialogTitle>
             </DialogHeader>
-            <OrderHistoryTimeline orderId={historyOrder.id} orderNumber={historyOrder.order_number} />
+            <OrderHistoryTimeline orderId={dialog.state.data.id} orderNumber={dialog.state.data.order_number} />
           </DialogContent>
         </Dialog>
       )}
 
-      {notesOrder && (
-        <OrderNotesDialog
-          open={notesDialogOpen}
-          onOpenChange={setNotesDialogOpen}
-          orderId={notesOrder.id}
-          orderNumber={notesOrder.order_number}
-        />
+      {dialog.state.data && dialog.isOpen("notes") && (
+        <Suspense fallback={<div className="flex justify-center p-4"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>}>
+          <OrderNotesDialog
+            open={true}
+            onOpenChange={() => dialog.close()}
+            orderId={dialog.state.data.id}
+            orderNumber={dialog.state.data.order_number}
+          />
+        </Suspense>
       )}
 
-      {chatOrder && (
-        <OrderChatWindow
-          orderId={chatOrder.id}
-          orderNumber={chatOrder.order_number}
-          currentUserRole={isDoctor ? 'doctor' : 'lab_staff'}
-          onClose={() => {
-            setChatDialogOpen(false);
-            setChatOrder(null);
-          }}
-        />
+      {dialog.state.data && dialog.isOpen("chat") && (
+        <Suspense fallback={<div className="flex justify-center p-4"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>}>
+          <OrderChatWindow
+            orderId={dialog.state.data.id}
+            orderNumber={dialog.state.data.order_number}
+            currentUserRole={isDoctor ? 'doctor' : 'lab_staff'}
+            onClose={() => dialog.close()}
+          />
+        </Suspense>
       )}
 
       {/* Bulk Status Update Dialog */}

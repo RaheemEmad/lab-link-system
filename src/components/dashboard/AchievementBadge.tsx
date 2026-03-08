@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Award, Package, Truck, Star, Trophy, Zap, Target, Sparkles, Database, CheckCircle, Clock, MessageSquare, Shield, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -194,7 +195,7 @@ interface AchievementBadgeProps {
   earnedAt?: string;
 }
 
-export function AchievementBadge({ 
+export const AchievementBadge = memo(function AchievementBadge({ 
   achievementId, 
   size = "md", 
   showName = true,
@@ -285,7 +286,7 @@ export function AchievementBadge({
       </Tooltip>
     </TooltipProvider>
   );
-}
+});
 
 interface AchievementListProps {
   achievements: { achievement_id: string; earned_at: string }[];

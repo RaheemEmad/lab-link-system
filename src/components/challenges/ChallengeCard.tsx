@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -114,7 +115,7 @@ const CHALLENGE_COLORS = {
   },
 };
 
-export function ChallengeCard({ challenge }: ChallengeCardProps) {
+export const ChallengeCard = memo(function ChallengeCard({ challenge }: ChallengeCardProps) {
   const info = CHALLENGE_INFO[challenge.challenge_id];
   const colors = CHALLENGE_COLORS[challenge.challenge_type];
   const Icon = info?.icon || Target;
@@ -211,7 +212,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
       </CardContent>
     </Card>
   );
-}
+});
 
 function getTimeLeft(expiresAt: string): string {
   const now = new Date();

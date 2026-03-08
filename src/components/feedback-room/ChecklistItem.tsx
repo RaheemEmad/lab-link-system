@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Check, User } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,7 +27,7 @@ interface ChecklistItemProps {
   onConfirm: (itemId: string, role: "doctor" | "lab") => void;
 }
 
-const ChecklistItem = ({ item, isDoctor, isLabStaff, onConfirm }: ChecklistItemProps) => {
+const ChecklistItem = memo(({ item, isDoctor, isLabStaff, onConfirm }: ChecklistItemProps) => {
   const bothConfirmed = item.doctor_confirmed && item.lab_confirmed;
 
   return (
@@ -134,6 +135,8 @@ const ChecklistItem = ({ item, isDoctor, isLabStaff, onConfirm }: ChecklistItemP
       </div>
     </div>
   );
-};
+});
+
+ChecklistItem.displayName = "ChecklistItem";
 
 export default ChecklistItem;

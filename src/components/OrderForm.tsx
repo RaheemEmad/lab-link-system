@@ -157,26 +157,6 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     fetchDoctorName();
   }, [user, form]);
 
-  // Auto-fill doctor name from user profile
-  useEffect(() => {
-    const fetchDoctorName = async () => {
-      if (!user) return;
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.full_name) {
-        setDoctorName(profile.full_name);
-        form.setValue('doctorName', profile.full_name);
-      }
-    };
-
-    fetchDoctorName();
-  }, [user, form]);
-  
   // Cleanup thumbnails on unmount
   useEffect(() => {
     return () => {
@@ -878,7 +858,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 {uploadedFiles.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {uploadedFiles.map((file, index) => (
-                      <div key={index} className="relative group rounded-lg border border-border bg-card overflow-hidden">
+                      <div key={`${file.name}-${file.size}-${file.lastModified}`} className="relative group rounded-lg border border-border bg-card overflow-hidden">
                         <div className="aspect-video relative bg-muted flex items-center justify-center">
                           {thumbnails[index] ? (
                             <img 

@@ -128,7 +128,7 @@ export default function DraftsManager() {
               </p>
             </div>
 
-            {drafts.map((draft, index) => {
+            {drafts.map((draft) => {
               const draftType = getDraftType(draft.key);
               
               return (
