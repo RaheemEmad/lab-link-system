@@ -309,6 +309,41 @@ const Dashboard = () => {
                     </TooltipContent>
                   </Tooltip>
                 )}
+
+                {/* Shared: Analytics & Appointments */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/analytics")}
+                      className="w-full sm:w-auto"
+                    >
+                      <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Analytics</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View performance insights and trends</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/appointments")}
+                      className="w-full sm:w-auto"
+                    >
+                      <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Schedule</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Schedule pickup and delivery appointments</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
             
