@@ -209,6 +209,11 @@ const LabCalendar = () => {
               isLoading={isLoading}
               viewMode={viewMode}
             />
+
+            {/* Availability Manager */}
+            <div className="mt-8">
+              <AvailabilityManager />
+            </div>
           </div>
         </div>
         <LandingFooter />

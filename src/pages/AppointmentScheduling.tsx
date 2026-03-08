@@ -105,13 +105,13 @@ const AppointmentScheduling = () => {
     staleTime: 30_000,
   });
 
-  // Fetch orders for selection (active orders only)
+  // Fetch orders for selection (active orders only) - include assigned_lab_id
   const { data: userOrders = [] } = useQuery({
     queryKey: ["appointment-orders", user?.id],
     queryFn: async () => {
       let query = supabase
         .from("orders")
-        .select("id, order_number, patient_name")
+        .select("id, order_number, patient_name, assigned_lab_id")
         .not("status", "in", '("Cancelled","Delivered")')
         .order("created_at", { ascending: false })
         .limit(50);
@@ -127,6 +127,47 @@ const AppointmentScheduling = () => {
     enabled: !!user?.id,
     staleTime: 30_000,
   });
+
+  // Get the selected order's assigned lab
+  const selectedOrder = userOrders.find((o) => o.id === selectedOrderId);
+  const selectedLabId = selectedOrder?.assigned_lab_id;
+
+  // Fetch lab availability slots for selected order's lab
+  const { data: labAvailability = [] } = useQuery({
+    queryKey: ["lab-availability-for-booking", selectedLabId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lab_availability_slots")
+        .select("*")
+        .eq("lab_id", selectedLabId!)
+        .eq("is_active", true)
+        .order("day_of_week")
+        .order("start_time");
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!selectedLabId,
+    staleTime: 30_000,
+  });
+
+  // Available days of week from lab slots
+  const availableDays = new Set(labAvailability.map((s) => s.day_of_week));
+  const hasAvailability = labAvailability.length > 0;
+
+  // Filter time slots based on lab availability for the selected date
+  const availableTimeSlots = selectedDate && hasAvailability
+    ? labAvailability
+        .filter((s) => s.day_of_week === selectedDate.getDay())
+        .flatMap((s) => {
+          const slots: string[] = [];
+          const start = s.start_time.slice(0, 5);
+          const end = s.end_time.slice(0, 5);
+          for (const t of TIME_SLOTS) {
+            if (t >= start && t < end) slots.push(t);
+          }
+          return slots;
+        })
+    : TIME_SLOTS;
 
   const createAppointment = useMutation({
     mutationFn: async () => {
