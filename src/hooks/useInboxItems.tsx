@@ -32,95 +32,55 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
       // Get orders accessible to this user
       let orderIds: string[] = [];
 
-      if (isDoctor) {
-        const { data } = await supabase
-          .from("orders")
-          .select("id, order_number, patient_name")
-          .eq("doctor_id", userId)
-          .eq("is_deleted", false);
-        orderIds = data?.map((o) => o.id) || [];
-        if (!orderIds.length) return [];
+      // Single join query for both doctor and lab_staff paths
+      let query = supabase
+        .from("chat_messages")
+        .select("id, order_id, message_text, created_at, sender_role, orders!inner(order_number, patient_name, doctor_id, is_deleted)")
+        .neq("sender_id", userId)
+        .is("read_at", null)
+        .eq("orders.is_deleted", false)
+        .order("created_at", { ascending: false })
+        .limit(100);
 
-        const { data: msgs } = await supabase
-          .from("chat_messages")
-          .select("id, order_id, message_text, created_at, sender_role")
-          .in("order_id", orderIds)
-          .neq("sender_id", userId)
-          .is("read_at", null)
-          .order("created_at", { ascending: false });
+      const { data: msgs } = await query;
+      if (!msgs || msgs.length === 0) return [];
 
-        // Deduplicate: one item per order (latest msg)
-        const seen = new Set<string>();
-        const orderMap = new Map(data?.map((o) => [o.id, o]) || []);
-        return (msgs || [])
-          .filter((m) => {
-            if (seen.has(m.order_id)) return false;
-            seen.add(m.order_id);
-            return true;
-          })
-          .map((m) => {
-            const order = orderMap.get(m.order_id);
-            return {
-              id: m.id,
-              type: "chat" as const,
-              orderId: m.order_id,
-              orderNumber: order?.order_number || "",
-              patientName: order?.patient_name || "",
-              title: `New message from ${m.sender_role}`,
-              preview: m.message_text.slice(0, 120),
-              timestamp: m.created_at || "",
-              metadata: { senderRole: m.sender_role },
-            };
-          });
-      }
+      // Filter by role access
+      const filtered = (msgs as any[]).filter((m) => {
+        if (isDoctor) return m.orders?.doctor_id === userId;
+        // Lab staff: we'll check assignments below
+        return isLabStaff;
+      });
 
+      // For lab staff, verify assignment access
+      let accessibleOrderIds: Set<string> | null = null;
       if (isLabStaff && labId) {
         const { data: assignments } = await supabase
           .from("order_assignments")
           .select("order_id")
           .eq("user_id", userId);
-
-        orderIds = assignments?.map((a) => a.order_id) || [];
-        if (!orderIds.length) return [];
-
-        const { data: orders } = await supabase
-          .from("orders")
-          .select("id, order_number, patient_name")
-          .in("id", orderIds);
-
-        const { data: msgs } = await supabase
-          .from("chat_messages")
-          .select("id, order_id, message_text, created_at, sender_role")
-          .in("order_id", orderIds)
-          .neq("sender_id", userId)
-          .is("read_at", null)
-          .order("created_at", { ascending: false });
-
-        const seen = new Set<string>();
-        const orderMap = new Map(orders?.map((o) => [o.id, o]) || []);
-        return (msgs || [])
-          .filter((m) => {
-            if (seen.has(m.order_id)) return false;
-            seen.add(m.order_id);
-            return true;
-          })
-          .map((m) => {
-            const order = orderMap.get(m.order_id);
-            return {
-              id: m.id,
-              type: "chat" as const,
-              orderId: m.order_id,
-              orderNumber: order?.order_number || "",
-              patientName: order?.patient_name || "",
-              title: `New message from ${m.sender_role}`,
-              preview: m.message_text.slice(0, 120),
-              timestamp: m.created_at || "",
-              metadata: { senderRole: m.sender_role },
-            };
-          });
+        accessibleOrderIds = new Set(assignments?.map((a) => a.order_id) || []);
       }
 
-      return [];
+      const seen = new Set<string>();
+      return filtered
+        .filter((m) => {
+          if (seen.has(m.order_id)) return false;
+          if (accessibleOrderIds && !accessibleOrderIds.has(m.order_id)) return false;
+          seen.add(m.order_id);
+          return true;
+        })
+        .map((m) => ({
+          id: m.id,
+          type: "chat" as const,
+          orderId: m.order_id,
+          orderNumber: (m.orders as any)?.order_number || "",
+          patientName: (m.orders as any)?.patient_name || "",
+          title: `New message from ${m.sender_role}`,
+          preview: m.message_text.slice(0, 120),
+          timestamp: m.created_at || "",
+          metadata: { senderRole: m.sender_role },
+        }));
     },
     enabled: !!userId,
     staleTime: 30_000,

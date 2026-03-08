@@ -128,7 +128,7 @@ export const OrderReceiptPDF = ({ orderId, onClose }: OrderReceiptPDFProps) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*")
+        .select("id, invoice_number, subtotal, adjustments_total, expenses_total, final_total, status, payment_status, amount_paid, due_date, late_fee_applied")
         .eq("order_id", orderId)
         .single();
       

@@ -151,7 +151,7 @@ const Labs = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_specializations")
-        .select("*");
+        .select("id, lab_id, restoration_type, expertise_level, turnaround_days, is_preferred");
       if (error) throw error;
       return data as (LabSpecialization & { lab_id: string })[];
     },

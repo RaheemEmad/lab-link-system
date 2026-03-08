@@ -100,7 +100,7 @@ const LabAdmin = () => {
       
       const { data, error } = await supabase
         .from("lab_specializations")
-        .select("*")
+        .select("id, lab_id, restoration_type, expertise_level, turnaround_days, is_preferred")
         .eq("lab_id", labId);
       
       if (error) throw error;

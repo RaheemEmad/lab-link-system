@@ -93,7 +93,7 @@ export const useLabTrustRanking = ({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_pricing")
-        .select("*")
+        .select("lab_id, restoration_type, fixed_price, min_price, max_price, includes_rush, rush_surcharge_percent")
         .eq("restoration_type", restorationType as any);
       
       if (error) throw error;

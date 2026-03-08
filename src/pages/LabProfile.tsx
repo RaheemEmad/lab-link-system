@@ -79,7 +79,7 @@ export default function LabProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_pricing")
-        .select("*")
+        .select("id, lab_id, restoration_type, fixed_price, min_price, max_price, includes_rush, rush_surcharge_percent, is_current")
         .eq("lab_id", labId);
       if (error) throw error;
       return data;

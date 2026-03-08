@@ -33,7 +33,7 @@ export function LabPortfolio({ labId }: LabPortfolioProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_portfolio_items")
-        .select("*")
+        .select("id, lab_id, title, description, restoration_type, image_urls, before_image_url, after_image_url, is_featured, display_order, created_at")
         .eq("lab_id", labId)
         .order("display_order");
       

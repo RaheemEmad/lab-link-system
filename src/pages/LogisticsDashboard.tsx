@@ -102,6 +102,7 @@ const LogisticsDashboard = () => {
           `).not("assigned_lab_id", "is", null).order("created_at", { ascending: false });
 
         if (role === "lab_staff") {
+          // Use labId from useUserRole hook instead of manual query
           const { data: roleData } = await supabase.from("user_roles").select("lab_id").eq("user_id", user.id).maybeSingle();
           if (roleData?.lab_id) shipmentQuery = shipmentQuery.eq("assigned_lab_id", roleData.lab_id);
         } else if (role === "doctor") {

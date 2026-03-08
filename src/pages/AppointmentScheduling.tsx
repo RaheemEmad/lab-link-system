@@ -141,7 +141,7 @@ const AppointmentScheduling = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_availability_slots")
-        .select("*")
+        .select("id, day_of_week, start_time, end_time, is_active, max_bookings")
         .eq("lab_id", selectedLabId!)
         .eq("is_active", true)
         .order("day_of_week")
