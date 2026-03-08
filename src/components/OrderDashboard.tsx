@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useMemo, useRef } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { openSanitizedHtmlPreview } from "@/lib/htmlSanitize";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
