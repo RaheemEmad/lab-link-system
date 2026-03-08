@@ -18,6 +18,7 @@ import { WelcomeModal } from "@/components/auth/WelcomeModal";
 import { Check, Eye, EyeOff, AlertCircle, Mail } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const signUpSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
@@ -45,6 +46,7 @@ type SignInValues = z.infer<typeof signInSchema>;
 const Auth = () => {
   const { user, signUp, signIn } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [confirmedEmail, setConfirmedEmail] = useState("");
@@ -259,25 +261,25 @@ const Auth = () => {
           <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
           <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center px-4 sm:px-6">
-            <CardTitle className="text-xl sm:text-2xl md:text-3xl">Check Your Email</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl md:text-3xl">{t.auth.checkEmail}</CardTitle>
             <CardDescription className="text-sm mt-2">
-              We've sent a confirmation email to <strong>{confirmedEmail}</strong>
+              {t.auth.emailSentTo} <strong>{confirmedEmail}</strong>
             </CardDescription>
           </CardHeader>
             <CardContent className="px-4 sm:px-6 space-y-4">
               <Alert className="border-accent bg-accent/10">
                 <Mail className="h-4 w-4 text-accent" />
-                <AlertDescription className="text-sm ml-2">
-                  <strong>Email Verification Pending</strong>
-                  <p className="mt-1">We've sent a confirmation link to verify your email address.</p>
+                <AlertDescription className="text-sm ltr:ml-2 rtl:mr-2">
+                  <strong>{t.auth.emailVerificationPending}</strong>
+                  <p className="mt-1">{t.auth.emailVerificationDesc}</p>
                 </AlertDescription>
               </Alert>
               
               <div className="text-center text-muted-foreground text-sm space-y-2">
-                <p>Click the link in the email to verify your account.</p>
-                <p>Once verified, you can sign in to your account.</p>
+                <p>{t.auth.clickLink}</p>
+                <p>{t.auth.onceVerified}</p>
                 <p className="text-xs text-muted-foreground/70 mt-3">
-                  Didn't receive the email? Check your spam folder.
+                  {t.auth.checkSpam}
                 </p>
               </div>
               
@@ -286,7 +288,7 @@ const Auth = () => {
                 variant="outline" 
                 className="w-full"
               >
-                Back to Sign In
+                {t.auth.backToSignIn}
               </Button>
             </CardContent>
           </Card>
@@ -310,14 +312,14 @@ const Auth = () => {
         <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center px-4 sm:px-6">
-          <CardTitle className="text-xl sm:text-2xl md:text-3xl">Welcome to LabLink</CardTitle>
-          <CardDescription className="text-sm">Sign in to track orders or create your account</CardDescription>
+          <CardTitle className="text-xl sm:text-2xl md:text-3xl">{t.auth.welcomeTo}</CardTitle>
+          <CardDescription className="text-sm">{t.auth.signInDesc}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 sm:px-6">
           <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin">{t.auth.signIn}</TabsTrigger>
+              <TabsTrigger value="signup">{t.auth.signUp}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
@@ -328,7 +330,7 @@ const Auth = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t.auth.email}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input 
@@ -363,9 +365,9 @@ const Auth = () => {
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center justify-between">
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{t.auth.password}</FormLabel>
                           <Link to="/reset-password" className="text-xs text-primary hover:underline">
-                            Forgot Password?
+                            {t.auth.forgotPassword}
                           </Link>
                         </div>
                         <FormControl>
@@ -401,14 +403,14 @@ const Auth = () => {
                           />
                         </FormControl>
                         <FormLabel className="text-sm font-normal cursor-pointer">
-                          Remember me for 30 days
+                          {t.auth.rememberMe}
                         </FormLabel>
                       </FormItem>
                     )}
                   />
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                    {isLoading ? t.auth.signingIn : t.auth.signIn}
                   </Button>
                 </form>
               </Form>
@@ -422,7 +424,7 @@ const Auth = () => {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>{t.auth.fullName}</FormLabel>
                         <FormControl>
                           <Input placeholder="Dr. John Smith" {...field} />
                         </FormControl>
@@ -436,7 +438,7 @@ const Auth = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t.auth.email}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input 
@@ -470,7 +472,7 @@ const Auth = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel>{t.auth.password}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input 
@@ -481,7 +483,7 @@ const Auth = () => {
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                              className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             >
                               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
@@ -498,7 +500,7 @@ const Auth = () => {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
+                        <FormLabel>{t.auth.confirmPassword}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input 
@@ -506,7 +508,7 @@ const Auth = () => {
                               placeholder="••••••••" 
                               {...field} 
                             />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <div className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                               {signUpConfirmPassword && signUpPassword && signUpPassword === signUpConfirmPassword && (
                                 <Check className="h-4 w-4 text-green-600" />
                               )}
@@ -526,7 +528,7 @@ const Auth = () => {
                   />
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Create Account"}
+                    {isLoading ? t.auth.creatingAccount : t.auth.signUp}
                   </Button>
                 </form>
               </Form>

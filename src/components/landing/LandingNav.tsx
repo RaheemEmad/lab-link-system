@@ -5,6 +5,8 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, X, Download, Bell, User, LogOut, Trophy, Star, Building2, Truck, Shield, Plus, FilePlus, Package, Settings } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageToggle } from "@/components/ui/language-toggle";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { motion } from "framer-motion";
 import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
@@ -37,6 +39,7 @@ const LandingNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
   const { playUrgentNotification } = useNotificationSound();
@@ -193,26 +196,26 @@ const LandingNav = () => {
 
   // Left navigation links - role-based and cleaner
   const leftNavLinks = [
-    { label: "Home", href: "/", type: "route" },
-    { label: "How It Works", href: "/how-it-works", type: "route" },
-    ...(userRole === 'doctor' ? [{ label: "Labs", href: "/labs", type: "route" }] : []),
-    ...(userRole === 'lab_staff' ? [{ label: "Marketplace", href: "/orders-marketplace", type: "route" }] : []),
-    ...(user ? [{ label: "Dashboard", href: "/dashboard", type: "route" }] : []),
+    { label: t.nav.home, href: "/", type: "route" },
+    { label: t.nav.howItWorks, href: "/how-it-works", type: "route" },
+    ...(userRole === 'doctor' ? [{ label: t.nav.labs, href: "/labs", type: "route" }] : []),
+    ...(userRole === 'lab_staff' ? [{ label: t.nav.marketplace, href: "/orders-marketplace", type: "route" }] : []),
+    ...(user ? [{ label: t.nav.dashboard, href: "/dashboard", type: "route" }] : []),
   ];
 
   // Role-specific dropdown menu items
   const doctorMenuItems = user && userRole === 'doctor' ? [
-    { label: "Preferred Labs", href: "/preferred-labs" },
+    { label: t.nav.preferredLabs, href: "/preferred-labs" },
     { 
-      label: "Lab Applications", 
+      label: t.nav.labApplications, 
       href: "/lab-requests",
       badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined
     },
   ] : [];
 
   const labStaffMenuItems = (userRole === 'lab_staff' || userRole === 'admin') ? [
-    { label: "Lab Workflow", href: "/lab-workflow" },
-    { label: "Lab Admin", href: "/lab-admin" },
+    { label: t.nav.labWorkflow, href: "/lab-workflow" },
+    { label: t.nav.labAdmin, href: "/lab-admin" },
   ] : [];
 
   const handleNavClick = (link: { href: string; type?: string }) => {
@@ -348,6 +351,7 @@ const LandingNav = () => {
             
             {/* Desktop Right Section (Auth & User Actions) */}
              <div className="hidden lg:flex items-center gap-2">
+              <LanguageToggle />
               <ThemeToggle />
               {user ? (
                 <>
@@ -584,23 +588,23 @@ const LandingNav = () => {
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="gap-2">
                         <User className="h-4 w-4" />
-                        <span className="hidden xl:inline">Account</span>
+                        <span className="hidden xl:inline">{t.nav.account}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link to="/profile">Profile</Link>
+                        <Link to="/profile">{t.nav.profile}</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/settings">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Settings
+                          <Settings className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                          {t.nav.settings}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut} className="text-destructive">
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Sign Out
+                        <LogOut className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                        {t.nav.signOut}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -614,7 +618,7 @@ const LandingNav = () => {
                         size="sm"
                         onClick={() => navigate("/auth")}
                       >
-                        Sign In
+                        {t.nav.signIn}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -628,7 +632,7 @@ const LandingNav = () => {
                         size="sm"
                         onClick={() => navigate("/auth")}
                       >
-                        Sign Up
+                        {t.nav.signUp}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -819,7 +823,7 @@ const LandingNav = () => {
                     {user ? (
                       <>
                         <div className="px-4 py-2 mb-2">
-                          <p className="text-xs text-muted-foreground">Signed in as</p>
+                          <p className="text-xs text-muted-foreground">{t.nav.signedInAs}</p>
                           <p className="text-sm font-medium truncate">{user.email}</p>
                         </div>
                         <Button
@@ -831,7 +835,7 @@ const LandingNav = () => {
                           }}
                         >
                           <LogOut className="h-4 w-4" />
-                          Sign Out
+                          {t.nav.signOut}
                         </Button>
                       </>
                     ) : (
@@ -844,7 +848,7 @@ const LandingNav = () => {
                             setIsOpen(false);
                           }}
                         >
-                          Sign In
+                          {t.nav.signIn}
                         </Button>
                         <Button
                           className="w-full"
@@ -853,7 +857,7 @@ const LandingNav = () => {
                             setIsOpen(false);
                           }}
                         >
-                          Sign Up
+                          {t.nav.signUp}
                         </Button>
                       </div>
                     )}
