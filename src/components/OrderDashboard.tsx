@@ -506,7 +506,7 @@ const OrderDashboard = () => {
           </div>
 
           {/* Mobile Card View */}
-          <div className="lg:hidden space-y-3" data-tour="orders-cards">
+          <div className="lg:hidden space-y-3 stagger-fade-in" data-tour="orders-cards">
             {paginatedOrders.length === 0 ? (
               <div className="text-center py-8 sm:py-12">
                 <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
