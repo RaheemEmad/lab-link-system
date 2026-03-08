@@ -32,6 +32,7 @@ interface SecurityAlert {
 }
 
 const AdminSecurityTab = () => {
+  const { user } = useAuth();
   const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAlert, setSelectedAlert] = useState<SecurityAlert | null>(null);
