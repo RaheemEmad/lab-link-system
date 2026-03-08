@@ -79,9 +79,10 @@ export function ShipmentDetailsDialog({
   userRole,
   defaultTab = "details"
 }: ShipmentDetailsDialogProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const isLabStaff = userRole === "lab_staff";
-  const canEdit = isLabStaff; // Lab staff can always edit shipment details
+  const canEdit = isLabStaff;
 
   const form = useForm<ShipmentFormValues>({
     resolver: zodResolver(shipmentSchema),
