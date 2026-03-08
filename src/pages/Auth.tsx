@@ -500,7 +500,7 @@ const Auth = () => {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
+                        <FormLabel>{t.auth.confirmPassword}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input 
