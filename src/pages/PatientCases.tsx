@@ -43,7 +43,30 @@ const PatientCases = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [photoCase, setPhotoCase] = useState<PatientCase | null>(null);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxPhotos, setLightboxPhotos] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const openLightbox = useCallback((photos: string[], index: number) => {
+    setLightboxPhotos(photos);
+    setLightboxIndex(index);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setLightboxPhotos([]);
+    setLightboxIndex(0);
+  }, []);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!lightboxPhotos.length) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") setLightboxIndex((i) => Math.min(i + 1, lightboxPhotos.length - 1));
+      if (e.key === "ArrowLeft") setLightboxIndex((i) => Math.max(i - 1, 0));
+      if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [lightboxPhotos, closeLightbox]);
 
   const filteredCases = useMemo(() => {
     if (!searchQuery.trim()) return cases;
