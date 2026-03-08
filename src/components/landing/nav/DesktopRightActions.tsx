@@ -29,7 +29,7 @@ interface DesktopRightActionsProps {
   hasUrgent: boolean;
   doctorMenuItems: MenuItem[];
   labStaffMenuItems: MenuItem[];
-  t: TranslationType;
+  t: Translations;
   signOut: () => void;
 }
 

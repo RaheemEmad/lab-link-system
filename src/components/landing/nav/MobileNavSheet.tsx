@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Menu, X, Download, Bell, User, LogOut, Plus, Star, Building2, Truck, Shield, Package } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { TranslationType } from "@/lib/i18n/types";
+import type { Translations } from "@/lib/i18n/types";
 
 interface NavLink {
   label: string;
