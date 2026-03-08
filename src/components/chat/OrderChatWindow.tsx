@@ -254,7 +254,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
         .from('chat_messages')
         .insert({
           order_id: orderId,
-          sender_id: userData.user.id,
+          sender_id: currentUserId,
           sender_role: currentUserRole,
           message_text: `Shared a file: ${file.name}`,
           is_ai_generated: false,
