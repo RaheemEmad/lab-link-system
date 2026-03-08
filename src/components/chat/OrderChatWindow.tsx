@@ -148,9 +148,10 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   const fetchMessages = async () => {
     const { data, error } = await supabase
       .from('chat_messages')
-      .select('*')
+      .select('id, sender_id, sender_role, message_text, is_ai_generated, created_at, read_at, read_by, attachment_url, attachment_type, attachment_name, attachment_size')
       .eq('order_id', orderId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(100);
 
     if (error) {
       console.error('Error fetching messages:', error);
@@ -158,7 +159,8 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
       return;
     }
 
-    setMessages(data || []);
+    // Reverse since we fetched desc for limit, but display asc
+    setMessages((data || []).reverse());
     
     // Mark unread messages as read in a single batch update
     const unreadMessageIds = data

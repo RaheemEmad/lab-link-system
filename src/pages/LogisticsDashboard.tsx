@@ -120,7 +120,23 @@ const LogisticsDashboard = () => {
     };
 
     fetchData();
-    const channel = supabase.channel("logistics-updates").on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchData()).subscribe();
+
+    // Granular realtime: only listen for INSERT and UPDATE with role-specific filter
+    const channelConfig: { event: "INSERT" | "UPDATE"; schema: string; table: string; filter?: string } = {
+      event: "INSERT" as const,
+      schema: "public",
+      table: "orders",
+    };
+
+    const channel = supabase
+      .channel("logistics-updates")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, () => fetchData())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders" }, (payload) => {
+        // In-place update instead of full refetch
+        setShipments(prev => prev.map(s => s.id === (payload.new as any).id ? { ...s, ...(payload.new as any) } : s));
+      })
+      .subscribe();
+
     return () => { supabase.removeChannel(channel); };
   }, [user, role, roleLoading]);
 

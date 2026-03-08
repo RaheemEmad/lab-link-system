@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// Notification types that trigger real-time popups
 const POPUP_NOTIFICATION_TYPES = [
   'order_accepted',
   'delivery_confirmed',
@@ -26,7 +25,6 @@ const POPUP_NOTIFICATION_TYPES = [
   'payment_recorded',
   'credit_note_issued',
   'review_submitted',
-  'invoice_generated',
 ];
 
 interface Notification {
@@ -45,44 +43,30 @@ export const useRealtimeNotifications = () => {
   const queryClient = useQueryClient();
   const [permission, setPermission] = useState<NotificationPermission>("default");
 
-  // Check and request notification permission on mount
   useEffect(() => {
     if ("Notification" in window) {
       setPermission(Notification.permission);
     }
   }, []);
 
-  // Request permission for native notifications
   const requestPermission = useCallback(async () => {
-    if (!("Notification" in window)) {
-      console.warn("Browser notifications not supported");
-      return false;
-    }
-
-    if (Notification.permission === "granted") {
-      return true;
-    }
-
+    if (!("Notification" in window)) return false;
+    if (Notification.permission === "granted") return true;
     try {
       const result = await Notification.requestPermission();
       setPermission(result);
       return result === "granted";
-    } catch (error) {
-      console.error("Error requesting notification permission:", error);
+    } catch {
       return false;
     }
   }, []);
 
-  // Show native browser notification (works on lock screen for mobile/tablets)
   const showNativeNotification = useCallback((notification: Notification) => {
-    if (!("Notification" in window) || Notification.permission !== "granted") {
-      return;
-    }
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
 
     const isUrgent = notification.type.includes('warning') || notification.type.includes('issue') || notification.type === 'sla_warning';
-    
+
     try {
-      // Use Service Worker for better lock screen support
       if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.ready.then((registration) => {
           registration.showNotification(notification.title, {
@@ -90,14 +74,13 @@ export const useRealtimeNotifications = () => {
             icon: "/lablink-icon.png",
             badge: "/favicon-48x48.png",
             tag: `lablink-${notification.id}`,
-            requireInteraction: isUrgent, // Keep urgent notifications until dismissed
+            requireInteraction: isUrgent,
             vibrate: isUrgent ? [200, 100, 200, 100, 200] : [200, 100, 200],
             data: {
               url: `/order-tracking/${notification.order_id}`,
               orderId: notification.order_id,
               notificationId: notification.id,
             },
-            // Actions for quick response (Android/Chrome)
             actions: [
               { action: 'view', title: 'View Order' },
               { action: 'dismiss', title: 'Dismiss' }
@@ -105,15 +88,13 @@ export const useRealtimeNotifications = () => {
           } as NotificationOptions);
         });
       } else {
-        // Fallback to basic Notification API
-        const nativeNotif = new Notification(notification.title, {
+        const nativeNotif = new window.Notification(notification.title, {
           body: notification.message,
           icon: "/lablink-icon.png",
           badge: "/favicon-48x48.png",
           tag: `lablink-${notification.id}`,
           requireInteraction: isUrgent,
         });
-
         nativeNotif.onclick = () => {
           window.focus();
           window.location.href = `/order-tracking/${notification.order_id}`;
@@ -126,66 +107,35 @@ export const useRealtimeNotifications = () => {
   }, []);
 
   const showNotificationPopup = useCallback((notification: Notification) => {
-    // Show in-app toast
     const isWarning = notification.type.includes('warning') || notification.type.includes('issue');
     const isSuccess = notification.type.includes('confirmed') || notification.type.includes('accepted');
+    const action = {
+      label: "View",
+      onClick: () => { window.location.href = `/order-tracking/${notification.order_id}`; },
+    };
 
     if (isSuccess) {
-      toast.success(notification.title, {
-        description: notification.message,
-        duration: 5000,
-        action: {
-          label: "View",
-          onClick: () => {
-            window.location.href = `/order-tracking/${notification.order_id}`;
-          },
-        },
-      });
+      toast.success(notification.title, { description: notification.message, duration: 5000, action });
     } else if (isWarning) {
-      toast.warning(notification.title, {
-        description: notification.message,
-        duration: 7000,
-        action: {
-          label: "View",
-          onClick: () => {
-            window.location.href = `/order-tracking/${notification.order_id}`;
-          },
-        },
-      });
+      toast.warning(notification.title, { description: notification.message, duration: 7000, action });
     } else {
-      toast.info(notification.title, {
-        description: notification.message,
-        duration: 5000,
-        action: {
-          label: "View",
-          onClick: () => {
-            window.location.href = `/order-tracking/${notification.order_id}`;
-          },
-        },
-      });
+      toast.info(notification.title, { description: notification.message, duration: 5000, action });
     }
 
-    // Also show native notification for lock screen support
     showNativeNotification(notification);
   }, [showNativeNotification]);
 
+  // Auto-request permission
   useEffect(() => {
-    if (!user?.id) return;
-
-    // Auto-request permission on first load if not set
-    if (permission === "default") {
-      // Delay permission request to avoid blocking UI
-      const timer = setTimeout(() => {
-        requestPermission();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!user?.id || permission !== "default") return;
+    const timer = setTimeout(() => requestPermission(), 3000);
+    return () => clearTimeout(timer);
   }, [user?.id, permission, requestPermission]);
 
+  // Realtime subscription
   useEffect(() => {
     if (!user?.id) return;
 
-    // Subscribe to notifications for this user
     const channel = supabase
       .channel(`notifications-${user.id}`)
       .on(
@@ -198,27 +148,31 @@ export const useRealtimeNotifications = () => {
         },
         (payload) => {
           const notification = payload.new as Notification;
-          
-          // Show popup for important notification types
+
           if (POPUP_NOTIFICATION_TYPES.includes(notification.type)) {
             showNotificationPopup(notification);
           }
 
-          // Invalidate all notification-related queries for cohesive real-time updates
-          queryClient.invalidateQueries({ queryKey: ['notifications'] });
-          queryClient.invalidateQueries({ queryKey: ['unread-notifications'] });
-          queryClient.invalidateQueries({ queryKey: ['mobile-nav-unread'] });
-          queryClient.invalidateQueries({ queryKey: ['inbox-chats'] });
-          queryClient.invalidateQueries({ queryKey: ['inbox-approvals'] });
-          queryClient.invalidateQueries({ queryKey: ['inbox-deliveries'] });
-          queryClient.invalidateQueries({ queryKey: ['inbox-invoices'] });
+          // Batch invalidation — single predicate instead of 6 separate calls
+          queryClient.invalidateQueries({
+            predicate: (query) => {
+              const key = query.queryKey[0] as string;
+              return [
+                'notifications',
+                'unread-notifications',
+                'mobile-nav-unread',
+                'inbox-chats',
+                'inbox-approvals',
+                'inbox-deliveries',
+                'inbox-invoices',
+              ].includes(key);
+            },
+          });
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [user?.id, queryClient, showNotificationPopup]);
 
   return {
