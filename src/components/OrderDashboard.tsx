@@ -185,6 +185,7 @@ const OrderDashboard = () => {
             description
           )
         `)
+        .eq("is_deleted", false)
         .order("timestamp", { ascending: false });
 
       if (isDoctor) {
