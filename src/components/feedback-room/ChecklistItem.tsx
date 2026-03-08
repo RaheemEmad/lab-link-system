@@ -27,7 +27,7 @@ interface ChecklistItemProps {
   onConfirm: (itemId: string, role: "doctor" | "lab") => void;
 }
 
-const ChecklistItem = ({ item, isDoctor, isLabStaff, onConfirm }: ChecklistItemProps) => {
+const ChecklistItem = memo(({ item, isDoctor, isLabStaff, onConfirm }: ChecklistItemProps) => {
   const bothConfirmed = item.doctor_confirmed && item.lab_confirmed;
 
   return (
