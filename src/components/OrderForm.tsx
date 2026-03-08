@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon, CalendarIcon, Sparkles } from "lucide-react";
+import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon, CalendarIcon, Sparkles, Check, ChevronRight, ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +30,8 @@ import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
 import BudgetSection from "./order/BudgetSection";
 import { ImportOrderDialog, ExtractedOrderData } from "./order/ImportOrderDialog";
+import { ShadeMatchAssistant } from "./order/ShadeMatchAssistant";
+import { OrderTemplateSelector } from "./order/OrderTemplateSelector";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -75,6 +77,39 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   const [doctorName, setDoctorName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const STEPS = [
+    { title: "Patient & Teeth", description: "Patient details and tooth selection" },
+    { title: "Restoration & Shade", description: "Material type, shade, and urgency" },
+    { title: "Lab & Delivery", description: "Lab selection, notes, and attachments" },
+  ];
+
+  const validateStep = async (step: number): Promise<boolean> => {
+    let fields: (keyof FormValues)[] = [];
+    switch (step) {
+      case 0: fields = ["doctorName", "patientName", "teethNumber"]; break;
+      case 1: fields = ["restorationType", "teethShade", "shadeSystem", "urgency"]; break;
+      case 2: fields = []; break;
+    }
+    if (fields.length === 0) return true;
+    return await form.trigger(fields);
+  };
+
+  const nextStep = async () => {
+    const isValid = await validateStep(currentStep);
+    if (isValid && currentStep < STEPS.length - 1) {
+      setCurrentStep(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleImportData = (data: ExtractedOrderData) => {
     if (data.patientName) form.setValue("patientName", data.patientName);
@@ -529,7 +564,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
 
   return (
     <Card className="shadow-lg w-full">
-      <CardHeader className="px-4 sm:px-6">
+      <CardHeader className="px-4 sm:px-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl sm:text-2xl">New Order Submission</CardTitle>
@@ -549,14 +584,69 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
           hasRecoveredData={autosaveState.hasRecoveredData}
           className="flex sm:hidden mt-2"
         />
+
+        {/* Step Progress Indicator */}
+        <div className="pt-2">
+          <div className="flex items-center justify-between relative">
+            {/* Progress line */}
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-muted">
+              <div
+                className="h-full bg-primary transition-all duration-500 ease-out"
+                style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
+              />
+            </div>
+            {STEPS.map((step, index) => {
+              const isComplete = index < currentStep;
+              const isCurrent = index === currentStep;
+              return (
+                <button
+                  key={step.title}
+                  type="button"
+                  onClick={() => {
+                    if (index < currentStep) setCurrentStep(index);
+                  }}
+                  disabled={index > currentStep}
+                  className="flex flex-col items-center gap-1.5 relative z-10 disabled:cursor-not-allowed"
+                >
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 border-2",
+                    isComplete && "bg-primary border-primary text-primary-foreground",
+                    isCurrent && "bg-primary border-primary text-primary-foreground scale-110 shadow-lg",
+                    !isComplete && !isCurrent && "bg-background border-muted-foreground/30 text-muted-foreground"
+                  )}>
+                    {isComplete ? <Check className="w-4 h-4" /> : <span>{index + 1}</span>}
+                  </div>
+                  <span className={cn(
+                    "text-[10px] sm:text-xs font-medium transition-colors duration-300 text-center max-w-[80px]",
+                    (isCurrent || isComplete) ? "text-foreground" : "text-muted-foreground"
+                  )}>
+                    {step.title}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="px-4 sm:px-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-            {/* Import Button */}
-            <div className="flex justify-end">
+            {/* Action Bar - Templates + Import */}
+            <div className="flex flex-wrap gap-2 justify-end">
+              <OrderTemplateSelector
+                onSelect={(template) => {
+                  if (template.restoration_type) form.setValue("restorationType", template.restoration_type as any);
+                  if (template.teeth_shade) form.setValue("teethShade", template.teeth_shade);
+                  if (template.shade_system) form.setValue("shadeSystem", template.shade_system as any);
+                  if (template.teeth_number) form.setValue("teethNumber", template.teeth_number);
+                  if (template.biological_notes) form.setValue("biologicalNotes", template.biological_notes);
+                  if (template.urgency) form.setValue("urgency", template.urgency as any);
+                  if (template.handling_instructions) form.setValue("handlingInstructions", template.handling_instructions);
+                  if (template.assigned_lab_id) form.setValue("assignedLabId", template.assigned_lab_id);
+                }}
+              />
               <Button type="button" variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
-                <Sparkles className="h-4 w-4 mr-1.5" />
+                <Sparkles className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
                 Import with AI
               </Button>
             </div>
@@ -566,6 +656,9 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
               onOpenChange={setImportDialogOpen}
               onImport={handleImportData}
             />
+
+            {/* ===== STEP 1: Patient & Teeth ===== */}
+            <div className={currentStep !== 0 ? 'hidden' : 'space-y-4 sm:space-y-6'}>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -595,7 +688,10 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 )}
               />
             </div>
+            </div>
 
+            {/* ===== STEP 2: Restoration & Shade ===== */}
+            <div className={currentStep !== 1 ? 'hidden' : 'space-y-4 sm:space-y-6'}>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -642,7 +738,13 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+            />
+
+            {/* AI Shade Match Assistant */}
+            <ShadeMatchAssistant
+              shadeSystem={form.watch("shadeSystem")}
+              onShadeSelect={(shade) => form.setValue("teethShade", shade)}
+            />
             </div>
 
             <FormField
@@ -659,7 +761,10 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 </FormItem>
               )}
             />
+            </div>
 
+            {/* Teeth selector is part of Step 1 but placed here to maintain form field order */}
+            <div className={currentStep !== 0 ? 'hidden' : 'space-y-4 sm:space-y-6'}>
             <FormField
               control={form.control}
               name="teethNumber"
@@ -670,7 +775,10 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 </FormItem>
               )}
             />
+            </div>
 
+            {/* ===== STEP 3: Lab & Delivery ===== */}
+            <div className={currentStep !== 2 ? 'hidden' : 'space-y-4 sm:space-y-6'}>
             {/* Only show lab selector for doctors */}
             {userRole === 'doctor' && (
               <FormField
@@ -962,19 +1070,50 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 )}
               </div>
             </div>
+            </div>
+            {/* End Step 3 */}
 
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {uploadProgress > 0 && uploadProgress < 100 
-                    ? `Uploading ${uploadProgress}%` 
-                    : "Creating Order..."}
-                </>
+            {/* Step Navigation */}
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="min-h-[44px]"
+              >
+                <ChevronLeft className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
+                Previous
+              </Button>
+
+              <span className="text-sm text-muted-foreground">
+                Step {currentStep + 1} of {STEPS.length}
+              </span>
+
+              {currentStep < STEPS.length - 1 ? (
+                <Button
+                  type="button"
+                  onClick={nextStep}
+                  className="min-h-[44px]"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ltr:ml-1 rtl:mr-1" />
+                </Button>
               ) : (
-                "Submit Order"
+                <Button type="submit" className="min-h-[44px]" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
+                      {uploadProgress > 0 && uploadProgress < 100 
+                        ? `Uploading ${uploadProgress}%` 
+                        : "Creating Order..."}
+                    </>
+                  ) : (
+                    "Submit Order"
+                  )}
+                </Button>
               )}
-            </Button>
+            </div>
           </form>
         </Form>
       </CardContent>
