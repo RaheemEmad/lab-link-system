@@ -199,12 +199,18 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
     },
   });
 
-  // Delete order mutation
+  // Soft-delete order mutation
   const deleteOrderMutation = useMutation({
     mutationFn: async (orderId: string) => {
+      const oldOrder = orders.find(o => o.id === orderId);
       const { error } = await supabase
         .from("orders")
-        .delete()
+        .update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          deleted_by: user?.id,
+          pre_delete_status: oldOrder?.status || "Pending",
+        })
         .eq("id", orderId);
 
       if (error) throw error;
