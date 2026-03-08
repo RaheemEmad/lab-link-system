@@ -269,7 +269,10 @@ const PatientCases = () => {
                       <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                       Reorder
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setPhotoCase(c)}>
+                    <Button size="sm" variant="outline" onClick={() => openOrdersDialog(c)} title="View Orders">
+                      <ClipboardList className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setPhotoCase(c)} title="Photos">
                       <Camera className="h-3.5 w-3.5" />
                     </Button>
                     <Button
