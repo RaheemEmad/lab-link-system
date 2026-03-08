@@ -357,7 +357,6 @@ const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => {
       </Card>
     </div>
   </div>
-  </div>
   );
 };
 
