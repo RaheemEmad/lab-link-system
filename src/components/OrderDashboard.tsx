@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense, useMemo } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -133,6 +133,8 @@ const OrderDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("all");
+  const [kpiFilter, setKpiFilter] = useState<import("./dashboard/DashboardKPICards").KPIFilter | null>(null);
+  const ordersTableRef = useRef<HTMLDivElement>(null);
   const [sortField, setSortField] = useState<SortField>("timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [loading, setLoading] = useState(true);
@@ -352,7 +354,21 @@ const OrderDashboard = () => {
         order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.doctor_name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      
+      // KPI filter takes priority over status dropdown
+      let matchesStatus = true;
+      if (kpiFilter) {
+        if (kpiFilter.status === "active") {
+          matchesStatus = !["Delivered", "Cancelled"].includes(order.status);
+        } else if (kpiFilter.status) {
+          matchesStatus = order.status === kpiFilter.status;
+        }
+        if (kpiFilter.urgency) {
+          matchesStatus = matchesStatus && order.urgency === kpiFilter.urgency && !["Delivered", "Cancelled"].includes(order.status);
+        }
+      } else {
+        matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      }
 
       // Date range filter
       let matchesDate = true;
@@ -387,7 +403,7 @@ const OrderDashboard = () => {
     });
 
     return result;
-  }, [orders, searchTerm, statusFilter, dateRange, sortField, sortDirection]);
+  }, [orders, searchTerm, statusFilter, dateRange, sortField, sortDirection, kpiFilter]);
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -446,7 +462,21 @@ const OrderDashboard = () => {
     <TooltipProvider>
       {/* KPI Cards */}
       <div className="mb-4">
-        <DashboardKPICards orders={orders} isLabStaff={!!isLabStaff} />
+        <DashboardKPICards
+          orders={orders}
+          isLabStaff={!!isLabStaff}
+          activeFilter={kpiFilter?.key || null}
+          onFilterChange={(filter) => {
+            setKpiFilter(filter);
+            if (filter) {
+              setStatusFilter("all");
+              setCurrentPage(1);
+              setTimeout(() => {
+                ordersTableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 100);
+            }
+          }}
+        />
       </div>
 
       {/* Workload Heatmap (Lab only) */}
@@ -458,7 +488,7 @@ const OrderDashboard = () => {
         </Card>
       )}
 
-      <Card data-tour="order-dashboard">
+      <Card data-tour="order-dashboard" ref={ordersTableRef}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Order Management
@@ -499,7 +529,7 @@ const OrderDashboard = () => {
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
-              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setKpiFilter(null); setCurrentPage(1); }}>
                 <SelectTrigger className="w-full sm:w-[180px] min-h-[44px] sm:min-h-0">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
