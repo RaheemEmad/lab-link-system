@@ -1027,6 +1027,9 @@ const OrderDashboard = () => {
         open={!!quickViewOrder}
         onClose={() => setQuickViewOrder(null)}
         onOpenChat={handleOpenChat}
+        onViewHistory={handleViewHistory}
+        onViewNotes={handleViewNotes}
+        onDeleteOrder={(id) => setDeleteOrderId(id)}
         isDoctor={!!isDoctor}
       />
 
