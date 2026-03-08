@@ -52,14 +52,15 @@ const NotificationHistory = () => {
       let query = supabase
         .from("notifications")
         .select(`
-          *,
+          id, order_id, type, title, message, read, created_at,
           orders (
             order_number,
             patient_name
           )
         `)
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(100);
 
       if (filter === "unread") {
         query = query.eq("read", false);

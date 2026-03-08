@@ -173,7 +173,7 @@ const EditOrder = () => {
     try {
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select("id, order_number, status, doctor_id, doctor_name, patient_name, restoration_type, teeth_shade, shade_system, teeth_number, biological_notes, handling_instructions, urgency, assigned_lab_id, html_export, desired_delivery_date, target_budget, updated_at")
         .eq("id", orderId)
         .single();
 
