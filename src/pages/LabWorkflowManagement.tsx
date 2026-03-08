@@ -213,7 +213,7 @@ const LabWorkflowManagement = () => {
 
         // Create notification for doctor
         if (order?.doctor_id) {
-          await supabase.from("notifications").insert({
+          await createNotification({
             user_id: order.doctor_id,
             order_id: orderId,
             type: "delivery_confirmation_request",

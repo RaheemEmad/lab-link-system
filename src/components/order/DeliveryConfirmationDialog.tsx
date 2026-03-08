@@ -119,15 +119,13 @@ export const DeliveryConfirmationDialog = ({
         .eq("order_id", orderId);
 
       if (assignments && assignments.length > 0) {
-        const notifications = assignments.map((assignment) => ({
+        await createNotifications(assignments.map((assignment) => ({
           user_id: assignment.user_id,
           order_id: orderId,
           type: "delivery_issue",
           title: "Delivery Issue Reported",
           message: `Doctor reported an issue with Order #${orderNumber}: ${issueNote.slice(0, 100)}...`,
-        }));
-
-        await supabase.from("notifications").insert(notifications);
+        })));
       }
 
       toast.warning("Issue reported", {

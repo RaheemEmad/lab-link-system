@@ -122,7 +122,7 @@ const BidRevisionDialog = ({
         .single();
 
       if (order?.doctor_id) {
-        await supabase.from("notifications").insert({
+        await createNotification({
           user_id: order.doctor_id,
           order_id: orderId,
           type: 'bid_revised',
