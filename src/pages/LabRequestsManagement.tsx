@@ -220,7 +220,7 @@ export default function LabRequestsManagement() {
         if (assignmentError && !assignmentError.message?.includes('duplicate')) {
           console.warn('[LabRequests] Assignment creation warning:', assignmentError);
         } else {
-          console.log('[LabRequests] Order assignment created');
+          
         }
         
         // 4. Refuse all other pending requests for this order
