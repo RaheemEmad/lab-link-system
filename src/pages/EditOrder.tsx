@@ -582,6 +582,21 @@ const EditOrder = () => {
                 />
               </div>
 
+              {/* Section: Attachments & Files */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Paperclip className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                    Attachments & Files
+                  </h3>
+                  <Separator className="flex-1" />
+                </div>
+                <FileUploadSection
+                  orderId={orderId}
+                  existingFiles={existingAttachments}
+                />
+              </div>
+
               {/* Section: Delivery & Budget */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
