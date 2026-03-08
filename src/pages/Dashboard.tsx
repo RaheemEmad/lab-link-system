@@ -21,6 +21,53 @@ import { AchievementToast } from "@/components/dashboard/AchievementToast";
 import { AchievementProgressNotification } from "@/components/dashboard/AchievementProgressNotification";
 import { DashboardReceiveAnimation } from "@/components/order/DashboardReceiveAnimation";
 import { PendingDeliveryConfirmations } from "@/components/order/PendingDeliveryConfirmations";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle } from "lucide-react";
+
+// Overdue invoice banner component
+const OverdueInvoiceBanner = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data: overdueCount } = useQuery({
+    queryKey: ["overdue-invoices-count", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invoices")
+        .select("id", { count: "exact", head: true })
+        .eq("payment_status", "overdue")
+        .not("order.doctor_id", "is", null);
+      // Since we can't filter by join in count, fetch and filter
+      const { data: invoices } = await supabase
+        .from("invoices")
+        .select("id, order:orders!inner(doctor_id)")
+        .eq("payment_status", "overdue");
+      return invoices?.filter((inv: any) => inv.order?.doctor_id === user?.id).length || 0;
+    },
+    enabled: !!user?.id,
+    staleTime: 60000,
+  });
+
+  if (!overdueCount || overdueCount === 0) return null;
+
+  return (
+    <Card className="border-destructive/50 bg-destructive/5 mb-4">
+      <CardContent className="py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              You have {overdueCount} overdue invoice{overdueCount > 1 ? 's' : ''}
+            </span>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => navigate("/dashboard")} className="text-xs">
+            View Billing
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
