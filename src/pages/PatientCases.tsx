@@ -326,6 +326,48 @@ const PatientCases = () => {
           </DialogContent>
         </Dialog>
 
+        {/* View Orders Dialog */}
+        <Dialog open={!!ordersCase} onOpenChange={() => setOrdersCase(null)}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{ordersCase?.patient_name} — Orders</DialogTitle>
+            </DialogHeader>
+            {ordersLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            ) : caseOrders.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-6">No orders found for this patient.</p>
+            ) : (
+              <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+                {caseOrders.map((o) => (
+                  <div key={o.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                    <div>
+                      <p className="text-sm font-medium">{o.order_number}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(o.created_at), "MMM d, yyyy")} · {o.restoration_type}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">{o.status}</Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setOrdersCase(null);
+                          navigate(`/track-orders?orderId=${o.id}`);
+                        }}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Lightbox */}
         <Dialog open={lightboxPhotos.length > 0} onOpenChange={closeLightbox}>
           <DialogContent className="sm:max-w-2xl p-2">
