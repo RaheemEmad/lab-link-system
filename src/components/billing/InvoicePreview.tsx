@@ -18,7 +18,9 @@ import {
   Plus,
   CreditCard,
   Calendar,
-  Gavel
+  Gavel,
+  Share2,
+  MinusCircle
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, startOfDay } from "date-fns";
 import InvoiceLineItems from "./InvoiceLineItems";
@@ -26,6 +28,7 @@ import AdjustmentDialog from "./AdjustmentDialog";
 import DisputeDialog from "./DisputeDialog";
 import PaymentDialog from "./PaymentDialog";
 import DisputeResolutionDialog from "./DisputeResolutionDialog";
+import CreditNoteDialog from "./CreditNoteDialog";
 import { useState } from "react";
 import { toast } from "sonner";
 
