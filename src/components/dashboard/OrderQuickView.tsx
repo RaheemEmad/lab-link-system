@@ -42,7 +42,7 @@ export const OrderQuickView = ({ order, open, onClose, onOpenChat, isDoctor }: O
           <SheetTitle className="font-mono">{order.order_number}</SheetTitle>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-6 fade-in-up">
           {/* Status & Progress */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
