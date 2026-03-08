@@ -118,6 +118,8 @@ const AppContent = () => {
             <Route path="/chat-history" element={<PageTransition><ChatHistory /></PageTransition>} />
             <Route path="/feedback-room" element={<PageTransition><FeedbackRoom /></PageTransition>} />
             <Route path="/feedback-room/:orderId" element={<PageTransition><FeedbackRoom /></PageTransition>} />
+            <Route path="/patient-cases" element={<PageTransition><PatientCases /></PageTransition>} />
+            <Route path="/lab-calendar" element={<PageTransition><LabCalendar /></PageTransition>} />
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
             <Route path="/admin/pricing-rules" element={<PageTransition><PricingRulesManagement /></PageTransition>} />

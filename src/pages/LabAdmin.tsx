@@ -817,44 +817,7 @@ const LabAdmin = () => {
 
               {/* Inventory Tab */}
               <TabsContent value="inventory">
-                <Card>
-                  <CardHeader>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Package className="h-5 w-5" />
-                          Inventory Management
-                        </CardTitle>
-                        <CardDescription>
-                          Track materials, supplies, and equipment
-                        </CardDescription>
-                      </div>
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700 w-fit">
-                        Under Development
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="py-8 sm:py-12">
-                    <div className="text-center space-y-4">
-                      <Package className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-muted-foreground/50" />
-                      <div>
-                        <h3 className="font-semibold text-base sm:text-lg">Coming Soon</h3>
-                        <p className="text-muted-foreground text-sm max-w-md mx-auto px-4">
-                          Inventory management features including material tracking, 
-                          stock alerts, supplier management, and usage analytics are 
-                          currently in development.
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap justify-center gap-2 mt-6 px-4">
-                        <Badge variant="outline" className="text-xs">Material Tracking</Badge>
-                        <Badge variant="outline" className="text-xs">Stock Alerts</Badge>
-                        <Badge variant="outline" className="text-xs">Supplier Management</Badge>
-                        <Badge variant="outline" className="text-xs">Usage Analytics</Badge>
-                        <Badge variant="outline" className="text-xs">Reorder Automation</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <InventoryManager />
               </TabsContent>
             </Tabs>
           </div>
