@@ -49,6 +49,8 @@ const PaymentDialog = ({
   currentAmountPaid,
   currentDueDate,
   currentPaymentReceivedAt,
+  currentPaymentMethod,
+  currentPaymentReference,
   finalTotal,
 }: PaymentDialogProps) => {
   const { user } = useAuth();
@@ -62,6 +64,8 @@ const PaymentDialog = ({
   const [paymentReceivedAt, setPaymentReceivedAt] = useState<Date | undefined>(
     currentPaymentReceivedAt ? new Date(currentPaymentReceivedAt) : undefined
   );
+  const [paymentMethod, setPaymentMethod] = useState(currentPaymentMethod || '');
+  const [paymentReference, setPaymentReference] = useState(currentPaymentReference || '');
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -70,8 +74,10 @@ const PaymentDialog = ({
       setAmountPaid(currentAmountPaid?.toString() || '0');
       setDueDate(currentDueDate ? new Date(currentDueDate) : undefined);
       setPaymentReceivedAt(currentPaymentReceivedAt ? new Date(currentPaymentReceivedAt) : undefined);
+      setPaymentMethod(currentPaymentMethod || '');
+      setPaymentReference(currentPaymentReference || '');
     }
-  }, [open, currentStatus, currentAmountPaid, currentDueDate, currentPaymentReceivedAt]);
+  }, [open, currentStatus, currentAmountPaid, currentDueDate, currentPaymentReceivedAt, currentPaymentMethod, currentPaymentReference]);
 
   // Auto-calculate status based on amount
   const handleAmountChange = (value: string) => {
