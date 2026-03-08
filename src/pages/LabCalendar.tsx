@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CalendarGrid } from "@/components/lab/CalendarGrid";
+import { AvailabilityManager } from "@/components/lab/AvailabilityManager";
 import {
   ChevronLeft,
   ChevronRight,
@@ -208,6 +209,11 @@ const LabCalendar = () => {
               isLoading={isLoading}
               viewMode={viewMode}
             />
+
+            {/* Availability Manager */}
+            <div className="mt-8">
+              <AvailabilityManager />
+            </div>
           </div>
         </div>
         <LandingFooter />

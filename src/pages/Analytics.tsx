@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   BarChart3,
   TrendingUp,
@@ -20,6 +21,7 @@ import {
   Users,
   CheckCircle2,
   Target,
+  Download,
 } from "lucide-react";
 import { formatEGP } from "@/lib/formatters";
 
@@ -265,8 +267,29 @@ interface DoctorStatsData {
   typeBreakdown: [string, number][];
 }
 
-const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => (
+const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => {
+  const handleExport = async () => {
+    const { exportToCSV } = await import("@/lib/exportUtils");
+    const rows = [
+      { Metric: "Total Orders", Value: String(stats.totalOrders) },
+      { Metric: "Delivered", Value: String(stats.completedCount) },
+      { Metric: "Cancelled", Value: String(stats.cancelledCount) },
+      { Metric: "Total Spent (EGP)", Value: String(stats.totalSpent) },
+      { Metric: "Total Paid (EGP)", Value: String(stats.totalPaid) },
+      { Metric: "Avg Turnaround (days)", Value: String(stats.avgTurnaround) },
+      ...stats.favoriteLabs.map((l) => ({ Metric: `Lab: ${l.name}`, Value: `${l.count} orders` })),
+      ...stats.typeBreakdown.map(([t, c]) => ({ Metric: `Type: ${t}`, Value: String(c) })),
+    ];
+    exportToCSV(rows, `doctor-analytics-${new Date().toISOString().slice(0, 10)}`);
+  };
+
+  return (
   <div className="space-y-6">
+    <div className="flex justify-end">
+      <Button variant="outline" size="sm" onClick={handleExport}>
+        <Download className="h-4 w-4 mr-1.5" /> Export CSV
+      </Button>
+    </div>
     {/* KPI Cards */}
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard icon={Package} label="Total Orders" value={String(stats.totalOrders)} sub={`${stats.completedCount} delivered`} />
@@ -334,7 +357,8 @@ const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => (
       </Card>
     </div>
   </div>
-);
+  );
+};
 
 // --- Lab View ---
 interface LabStatsData {
@@ -348,8 +372,29 @@ interface LabStatsData {
   monthlyRevenue: { month: string; revenue: number }[];
 }
 
-const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => (
+const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => {
+  const handleExport = async () => {
+    const { exportToCSV } = await import("@/lib/exportUtils");
+    const rows = [
+      { Metric: "Total Orders", Value: String(stats.totalOrders) },
+      { Metric: "Completed", Value: String(stats.completedCount) },
+      { Metric: "In Progress", Value: String(stats.inProgressCount) },
+      { Metric: "Total Revenue (EGP)", Value: String(stats.totalRevenue) },
+      { Metric: "Received (EGP)", Value: String(stats.totalReceived) },
+      { Metric: "On-Time Rate", Value: `${stats.onTimeRate}%` },
+      ...stats.monthlyRevenue.map((m) => ({ Metric: `Revenue ${m.month}`, Value: String(m.revenue) })),
+      ...stats.topClients.map((c) => ({ Metric: `Client: ${c.name}`, Value: `${c.count} orders` })),
+    ];
+    exportToCSV(rows, `lab-analytics-${new Date().toISOString().slice(0, 10)}`);
+  };
+
+  return (
   <div className="space-y-6">
+    <div className="flex justify-end">
+      <Button variant="outline" size="sm" onClick={handleExport}>
+        <Download className="h-4 w-4 mr-1.5" /> Export CSV
+      </Button>
+    </div>
     {/* KPI Cards */}
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard icon={Package} label="Total Orders" value={String(stats.totalOrders)} sub={`${stats.inProgressCount} in progress`} />
@@ -414,7 +459,8 @@ const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => (
       </Card>
     </div>
   </div>
-);
+  );
+};
 
 // --- Shared Stat Card ---
 const StatCard = ({ icon: Icon, label, value, sub }: { icon: any; label: string; value: string; sub: string }) => (

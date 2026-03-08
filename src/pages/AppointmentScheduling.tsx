@@ -105,13 +105,13 @@ const AppointmentScheduling = () => {
     staleTime: 30_000,
   });
 
-  // Fetch orders for selection (active orders only)
+  // Fetch orders for selection (active orders only) - include assigned_lab_id
   const { data: userOrders = [] } = useQuery({
     queryKey: ["appointment-orders", user?.id],
     queryFn: async () => {
       let query = supabase
         .from("orders")
-        .select("id, order_number, patient_name")
+        .select("id, order_number, patient_name, assigned_lab_id")
         .not("status", "in", '("Cancelled","Delivered")')
         .order("created_at", { ascending: false })
         .limit(50);
@@ -127,6 +127,47 @@ const AppointmentScheduling = () => {
     enabled: !!user?.id,
     staleTime: 30_000,
   });
+
+  // Get the selected order's assigned lab
+  const selectedOrder = userOrders.find((o) => o.id === selectedOrderId);
+  const selectedLabId = selectedOrder?.assigned_lab_id;
+
+  // Fetch lab availability slots for selected order's lab
+  const { data: labAvailability = [] } = useQuery({
+    queryKey: ["lab-availability-for-booking", selectedLabId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lab_availability_slots")
+        .select("*")
+        .eq("lab_id", selectedLabId!)
+        .eq("is_active", true)
+        .order("day_of_week")
+        .order("start_time");
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!selectedLabId,
+    staleTime: 30_000,
+  });
+
+  // Available days of week from lab slots
+  const availableDays = new Set(labAvailability.map((s) => s.day_of_week));
+  const hasAvailability = labAvailability.length > 0;
+
+  // Filter time slots based on lab availability for the selected date
+  const availableTimeSlots = selectedDate && hasAvailability
+    ? labAvailability
+        .filter((s) => s.day_of_week === selectedDate.getDay())
+        .flatMap((s) => {
+          const slots: string[] = [];
+          const start = s.start_time.slice(0, 5);
+          const end = s.end_time.slice(0, 5);
+          for (const t of TIME_SLOTS) {
+            if (t >= start && t < end) slots.push(t);
+          }
+          return slots;
+        })
+    : TIME_SLOTS;
 
   const createAppointment = useMutation({
     mutationFn: async () => {
@@ -312,6 +353,17 @@ const AppointmentScheduling = () => {
                 </Select>
               </div>
 
+              {selectedLabId && hasAvailability && (
+                <p className="text-xs text-muted-foreground bg-primary/5 rounded p-2">
+                  📅 Dates and times filtered by lab availability
+                </p>
+              )}
+              {selectedLabId && !hasAvailability && (
+                <p className="text-xs text-muted-foreground bg-muted rounded p-2">
+                  ⚠️ Lab hasn't configured availability — all times shown
+                </p>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Type</Label>
@@ -338,7 +390,11 @@ const AppointmentScheduling = () => {
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
-                        disabled={(date) => date < new Date()}
+                        disabled={(date) => {
+                          if (date < new Date()) return true;
+                          if (hasAvailability && !availableDays.has(date.getDay())) return true;
+                          return false;
+                        }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
                       />
@@ -353,7 +409,7 @@ const AppointmentScheduling = () => {
                   <Select value={timeStart} onValueChange={setTimeStart}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TIME_SLOTS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {availableTimeSlots.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -362,7 +418,7 @@ const AppointmentScheduling = () => {
                   <Select value={timeEnd} onValueChange={setTimeEnd}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TIME_SLOTS.filter((t) => t > timeStart).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {availableTimeSlots.filter((t) => t > timeStart).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

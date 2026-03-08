@@ -73,6 +73,8 @@ export const PostDeliveryReviewDialog = ({
   const [qualityRating, setQualityRating] = useState(5);
   const [turnaroundRating, setTurnaroundRating] = useState(5);
   const [communicationRating, setCommunicationRating] = useState(5);
+  const [valueRating, setValueRating] = useState(5);
+  const [accuracyRating, setAccuracyRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -89,6 +91,8 @@ export const PostDeliveryReviewDialog = ({
         quality_rating: qualityRating,
         turnaround_rating: turnaroundRating,
         communication_rating: communicationRating,
+        value_rating: valueRating,
+        accuracy_rating: accuracyRating,
         review_text: reviewText.trim() || null,
       });
 
@@ -130,6 +134,8 @@ export const PostDeliveryReviewDialog = ({
           <RatingRow label="Quality" value={qualityRating} onChange={setQualityRating} />
           <RatingRow label="Turnaround" value={turnaroundRating} onChange={setTurnaroundRating} />
           <RatingRow label="Communication" value={communicationRating} onChange={setCommunicationRating} />
+          <RatingRow label="Value for Money" value={valueRating} onChange={setValueRating} />
+          <RatingRow label="Accuracy" value={accuracyRating} onChange={setAccuracyRating} />
 
           <div className="space-y-2 pt-2">
             <Label htmlFor="review-text">Review (optional)</Label>

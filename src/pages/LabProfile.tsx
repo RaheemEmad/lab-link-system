@@ -509,6 +509,35 @@ export default function LabProfile() {
             </div>
           )}
 
+          {/* Average Rating Breakdown */}
+          {reviews && reviews.length > 0 && (
+            <div className="p-4 border rounded-lg bg-muted/30 space-y-2">
+              <h3 className="font-medium text-sm">Rating Breakdown ({reviews.length} reviews)</h3>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  { label: "Overall", key: "rating" },
+                  { label: "Quality", key: "quality_rating" },
+                  { label: "Turnaround", key: "turnaround_rating" },
+                  { label: "Communication", key: "communication_rating" },
+                  { label: "Value", key: "value_rating" },
+                  { label: "Accuracy", key: "accuracy_rating" },
+                ].map(({ label, key }) => {
+                  const vals = reviews.filter((r: any) => r[key] != null).map((r: any) => r[key] as number);
+                  const avg = vals.length > 0 ? vals.reduce((a: number, b: number) => a + b, 0) / vals.length : 0;
+                  return (
+                    <div key={key} className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{label}</span>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                        <span className="font-medium">{avg > 0 ? avg.toFixed(1) : "—"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Reviews List */}
           <div className="space-y-4">
             {reviews && reviews.length > 0 ? (
@@ -535,6 +564,14 @@ export default function LabProfile() {
                     <span className="text-sm text-muted-foreground">
                       {new Date(review.created_at).toLocaleDateString()}
                     </span>
+                  </div>
+                  {/* Sub-ratings */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    {review.quality_rating && <span>Quality: {review.quality_rating}/5</span>}
+                    {review.turnaround_rating && <span>Turnaround: {review.turnaround_rating}/5</span>}
+                    {review.communication_rating && <span>Communication: {review.communication_rating}/5</span>}
+                    {(review as any).value_rating && <span>Value: {(review as any).value_rating}/5</span>}
+                    {(review as any).accuracy_rating && <span>Accuracy: {(review as any).accuracy_rating}/5</span>}
                   </div>
                   {review.review_text && (
                     <p className="text-muted-foreground">{review.review_text}</p>
