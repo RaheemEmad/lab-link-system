@@ -438,7 +438,7 @@ const Auth = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t.auth.email}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input 
