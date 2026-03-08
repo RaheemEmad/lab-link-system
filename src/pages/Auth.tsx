@@ -147,7 +147,7 @@ const Auth = () => {
         // If no profile exists, this is an OAuth user without profile - redirect to onboarding
         if (!profile && !profileError) {
           clearTimeout(loadingTimeout);
-          console.log('OAuth user without profile, redirecting to onboarding');
+          
           toast.info("Complete your profile to get started");
           navigate("/onboarding");
           return;
