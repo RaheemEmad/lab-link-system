@@ -130,6 +130,8 @@ const PaymentDialog = ({
           amount_paid: numAmount,
           due_date: dueDate ? dueDate.toISOString() : null,
           payment_received_at: paymentReceivedAt ? paymentReceivedAt.toISOString() : null,
+          payment_method: paymentMethod || null,
+          payment_reference: paymentReference || null,
         })
         .eq('id', invoiceId);
 
