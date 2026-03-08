@@ -289,8 +289,26 @@ const LabAdmin = () => {
     updateLabMutation.mutate({ ...data, logo_url: logoUrl } as any);
   };
 
-  // Check access
-  if (roleLoading || (!isLabStaff && !isAdmin)) {
+  // Show loading while role is being fetched
+  if (roleLoading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen flex flex-col">
+          <LandingNav />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Verifying permissions...</p>
+            </div>
+          </div>
+          <LandingFooter />
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  // Check access after role is confirmed
+  if (!isLabStaff && !isAdmin) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen flex flex-col">
