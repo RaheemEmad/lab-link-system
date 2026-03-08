@@ -540,26 +540,51 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     }
   };
 
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const submittedValues = form.getValues();
+
   if (isSubmitted) {
     return (
-      <Card className="max-w-md mx-auto shadow-lg">
-        <CardContent className="pt-8 sm:pt-12 pb-8 sm:pb-12 px-4 sm:px-6 text-center">
-          <div className="mb-4 sm:mb-6 flex justify-center">
-            <div className="rounded-full bg-success/10 p-3 sm:p-4">
-              <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12 text-success" />
+      <>
+        <Card className="max-w-md mx-auto shadow-lg">
+          <CardContent className="pt-8 sm:pt-12 pb-8 sm:pb-12 px-4 sm:px-6 text-center">
+            <div className="mb-4 sm:mb-6 flex justify-center">
+              <div className="rounded-full bg-success/10 p-3 sm:p-4">
+                <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12 text-success" />
+              </div>
             </div>
-          </div>
-          <h3 className="mb-2 text-xl sm:text-2xl font-bold">Order Submitted!</h3>
-          <p className="mb-3 sm:mb-4 text-sm sm:text-base text-muted-foreground">Your order has been received and is being processed.</p>
-          <div className="mb-4 sm:mb-6 rounded-lg bg-muted p-3 sm:p-4">
-            <p className="text-xs sm:text-sm text-muted-foreground">Order ID</p>
-            <p className="text-lg sm:text-xl font-mono font-bold break-all">{orderId}</p>
-          </div>
-          <Button onClick={() => window.location.reload()} className="w-full" size="lg">
-            Submit Another Order
-          </Button>
-        </CardContent>
-      </Card>
+            <h3 className="mb-2 text-xl sm:text-2xl font-bold">Order Submitted!</h3>
+            <p className="mb-3 sm:mb-4 text-sm sm:text-base text-muted-foreground">Your order has been received and is being processed.</p>
+            <div className="mb-4 sm:mb-6 rounded-lg bg-muted p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-muted-foreground">Order ID</p>
+              <p className="text-lg sm:text-xl font-mono font-bold break-all">{orderId}</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Button onClick={() => setShowTemplateDialog(true)} variant="outline" className="w-full">
+                Save as Template
+              </Button>
+              <Button onClick={() => window.location.reload()} className="w-full" size="lg">
+                Submit Another Order
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <SaveAsTemplateDialog
+          open={showTemplateDialog}
+          onOpenChange={setShowTemplateDialog}
+          orderData={{
+            restoration_type: submittedValues.restorationType,
+            teeth_number: submittedValues.teethNumber,
+            teeth_shade: submittedValues.teethShade,
+            shade_system: submittedValues.shadeSystem,
+            urgency: submittedValues.urgency,
+            biological_notes: submittedValues.biologicalNotes || "",
+            handling_instructions: submittedValues.handlingInstructions || "",
+            assigned_lab_id: submittedValues.assignedLabId || null,
+          }}
+        />
+      </>
     );
   }
 
