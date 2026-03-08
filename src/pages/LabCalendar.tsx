@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CalendarGrid } from "@/components/lab/CalendarGrid";
+import { AvailabilityManager } from "@/components/lab/AvailabilityManager";
 import {
   ChevronLeft,
   ChevronRight,
