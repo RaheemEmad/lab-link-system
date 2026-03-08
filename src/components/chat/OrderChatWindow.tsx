@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 
 interface Message {
@@ -46,7 +46,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
-  const { toast } = useToast();
+  // Removed useToast - using sonner toast directly
   const messageSound = useRef<HTMLAudioElement | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [retryQueue, setRetryQueue] = useState<Map<string, { message: string; retries: number }>>(new Map());
@@ -153,11 +153,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
 
     if (error) {
       console.error('Error fetching messages:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load messages',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load messages');
       return;
     }
 
@@ -228,11 +224,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
 
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Maximum file size is 10MB',
-        variant: 'destructive',
-      });
+      toast.error('File too large', { description: 'Maximum file size is 10MB' });
       return;
     }
 
@@ -274,17 +266,10 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
 
       if (insertError) throw insertError;
 
-      toast({
-        title: 'File shared',
-        description: 'File uploaded successfully',
-      });
+      toast.success('File shared');
     } catch (error) {
       console.error('Error uploading file:', error);
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to upload file',
-        variant: 'destructive',
-      });
+      toast.error('Failed to upload file');
     } finally {
       setUploadingFile(false);
       if (fileInputRef.current) {
@@ -323,10 +308,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
           const delay = Math.min(1000 * Math.pow(2, retryAttempt), 10000);
           console.log(`Retrying message send in ${delay}ms (attempt ${retryAttempt + 1})`);
           
-          toast({
-            title: 'Retrying...',
-            description: `Attempting to send message (${retryAttempt + 1}/3)`,
-          });
+          toast(`Retrying... (${retryAttempt + 1}/3)`);
 
           await new Promise(resolve => setTimeout(resolve, delay));
           setInputMessage(messageText);
@@ -345,13 +327,14 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
         setInputMessage(messageText);
       }
       
-      toast({
-        title: retryAttempt >= 3 ? 'Message Failed' : 'Error',
-        description: retryAttempt >= 3 
-          ? 'Failed to send after 3 attempts. Message restored for manual retry.' 
-          : 'Failed to send message',
-        variant: 'destructive',
-      });
+      toast.error(
+        retryAttempt >= 3 ? 'Message Failed' : 'Failed to send message',
+        { 
+          description: retryAttempt >= 3 
+            ? 'Failed to send after 3 attempts. Message restored for manual retry.' 
+            : undefined 
+        }
+      );
     } finally {
       setIsLoading(false);
     }

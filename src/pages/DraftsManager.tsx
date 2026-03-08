@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getAllDrafts, deleteDraft, deleteAllDrafts } from "@/hooks/useDraftCleanup";
 import { useState } from "react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Trash2, RefreshCw, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,20 +24,14 @@ export default function DraftsManager() {
 
   const refreshDrafts = () => {
     setDrafts(getAllDrafts());
-    toast({
-      title: "Refreshed",
-      description: "Draft list has been updated.",
-    });
+    toast.success("Draft list has been updated");
   };
 
   const handleDeleteDraft = (key: string) => {
     const success = deleteDraft(key);
     if (success) {
       setDrafts(getAllDrafts());
-      toast({
-        title: "Draft Deleted",
-        description: "The draft has been removed.",
-      });
+      toast.success("Draft Deleted");
     }
   };
 
@@ -47,10 +41,7 @@ export default function DraftsManager() {
     setDrafts([]);
     setIsDeleting(false);
     
-    toast({
-      title: "All Drafts Deleted",
-      description: `Removed ${count} draft(s) from storage.`,
-    });
+    toast.success(`All Drafts Deleted - Removed ${count} draft(s)`);
   };
 
   const getDraftType = (key: string): string => {
