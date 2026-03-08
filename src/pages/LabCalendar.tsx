@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CalendarGrid } from "@/components/lab/CalendarGrid";
 import { AvailabilityManager } from "@/components/lab/AvailabilityManager";
+import { useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
@@ -35,6 +37,7 @@ import {
 type ViewMode = "week" | "month";
 
 const LabCalendar = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { labId, isLabStaff, isAdmin, isLoading: roleLoading } = useUserRole();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -80,7 +83,7 @@ const LabCalendar = () => {
     staleTime: 30_000,
   });
 
-  const navigate = (dir: "prev" | "next") => {
+  const navigateDate = (dir: "prev" | "next") => {
     if (viewMode === "week") {
       setCurrentDate((d) => (dir === "prev" ? subWeeks(d, 1) : addWeeks(d, 1)));
     } else {
@@ -124,6 +127,9 @@ const LabCalendar = () => {
         <LandingNav />
         <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
           <div className="container px-3 sm:px-4 lg:px-6 max-w-6xl mx-auto">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="mb-2">
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back to Dashboard
+            </Button>
             <LabToolsBreadcrumb currentPage="Calendar" />
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
@@ -162,7 +168,7 @@ const LabCalendar = () => {
             {/* Date Navigation */}
             <Card className="mb-6">
               <CardContent className="py-3 flex items-center justify-between">
-                <Button variant="ghost" size="icon" onClick={() => navigate("prev")}>
+                <Button variant="ghost" size="icon" onClick={() => navigateDate("prev")}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <div className="text-center">
@@ -180,7 +186,7 @@ const LabCalendar = () => {
                     Today
                   </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => navigate("next")}>
+                <Button variant="ghost" size="icon" onClick={() => navigateDate("next")}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </CardContent>
