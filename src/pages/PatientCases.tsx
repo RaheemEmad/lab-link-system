@@ -11,6 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -26,7 +32,9 @@ import {
   Trash2,
   Users,
   FolderOpen,
+  Camera,
 } from "lucide-react";
+import { CasePhotoUploader } from "@/components/patient-cases/CasePhotoUploader";
 
 const PatientCases = () => {
   const navigate = useNavigate();
@@ -34,6 +42,8 @@ const PatientCases = () => {
   const { cases, isLoading, deleteCase } = usePatientCases();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [photoCase, setPhotoCase] = useState<PatientCase | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const filteredCases = useMemo(() => {
     if (!searchQuery.trim()) return cases;
@@ -131,7 +141,7 @@ const PatientCases = () => {
                   <p className="text-muted-foreground text-sm max-w-md mx-auto">
                     {searchQuery
                       ? "Try a different search term."
-                      : "Cases are automatically saved when you confirm delivery of an order. You can also save a case from your completed orders."}
+                      : "Cases are automatically saved when you confirm delivery of an order."}
                   </p>
                 </CardContent>
               </Card>
@@ -153,6 +163,26 @@ const PatientCases = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0 space-y-3">
+                      {/* Photo thumbnails */}
+                      {c.photos.length > 0 && (
+                        <div className="flex gap-1.5 overflow-hidden">
+                          {c.photos.slice(0, 3).map((url) => (
+                            <button
+                              key={url}
+                              onClick={() => setLightboxUrl(url)}
+                              className="h-12 w-12 rounded-md overflow-hidden border bg-muted shrink-0 hover:ring-2 ring-primary transition-all"
+                            >
+                              <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                            </button>
+                          ))}
+                          {c.photos.length > 3 && (
+                            <span className="text-xs text-muted-foreground self-center ml-1">
+                              +{c.photos.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
                           <span className="text-muted-foreground">Teeth:</span>{" "}
@@ -182,6 +212,13 @@ const PatientCases = () => {
                         >
                           <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                           Reorder
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setPhotoCase(c)}
+                        >
+                          <Camera className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           size="sm"
@@ -225,6 +262,36 @@ const PatientCases = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Photo Manager Dialog */}
+        <Dialog open={!!photoCase} onOpenChange={() => setPhotoCase(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {photoCase?.patient_name} — Photos
+              </DialogTitle>
+            </DialogHeader>
+            {photoCase && (
+              <CasePhotoUploader
+                caseId={photoCase.id}
+                photos={photoCase.photos}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Lightbox */}
+        <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
+          <DialogContent className="sm:max-w-2xl p-2">
+            {lightboxUrl && (
+              <img
+                src={lightboxUrl}
+                alt="Case photo"
+                className="w-full h-auto rounded-md"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRoute>
   );
