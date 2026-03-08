@@ -36,7 +36,7 @@ export const WelcomeModal = ({ isOpen, userName, onClose }: WelcomeModalProps) =
 
         const particleCount = 50 * (timeLeft / duration);
 
-        confetti({
+        fireConfetti({
           particleCount,
           startVelocity: 30,
           spread: 360,

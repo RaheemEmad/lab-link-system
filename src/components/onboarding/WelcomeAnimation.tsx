@@ -28,7 +28,7 @@ const WelcomeAnimation = ({ role, userName }: WelcomeAnimationProps) => {
         origin: { x: 0, y: 0.6 },
         colors: ['#2D6CDF', '#0FB8B1', '#3CCB7F'],
       });
-      confetti({
+      fireConfetti({
         particleCount: 2,
         angle: 120,
         spread: 55,
