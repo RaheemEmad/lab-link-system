@@ -106,15 +106,10 @@ const OrderDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  // Consolidated dialog state - replaces 12 individual useState pairs
+  const dialog = useDialogState<Order>();
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
-  const [historyOrder, setHistoryOrder] = useState<Order | null>(null);
-  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
-  const [notesOrder, setNotesOrder] = useState<Order | null>(null);
-  const [chatDialogOpen, setChatDialogOpen] = useState(false);
-  const [chatOrder, setChatOrder] = useState<Order | null>(null);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
