@@ -632,7 +632,7 @@ const LandingNav = () => {
                         size="sm"
                         onClick={() => navigate("/auth")}
                       >
-                        Sign Up
+                        {t.nav.signUp}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
