@@ -232,8 +232,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
     setUploadingFile(true);
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('Not authenticated');
+      if (!currentUserId) throw new Error('Not authenticated');
 
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
