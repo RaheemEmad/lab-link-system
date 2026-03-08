@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { formatEGP } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 interface Invoice {
   id: string;
