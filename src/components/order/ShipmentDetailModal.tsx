@@ -98,6 +98,7 @@ export function ShipmentDetailModal({
 }: ShipmentDetailModalProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const isLabStaff = userRole === "lab_staff";
   const canEditShipment = isLabStaff;
 
@@ -116,6 +117,11 @@ export function ShipmentDetailModal({
       shipmentNotes: order.shipment_notes || "",
     },
   });
+
+  // Reset editing state when modal closes
+  useEffect(() => {
+    if (!open) setIsEditing(false);
+  }, [open]);
 
   const onSubmit = async (values: ShipmentFormValues) => {
     setLoading(true);
@@ -161,8 +167,8 @@ export function ShipmentDetailModal({
       }
 
       toast.success("Shipment details updated");
+      setIsEditing(false);
       onUpdate?.();
-      onOpenChange(false);
     } catch (error) {
       console.error("Error updating shipment:", error);
       toast.error("Failed to update shipment details");
@@ -171,7 +177,6 @@ export function ShipmentDetailModal({
     }
   };
 
-  // Detail row helper
   const DetailRow = ({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: React.ElementType }) => {
     if (!value) return null;
     return (
@@ -185,10 +190,229 @@ export function ShipmentDetailModal({
     );
   };
 
+  const hasShipmentData = !!(
+    order.proposed_delivery_date || order.carrier_name || order.carrier_phone ||
+    order.shipment_tracking || order.driver_name || order.driver_phone_whatsapp ||
+    order.pickup_time || order.tracking_location || order.shipment_notes || order.delivery_date_comment
+  );
+
+  const ShipmentDisplayView = () => {
+    if (!hasShipmentData) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+          <div className="rounded-full bg-muted p-4">
+            <Truck className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">No shipment details yet</p>
+            <p className="text-xs text-muted-foreground mt-1">Shipment information will appear here once added.</p>
+          </div>
+          {canEditShipment && (
+            <Button size="sm" onClick={() => setIsEditing(true)} className="mt-2">
+              <Package className="h-3.5 w-3.5 mr-1.5" /> Add Shipment Details
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {/* Delivery Schedule */}
+        {(order.desired_delivery_date || order.proposed_delivery_date || order.delivery_date_comment) && (
+          <div className="rounded-lg border bg-card p-4 space-y-1">
+            <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
+              <CalendarIcon className="h-4 w-4 text-primary" /> Delivery Schedule
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+              <DetailRow label="Desired Delivery" value={order.desired_delivery_date ? format(new Date(order.desired_delivery_date), "PPP") : null} icon={CalendarIcon} />
+              <DetailRow label="Proposed Delivery" value={order.proposed_delivery_date ? format(new Date(order.proposed_delivery_date), "PPP") : null} icon={CalendarIcon} />
+            </div>
+            {order.delivery_date_comment && (
+              <div className="mt-2 bg-secondary/50 rounded-md p-3">
+                <p className="text-xs text-muted-foreground mb-0.5">Date Comment</p>
+                <p className="text-sm">{order.delivery_date_comment}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Carrier & Driver */}
+        {(order.carrier_name || order.carrier_phone || order.driver_name || order.driver_phone_whatsapp) && (
+          <div className="rounded-lg border bg-card p-4 space-y-1">
+            <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
+              <Truck className="h-4 w-4 text-primary" /> Carrier & Driver
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+              <DetailRow label="Carrier" value={order.carrier_name} icon={Truck} />
+              <DetailRow label="Carrier Phone" value={order.carrier_phone} icon={Phone} />
+              <DetailRow label="Driver" value={order.driver_name} icon={User} />
+              {order.driver_phone_whatsapp ? (
+                <div className="flex items-start gap-3 py-2">
+                  <Phone className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">Driver WhatsApp</p>
+                    <a
+                      href={`https://wa.me/${order.driver_phone_whatsapp.replace(/[^0-9]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      {order.driver_phone_whatsapp}
+                    </a>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
+
+        {/* Tracking */}
+        {(order.shipment_tracking || order.pickup_time || order.tracking_location || order.shipment_notes) && (
+          <div className="rounded-lg border bg-card p-4 space-y-1">
+            <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
+              <MapPin className="h-4 w-4 text-primary" /> Tracking
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+              {order.shipment_tracking && (
+                <div className="flex items-start gap-3 py-2">
+                  <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">Tracking Number</p>
+                    <p className="text-sm font-medium font-mono break-all">{order.shipment_tracking}</p>
+                  </div>
+                </div>
+              )}
+              <DetailRow label="Pickup Time" value={order.pickup_time ? new Date(order.pickup_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : null} icon={CalendarIcon} />
+              <DetailRow label="Current Location" value={order.tracking_location} icon={MapPin} />
+            </div>
+            {order.shipment_notes && (
+              <div className="mt-2 bg-secondary/50 rounded-md p-3">
+                <p className="text-xs text-muted-foreground mb-0.5">Shipment Notes</p>
+                <p className="text-sm">{order.shipment_notes}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const ShipmentEditForm = () => (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <div className="rounded-lg border bg-card p-4 space-y-4">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4 text-primary" /> Delivery Schedule
+          </h4>
+          {order.desired_delivery_date && (
+            <div className="bg-secondary/50 p-3 rounded-md">
+              <p className="text-xs text-muted-foreground">Doctor's Desired Date</p>
+              <p className="text-sm font-medium">{format(new Date(order.desired_delivery_date), "PPP")}</p>
+            </div>
+          )}
+          <FormField control={form.control} name="proposedDeliveryDate" render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel className="text-xs">Proposed Delivery Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button variant="outline" className={cn("w-full pl-3 text-left font-normal h-9 text-sm", !field.value && "text-muted-foreground")}>
+                      {field.value ? format(field.value, "PPP") : "Pick a date"}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date()} initialFocus />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField control={form.control} name="deliveryDateComment" render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs">Date Comment</FormLabel>
+              <FormControl><Textarea placeholder="Reason for different date..." className="resize-none h-16 text-sm" {...field} /></FormControl>
+            </FormItem>
+          )} />
+        </div>
+
+        <div className="rounded-lg border bg-card p-4 space-y-4">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <Truck className="h-4 w-4 text-primary" /> Carrier & Driver
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField control={form.control} name="carrierName" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs flex items-center gap-1.5"><Truck className="h-3.5 w-3.5" /> Carrier</FormLabel>
+                <FormControl><Input placeholder="FedEx, UPS..." className="h-9 text-sm" {...field} /></FormControl>
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="carrierPhone" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> Carrier Phone</FormLabel>
+                <FormControl><Input placeholder="Contact number" className="h-9 text-sm" {...field} /></FormControl>
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="driverName" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Driver</FormLabel>
+                <FormControl><Input placeholder="Driver name" className="h-9 text-sm" {...field} /></FormControl>
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="driverPhoneWhatsapp" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> Driver WhatsApp</FormLabel>
+                <FormControl><Input placeholder="WhatsApp number" className="h-9 text-sm" {...field} /></FormControl>
+              </FormItem>
+            )} />
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-card p-4 space-y-4">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-primary" /> Tracking
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField control={form.control} name="shipmentTracking" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Tracking Number</FormLabel>
+                <FormControl><Input placeholder="Tracking #" className="h-9 text-sm font-mono" {...field} /></FormControl>
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="pickupTime" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Pickup Time</FormLabel>
+                <FormControl><Input type="time" className="h-9 text-sm" {...field} /></FormControl>
+              </FormItem>
+            )} />
+          </div>
+          <FormField control={form.control} name="trackingLocation" render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs">Current Location</FormLabel>
+              <FormControl><Input placeholder="Last known location" className="h-9 text-sm" {...field} /></FormControl>
+            </FormItem>
+          )} />
+          <FormField control={form.control} name="shipmentNotes" render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs">Shipment Notes</FormLabel>
+              <FormControl><Textarea placeholder="Special handling instructions..." className="resize-none h-16 text-sm" {...field} /></FormControl>
+            </FormItem>
+          )} />
+        </div>
+
+        <div className="flex gap-3 justify-end pt-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => setIsEditing(false)} disabled={loading}>Cancel</Button>
+          <Button type="submit" size="sm" disabled={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
+        </div>
+      </form>
+    </Form>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto p-0">
-        {/* Header */}
         <div className="sticky top-0 z-10 bg-background border-b px-4 sm:px-6 pt-5 pb-4">
           <DialogHeader>
             <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -197,12 +421,8 @@ export function ShipmentDetailModal({
                 <DialogTitle className="text-base sm:text-lg truncate">{order.order_number}</DialogTitle>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                {order.status && (
-                  <Badge variant="outline" className="text-xs">{order.status}</Badge>
-                )}
-                {order.urgency === "Urgent" && (
-                  <Badge variant="destructive" className="text-xs">Urgent</Badge>
-                )}
+                {order.status && <Badge variant="outline" className="text-xs">{order.status}</Badge>}
+                {order.urgency === "Urgent" && <Badge variant="destructive" className="text-xs">Urgent</Badge>}
               </div>
             </div>
             <DialogDescription className="text-sm mt-1">
@@ -211,7 +431,6 @@ export function ShipmentDetailModal({
           </DialogHeader>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue={defaultTab} className="w-full">
           <div className="px-4 sm:px-6 pt-3">
             <TabsList className="grid w-full grid-cols-3 h-10">
@@ -220,19 +439,16 @@ export function ShipmentDetailModal({
                 <span className="hidden sm:inline">Order</span> Details
               </TabsTrigger>
               <TabsTrigger value="shipment" className="gap-1.5 text-xs sm:text-sm">
-                <Truck className="h-3.5 w-3.5" />
-                Shipment
+                <Truck className="h-3.5 w-3.5" /> Shipment
               </TabsTrigger>
               <TabsTrigger value="notes" className="gap-1.5 text-xs sm:text-sm">
-                <MessageSquare className="h-3.5 w-3.5" />
-                Notes
+                <MessageSquare className="h-3.5 w-3.5" /> Notes
               </TabsTrigger>
             </TabsList>
           </div>
 
           {/* TAB 1: Order Details */}
           <TabsContent value="order" className="px-4 sm:px-6 pb-6 mt-4 space-y-4">
-            {/* Treatment Info */}
             <div className="rounded-lg border bg-card p-4 space-y-1">
               <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
                 <Stethoscope className="h-4 w-4 text-primary" /> Treatment Details
@@ -244,8 +460,6 @@ export function ShipmentDetailModal({
                 <DetailRow label="Assigned Lab" value={order.assigned_lab?.name} icon={Package} />
               </div>
             </div>
-
-            {/* Dates */}
             <div className="rounded-lg border bg-card p-4">
               <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
                 <CalendarIcon className="h-4 w-4 text-primary" /> Dates
@@ -256,8 +470,6 @@ export function ShipmentDetailModal({
                 <DetailRow label="Proposed Delivery" value={order.proposed_delivery_date ? format(new Date(order.proposed_delivery_date), "PPP") : null} icon={CalendarIcon} />
               </div>
             </div>
-
-            {/* Clinical Notes */}
             {(order.biological_notes || order.handling_instructions || order.approval_notes) && (
               <div className="space-y-3">
                 {order.biological_notes && (
@@ -285,136 +497,16 @@ export function ShipmentDetailModal({
             )}
           </TabsContent>
 
-          {/* TAB 2: Shipment */}
+          {/* TAB 2: Shipment — display-first with edit toggle */}
           <TabsContent value="shipment" className="px-4 sm:px-6 pb-6 mt-4">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                {/* Delivery Dates Section */}
-                <div className="rounded-lg border bg-card p-4 space-y-4">
-                  <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-primary" /> Delivery Schedule
-                  </h4>
-                  {order.desired_delivery_date && (
-                    <div className="bg-secondary/50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground">Doctor's Desired Date</p>
-                      <p className="text-sm font-medium">{format(new Date(order.desired_delivery_date), "PPP")}</p>
-                    </div>
-                  )}
-                  <FormField
-                    control={form.control}
-                    name="proposedDeliveryDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-xs">Proposed Delivery Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button variant="outline" disabled={!canEditShipment} className={cn("w-full pl-3 text-left font-normal h-9 text-sm", !field.value && "text-muted-foreground")}>
-                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date()} initialFocus />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="deliveryDateComment"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Date Comment</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Reason for different date..." className="resize-none h-16 text-sm" disabled={!canEditShipment} {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Carrier & Driver */}
-                <div className="rounded-lg border bg-card p-4 space-y-4">
-                  <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-primary" /> Carrier & Driver
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="carrierName" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs flex items-center gap-1.5"><Truck className="h-3.5 w-3.5" /> Carrier</FormLabel>
-                        <FormControl><Input placeholder="FedEx, UPS..." className="h-9 text-sm" disabled={!canEditShipment} {...field} /></FormControl>
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="carrierPhone" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> Carrier Phone</FormLabel>
-                        <FormControl><Input placeholder="Contact number" className="h-9 text-sm" disabled={!canEditShipment} {...field} /></FormControl>
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="driverName" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Driver</FormLabel>
-                        <FormControl><Input placeholder="Driver name" className="h-9 text-sm" disabled={!canEditShipment} {...field} /></FormControl>
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="driverPhoneWhatsapp" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> Driver WhatsApp</FormLabel>
-                        <FormControl><Input placeholder="WhatsApp number" className="h-9 text-sm" disabled={!canEditShipment} {...field} /></FormControl>
-                      </FormItem>
-                    )} />
-                  </div>
-                </div>
-
-                {/* Tracking */}
-                <div className="rounded-lg border bg-card p-4 space-y-4">
-                  <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary" /> Tracking
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="shipmentTracking" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Tracking Number</FormLabel>
-                        <FormControl><Input placeholder="Tracking #" className="h-9 text-sm font-mono" disabled={!canEditShipment} {...field} /></FormControl>
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="pickupTime" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Pickup Time</FormLabel>
-                        <FormControl><Input type="time" className="h-9 text-sm" disabled={!canEditShipment} {...field} /></FormControl>
-                      </FormItem>
-                    )} />
-                  </div>
-                  <FormField control={form.control} name="trackingLocation" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">Current Location</FormLabel>
-                      <FormControl><Input placeholder="Last known location" className="h-9 text-sm" disabled={!canEditShipment} {...field} /></FormControl>
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="shipmentNotes" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">Shipment Notes</FormLabel>
-                      <FormControl><Textarea placeholder="Special handling instructions..." className="resize-none h-16 text-sm" disabled={!canEditShipment} {...field} /></FormControl>
-                    </FormItem>
-                  )} />
-                </div>
-
-                {canEditShipment ? (
-                  <div className="flex gap-3 justify-end pt-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-                    <Button type="submit" size="sm" disabled={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
-                  </div>
-                ) : (
-                  <div className="bg-secondary/50 p-3 rounded-lg text-sm text-muted-foreground">
-                    ℹ️ Shipment details are managed by the lab. Use the Notes tab to communicate.
-                  </div>
-                )}
-              </form>
-            </Form>
+            {canEditShipment && hasShipmentData && !isEditing && (
+              <div className="flex justify-end mb-3">
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                  <FileText className="h-3.5 w-3.5 mr-1.5" /> Edit
+                </Button>
+              </div>
+            )}
+            {isEditing ? <ShipmentEditForm /> : <ShipmentDisplayView />}
           </TabsContent>
 
           {/* TAB 3: Notes */}
