@@ -1149,12 +1149,79 @@ const OrderDashboard = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Deleted Orders Section (Doctor only) */}
+      {isDoctor && (
+        <Card className="mt-4">
+          <CardHeader className="cursor-pointer" onClick={() => setShowDeletedOrders(!showDeletedOrders)}>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Archive className="h-4 w-4 text-muted-foreground" />
+              Deleted Orders
+              {showDeletedOrders && deletedOrders.length > 0 && (
+                <Badge variant="secondary">{deletedOrders.length}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          {showDeletedOrders && (
+            <CardContent>
+              {deletedLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : deletedOrders.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No deleted orders.</p>
+              ) : (
+                <div className="space-y-2">
+                  {deletedOrders.map((order) => (
+                    <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-mono text-sm font-medium">{order.order_number}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {order.patient_name} • {order.restoration_type}
+                          {order.pre_delete_status && ` • Was: ${order.pre_delete_status}`}
+                        </div>
+                        {order.deleted_at && (
+                          <div className="text-xs text-muted-foreground">
+                            Deleted {format(new Date(order.deleted_at as string), "MMM d, yyyy")}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRestoreOrder({
+                          id: order.id,
+                          order_number: order.order_number,
+                          pre_delete_status: (order as any).pre_delete_status || null,
+                        })}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Restore
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      {/* Restore Order Dialog */}
+      {restoreOrder && (
+        <RestoreOrderDialog
+          orderId={restoreOrder.id}
+          orderNumber={restoreOrder.order_number}
+          preDeleteStatus={restoreOrder.pre_delete_status}
+          open={!!restoreOrder}
+          onOpenChange={(open) => { if (!open) setRestoreOrder(null); }}
+          onSuccess={() => { fetchDeletedOrders(); fetchOrders(); }}
+        />
+      )}
+
       <AlertDialog open={!!deleteOrderId} onOpenChange={() => setDeleteOrderId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Order</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this order? This action cannot be undone.
+              Are you sure you want to delete this order? You can restore it later from the Deleted Orders section.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
