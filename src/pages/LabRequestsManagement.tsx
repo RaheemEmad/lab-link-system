@@ -20,6 +20,7 @@ import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
 import { LabProfilePreview } from "@/components/labs/LabProfilePreview";
 
 import { formatEGP } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 export default function LabRequestsManagement() {
   const { user } = useAuth();
