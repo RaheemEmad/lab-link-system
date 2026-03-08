@@ -18,7 +18,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { QueuedUpload, UploadQueue, NetworkStats } from '@/lib/uploadQueue';
-import { formatFileSize } from '@/lib/imageCompression';
+import { formatFileSize } from '@/lib/formatters';
 import {
   Sheet,
   SheetContent,

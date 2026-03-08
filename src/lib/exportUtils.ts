@@ -1,92 +1,76 @@
-// Utility functions for exporting data to CSV and PDF
+/**
+ * CSV export utilities for admin data.
+ * Dynamically imported by admin tabs to keep out of main bundle.
+ */
 
-export const exportToCSV = (data: any[], filename: string) => {
-  if (!data || data.length === 0) {
-    return;
-  }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function exportToCSV(data: Record<string, unknown>[], filename: string) {
+  if (!data.length) return;
 
-  // Get headers from first object
   const headers = Object.keys(data[0]);
-  
-  // Create CSV content
-  const csvContent = [
+  const csvRows = [
     headers.join(','),
-    ...data.map(row => 
-      headers.map(header => {
-        const value = row[header];
-        // Handle values with commas, quotes, or newlines
-        if (value === null || value === undefined) return '';
-        const stringValue = String(value);
-        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-          return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        return stringValue;
-      }).join(',')
-    )
-  ].join('\n');
+    ...data.map(row =>
+      headers
+        .map(h => {
+          const val = row[h] ?? '';
+          const escaped = String(val).replace(/"/g, '""');
+          return `"${escaped}"`;
+        })
+        .join(','),
+    ),
+  ];
 
-  // Create blob and download
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
-  
-  link.setAttribute('href', url);
-  link.setAttribute('download', `${filename}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-export const formatDateForExport = (date: string | null) => {
-  if (!date) return '';
-  return new Date(date).toLocaleString();
-};
-
-export const prepareUsersForExport = (users: any[]) => {
-  return users.map(user => ({
-    'Name': user.full_name || '',
-    'Email': user.email,
-    'Role': user.role || 'none',
-    'Organization': user.clinic_name || user.lab_name || '',
-    'Phone': user.phone || '',
-    'Status': user.onboarding_completed ? 'Active' : 'Pending',
-    'Joined Date': formatDateForExport(user.created_at),
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function prepareActivityLogsForExport(logs: any[]) {
+  return logs.map(l => ({
+    Date: l.created_at,
+    User: l.user_id,
+    Action: l.action_type,
+    Table: l.table_name,
+    Record: l.record_id ?? '',
+    IP: l.ip_address ?? '',
   }));
-};
+}
 
-export const prepareOrdersForExport = (orders: any[]) => {
-  return orders.map(order => ({
-    'Order Number': order.order_number,
-    'Doctor': order.doctor_name,
-    'Patient': order.patient_name,
-    'Type': order.restoration_type,
-    'Status': order.status,
-    'Urgency': order.urgency,
-    'Lab Assigned': order.assigned_lab_id ? 'Yes' : 'No',
-    'Expected Delivery': formatDateForExport(order.expected_delivery_date),
-    'Created Date': formatDateForExport(order.created_at),
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function prepareNotesForExport(notes: any[]) {
+  return notes.map(n => ({
+    Date: n.created_at,
+    Order: n.order_number,
+    Author: n.author_name,
+    Note: n.note_text,
   }));
-};
+}
 
-export const prepareActivityLogsForExport = (logs: any[]) => {
-  return logs.map(log => ({
-    'Timestamp': formatDateForExport(log.created_at),
-    'Action': log.action_type,
-    'Table': log.table_name,
-    'User ID': log.user_id?.substring(0, 8) || 'system',
-    'IP Address': log.ip_address || '',
-    'Details': JSON.stringify(log.metadata || {}),
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function prepareOrdersForExport(orders: any[]) {
+  return orders.map(o => ({
+    OrderNumber: o.order_number,
+    Status: o.status,
+    Type: o.restoration_type,
+    Patient: o.patient_name ?? '',
+    Created: o.created_at,
+    Doctor: o.doctor_id,
   }));
-};
+}
 
-export const prepareNotesForExport = (notes: any[]) => {
-  return notes.map(note => ({
-    'Timestamp': formatDateForExport(note.created_at),
-    'Order': note.order_number,
-    'Author': note.author_name,
-    'Note': note.note_text,
-    'Likes': note.likes_count || 0,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function prepareUsersForExport(users: any[]) {
+  return users.map(u => ({
+    Name: u.full_name ?? '',
+    Email: u.email ?? '',
+    Role: u.role ?? '',
+    Created: u.created_at,
+    Onboarded: u.onboarding_completed ? 'Yes' : 'No',
   }));
-};
+}

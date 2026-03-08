@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatFileSize } from "@/lib/formatters";
 import { formatDistanceToNow } from "date-fns";
 import { FileIcon, Download, MessageSquare, Eye, Send, Loader2, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -152,12 +153,6 @@ const AttachmentCard = ({ attachment }: AttachmentCardProps) => {
     addComment.mutate(newComment.trim());
   };
 
-  const formatFileSize = (bytes: number | null) => {
-    if (!bytes) return "Unknown size";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {

@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Download, Image, Box, Boxes, FileIcon, ExternalLink, Eye } from "lucide-react";
-import { formatFileSize } from "@/lib/imageCompression";
+import { formatFileSize } from "@/lib/formatters";
 
 interface OrderAttachment {
   id: string;
