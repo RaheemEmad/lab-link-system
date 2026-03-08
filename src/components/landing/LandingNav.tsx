@@ -214,8 +214,8 @@ const LandingNav = () => {
   ] : [];
 
   const labStaffMenuItems = (userRole === 'lab_staff' || userRole === 'admin') ? [
-    { label: "Lab Workflow", href: "/lab-workflow" },
-    { label: "Lab Admin", href: "/lab-admin" },
+    { label: t.nav.labWorkflow, href: "/lab-workflow" },
+    { label: t.nav.labAdmin, href: "/lab-admin" },
   ] : [];
 
   const handleNavClick = (link: { href: string; type?: string }) => {
