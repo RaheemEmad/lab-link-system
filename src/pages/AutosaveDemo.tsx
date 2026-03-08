@@ -156,10 +156,7 @@ export default function AutosaveDemo() {
                     onClick={() => {
                       clearSavedData();
                       form.reset();
-                      toast({
-                        title: "🗑️ Draft Cleared",
-                        description: "Form has been reset and autosaved data cleared.",
-                      });
+                      toast.success("🗑️ Draft Cleared");
                     }}
                   >
                     Clear Draft
