@@ -20,6 +20,7 @@ export interface PatientCase {
   created_at: string;
   updated_at: string;
   preferred_lab?: { id: string; name: string } | null;
+  last_order?: { id: string; order_number: string; status: string; created_at: string } | null;
 }
 
 export function usePatientCases() {

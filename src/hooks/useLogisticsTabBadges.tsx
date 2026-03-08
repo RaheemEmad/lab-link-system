@@ -40,34 +40,34 @@ export function useLogisticsTabBadges(
 ): TabBadges {
   const [badges, setBadges] = useState<TabBadges>(EMPTY_BADGES);
 
+  // Shipment-derived counts — recompute whenever shipments change
+  const shipmentBadgeCount = useMemo(() => {
+    const now = new Date();
+    const overdueCount = shipments.filter((s) => {
+      if (s.status === "Delivered" || s.actual_delivery_date) return false;
+      if (!s.expected_delivery_date) return false;
+      return new Date(s.expected_delivery_date) < now;
+    }).length;
+    const urgentUndelivered = shipments.filter(
+      (s) => s.urgency === "Urgent" && s.status !== "Delivered" && !s.actual_delivery_date
+    ).length;
+    return overdueCount + urgentUndelivered;
+  }, [shipments]);
+
   const computeBadges = useCallback(
     (notificationTypes: string[]) => {
       const counts = { ...EMPTY_BADGES };
 
-      // Count from notification types
       for (const type of notificationTypes) {
         const tab = NOTIFICATION_TYPE_TO_TAB[type];
         if (tab) counts[tab]++;
       }
 
-      // Data-derived: overdue deliveries for shipments tab
-      const now = new Date();
-      const overdueCount = shipments.filter((s) => {
-        if (s.status === "Delivered" || s.actual_delivery_date) return false;
-        if (!s.expected_delivery_date) return false;
-        return new Date(s.expected_delivery_date) < now;
-      }).length;
-      counts.shipments += overdueCount;
-
-      // Data-derived: urgent undelivered for shipments
-      const urgentUndelivered = shipments.filter(
-        (s) => s.urgency === "Urgent" && s.status !== "Delivered" && !s.actual_delivery_date
-      ).length;
-      counts.shipments += urgentUndelivered;
+      counts.shipments += shipmentBadgeCount;
 
       setBadges(counts);
     },
-    [shipments]
+    [shipmentBadgeCount]
   );
 
   useEffect(() => {
