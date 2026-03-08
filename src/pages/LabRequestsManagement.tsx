@@ -151,6 +151,17 @@ export default function LabRequestsManagement() {
         console.error('[LabRequests] Error updating request status:', requestError);
         throw requestError;
       }
+
+      // If declining, notify the lab user who submitted the bid
+      if (status === 'refused' && requestData.requested_by_user_id && orderId) {
+        await createNotification({
+          user_id: requestData.requested_by_user_id,
+          order_id: orderId,
+          type: "bid_declined",
+          title: "Bid Declined",
+          message: `Your bid for order ${orderNumber || ''} has been declined by the doctor.`,
+        });
+      }
       
       // If accepting, do the full assignment flow
       if (status === 'accepted' && orderId) {
