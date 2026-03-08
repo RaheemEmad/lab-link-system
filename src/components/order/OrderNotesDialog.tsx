@@ -204,8 +204,6 @@ export default function OrderNotesDialog({
     console.log('Fetching notes for order:', orderId);
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       const { data, error } = await supabase
         .from("order_notes")
         .select(`
