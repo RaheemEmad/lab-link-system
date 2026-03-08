@@ -42,7 +42,7 @@ export default function LabRequestsManagement() {
     queryKey: ["lab-requests-doctor", user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('[LabRequests] No user ID, returning empty array');
+        
         return [];
       }
       
