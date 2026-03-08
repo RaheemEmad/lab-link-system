@@ -761,6 +761,35 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         </CardContent>
       </Card>
 
+      {/* Credit Notes */}
+      {creditNotes && creditNotes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MinusCircle className="h-5 w-5" />
+              Credit Notes
+              <Badge variant="secondary">{formatEGP(totalCredits)} total</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {creditNotes.map((cn) => (
+                <div key={cn.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div>
+                    <Badge variant="outline" className="mb-1">{cn.status}</Badge>
+                    <p className="text-sm">{cn.reason}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(cn.created_at), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-destructive">-{formatEGP(cn.amount)}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Line Items */}
       <InvoiceLineItems invoiceId={invoice.id} />
 
