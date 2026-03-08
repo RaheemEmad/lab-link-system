@@ -312,8 +312,8 @@ const Auth = () => {
         <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 sm:p-6">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center px-4 sm:px-6">
-          <CardTitle className="text-xl sm:text-2xl md:text-3xl">Welcome to LabLink</CardTitle>
-          <CardDescription className="text-sm">Sign in to track orders or create your account</CardDescription>
+          <CardTitle className="text-xl sm:text-2xl md:text-3xl">{t.auth.welcomeTo}</CardTitle>
+          <CardDescription className="text-sm">{t.auth.signInDesc}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 sm:px-6">
           <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")} className="w-full">
