@@ -21,6 +21,7 @@ import { TrackingTabContent } from "@/components/logistics/TrackingTabContent";
 import { CalendarTabContent } from "@/components/logistics/CalendarTabContent";
 import { AnalyticsTabContent } from "@/components/logistics/AnalyticsTabContent";
 import { SchedulingTabContent } from "@/components/logistics/SchedulingTabContent";
+import { useLogisticsTabBadges } from "@/hooks/useLogisticsTabBadges";
 import { toast } from "sonner";
 
 interface OrderShipment {
@@ -65,6 +66,7 @@ const LogisticsDashboard = () => {
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
   const [defaultTab, setDefaultTab] = useState<"details" | "notes">("details");
+  const tabBadges = useLogisticsTabBadges(user?.id, shipments);
 
   // Determine active tab from URL or default
   const tabParam = searchParams.get("tab") as TabValue | null;
@@ -179,14 +181,14 @@ const LogisticsDashboard = () => {
             {/* Main Tabs */}
             <Tabs value={activeMainTab} onValueChange={handleTabChange} className="mb-6">
               <TabsList className="w-full flex overflow-x-auto">
-                <TabsTrigger value="shipments" className="gap-1.5 flex-shrink-0"><Truck className="h-4 w-4" /><span className="hidden sm:inline">Shipments</span></TabsTrigger>
-                <TabsTrigger value="tracking" className="gap-1.5 flex-shrink-0"><Package className="h-4 w-4" /><span className="hidden sm:inline">Tracking</span></TabsTrigger>
+                <TabsTrigger value="shipments" className="gap-1.5 flex-shrink-0"><Truck className="h-4 w-4" /><span className="hidden sm:inline">Shipments</span>{tabBadges.shipments > 0 && <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">{tabBadges.shipments}</span>}</TabsTrigger>
+                <TabsTrigger value="tracking" className="gap-1.5 flex-shrink-0"><Package className="h-4 w-4" /><span className="hidden sm:inline">Tracking</span>{tabBadges.tracking > 0 && <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">{tabBadges.tracking}</span>}</TabsTrigger>
                 {showCalendarTab && (
                   <TabsTrigger value="calendar" className="gap-1.5 flex-shrink-0"><CalendarDays className="h-4 w-4" /><span className="hidden sm:inline">Calendar</span></TabsTrigger>
                 )}
                 <TabsTrigger value="analytics" className="gap-1.5 flex-shrink-0"><BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">Analytics</span></TabsTrigger>
-                <TabsTrigger value="scheduling" className="gap-1.5 flex-shrink-0"><Clock className="h-4 w-4" /><span className="hidden sm:inline">Scheduling</span></TabsTrigger>
-                <TabsTrigger value="billing" className="gap-1.5 flex-shrink-0"><Receipt className="h-4 w-4" /><span className="hidden sm:inline">Billing</span></TabsTrigger>
+                <TabsTrigger value="scheduling" className="gap-1.5 flex-shrink-0"><Clock className="h-4 w-4" /><span className="hidden sm:inline">Scheduling</span>{tabBadges.scheduling > 0 && <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">{tabBadges.scheduling}</span>}</TabsTrigger>
+                <TabsTrigger value="billing" className="gap-1.5 flex-shrink-0"><Receipt className="h-4 w-4" /><span className="hidden sm:inline">Billing</span>{tabBadges.billing > 0 && <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">{tabBadges.billing}</span>}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="shipments" className="mt-6">
