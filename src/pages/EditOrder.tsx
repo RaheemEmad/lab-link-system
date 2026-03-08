@@ -326,6 +326,62 @@ const EditOrder = () => {
         }
       }
 
+      // Sync new attachments to feedback room
+      try {
+        const { data: currentAttachments } = await supabase
+          .from("order_attachments")
+          .select("*")
+          .eq("order_id", orderId);
+
+        if (currentAttachments && currentAttachments.length > 0) {
+          const { data: existingFeedback } = await supabase
+            .from("feedback_room_attachments")
+            .select("file_name, file_url")
+            .eq("order_id", orderId);
+
+          const existingUrls = new Set(existingFeedback?.map((f) => f.file_url) || []);
+
+          const newFiles = currentAttachments.filter(
+            (att) => !existingUrls.has(att.file_path)
+          );
+
+          if (newFiles.length > 0 && user) {
+            const categoryMap: Record<string, string> = {
+              radiograph: "radiograph",
+              stl: "3d_model",
+              obj: "3d_model",
+              intraoral_photo: "photo",
+              archive: "archive",
+              other: "general",
+            };
+
+            await supabase.from("feedback_room_attachments").insert(
+              newFiles.map((file) => ({
+                order_id: orderId,
+                uploaded_by: user.id,
+                file_url: file.file_path,
+                file_name: file.file_name,
+                file_type: file.file_type,
+                file_size: file.file_size,
+                category: categoryMap[file.attachment_category] || "general",
+              }))
+            );
+
+            // Log activity
+            await supabase.from("feedback_room_activity").insert({
+              order_id: orderId,
+              user_id: user.id,
+              user_role: userRole,
+              action_type: "attachment_uploaded",
+              action_description: `Uploaded ${newFiles.length} file(s) via Edit Order`,
+            });
+          }
+        }
+      } catch (syncError) {
+        console.error("Feedback room sync error:", syncError);
+        // Non-blocking — order was already saved
+      }
+
       clearSavedData();
       toast.success("Order updated successfully!");
       navigate("/dashboard");
