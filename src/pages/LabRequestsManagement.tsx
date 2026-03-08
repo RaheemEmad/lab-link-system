@@ -205,7 +205,7 @@ export default function LabRequestsManagement() {
           throw orderError;
         }
         
-        console.log('[LabRequests] Order updated - lab assigned and removed from marketplace');
+        
         
         // 3. Create order assignment
         const { error: assignmentError } = await supabase
