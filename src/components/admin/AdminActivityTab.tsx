@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import ExportDropdown from "@/components/ui/export-dropdown";
 import { format } from "date-fns";
 
 interface AuditLog {
@@ -57,11 +57,17 @@ const AdminActivityTab = () => {
     return <Badge variant="secondary">{action}</Badge>;
   };
 
-  const exportLogs = async () => {
+  const exportLogsCSV = async () => {
     const { exportToCSV, prepareActivityLogsForExport } = await import("@/lib/exportUtils");
     const exportData = prepareActivityLogsForExport(logs);
     exportToCSV(exportData, `activity-logs-${new Date().toISOString().split("T")[0]}`);
-    toast.success("Activity logs exported successfully");
+    toast.success("Activity logs exported as CSV");
+  };
+
+  const exportLogsPDF = async () => {
+    const { exportToPDF, prepareActivityLogsForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareActivityLogsForExport(logs);
+    exportToPDF(exportData, "System Activity Log", `activity-logs-${new Date().toISOString().split("T")[0]}`);
   };
 
   if (loading) {
@@ -85,9 +91,7 @@ const AdminActivityTab = () => {
             Monitor all system actions and changes ({logs.length} recent entries)
           </CardDescription>
         </div>
-        <Button onClick={exportLogs} variant="outline">
-          Export CSV
-        </Button>
+        <ExportDropdown onExportCSV={exportLogsCSV} onExportPDF={exportLogsPDF} />
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">

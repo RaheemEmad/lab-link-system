@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import ExportDropdown from "@/components/ui/export-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, Search, Pencil, Trash2, ArrowRightLeft } from "lucide-react";
@@ -216,11 +217,17 @@ const AdminOrdersTab = () => {
     }
   };
 
-  const exportOrders = async () => {
+  const exportOrdersCSV = async () => {
     const { exportToCSV, prepareOrdersForExport } = await import("@/lib/exportUtils");
     const exportData = prepareOrdersForExport(filteredOrders);
     exportToCSV(exportData, `orders-export-${new Date().toISOString().split("T")[0]}`);
-    toast.success("Orders exported successfully");
+    toast.success("Orders exported as CSV");
+  };
+
+  const exportOrdersPDF = async () => {
+    const { exportToPDF, prepareOrdersForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareOrdersForExport(filteredOrders);
+    exportToPDF(exportData, "Orders Export", `orders-export-${new Date().toISOString().split("T")[0]}`);
   };
 
   if (loading) {
@@ -266,9 +273,7 @@ const AdminOrdersTab = () => {
             <option value="Ready for Delivery">Ready for Delivery</option>
             <option value="Delivered">Delivered</option>
           </select>
-          <Button onClick={exportOrders} variant="outline">
-            Export CSV
-          </Button>
+          <ExportDropdown onExportCSV={exportOrdersCSV} onExportPDF={exportOrdersPDF} />
         </div>
 
         {selectedOrders.size > 0 && (

@@ -10,6 +10,7 @@ import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import ExportDropdown from "@/components/ui/export-dropdown";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -274,27 +275,31 @@ interface DoctorStatsData {
 }
 
 const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => {
-  const handleExport = async () => {
+  const buildDoctorExportRows = () => [
+    { Metric: "Total Orders", Value: String(stats.totalOrders) },
+    { Metric: "Delivered", Value: String(stats.completedCount) },
+    { Metric: "Cancelled", Value: String(stats.cancelledCount) },
+    { Metric: "Total Spent (EGP)", Value: String(stats.totalSpent) },
+    { Metric: "Total Paid (EGP)", Value: String(stats.totalPaid) },
+    { Metric: "Avg Turnaround (days)", Value: String(stats.avgTurnaround) },
+    ...stats.favoriteLabs.map((l) => ({ Metric: `Lab: ${l.name}`, Value: `${l.count} orders` })),
+    ...stats.typeBreakdown.map(([t, c]) => ({ Metric: `Type: ${t}`, Value: String(c) })),
+  ];
+
+  const handleExportCSV = async () => {
     const { exportToCSV } = await import("@/lib/exportUtils");
-    const rows = [
-      { Metric: "Total Orders", Value: String(stats.totalOrders) },
-      { Metric: "Delivered", Value: String(stats.completedCount) },
-      { Metric: "Cancelled", Value: String(stats.cancelledCount) },
-      { Metric: "Total Spent (EGP)", Value: String(stats.totalSpent) },
-      { Metric: "Total Paid (EGP)", Value: String(stats.totalPaid) },
-      { Metric: "Avg Turnaround (days)", Value: String(stats.avgTurnaround) },
-      ...stats.favoriteLabs.map((l) => ({ Metric: `Lab: ${l.name}`, Value: `${l.count} orders` })),
-      ...stats.typeBreakdown.map(([t, c]) => ({ Metric: `Type: ${t}`, Value: String(c) })),
-    ];
-    exportToCSV(rows, `doctor-analytics-${new Date().toISOString().slice(0, 10)}`);
+    exportToCSV(buildDoctorExportRows(), `doctor-analytics-${new Date().toISOString().slice(0, 10)}`);
+  };
+
+  const handleExportPDF = async () => {
+    const { exportToPDF } = await import("@/lib/exportUtils");
+    exportToPDF(buildDoctorExportRows(), "Doctor Analytics", `doctor-analytics-${new Date().toISOString().slice(0, 10)}`);
   };
 
   return (
   <div className="space-y-6">
     <div className="flex justify-end">
-      <Button variant="outline" size="sm" onClick={handleExport}>
-        <Download className="h-4 w-4 mr-1.5" /> Export CSV
-      </Button>
+      <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
     </div>
     {/* KPI Cards */}
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -379,27 +384,31 @@ interface LabStatsData {
 }
 
 const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => {
-  const handleExport = async () => {
+  const buildLabExportRows = () => [
+    { Metric: "Total Orders", Value: String(stats.totalOrders) },
+    { Metric: "Completed", Value: String(stats.completedCount) },
+    { Metric: "In Progress", Value: String(stats.inProgressCount) },
+    { Metric: "Total Revenue (EGP)", Value: String(stats.totalRevenue) },
+    { Metric: "Received (EGP)", Value: String(stats.totalReceived) },
+    { Metric: "On-Time Rate", Value: `${stats.onTimeRate}%` },
+    ...stats.monthlyRevenue.map((m) => ({ Metric: `Revenue ${m.month}`, Value: String(m.revenue) })),
+    ...stats.topClients.map((c) => ({ Metric: `Client: ${c.name}`, Value: `${c.count} orders` })),
+  ];
+
+  const handleExportCSV = async () => {
     const { exportToCSV } = await import("@/lib/exportUtils");
-    const rows = [
-      { Metric: "Total Orders", Value: String(stats.totalOrders) },
-      { Metric: "Completed", Value: String(stats.completedCount) },
-      { Metric: "In Progress", Value: String(stats.inProgressCount) },
-      { Metric: "Total Revenue (EGP)", Value: String(stats.totalRevenue) },
-      { Metric: "Received (EGP)", Value: String(stats.totalReceived) },
-      { Metric: "On-Time Rate", Value: `${stats.onTimeRate}%` },
-      ...stats.monthlyRevenue.map((m) => ({ Metric: `Revenue ${m.month}`, Value: String(m.revenue) })),
-      ...stats.topClients.map((c) => ({ Metric: `Client: ${c.name}`, Value: `${c.count} orders` })),
-    ];
-    exportToCSV(rows, `lab-analytics-${new Date().toISOString().slice(0, 10)}`);
+    exportToCSV(buildLabExportRows(), `lab-analytics-${new Date().toISOString().slice(0, 10)}`);
+  };
+
+  const handleExportPDF = async () => {
+    const { exportToPDF } = await import("@/lib/exportUtils");
+    exportToPDF(buildLabExportRows(), "Lab Analytics", `lab-analytics-${new Date().toISOString().slice(0, 10)}`);
   };
 
   return (
   <div className="space-y-6">
     <div className="flex justify-end">
-      <Button variant="outline" size="sm" onClick={handleExport}>
-        <Download className="h-4 w-4 mr-1.5" /> Export CSV
-      </Button>
+      <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
     </div>
     {/* KPI Cards */}
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

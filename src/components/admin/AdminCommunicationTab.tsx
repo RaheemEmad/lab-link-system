@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import ExportDropdown from "@/components/ui/export-dropdown";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { MessageSquare, ThumbsUp, Search } from "lucide-react";
@@ -86,11 +86,17 @@ const AdminCommunicationTab = () => {
     note.author_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const exportNotes = async () => {
+  const exportNotesCSV = async () => {
     const { exportToCSV, prepareNotesForExport } = await import("@/lib/exportUtils");
     const exportData = prepareNotesForExport(filteredNotes);
     exportToCSV(exportData, `communication-export-${new Date().toISOString().split("T")[0]}`);
-    toast.success("Communication logs exported successfully");
+    toast.success("Communication logs exported as CSV");
+  };
+
+  const exportNotesPDF = async () => {
+    const { exportToPDF, prepareNotesForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareNotesForExport(filteredNotes);
+    exportToPDF(exportData, "Communication Monitor", `communication-export-${new Date().toISOString().split("T")[0]}`);
   };
 
   if (loading) {
@@ -124,9 +130,7 @@ const AdminCommunicationTab = () => {
               className="pl-10"
             />
           </div>
-          <Button onClick={exportNotes} variant="outline">
-            Export CSV
-          </Button>
+          <ExportDropdown onExportCSV={exportNotesCSV} onExportPDF={exportNotesPDF} />
         </div>
 
         <div className="overflow-x-auto">

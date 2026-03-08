@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import ExportDropdown from "@/components/ui/export-dropdown";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -355,10 +356,9 @@ const OrderDashboard = () => {
     opt.roles.includes(isDoctor ? "doctor" : "lab_staff")
   );
 
-  // Batch Export handler
-  const handleExport = async () => {
-    const { exportToCSV } = await import("@/lib/exportUtils");
-    const rows = filteredOrders.map(o => ({
+  // Batch Export handlers
+  const buildExportRows = () =>
+    filteredOrders.map(o => ({
       OrderNumber: o.order_number,
       Patient: o.patient_name,
       Doctor: o.doctor_name,
@@ -371,8 +371,16 @@ const OrderDashboard = () => {
       Deadline: o.expected_delivery_date || "",
       Created: o.timestamp,
     }));
-    exportToCSV(rows, `orders-export-${format(new Date(), "yyyy-MM-dd")}`);
+
+  const handleExportCSV = async () => {
+    const { exportToCSV } = await import("@/lib/exportUtils");
+    exportToCSV(buildExportRows(), `orders-export-${format(new Date(), "yyyy-MM-dd")}`);
     toast.success("Orders exported to CSV");
+  };
+
+  const handleExportPDF = async () => {
+    const { exportToPDF } = await import("@/lib/exportUtils");
+    exportToPDF(buildExportRows(), "Orders Export", `orders-export-${format(new Date(), "yyyy-MM-dd")}`);
   };
 
   // Load preset handler
@@ -497,10 +505,7 @@ const OrderDashboard = () => {
                     onLoadPreset={handleLoadPreset}
                   />
                 )}
-                <Button variant="outline" size="sm" onClick={handleExport} disabled={filteredOrders.length === 0}>
-                  <Download className="h-4 w-4 mr-1.5" />
-                  <span className="hidden sm:inline">Export</span>
-                </Button>
+                <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} disabled={filteredOrders.length === 0} />
               </div>
             </div>
           </div>

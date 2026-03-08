@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ExportDropdown from "@/components/ui/export-dropdown";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -274,11 +275,17 @@ const AdminUsersTab = () => {
     }
   };
 
-  const exportUsers = async () => {
+  const exportUsersCSV = async () => {
     const { exportToCSV, prepareUsersForExport } = await import("@/lib/exportUtils");
     const exportData = prepareUsersForExport(filteredUsers);
     exportToCSV(exportData, `users-export-${new Date().toISOString().split("T")[0]}`);
-    toast.success("Users exported successfully");
+    toast.success("Users exported as CSV");
+  };
+
+  const exportUsersPDF = async () => {
+    const { exportToPDF, prepareUsersForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareUsersForExport(filteredUsers);
+    exportToPDF(exportData, "Users Export", `users-export-${new Date().toISOString().split("T")[0]}`);
   };
 
   if (loading) {
@@ -324,9 +331,7 @@ const AdminUsersTab = () => {
               <option value="lab_staff">Lab Staff</option>
               <option value="none">No Role</option>
             </select>
-            <Button onClick={exportUsers} variant="outline" className="shrink-0" size="sm">
-              Export CSV
-            </Button>
+            <ExportDropdown onExportCSV={exportUsersCSV} onExportPDF={exportUsersPDF} size="sm" />
           </div>
 
           {selectedUsers.size > 0 && (
