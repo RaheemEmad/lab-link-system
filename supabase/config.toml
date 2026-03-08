@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.invoice-share]
 verify_jwt = false
+
+[functions.extract-order-details]
+verify_jwt = false
