@@ -18,13 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { toast } from "sonner";
 
-// Helper function to format EGP currency
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 interface Order {
   id: string;

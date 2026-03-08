@@ -42,19 +42,7 @@ interface EligibleOrder {
   delivery_confirmed_at: string;
 }
 
-// Helper to count teeth from FDI notation
-const countTeeth = (teethNumber: string): number => {
-  if (!teethNumber) return 0;
-  return teethNumber.split(',').filter(t => t.trim()).length;
-};
-
-// Helper to format EGP
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP, countTeeth } from "@/lib/formatters";
 
 const InvoiceGenerator = ({ onClose, onGenerated }: InvoiceGeneratorProps) => {
   const { user } = useAuth();

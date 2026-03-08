@@ -29,13 +29,7 @@ import DisputeResolutionDialog from "./DisputeResolutionDialog";
 import { useState } from "react";
 import { toast } from "sonner";
 
-// Helper function to format EGP currency
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 type InvoiceStatus = 'draft' | 'generated' | 'locked' | 'finalized' | 'disputed';
 type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';

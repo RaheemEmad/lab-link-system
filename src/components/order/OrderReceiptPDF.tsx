@@ -144,12 +144,7 @@ export const OrderReceiptPDF = ({ orderId, onClose }: OrderReceiptPDFProps) => {
     }, 100);
   };
 
-  const formatEGP = (amount: number) => {
-    return `EGP ${amount.toLocaleString('en-EG', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
-  };
+  // formatEGP imported from @/lib/formatters
 
   if (orderLoading) {
     return (

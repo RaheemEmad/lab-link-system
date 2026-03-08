@@ -44,13 +44,7 @@ const RESTORATION_TYPES = [
   "Acrylic"
 ] as const;
 
-// Helper to format EGP
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 export function PricingModeSelector({ onComplete, isLoading = false }: PricingModeSelectorProps) {
   const [selectedMode, setSelectedMode] = useState<PricingMode | null>(null);

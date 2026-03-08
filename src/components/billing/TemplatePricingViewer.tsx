@@ -5,13 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, Zap, Info } from "lucide-react";
 
-// Helper to format EGP
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 interface TemplatePricingViewerProps {
   showCard?: boolean;

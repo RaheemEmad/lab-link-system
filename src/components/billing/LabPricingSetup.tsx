@@ -42,13 +42,7 @@ interface LabPricingSetupProps {
   readOnly?: boolean;
 }
 
-// Helper to format EGP
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 const LabPricingSetup = ({ labId, readOnly = false }: LabPricingSetupProps) => {
   const queryClient = useQueryClient();

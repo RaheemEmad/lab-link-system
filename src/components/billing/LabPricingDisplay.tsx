@@ -6,13 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, Zap, AlertCircle, FileText, Settings } from "lucide-react";
 import { TemplatePricingViewer } from "./TemplatePricingViewer";
 
-// Helper to format EGP
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 type PricingMode = 'TEMPLATE' | 'CUSTOM' | null;
 
