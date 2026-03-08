@@ -65,7 +65,7 @@ export default function LabProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_photos")
-        .select("*")
+        .select("id, photo_url, caption, display_order")
         .eq("lab_id", labId)
         .order("display_order");
       if (error) throw error;
