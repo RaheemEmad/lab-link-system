@@ -31,7 +31,7 @@ export function usePatientCases() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("patient_cases")
-        .select("*, preferred_lab:labs(id, name)")
+        .select("*, preferred_lab:labs(id, name), last_order:orders!patient_cases_last_order_id_fkey(id, order_number, status, created_at)")
         .eq("doctor_id", user!.id)
         .order("updated_at", { ascending: false });
 
@@ -39,6 +39,7 @@ export function usePatientCases() {
       return (data ?? []).map((row: any) => ({
         ...row,
         photos: Array.isArray(row.photos) ? row.photos : [],
+        last_order: row.last_order ?? null,
       })) as PatientCase[];
     },
     enabled: !!user?.id,
