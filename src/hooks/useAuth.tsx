@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         
         toast.success(AUTH_MESSAGES.SIGN_IN_SUCCESS);
-        navigate("/");
+        navigate("/dashboard");
         return { error: null };
       }
 

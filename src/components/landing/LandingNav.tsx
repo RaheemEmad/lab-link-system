@@ -57,28 +57,8 @@ const LandingNav = () => {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Fetch user role and lab ID
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [labId, setLabId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      if (!user?.id) return;
-      
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role, lab_id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data) {
-        setUserRole(data.role);
-        setLabId(data.lab_id);
-      }
-    };
-    
-    fetchUserRole();
-  }, [user]);
+  // Use centralized role hook instead of manual fetch
+  const { role: userRole, labId } = useUserRole();
 
   // Fetch count of new unassigned orders - OPTIMIZED
   const { data: newOrdersCount } = useQuery({

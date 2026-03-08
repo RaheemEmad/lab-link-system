@@ -58,7 +58,7 @@ const OverdueInvoiceBanner = () => {
               You have {overdueCount} overdue invoice{overdueCount > 1 ? 's' : ''}
             </span>
           </div>
-          <Button size="sm" variant="outline" onClick={() => navigate("/dashboard")} className="text-xs">
+          <Button size="sm" variant="outline" onClick={() => navigate("/logistics?tab=billing")} className="text-xs">
             View Billing
           </Button>
         </div>
