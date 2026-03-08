@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatFileSize } from "@/lib/formatters";
 import { formatDistanceToNow } from "date-fns";
 import { FileIcon, Download, MessageSquare, Eye, Send, Loader2, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
