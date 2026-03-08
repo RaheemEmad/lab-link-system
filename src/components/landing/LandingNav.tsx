@@ -12,6 +12,7 @@ import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import {
   Tooltip,
