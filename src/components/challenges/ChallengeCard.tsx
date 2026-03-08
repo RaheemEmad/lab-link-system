@@ -212,7 +212,7 @@ export const ChallengeCard = memo(function ChallengeCard({ challenge }: Challeng
       </CardContent>
     </Card>
   );
-}
+});
 
 function getTimeLeft(expiresAt: string): string {
   const now = new Date();
