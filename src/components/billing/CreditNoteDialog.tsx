@@ -51,9 +51,27 @@ const CreditNoteDialog = ({ open, onOpenChange, invoiceId, invoiceNumber, maxAmo
         reason: `Credit note: ${formatEGP(numAmount)} - ${reason.trim()}`,
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["credit-notes"] });
+
+      // Notify doctor
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("order_id, orders!inner(doctor_id)")
+        .eq("id", invoiceId)
+        .single();
+      const doctorId = (invoice as any)?.orders?.doctor_id;
+      if (doctorId) {
+        await createNotification({
+          user_id: doctorId,
+          order_id: invoice!.order_id,
+          type: "credit_note_issued",
+          title: "Credit Note Issued",
+          message: `A credit note of ${formatEGP(parseFloat(amount))} was issued for invoice ${invoiceNumber}.`,
+        });
+      }
+
       toast.success("Credit note issued");
       setAmount("");
       setReason("");

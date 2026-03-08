@@ -105,6 +105,21 @@ export const PostDeliveryReviewDialog = ({
         }
       } else {
         toast.success("Review submitted! Thank you for your feedback.");
+
+        // Notify lab staff
+        const { data: assignments } = await supabase
+          .from("order_assignments")
+          .select("user_id")
+          .eq("order_id", orderId);
+        for (const a of assignments || []) {
+          await createNotification({
+            user_id: a.user_id,
+            order_id: orderId,
+            type: "review_submitted",
+            title: "New Review Received",
+            message: `A ${overallRating}-star review was submitted for order #${orderNumber}.`,
+          });
+        }
       }
 
       onSubmitted?.();

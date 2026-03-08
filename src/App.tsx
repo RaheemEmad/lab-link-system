@@ -84,6 +84,7 @@ const AppContent = () => {
     <>
       <HelpButton />
       <SessionTimeoutWarning />
+      <NotificationPopup />
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingScreen />}>
           <Routes location={location} key={location.pathname}>

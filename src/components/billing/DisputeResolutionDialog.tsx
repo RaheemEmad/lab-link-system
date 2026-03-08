@@ -60,8 +60,37 @@ const DisputeResolutionDialog = ({
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+
+      // Notify both doctor and lab
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("order_id, orders!inner(doctor_id)")
+        .eq("id", invoiceId)
+        .single();
+      if (invoice?.order_id) {
+        const notifications: { user_id: string; order_id: string; type: string; title: string; message: string }[] = [];
+        const msg = `Invoice dispute resolved: ${resolutionAction}. ${resolutionNotes.substring(0, 80)}`;
+
+        // Doctor
+        const doctorId = (invoice as any)?.orders?.doctor_id;
+        if (doctorId) {
+          notifications.push({ user_id: doctorId, order_id: invoice.order_id, type: "dispute_resolved", title: "Dispute Resolved", message: msg });
+        }
+
+        // Lab staff
+        const { data: assignments } = await supabase
+          .from("order_assignments")
+          .select("user_id")
+          .eq("order_id", invoice.order_id);
+        for (const a of assignments || []) {
+          notifications.push({ user_id: a.user_id, order_id: invoice.order_id, type: "dispute_resolved", title: "Dispute Resolved", message: msg });
+        }
+
+        if (notifications.length > 0) await createNotifications(notifications);
+      }
+
       toast.success('Dispute resolved successfully');
       onOpenChange(false);
       resetForm();

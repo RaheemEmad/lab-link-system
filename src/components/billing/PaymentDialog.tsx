@@ -146,8 +146,26 @@ const PaymentDialog = ({
         reason: `Payment status: ${paymentStatus}, Amount: ${formatEGP(numAmount)}`,
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+
+      // Notify the doctor about the payment
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("order_id, orders!inner(doctor_id)")
+        .eq("id", invoiceId)
+        .single();
+      const doctorId = (invoice as any)?.orders?.doctor_id;
+      if (doctorId) {
+        await createNotification({
+          user_id: doctorId,
+          order_id: invoice!.order_id,
+          type: "payment_recorded",
+          title: "Payment Updated",
+          message: `Payment of ${formatEGP(parseFloat(amountPaid) || 0)} recorded. Status: ${paymentStatus}.`,
+        });
+      }
+
       toast.success('Payment information updated');
       onOpenChange(false);
     },

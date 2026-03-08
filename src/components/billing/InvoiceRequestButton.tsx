@@ -73,8 +73,24 @@ const InvoiceRequestButton = ({ orderId, orderNumber, className }: InvoiceReques
         });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['invoice-request', orderId] });
+
+      // Notify assigned lab staff
+      const { data: assignments } = await supabase
+        .from("order_assignments")
+        .select("user_id")
+        .eq("order_id", orderId);
+      for (const a of assignments || []) {
+        await createNotification({
+          user_id: a.user_id,
+          order_id: orderId,
+          type: "invoice_request",
+          title: "Invoice Requested",
+          message: `A doctor has requested an invoice for order ${orderNumber}.`,
+        });
+      }
+
       toast.success('Invoice request submitted', {
         description: 'The lab will be notified to generate your invoice.'
       });

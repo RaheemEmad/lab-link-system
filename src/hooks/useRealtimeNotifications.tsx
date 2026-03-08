@@ -22,6 +22,11 @@ const POPUP_NOTIFICATION_TYPES = [
   'invoice_disputed',
   'dispute_resolved',
   'invoice_request',
+  'order_cancelled',
+  'payment_recorded',
+  'credit_note_issued',
+  'review_submitted',
+  'invoice_generated',
 ];
 
 interface Notification {
