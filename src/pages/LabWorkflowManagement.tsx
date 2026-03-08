@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { openSanitizedHtmlPreview } from "@/lib/htmlSanitize";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification } from "@/lib/notifications";
