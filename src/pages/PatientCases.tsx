@@ -77,7 +77,26 @@ const PatientCases = () => {
     return () => window.removeEventListener("keydown", handler);
   }, [lightboxPhotos, closeLightbox]);
 
-  const filteredCases = useMemo(() => {
+  const openOrdersDialog = useCallback(async (c: PatientCase) => {
+    setOrdersCase(c);
+    setOrdersLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, order_number, status, created_at, restoration_type, patient_name")
+        .eq("doctor_id", user!.id)
+        .eq("patient_name", c.patient_name)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setCaseOrders(data ?? []);
+    } catch {
+      setCaseOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [user]);
+
+
     if (!searchQuery.trim()) return cases;
     const q = searchQuery.toLowerCase();
     return cases.filter(
