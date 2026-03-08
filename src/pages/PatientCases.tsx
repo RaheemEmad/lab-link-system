@@ -39,7 +39,7 @@ import { CasePhotoUploader } from "@/components/patient-cases/CasePhotoUploader"
 
 const PatientCases = () => {
   const navigate = useNavigate();
-  const { isDoctor, isLoading: roleLoading } = useUserRole();
+  const { isDoctor, isLoading: roleLoading, roleConfirmed } = useUserRole();
   const { cases, isLoading, deleteCase } = usePatientCases();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
