@@ -10,18 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Inbox as InboxIcon,
-  MessageSquare,
-  Palette,
-  PackageCheck,
-  Receipt,
-  Reply,
-  CheckCircle2,
-  XCircle,
-  CreditCard,
-  RefreshCw,
-} from "lucide-react";
+import { Inbox as InboxIcon, MessageSquare, Palette, PackageCheck, Receipt } from "lucide-react";
+import { Reply, CheckCircle2, XCircle, CreditCard, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";

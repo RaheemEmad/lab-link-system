@@ -3,7 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useUnreadCount } from "@/hooks/useUnreadCount";
-import { LayoutDashboard, Plus, Store, Inbox, User } from "lucide-react";
+import { LayoutDashboard, Plus, Store, User } from "lucide-react";
+import { Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
