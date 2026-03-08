@@ -153,7 +153,7 @@ const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end"><Button variant="outline" size="sm" onClick={handleExport}><Download className="h-4 w-4 mr-1.5" /> Export CSV</Button></div>
+      <div className="flex justify-end"><ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} /></div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Package} label="Total Orders" value={String(stats.totalOrders)} sub={`${stats.completedCount} delivered`} />
         <StatCard icon={DollarSign} label="Total Spent" value={formatEGP(stats.totalSpent)} sub={`${formatEGP(stats.totalPaid)} paid`} />
