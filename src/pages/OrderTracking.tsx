@@ -69,7 +69,7 @@ const OrderTracking = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { role: userRole, isLoading: roleLoading } = useUserRole();
   const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<string | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
