@@ -84,32 +84,15 @@ const OrderTracking = () => {
     if (userRole) {
       fetchOrders();
 
-      // Set up realtime subscription for order updates
       const channel = supabase
         .channel('order-tracking-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
-          },
-          (payload) => {
-            console.log('Order update received:', payload);
-            fetchOrders(); // Refetch all orders on any change
-            
-            if (payload.eventType === 'UPDATE') {
-              toast.success("Order Updated", {
-                description: `Order ${(payload.new as any).order_number} has been updated`
-              });
-            }
-          }
-        )
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => fetchOrders())
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+          setOrders(prev => prev.map(o => o.id === (payload.new as any).id ? { ...o, ...(payload.new as any) } : o));
+        })
         .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      return () => { supabase.removeChannel(channel); };
     }
   }, [userRole, user]);
 
