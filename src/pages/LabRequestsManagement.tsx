@@ -251,7 +251,7 @@ export default function LabRequestsManagement() {
         if (notifError) {
           console.warn('[LabRequests] Error sending notification:', notifError);
         } else {
-          console.log('[LabRequests] Acceptance notification sent to lab');
+          
         }
       }
       
