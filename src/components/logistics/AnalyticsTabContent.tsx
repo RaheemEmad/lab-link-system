@@ -133,16 +133,22 @@ const StatCard = ({ icon: Icon, label, value, sub }: { icon: any; label: string;
 interface DoctorStatsData { totalOrders: number; completedCount: number; cancelledCount: number; totalSpent: number; totalPaid: number; avgTurnaround: number; favoriteLabs: { name: string; count: number }[]; typeBreakdown: [string, number][]; }
 
 const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => {
-  const handleExport = async () => {
+  const buildDoctorExportRows = () => [
+    { Metric: "Total Orders", Value: String(stats.totalOrders) }, { Metric: "Delivered", Value: String(stats.completedCount) },
+    { Metric: "Cancelled", Value: String(stats.cancelledCount) }, { Metric: "Total Spent (EGP)", Value: String(stats.totalSpent) },
+    { Metric: "Total Paid (EGP)", Value: String(stats.totalPaid) }, { Metric: "Avg Turnaround (days)", Value: String(stats.avgTurnaround) },
+    ...stats.favoriteLabs.map((l) => ({ Metric: `Lab: ${l.name}`, Value: `${l.count} orders` })),
+    ...stats.typeBreakdown.map(([t, c]) => ({ Metric: `Type: ${t}`, Value: String(c) })),
+  ];
+
+  const handleExportCSV = async () => {
     const { exportToCSV } = await import("@/lib/exportUtils");
-    const rows = [
-      { Metric: "Total Orders", Value: String(stats.totalOrders) }, { Metric: "Delivered", Value: String(stats.completedCount) },
-      { Metric: "Cancelled", Value: String(stats.cancelledCount) }, { Metric: "Total Spent (EGP)", Value: String(stats.totalSpent) },
-      { Metric: "Total Paid (EGP)", Value: String(stats.totalPaid) }, { Metric: "Avg Turnaround (days)", Value: String(stats.avgTurnaround) },
-      ...stats.favoriteLabs.map((l) => ({ Metric: `Lab: ${l.name}`, Value: `${l.count} orders` })),
-      ...stats.typeBreakdown.map(([t, c]) => ({ Metric: `Type: ${t}`, Value: String(c) })),
-    ];
-    exportToCSV(rows, `doctor-analytics-${new Date().toISOString().slice(0, 10)}`);
+    exportToCSV(buildDoctorExportRows(), `doctor-analytics-${new Date().toISOString().slice(0, 10)}`);
+  };
+
+  const handleExportPDF = async () => {
+    const { exportToPDF } = await import("@/lib/exportUtils");
+    exportToPDF(buildDoctorExportRows(), "Doctor Analytics", `doctor-analytics-${new Date().toISOString().slice(0, 10)}`);
   };
 
   return (
