@@ -133,6 +133,8 @@ const OrderDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("all");
+  const [kpiFilter, setKpiFilter] = useState<import("./dashboard/DashboardKPICards").KPIFilter | null>(null);
+  const ordersTableRef = useRef<HTMLDivElement>(null);
   const [sortField, setSortField] = useState<SortField>("timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [loading, setLoading] = useState(true);
