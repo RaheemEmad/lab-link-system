@@ -651,11 +651,13 @@ const OrderDashboard = () => {
           {/* Mobile Card View */}
           <div className="lg:hidden space-y-3 stagger-fade-in" data-tour="orders-cards">
             {paginatedOrders.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-base sm:text-lg font-medium mb-2">No orders found</p>
-                <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
-              </div>
+              <EmptyState
+                icon={FileText}
+                title="No orders found"
+                description="Try adjusting your search or filters, or create a new order to get started."
+                actionLabel={isDoctor ? "Create New Order" : undefined}
+                onAction={isDoctor ? () => navigate("/new-order") : undefined}
+              />
             ) : (
               paginatedOrders.map((order) => (
                 <Card
