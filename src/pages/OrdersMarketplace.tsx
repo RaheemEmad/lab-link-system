@@ -475,7 +475,7 @@ export default function OrdersMarketplace() {
                                 {order.restoration_type}
                               </CardTitle>
                               <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                                Patient: {order.patient_name.split(' ').map((n: string) => n[0]).join('.')}. • {order.order_number}
+                                {order.order_number}
                               </p>
                             </div>
                             <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="shrink-0 text-xs">
