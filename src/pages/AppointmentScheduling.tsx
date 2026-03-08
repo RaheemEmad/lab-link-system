@@ -379,7 +379,11 @@ const AppointmentScheduling = () => {
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
-                        disabled={(date) => date < new Date()}
+                        disabled={(date) => {
+                          if (date < new Date()) return true;
+                          if (hasAvailability && !availableDays.has(date.getDay())) return true;
+                          return false;
+                        }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
                       />
