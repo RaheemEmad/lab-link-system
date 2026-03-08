@@ -212,6 +212,50 @@ export type Database = {
           },
         ]
       }
+      billing_statements: {
+        Row: {
+          created_at: string | null
+          doctor_id: string
+          id: string
+          invoice_ids: Json
+          lab_id: string
+          period_end: string
+          period_start: string
+          status: string
+          total: number
+        }
+        Insert: {
+          created_at?: string | null
+          doctor_id: string
+          id?: string
+          invoice_ids?: Json
+          lab_id: string
+          period_end: string
+          period_start: string
+          status?: string
+          total?: number
+        }
+        Update: {
+          created_at?: string | null
+          doctor_id?: string
+          id?: string
+          invoice_ids?: Json
+          lab_id?: string
+          period_end?: string
+          period_start?: string
+          status?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_statements_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           attachment_name: string | null
@@ -299,6 +343,44 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_notes: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          invoice_id: string
+          issued_by: string
+          reason: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          invoice_id: string
+          issued_by: string
+          reason: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          invoice_id?: string
+          issued_by?: string
+          reason?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -833,10 +915,15 @@ export type Database = {
           generated_at: string | null
           id: string
           invoice_number: string
+          late_fee_applied: number | null
+          late_fee_percent: number | null
           locked_at: string | null
           order_id: string
+          payment_method: string | null
           payment_received_at: string | null
+          payment_reference: string | null
           payment_status: string | null
+          share_token: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal: number
           updated_at: string
@@ -857,10 +944,15 @@ export type Database = {
           generated_at?: string | null
           id?: string
           invoice_number: string
+          late_fee_applied?: number | null
+          late_fee_percent?: number | null
           locked_at?: string | null
           order_id: string
+          payment_method?: string | null
           payment_received_at?: string | null
+          payment_reference?: string | null
           payment_status?: string | null
+          share_token?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           updated_at?: string
@@ -881,10 +973,15 @@ export type Database = {
           generated_at?: string | null
           id?: string
           invoice_number?: string
+          late_fee_applied?: number | null
+          late_fee_percent?: number | null
           locked_at?: string | null
           order_id?: string
+          payment_method?: string | null
           payment_received_at?: string | null
+          payment_reference?: string | null
           payment_status?: string | null
+          share_token?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           updated_at?: string
@@ -1568,6 +1665,7 @@ export type Database = {
           is_sponsored: boolean | null
           is_verified: boolean | null
           last_risk_check_at: string | null
+          late_fee_policy_percent: number | null
           logo_url: string | null
           max_capacity: number
           max_price_egp: number | null
@@ -1605,6 +1703,7 @@ export type Database = {
           is_sponsored?: boolean | null
           is_verified?: boolean | null
           last_risk_check_at?: string | null
+          late_fee_policy_percent?: number | null
           logo_url?: string | null
           max_capacity?: number
           max_price_egp?: number | null
@@ -1642,6 +1741,7 @@ export type Database = {
           is_sponsored?: boolean | null
           is_verified?: boolean | null
           last_risk_check_at?: string | null
+          late_fee_policy_percent?: number | null
           logo_url?: string | null
           max_capacity?: number
           max_price_egp?: number | null
