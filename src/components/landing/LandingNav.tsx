@@ -597,8 +597,8 @@ const LandingNav = () => {
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/settings">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Settings
+                          <Settings className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                          {t.nav.settings}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
