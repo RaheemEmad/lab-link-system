@@ -155,6 +155,41 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
     },
   });
 
+  // Fetch credit notes
+  const { data: creditNotes } = useQuery({
+    queryKey: ['credit-notes', invoice.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('credit_notes')
+        .select('*')
+        .eq('invoice_id', invoice.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const totalCredits = creditNotes?.reduce((sum, cn) => sum + cn.amount, 0) || 0;
+
+  // Share invoice
+  const handleShareInvoice = async () => {
+    setIsGeneratingShareLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('invoice-share', {
+        body: { invoice_id: invoice.id },
+      });
+      if (error) throw error;
+
+      const shareUrl = `${window.location.origin}/invoice/${data.token}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Share link copied to clipboard!');
+    } catch (err) {
+      toast.error('Failed to generate share link');
+    } finally {
+      setIsGeneratingShareLink(false);
+    }
+  };
+
   // Lock invoice mutation
   const lockMutation = useMutation({
     mutationFn: async () => {
