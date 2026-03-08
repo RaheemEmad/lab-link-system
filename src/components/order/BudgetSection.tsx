@@ -30,10 +30,7 @@ const PRICE_RANGES: Record<string, { min: number; max: number }> = {
   "E-max": { min: 1500, max: 2000 },
 };
 
-// Helper function to format EGP currency
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG')}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 const BudgetSection = ({ form, restorationType }: BudgetSectionProps) => {
   const [isOpen, setIsOpen] = useState(true);

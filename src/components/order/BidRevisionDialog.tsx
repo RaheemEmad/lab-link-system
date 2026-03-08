@@ -17,13 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, MessageSquare, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
-// Helper function to format EGP currency
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 interface BidRevisionDialogProps {
   requestId: string;

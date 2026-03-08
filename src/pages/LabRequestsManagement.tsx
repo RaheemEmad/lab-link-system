@@ -19,13 +19,7 @@ import { LabVerificationBadge } from "@/components/labs/LabVerificationBadge";
 import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
 import { LabProfilePreview } from "@/components/labs/LabProfilePreview";
 
-// Helper function to format EGP currency
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 export default function LabRequestsManagement() {
   const { user } = useAuth();

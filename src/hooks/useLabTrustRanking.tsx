@@ -249,10 +249,5 @@ export const useLabTrustRanking = ({
   };
 };
 
-// Helper to format EGP currency
-export const formatEGP = (amount: number): string => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 0 
-  })}`;
-};
+// Re-exported from shared lib for backwards compatibility
+export { formatEGP } from "@/lib/formatters";

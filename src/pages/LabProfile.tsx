@@ -17,13 +17,7 @@ import { LabBadges } from "@/components/labs/LabBadges";
 import { LabPerformanceStats } from "@/components/labs/LabPerformanceStats";
 import { LabPortfolio } from "@/components/labs/LabPortfolio";
 
-// Helper to format EGP
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 export default function LabProfile() {
   const { labId } = useParams();

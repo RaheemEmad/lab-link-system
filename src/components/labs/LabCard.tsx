@@ -58,13 +58,7 @@ interface LabCardProps {
   minLabPrice?: number | null;
 }
 
-// Helper to format EGP
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 0
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 // Removed duplicate interface definition
 

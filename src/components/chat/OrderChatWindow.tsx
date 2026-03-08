@@ -88,7 +88,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
           }
           
           // Mark as read
-          markMessageAsRead(newMessage.id);
+          markMessagesAsRead([newMessage.id]);
         }
       )
       .on(
@@ -159,37 +159,38 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
 
     setMessages(data || []);
     
-    // Mark unread messages as read
-    data?.forEach((msg) => {
-      if (!msg.read_at && msg.sender_id !== currentUserId) {
-        markMessageAsRead(msg.id);
-      }
-    });
+    // Mark unread messages as read in a single batch update
+    const unreadMessageIds = data
+      ?.filter((msg) => !msg.read_at && msg.sender_id !== currentUserId)
+      .map((msg) => msg.id) || [];
+    
+    if (unreadMessageIds.length > 0 && currentUserId) {
+      markMessagesAsRead(unreadMessageIds);
+    }
   };
 
-  const markMessageAsRead = async (messageId: string) => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
+  // Batch mark messages as read - single DB call instead of N+1
+  const markMessagesAsRead = async (messageIds: string[]) => {
+    if (!currentUserId || messageIds.length === 0) return;
 
     await supabase
       .from('chat_messages')
       .update({
         read_at: new Date().toISOString(),
-        read_by: userData.user.id,
+        read_by: currentUserId,
       })
-      .eq('id', messageId)
+      .in('id', messageIds)
       .is('read_at', null);
   };
 
   const updateTypingStatus = async (typing: boolean) => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
+    if (!currentUserId) return;
 
     await supabase
       .from('chat_typing_indicators')
       .upsert({
         order_id: orderId,
-        user_id: userData.user.id,
+        user_id: currentUserId,
         is_typing: typing,
         updated_at: new Date().toISOString(),
       }, {
@@ -231,8 +232,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
     setUploadingFile(true);
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('Not authenticated');
+      if (!currentUserId) throw new Error('Not authenticated');
 
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
@@ -254,7 +254,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
         .from('chat_messages')
         .insert({
           order_id: orderId,
-          sender_id: userData.user.id,
+          sender_id: currentUserId,
           sender_role: currentUserRole,
           message_text: `Shared a file: ${file.name}`,
           is_ai_generated: false,
@@ -289,14 +289,13 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
     setIsTyping(false);
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('Not authenticated');
+      if (!currentUserId) throw new Error('Not authenticated');
 
       const { error: insertError } = await supabase
         .from('chat_messages')
         .insert({
           order_id: orderId,
-          sender_id: userData.user.id,
+          sender_id: currentUserId,
           sender_role: currentUserRole,
           message_text: messageText,
           is_ai_generated: false,
@@ -414,13 +413,10 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
         }
       }
 
-      if (fullResponse) {
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) return;
-
+      if (fullResponse && currentUserId) {
         await supabase.from('chat_messages').insert({
           order_id: orderId,
-          sender_id: userData.user.id,
+          sender_id: currentUserId,
           sender_role: currentUserRole,
           message_text: fullResponse,
           is_ai_generated: true,

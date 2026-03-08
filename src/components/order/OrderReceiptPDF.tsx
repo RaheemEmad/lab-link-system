@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatEGP } from "@/lib/formatters";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -144,12 +145,7 @@ export const OrderReceiptPDF = ({ orderId, onClose }: OrderReceiptPDFProps) => {
     }, 100);
   };
 
-  const formatEGP = (amount: number) => {
-    return `EGP ${amount.toLocaleString('en-EG', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
-  };
+  
 
   if (orderLoading) {
     return (
