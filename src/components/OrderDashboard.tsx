@@ -35,7 +35,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X, ArrowUpDown, ArrowUp, ArrowDown, Download, Copy, Calendar } from "lucide-react";
+import { Search, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X, ArrowUpDown, ArrowUp, ArrowDown, Download, Copy, Calendar, RotateCcw, Archive } from "lucide-react";
+import { RestoreOrderDialog } from "./order/RestoreOrderDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -76,6 +77,10 @@ interface Order {
   delivery_pending_confirmation: boolean | null;
   expected_delivery_date: string | null;
   shade_system: string | null;
+  is_deleted?: boolean;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
+  pre_delete_status?: string | null;
   labs: {
     id: string;
     name: string;
@@ -134,6 +139,10 @@ const OrderDashboard = () => {
   const dialog = useDialogState<Order>();
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
   const [quickViewOrder, setQuickViewOrder] = useState<Order | null>(null);
+  const [showDeletedOrders, setShowDeletedOrders] = useState(false);
+  const [deletedOrders, setDeletedOrders] = useState<(Order & { pre_delete_status?: string | null })[]>([]);
+  const [deletedLoading, setDeletedLoading] = useState(false);
+  const [restoreOrder, setRestoreOrder] = useState<{ id: string; order_number: string; pre_delete_status: string | null } | null>(null);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -180,6 +189,7 @@ const OrderDashboard = () => {
             description
           )
         `)
+        .eq("is_deleted", false)
         .order("timestamp", { ascending: false });
 
       if (isDoctor) {
@@ -201,9 +211,18 @@ const OrderDashboard = () => {
 
   const handleDelete = async (orderId: string) => {
     try {
-      const { error } = await supabase.from("orders").delete().eq("id", orderId);
+      const order = orders.find(o => o.id === orderId);
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          deleted_by: user?.id,
+          pre_delete_status: order?.status || "Pending",
+        })
+        .eq("id", orderId);
       if (error) throw error;
-      toast.success("Order deleted successfully");
+      toast.success("Order moved to trash. You can restore it from Deleted Orders.");
       fetchOrders();
     } catch (error: any) {
       console.error("Failed to delete order:", error.message);
@@ -212,6 +231,29 @@ const OrderDashboard = () => {
       setDeleteOrderId(null);
     }
   };
+
+  const fetchDeletedOrders = async () => {
+    if (!user || !isDoctor) return;
+    setDeletedLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`*, labs (id, name, contact_email, contact_phone, description)`)
+        .eq("is_deleted", true)
+        .eq("doctor_id", user.id)
+        .order("deleted_at", { ascending: false });
+      if (error) throw error;
+      setDeletedOrders((data || []) as any);
+    } catch (error: any) {
+      toast.error("Failed to load deleted orders");
+    } finally {
+      setDeletedLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showDeletedOrders) fetchDeletedOrders();
+  }, [showDeletedOrders]);
 
   const handleEdit = (orderId: string) => navigate(`/edit-order/${orderId}`);
   const handleStatusUpdate = (order: Order) => dialog.open("status", order);
@@ -1111,12 +1153,79 @@ const OrderDashboard = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Deleted Orders Section (Doctor only) */}
+      {isDoctor && (
+        <Card className="mt-4">
+          <CardHeader className="cursor-pointer" onClick={() => setShowDeletedOrders(!showDeletedOrders)}>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Archive className="h-4 w-4 text-muted-foreground" />
+              Deleted Orders
+              {showDeletedOrders && deletedOrders.length > 0 && (
+                <Badge variant="secondary">{deletedOrders.length}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          {showDeletedOrders && (
+            <CardContent>
+              {deletedLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : deletedOrders.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No deleted orders.</p>
+              ) : (
+                <div className="space-y-2">
+                  {deletedOrders.map((order) => (
+                    <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-mono text-sm font-medium">{order.order_number}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {order.patient_name} • {order.restoration_type}
+                          {order.pre_delete_status && ` • Was: ${order.pre_delete_status}`}
+                        </div>
+                        {order.deleted_at && (
+                          <div className="text-xs text-muted-foreground">
+                            Deleted {format(new Date(order.deleted_at as string), "MMM d, yyyy")}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRestoreOrder({
+                          id: order.id,
+                          order_number: order.order_number,
+                          pre_delete_status: (order as any).pre_delete_status || null,
+                        })}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Restore
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      {/* Restore Order Dialog */}
+      {restoreOrder && (
+        <RestoreOrderDialog
+          orderId={restoreOrder.id}
+          orderNumber={restoreOrder.order_number}
+          preDeleteStatus={restoreOrder.pre_delete_status}
+          open={!!restoreOrder}
+          onOpenChange={(open) => { if (!open) setRestoreOrder(null); }}
+          onSuccess={() => { fetchDeletedOrders(); fetchOrders(); }}
+        />
+      )}
+
       <AlertDialog open={!!deleteOrderId} onOpenChange={() => setDeleteOrderId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Order</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this order? This action cannot be undone.
+              Are you sure you want to delete this order? You can restore it later from the Deleted Orders section.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

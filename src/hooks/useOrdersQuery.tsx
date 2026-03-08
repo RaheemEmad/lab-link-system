@@ -81,6 +81,9 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
         .order("timestamp", { ascending: false })
         .range(offset, offset + ORDERS_PER_PAGE - 1);
 
+      // Filter out soft-deleted orders
+      query = query.eq("is_deleted", false);
+
       // Role-based filtering
       if (isDoctor) {
         query = query.eq("doctor_id", user.id);
@@ -196,12 +199,18 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
     },
   });
 
-  // Delete order mutation
+  // Soft-delete order mutation
   const deleteOrderMutation = useMutation({
     mutationFn: async (orderId: string) => {
+      const oldOrder = orders.find(o => o.id === orderId);
       const { error } = await supabase
         .from("orders")
-        .delete()
+        .update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          deleted_by: user?.id,
+          pre_delete_status: oldOrder?.status || "Pending",
+        })
         .eq("id", orderId);
 
       if (error) throw error;
@@ -234,7 +243,7 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
       toast.error("Failed to delete order");
     },
     onSuccess: () => {
-      toast.success("Order deleted successfully");
+      toast.success("Order moved to trash. You can restore it from Deleted Orders.");
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
