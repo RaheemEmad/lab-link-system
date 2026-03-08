@@ -835,7 +835,7 @@ const LandingNav = () => {
                           }}
                         >
                           <LogOut className="h-4 w-4" />
-                          Sign Out
+                          {t.nav.signOut}
                         </Button>
                       </>
                     ) : (
