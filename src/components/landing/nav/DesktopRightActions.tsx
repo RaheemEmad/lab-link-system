@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { TranslationType } from "@/lib/i18n/types";
+import type { Translations } from "@/lib/i18n/types";
 
 interface MenuItem {
   label: string;
