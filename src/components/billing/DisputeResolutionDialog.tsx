@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, Loader2, XCircle, Banknote } from "lucide-react";
+import { createNotification, createNotifications } from "@/lib/notifications";
 
 interface DisputeResolutionDialogProps {
   open: boolean;
