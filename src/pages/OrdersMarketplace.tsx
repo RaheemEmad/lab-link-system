@@ -67,7 +67,7 @@ export default function OrdersMarketplace() {
     queryFn: async () => {
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select("*")
+        .select("id, order_number, restoration_type, urgency, created_at, desired_delivery_date, target_budget, status, auto_assign_pending, assigned_lab_id, teeth_shade, teeth_number")
         .eq("auto_assign_pending", true)
         .is("assigned_lab_id", null)
         .order("created_at", { ascending: false });
@@ -475,7 +475,7 @@ export default function OrdersMarketplace() {
                                 {order.restoration_type}
                               </CardTitle>
                               <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                                Patient: {order.patient_name.split(' ').map((n: string) => n[0]).join('.')}. • {order.order_number}
+                                {order.order_number}
                               </p>
                             </div>
                             <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="shrink-0 text-xs">
@@ -485,10 +485,6 @@ export default function OrdersMarketplace() {
                         </CardHeader>
                         <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
                           <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-xs sm:text-sm">
-                              <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="truncate">Dr. {order.doctor_name}</span>
-                            </div>
                             <div className="flex items-center gap-2 text-xs sm:text-sm">
                               <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               <span className="truncate">
@@ -506,12 +502,6 @@ export default function OrdersMarketplace() {
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <DollarSign className="h-4 w-4 flex-shrink-0" />
                                 <span>Budget: Open</span>
-                              </div>
-                            )}
-                            {order.biological_notes && (
-                              <div className="bg-muted/50 rounded p-2 mt-2">
-                                <p className="text-xs text-muted-foreground mb-1">Notes:</p>
-                                <p className="text-xs sm:text-sm line-clamp-2">{order.biological_notes}</p>
                               </div>
                             )}
                           </div>
