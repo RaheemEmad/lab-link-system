@@ -189,10 +189,10 @@ const PatientCases = () => {
                       {/* Photo thumbnails */}
                       {c.photos.length > 0 && (
                         <div className="flex gap-1.5 overflow-hidden">
-                          {c.photos.slice(0, 3).map((url) => (
+                          {c.photos.slice(0, 3).map((url, idx) => (
                             <button
                               key={url}
-                              onClick={() => setLightboxUrl(url)}
+                              onClick={() => openLightbox(c.photos, idx)}
                               className="h-12 w-12 rounded-md overflow-hidden border bg-muted shrink-0 hover:ring-2 ring-primary transition-all"
                             >
                               <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
