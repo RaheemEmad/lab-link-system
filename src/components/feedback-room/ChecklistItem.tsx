@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Check, User } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
