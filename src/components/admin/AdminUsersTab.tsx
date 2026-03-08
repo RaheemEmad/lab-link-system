@@ -330,9 +330,7 @@ const AdminUsersTab = () => {
               <option value="lab_staff">Lab Staff</option>
               <option value="none">No Role</option>
             </select>
-            <Button onClick={exportUsers} variant="outline" className="shrink-0" size="sm">
-              Export CSV
-            </Button>
+            <ExportDropdown onExportCSV={exportUsersCSV} onExportPDF={exportUsersPDF} size="sm" />
           </div>
 
           {selectedUsers.size > 0 && (
