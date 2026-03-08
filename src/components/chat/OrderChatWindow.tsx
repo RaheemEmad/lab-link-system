@@ -153,11 +153,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
 
     if (error) {
       console.error('Error fetching messages:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load messages',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load messages');
       return;
     }
 
