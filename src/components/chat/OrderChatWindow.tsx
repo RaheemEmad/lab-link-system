@@ -327,13 +327,14 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
         setInputMessage(messageText);
       }
       
-      toast({
-        title: retryAttempt >= 3 ? 'Message Failed' : 'Error',
-        description: retryAttempt >= 3 
-          ? 'Failed to send after 3 attempts. Message restored for manual retry.' 
-          : 'Failed to send message',
-        variant: 'destructive',
-      });
+      toast.error(
+        retryAttempt >= 3 ? 'Message Failed' : 'Failed to send message',
+        { 
+          description: retryAttempt >= 3 
+            ? 'Failed to send after 3 attempts. Message restored for manual retry.' 
+            : undefined 
+        }
+      );
     } finally {
       setIsLoading(false);
     }
