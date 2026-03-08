@@ -39,6 +39,7 @@ const LandingNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
   const { playUrgentNotification } = useNotificationSound();
