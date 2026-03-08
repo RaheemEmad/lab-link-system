@@ -12,8 +12,9 @@ import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
 import { HelpButton } from "@/components/layout/HelpButton";
 import { NotificationPopup } from "@/components/notifications/NotificationPopup";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 
 // Eager load critical pages
 import Home from "./pages/Home";
