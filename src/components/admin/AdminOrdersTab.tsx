@@ -46,6 +46,8 @@ interface Order {
   driver_phone_whatsapp: string | null;
   carrier_name: string | null;
   carrier_phone: string | null;
+  handling_instructions: string | null;
+  approval_notes: string | null;
 }
 
 const AdminOrdersTab = () => {

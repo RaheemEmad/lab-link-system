@@ -52,6 +52,7 @@ interface OrderShipment {
   teeth_shade: string;
   shade_system: string | null;
   biological_notes: string | null;
+  approval_notes: string | null;
   assigned_lab: { name: string } | null;
 }
 
@@ -98,6 +99,7 @@ const LogisticsDashboard = () => {
             carrier_name, carrier_phone, driver_name, driver_phone_whatsapp,
             pickup_time, tracking_location, shipment_notes, created_at,
             restoration_type, teeth_number, teeth_shade, shade_system, biological_notes,
+            approval_notes, handling_instructions,
             assigned_lab:labs(name)
           `).not("assigned_lab_id", "is", null).order("created_at", { ascending: false });
 

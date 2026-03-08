@@ -1,8 +1,17 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Package, Calendar, User, FileText, Palette, Activity } from "lucide-react";
+import { Package, Calendar, User, FileText, Palette, Activity, StickyNote, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface OrderNote {
+  id: string;
+  note_text: string;
+  created_at: string;
+  profiles: { full_name: string | null } | null;
+}
 
 interface OrderDetailsModalProps {
   open: boolean;
@@ -20,6 +29,8 @@ interface OrderDetailsModalProps {
     teeth_shade: string;
     shade_system: string | null;
     biological_notes: string | null;
+    handling_instructions?: string | null;
+    approval_notes?: string | null;
     desired_delivery_date: string | null;
     assigned_lab: { name: string } | null;
     driver_name: string | null;
@@ -30,6 +41,29 @@ interface OrderDetailsModalProps {
 }
 
 export function OrderDetailsModal({ open, onOpenChange, order }: OrderDetailsModalProps) {
+  const [orderNotes, setOrderNotes] = useState<OrderNote[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+
+  useEffect(() => {
+    if (!open || !order?.id) return;
+    const fetchNotes = async () => {
+      setLoadingNotes(true);
+      try {
+        const { data } = await supabase
+          .from("order_notes")
+          .select("id, note_text, created_at, profiles:user_id(full_name)")
+          .eq("order_id", order.id)
+          .order("created_at", { ascending: false });
+        setOrderNotes((data as unknown as OrderNote[]) || []);
+      } catch {
+        // silent
+      } finally {
+        setLoadingNotes(false);
+      }
+    };
+    fetchNotes();
+  }, [open, order?.id]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Delivered":
@@ -42,6 +76,8 @@ export function OrderDetailsModal({ open, onOpenChange, order }: OrderDetailsMod
         return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
   };
+
+  const hasAnyNotes = order.biological_notes || order.handling_instructions || order.approval_notes || orderNotes.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,23 +145,73 @@ export function OrderDetailsModal({ open, onOpenChange, order }: OrderDetailsMod
           <div className="space-y-3">
             <h3 className="font-semibold flex items-center gap-2">
               <Palette className="h-4 w-4" />
-              Shade & Notes
+              Shade
             </h3>
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-muted-foreground">Teeth Shade:</span>
-                <p className="font-medium">{order.teeth_shade}</p>
-              </div>
-              {order.biological_notes && (
-                <div>
-                  <span className="text-muted-foreground">Biological Notes:</span>
-                  <p className="font-medium bg-muted p-3 rounded-lg mt-1">
-                    {order.biological_notes}
-                  </p>
-                </div>
-              )}
+            <div className="text-sm">
+              <span className="text-muted-foreground">Teeth Shade:</span>
+              <p className="font-medium">{order.teeth_shade}</p>
             </div>
           </div>
+
+          {/* Notes Section */}
+          {hasAnyNotes && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <StickyNote className="h-4 w-4" />
+                  Notes
+                </h3>
+                <div className="space-y-3 text-sm">
+                  {order.biological_notes && (
+                    <div>
+                      <span className="text-muted-foreground">Biological Notes:</span>
+                      <p className="font-medium bg-muted p-3 rounded-lg mt-1">
+                        {order.biological_notes}
+                      </p>
+                    </div>
+                  )}
+                  {order.handling_instructions && (
+                    <div>
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3 text-warning" />
+                        Handling Instructions:
+                      </span>
+                      <p className="font-medium bg-warning/10 border border-warning/20 p-3 rounded-lg mt-1">
+                        {order.handling_instructions}
+                      </p>
+                    </div>
+                  )}
+                  {order.approval_notes && (
+                    <div>
+                      <span className="text-muted-foreground">Approval Notes:</span>
+                      <p className="font-medium bg-primary/5 border border-primary/10 p-3 rounded-lg mt-1">
+                        {order.approval_notes}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Internal order notes from order_notes table */}
+                  {orderNotes.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-muted-foreground">Internal Notes:</span>
+                      {orderNotes.map((note) => (
+                        <div key={note.id} className="bg-muted/50 border border-border p-3 rounded-lg">
+                          <p className="font-medium">{note.note_text}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {note.profiles?.full_name || "Unknown"} — {format(new Date(note.created_at), "PPp")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {loadingNotes && (
+                    <p className="text-xs text-muted-foreground animate-pulse">Loading notes...</p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
 
           <Separator />
 

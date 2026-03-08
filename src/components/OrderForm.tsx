@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon, CalendarIcon } from "lucide-react";
+import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon, CalendarIcon, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,6 +29,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
 import BudgetSection from "./order/BudgetSection";
+import { ImportOrderDialog, ExtractedOrderData } from "./order/ImportOrderDialog";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -73,6 +74,22 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   const { user } = useAuth();
   const [doctorName, setDoctorName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+
+  const handleImportData = (data: ExtractedOrderData) => {
+    if (data.patientName) form.setValue("patientName", data.patientName);
+    if (data.doctorName) form.setValue("doctorName", data.doctorName);
+    if (data.restorationType && ["Zirconia", "Zirconia Layer", "Zirco-Max", "PFM", "Acrylic", "E-max"].includes(data.restorationType)) {
+      form.setValue("restorationType", data.restorationType as any);
+    }
+    if (data.teethNumber) form.setValue("teethNumber", data.teethNumber);
+    if (data.teethShade) form.setValue("teethShade", data.teethShade);
+    if (data.biologicalNotes) form.setValue("biologicalNotes", data.biologicalNotes);
+    if (data.handlingInstructions) form.setValue("handlingInstructions", data.handlingInstructions);
+    if (data.urgency && ["Normal", "Urgent"].includes(data.urgency)) {
+      form.setValue("urgency", data.urgency as any);
+    }
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -536,6 +553,19 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       <CardContent className="px-4 sm:px-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+            {/* Import Button */}
+            <div className="flex justify-end">
+              <Button type="button" variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                Import with AI
+              </Button>
+            </div>
+
+            <ImportOrderDialog
+              open={importDialogOpen}
+              onOpenChange={setImportDialogOpen}
+              onImport={handleImportData}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
