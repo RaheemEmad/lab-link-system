@@ -83,7 +83,7 @@ const LabCalendar = () => {
     staleTime: 30_000,
   });
 
-  const navigate = (dir: "prev" | "next") => {
+  const navigateDate = (dir: "prev" | "next") => {
     if (viewMode === "week") {
       setCurrentDate((d) => (dir === "prev" ? subWeeks(d, 1) : addWeeks(d, 1)));
     } else {
