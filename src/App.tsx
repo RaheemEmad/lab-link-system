@@ -48,8 +48,6 @@ const TrackOrders = lazy(() => import("./pages/TrackOrders"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const DoctorAchievements = lazy(() => import("./pages/DoctorAchievements"));
 const LabAchievements = lazy(() => import("./pages/LabAchievements"));
-const StyleGuide = lazy(() => import("./pages/StyleGuide"));
-const AutosaveDemo = lazy(() => import("./pages/AutosaveDemo"));
 const DraftsManager = lazy(() => import("./pages/DraftsManager"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
