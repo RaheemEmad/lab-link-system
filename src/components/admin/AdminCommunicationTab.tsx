@@ -130,9 +130,7 @@ const AdminCommunicationTab = () => {
               className="pl-10"
             />
           </div>
-          <Button onClick={exportNotes} variant="outline">
-            Export CSV
-          </Button>
+          <ExportDropdown onExportCSV={exportNotesCSV} onExportPDF={exportNotesPDF} />
         </div>
 
         <div className="overflow-x-auto">
