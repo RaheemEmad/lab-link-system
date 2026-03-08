@@ -308,10 +308,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
           const delay = Math.min(1000 * Math.pow(2, retryAttempt), 10000);
           console.log(`Retrying message send in ${delay}ms (attempt ${retryAttempt + 1})`);
           
-          toast({
-            title: 'Retrying...',
-            description: `Attempting to send message (${retryAttempt + 1}/3)`,
-          });
+          toast(`Retrying... (${retryAttempt + 1}/3)`);
 
           await new Promise(resolve => setTimeout(resolve, delay));
           setInputMessage(messageText);
