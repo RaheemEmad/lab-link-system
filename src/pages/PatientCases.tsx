@@ -92,7 +92,7 @@ const PatientCases = () => {
     navigate(`/new-order?${params.toString()}`);
   };
 
-  if (roleLoading) {
+  if (roleLoading || !roleConfirmed) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen flex items-center justify-center">
