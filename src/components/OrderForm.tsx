@@ -373,6 +373,17 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     setUploadProgress(0);
 
     try {
+      // Refresh session BEFORE any authenticated calls (upload + edge function)
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !refreshData.session) {
+        toast.error("Session expired", {
+          description: "Please log in again to submit your order.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      const session = refreshData.session;
+
       // Upload files first if any
       let photoUrls: string[] = [];
       if (uploadedFiles.length > 0) {
@@ -382,12 +393,6 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       }
 
       toast.info("Creating order...");
-      
-      // Get auth token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("No active session");
-      }
 
       // Call the create-order edge function with validation
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
