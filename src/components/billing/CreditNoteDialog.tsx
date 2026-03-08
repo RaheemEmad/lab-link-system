@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatEGP } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 interface CreditNoteDialogProps {
   open: boolean;
