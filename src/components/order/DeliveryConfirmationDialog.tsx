@@ -14,13 +14,22 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { createNotifications } from "@/lib/notifications";
-import { CheckCircle2, AlertTriangle, Package } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Package, BookmarkPlus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DeliveryConfirmationDialogProps {
   orderId: string;
   orderNumber: string;
   patientName: string;
   labName?: string;
+  restorationData?: {
+    restoration_type?: string;
+    teeth_number?: string;
+    teeth_shade?: string;
+    shade_system?: string;
+    biological_notes?: string;
+    assigned_lab_id?: string | null;
+  };
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmed: () => void;
@@ -31,6 +40,7 @@ export const DeliveryConfirmationDialog = ({
   orderNumber,
   patientName,
   labName,
+  restorationData,
   open,
   onOpenChange,
   onConfirmed,
@@ -40,6 +50,7 @@ export const DeliveryConfirmationDialog = ({
   const [issueNote, setIssueNote] = useState("");
   const [showIssueForm, setShowIssueForm] = useState(false);
   const [isReportingIssue, setIsReportingIssue] = useState(false);
+  const [saveAsCase, setSaveAsCase] = useState(true);
 
   const handleConfirmDelivery = async () => {
     if (!user) {
@@ -84,6 +95,43 @@ export const DeliveryConfirmationDialog = ({
       toast.success("Delivery confirmed!", {
         description: `Order #${orderNumber} has been marked as delivered.`,
       });
+
+      // Optionally save as patient case
+      if (saveAsCase && restorationData?.restoration_type && restorationData?.teeth_number && restorationData?.teeth_shade) {
+        // Check if case already exists for this patient
+        const { data: existing } = await supabase
+          .from("patient_cases")
+          .select("id, order_count")
+          .eq("doctor_id", user.id)
+          .eq("patient_name", patientName)
+          .maybeSingle();
+
+        if (existing) {
+          await supabase
+            .from("patient_cases")
+            .update({
+              last_order_id: orderId,
+              order_count: (existing.order_count || 1) + 1,
+              restoration_type: restorationData.restoration_type,
+              teeth_number: restorationData.teeth_number,
+              teeth_shade: restorationData.teeth_shade,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existing.id);
+        } else {
+          await supabase.from("patient_cases").insert({
+            doctor_id: user.id,
+            patient_name: patientName,
+            restoration_type: restorationData.restoration_type,
+            teeth_number: restorationData.teeth_number,
+            teeth_shade: restorationData.teeth_shade,
+            shade_system: restorationData.shade_system || null,
+            biological_notes: restorationData.biological_notes || null,
+            preferred_lab_id: restorationData.assigned_lab_id || null,
+            last_order_id: orderId,
+          });
+        }
+      }
 
       onConfirmed();
       onOpenChange(false);
@@ -206,9 +254,23 @@ export const DeliveryConfirmationDialog = ({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              By confirming, you acknowledge that you have received the dental work and it meets initial expectations.
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                By confirming, you acknowledge that you have received the dental work and it meets initial expectations.
+              </p>
+              {restorationData?.restoration_type && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={saveAsCase}
+                    onCheckedChange={(checked) => setSaveAsCase(checked === true)}
+                  />
+                  <span className="text-sm flex items-center gap-1.5">
+                    <BookmarkPlus className="h-3.5 w-3.5" />
+                    Save to Patient Case Library
+                  </span>
+                </label>
+              )}
+            </div>
           )}
         </div>
 
