@@ -465,7 +465,7 @@ const OrderDashboard = () => {
 
               {/* Date Range Filter */}
               <Select value={dateRange} onValueChange={(v) => { setDateRange(v); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px] min-h-[44px] sm:min-h-0">
                   <SelectValue placeholder="Date range" />
                 </SelectTrigger>
                 <SelectContent>
