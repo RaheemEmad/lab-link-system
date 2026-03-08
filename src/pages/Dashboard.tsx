@@ -132,35 +132,6 @@ const Dashboard = () => {
     }
   }, [location, navigate]);
 
-  // Request notification permission on mount if user is logged in
-  useEffect(() => {
-    if (user && isSupported && !isGranted) {
-      // Delay the request slightly to avoid disrupting the user experience
-      const timer = setTimeout(() => {
-        requestPermission();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [user, isSupported, isGranted, requestPermission]);
-
-  // Play sound and show browser notification when new urgent notifications arrive
-  useEffect(() => {
-    const isNewUrgent = hasUrgent && unreadCount > previousUrgentCountRef.current && previousUrgentCountRef.current > 0;
-    const isNewNotification = unreadCount > previousTotalCountRef.current && previousTotalCountRef.current > 0;
-
-    if (isNewUrgent) {
-      playUrgentNotification();
-      showUrgentNotification(unreadCount);
-      console.log('🔔 Urgent notification: sound + desktop notification');
-    } else if (isNewNotification) {
-      showNormalNotification(unreadCount);
-      console.log('📬 Normal notification: desktop notification');
-    }
-
-    previousUrgentCountRef.current = unreadCount;
-    previousTotalCountRef.current = unreadCount;
-  }, [unreadCount, hasUrgent, playUrgentNotification, showUrgentNotification, showNormalNotification]);
-
   // CRITICAL: Prevent rendering role-conditional UI until role is fully loaded
   if (roleLoading) {
     console.debug('[Dashboard] Showing loading state - role not yet loaded');
