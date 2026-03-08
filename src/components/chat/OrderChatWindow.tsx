@@ -443,7 +443,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   };
 
   return (
-    <Card className="fixed bottom-0 right-0 sm:bottom-4 sm:right-4 w-full sm:w-96 h-[100vh] sm:h-[600px] flex flex-col shadow-2xl z-50 border-2 border-primary/20 rounded-none sm:rounded-lg">
+    <Card className="fixed bottom-0 right-0 w-full h-[100dvh] sm:bottom-4 sm:right-4 sm:w-96 sm:h-[70vh] sm:max-h-[600px] md:w-[420px] lg:w-[450px] flex flex-col shadow-2xl z-50 border-2 border-primary/20 rounded-none sm:rounded-lg pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground">
         <div>
           <h3 className="font-semibold">Chat - Order {orderNumber}</h3>
@@ -573,14 +573,14 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
               }
             }}
             placeholder="Type your message..."
-            className="min-h-[60px] resize-none"
+            className="min-h-[44px] sm:min-h-[60px] resize-none text-sm"
             disabled={isLoading}
           />
           <Button
             onClick={() => handleSendMessage()}
             disabled={isLoading || !inputMessage.trim()}
             size="icon"
-            className="h-[60px] w-[60px]"
+            className="h-[44px] w-[44px] sm:h-[60px] sm:w-[60px] shrink-0"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
