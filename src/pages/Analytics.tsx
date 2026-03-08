@@ -176,7 +176,8 @@ const Analytics = () => {
         orders?.forEach((o) => {
           const orderMonth = o.created_at?.slice(0, 7);
           if (orderMonth === monthKey) {
-            o.invoices?.forEach((inv: any) => { rev += inv.final_total || 0; });
+            const inv = o.invoices as any;
+            if (inv) rev += inv.final_total || 0;
           }
         });
         monthlyRevenue.push({ month: label, revenue: rev });
