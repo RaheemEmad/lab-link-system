@@ -289,14 +289,13 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
     setIsTyping(false);
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('Not authenticated');
+      if (!currentUserId) throw new Error('Not authenticated');
 
       const { error: insertError } = await supabase
         .from('chat_messages')
         .insert({
           order_id: orderId,
-          sender_id: userData.user.id,
+          sender_id: currentUserId,
           sender_role: currentUserRole,
           message_text: messageText,
           is_ai_generated: false,
