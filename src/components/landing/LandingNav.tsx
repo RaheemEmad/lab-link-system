@@ -857,7 +857,7 @@ const LandingNav = () => {
                             setIsOpen(false);
                           }}
                         >
-                          Sign Up
+                          {t.nav.signUp}
                         </Button>
                       </div>
                     )}
