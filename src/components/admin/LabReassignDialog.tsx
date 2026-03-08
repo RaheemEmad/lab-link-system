@@ -41,6 +41,7 @@ export const LabReassignDialog = ({
   order,
   onSuccess,
 }: LabReassignDialogProps) => {
+  const { user } = useAuth();
   const [labs, setLabs] = useState<Lab[]>([]);
   const [selectedLabId, setSelectedLabId] = useState<string>("");
   const [loading, setLoading] = useState(false);
