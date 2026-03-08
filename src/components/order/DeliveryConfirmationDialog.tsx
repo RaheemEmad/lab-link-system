@@ -72,15 +72,13 @@ export const DeliveryConfirmationDialog = ({
 
       // Create notification for lab staff
       if (assignments && assignments.length > 0) {
-        const notifications = assignments.map((assignment) => ({
+        await createNotifications(assignments.map((assignment) => ({
           user_id: assignment.user_id,
           order_id: orderId,
           type: "delivery_confirmed",
           title: "Delivery Confirmed",
           message: `Doctor has confirmed delivery of Order #${orderNumber}`,
-        }));
-
-        await supabase.from("notifications").insert(notifications);
+        })));
       }
 
       toast.success("Delivery confirmed!", {
