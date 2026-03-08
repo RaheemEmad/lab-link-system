@@ -27,14 +27,9 @@ export default function LabProfile() {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(5);
 
-  // Fetch current user
-  const { data: user } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use auth hook instead of direct supabase.auth.getUser()
+  const { user } = useAuth();
+
 
   // Fetch lab details
   const { data: lab, isLoading: labLoading } = useQuery({
