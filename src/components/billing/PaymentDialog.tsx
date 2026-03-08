@@ -265,6 +265,32 @@ const PaymentDialog = ({
             )}
           </div>
 
+          {/* Payment Method */}
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select method" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_METHODS.map(m => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Payment Reference */}
+          <div className="space-y-2">
+            <Label htmlFor="payment-ref">Reference Number</Label>
+            <Input
+              id="payment-ref"
+              value={paymentReference}
+              onChange={(e) => setPaymentReference(e.target.value)}
+              placeholder="e.g. Transaction ID, check number..."
+            />
+          </div>
+
           {/* Payment Received Date */}
           <div className="space-y-2">
             <Label>Payment Received Date</Label>

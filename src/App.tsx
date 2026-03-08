@@ -128,6 +128,7 @@ const AppContent = () => {
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
             <Route path="/admin/pricing-rules" element={<PageTransition><PricingRulesManagement /></PageTransition>} />
+            <Route path="/invoice/:token" element={<PageTransition><SharedInvoice /></PageTransition>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
           </Routes>

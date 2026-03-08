@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.secure-login]
 verify_jwt = false
+
+[functions.invoice-share]
+verify_jwt = false
