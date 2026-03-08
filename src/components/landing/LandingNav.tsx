@@ -848,7 +848,7 @@ const LandingNav = () => {
                             setIsOpen(false);
                           }}
                         >
-                          Sign In
+                          {t.nav.signIn}
                         </Button>
                         <Button
                           className="w-full"
