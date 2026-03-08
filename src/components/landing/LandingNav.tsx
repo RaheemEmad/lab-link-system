@@ -699,7 +699,7 @@ const LandingNav = () => {
                               navigate("/lab-workflow");
                               setIsOpen(false);
                             }}
-                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
+                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
                           >
                             <Building2 className="h-4 w-4" />
                             Lab Workflow
