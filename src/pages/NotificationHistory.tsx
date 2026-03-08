@@ -97,7 +97,7 @@ const NotificationHistory = () => {
     mutationFn: async () => {
       if (!user?.id) throw new Error("No user");
 
-      console.log('[NotificationHistory] Marking all notifications as read for user:', user.id);
+      
 
       const { error } = await supabase
         .from("notifications")
