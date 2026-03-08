@@ -139,6 +139,11 @@ export const DeliveryConfirmationDialog = ({
 
       onConfirmed();
       onOpenChange(false);
+
+      // Prompt for review if lab info is available
+      if (labId && labName) {
+        setTimeout(() => setShowReviewDialog(true), 500);
+      }
     } catch (error: any) {
       console.error("Failed to confirm delivery:", error);
       toast.error("Failed to confirm delivery", {
