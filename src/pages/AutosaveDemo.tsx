@@ -51,10 +51,7 @@ export default function AutosaveDemo() {
   const onSubmit = (data: DemoFormValues) => {
     console.log("Form submitted:", data);
     
-    toast({
-      title: "✅ Form Submitted",
-      description: "Your data has been submitted successfully!",
-    });
+    toast.success("✅ Form Submitted");
 
     // Clear autosaved data on successful submission
     clearSavedData();
