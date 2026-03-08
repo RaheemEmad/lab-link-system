@@ -590,6 +590,12 @@ const LandingNav = () => {
                       <DropdownMenuItem asChild>
                         <Link to="/profile">Profile</Link>
                       </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Settings
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut} className="text-destructive">
                         <LogOut className="h-4 w-4 mr-2" />
