@@ -65,12 +65,8 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
   }));
 
   useEffect(() => {
-    // Detect network speed on mount
-    uploadQueue.current.detectNetworkSpeed().then(stats => {
-      toast.info(`Network detected: ${stats.quality}`, {
-        description: `Optimized for ${stats.recommendedConcurrency} concurrent uploads`
-      });
-    });
+    // Silently detect network speed on mount (no toast - avoids unnecessary re-render noise)
+    uploadQueue.current.detectNetworkSpeed();
   }, []);
 
   const getCategoryIcon = (category: string, fileName?: string) => {
