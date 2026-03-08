@@ -35,13 +35,7 @@ interface PaymentDialogProps {
   finalTotal: number;
 }
 
-// Helper function to format EGP currency
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  })}`;
-};
+import { formatEGP } from "@/lib/formatters";
 
 const PaymentDialog = ({
   open,

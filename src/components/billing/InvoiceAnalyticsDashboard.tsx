@@ -39,19 +39,7 @@ interface InvoiceAnalyticsDashboardProps {
   invoices: Invoice[];
 }
 
-// Helper to format EGP
-const formatEGP = (amount: number) => {
-  return `EGP ${amount.toLocaleString('en-EG', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 0 
-  })}`;
-};
-
-// Count teeth from FDI notation
-const countTeeth = (teethNumber: string): number => {
-  if (!teethNumber) return 0;
-  return teethNumber.split(',').filter(t => t.trim()).length;
-};
+import { formatEGP, countTeeth } from "@/lib/formatters";
 
 const InvoiceAnalyticsDashboard = ({ invoices }: InvoiceAnalyticsDashboardProps) => {
   const analytics = useMemo(() => {
