@@ -75,6 +75,39 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   const [doctorName, setDoctorName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const STEPS = [
+    { title: "Patient & Teeth", description: "Patient details and tooth selection" },
+    { title: "Restoration & Shade", description: "Material type, shade, and urgency" },
+    { title: "Lab & Delivery", description: "Lab selection, notes, and attachments" },
+  ];
+
+  const validateStep = async (step: number): Promise<boolean> => {
+    let fields: (keyof FormValues)[] = [];
+    switch (step) {
+      case 0: fields = ["doctorName", "patientName", "teethNumber"]; break;
+      case 1: fields = ["restorationType", "teethShade", "shadeSystem", "urgency"]; break;
+      case 2: fields = []; break;
+    }
+    if (fields.length === 0) return true;
+    return await form.trigger(fields);
+  };
+
+  const nextStep = async () => {
+    const isValid = await validateStep(currentStep);
+    if (isValid && currentStep < STEPS.length - 1) {
+      setCurrentStep(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleImportData = (data: ExtractedOrderData) => {
     if (data.patientName) form.setValue("patientName", data.patientName);
