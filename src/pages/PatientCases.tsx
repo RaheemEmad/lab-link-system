@@ -44,6 +44,7 @@ import { format } from "date-fns";
 
 const PatientCases = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isDoctor, isLoading: roleLoading, roleConfirmed } = useUserRole();
   const { cases, isLoading, deleteCase } = usePatientCases();
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,6 +52,9 @@ const PatientCases = () => {
   const [photoCase, setPhotoCase] = useState<PatientCase | null>(null);
   const [lightboxPhotos, setLightboxPhotos] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [ordersCase, setOrdersCase] = useState<PatientCase | null>(null);
+  const [caseOrders, setCaseOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   const openLightbox = useCallback((photos: string[], index: number) => {
     setLightboxPhotos(photos);
