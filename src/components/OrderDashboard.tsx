@@ -504,10 +504,7 @@ const OrderDashboard = () => {
                     onLoadPreset={handleLoadPreset}
                   />
                 )}
-                <Button variant="outline" size="sm" onClick={handleExport} disabled={filteredOrders.length === 0}>
-                  <Download className="h-4 w-4 mr-1.5" />
-                  <span className="hidden sm:inline">Export</span>
-                </Button>
+                <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} disabled={filteredOrders.length === 0} />
               </div>
             </div>
           </div>
