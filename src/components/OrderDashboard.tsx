@@ -462,7 +462,21 @@ const OrderDashboard = () => {
     <TooltipProvider>
       {/* KPI Cards */}
       <div className="mb-4">
-        <DashboardKPICards orders={orders} isLabStaff={!!isLabStaff} />
+        <DashboardKPICards
+          orders={orders}
+          isLabStaff={!!isLabStaff}
+          activeFilter={kpiFilter?.key || null}
+          onFilterChange={(filter) => {
+            setKpiFilter(filter);
+            if (filter) {
+              setStatusFilter("all");
+              setCurrentPage(1);
+              setTimeout(() => {
+                ordersTableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 100);
+            }
+          }}
+        />
       </div>
 
       {/* Workload Heatmap (Lab only) */}
