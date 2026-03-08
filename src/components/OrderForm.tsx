@@ -562,7 +562,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
 
   return (
     <Card className="shadow-lg w-full">
-      <CardHeader className="px-4 sm:px-6">
+      <CardHeader className="px-4 sm:px-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl sm:text-2xl">New Order Submission</CardTitle>
@@ -582,6 +582,49 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
           hasRecoveredData={autosaveState.hasRecoveredData}
           className="flex sm:hidden mt-2"
         />
+
+        {/* Step Progress Indicator */}
+        <div className="pt-2">
+          <div className="flex items-center justify-between relative">
+            {/* Progress line */}
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-muted">
+              <div
+                className="h-full bg-primary transition-all duration-500 ease-out"
+                style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
+              />
+            </div>
+            {STEPS.map((step, index) => {
+              const isComplete = index < currentStep;
+              const isCurrent = index === currentStep;
+              return (
+                <button
+                  key={step.title}
+                  type="button"
+                  onClick={() => {
+                    if (index < currentStep) setCurrentStep(index);
+                  }}
+                  disabled={index > currentStep}
+                  className="flex flex-col items-center gap-1.5 relative z-10 disabled:cursor-not-allowed"
+                >
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 border-2",
+                    isComplete && "bg-primary border-primary text-primary-foreground",
+                    isCurrent && "bg-primary border-primary text-primary-foreground scale-110 shadow-lg",
+                    !isComplete && !isCurrent && "bg-background border-muted-foreground/30 text-muted-foreground"
+                  )}>
+                    {isComplete ? <Check className="w-4 h-4" /> : <span>{index + 1}</span>}
+                  </div>
+                  <span className={cn(
+                    "text-[10px] sm:text-xs font-medium transition-colors duration-300 text-center max-w-[80px]",
+                    (isCurrent || isComplete) ? "text-foreground" : "text-muted-foreground"
+                  )}>
+                    {step.title}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="px-4 sm:px-6">
         <Form {...form}>
