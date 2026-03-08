@@ -159,7 +159,8 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
       return;
     }
 
-    setMessages(data || []);
+    // Reverse since we fetched desc for limit, but display asc
+    setMessages((data || []).reverse());
     
     // Mark unread messages as read in a single batch update
     const unreadMessageIds = data

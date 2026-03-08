@@ -227,7 +227,7 @@ const EditOrder = () => {
       // Fetch existing attachments
       const { data: attachments } = await supabase
         .from("order_attachments")
-        .select("*")
+        .select("id, order_id, file_name, file_path, file_type, file_size, attachment_category, uploaded_by, created_at")
         .eq("order_id", orderId);
       setExistingAttachments(attachments || []);
     } catch (error: any) {
