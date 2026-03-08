@@ -103,7 +103,7 @@ export const OrderQuickView = ({ order, open, onClose, onOpenChat, isDoctor }: O
                 <h4 className="text-sm font-semibold">Assigned Lab</h4>
                 <button
                   onClick={() => navigate(`/labs/${order.labs!.id}`)}
-                  className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                  className="flex items-center gap-2 text-sm hover:text-primary transition-colors min-h-[44px]"
                 >
                   <Building2 className="h-4 w-4" />
                   <span>{order.labs.name}</span>
