@@ -75,13 +75,10 @@ const OrderTracking = () => {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !roleLoading) {
       navigate("/auth");
-      return;
     }
-
-    fetchUserRole();
-  }, [user, navigate]);
+  }, [user, roleLoading, navigate]);
 
   useEffect(() => {
     if (userRole) {
