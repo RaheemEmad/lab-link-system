@@ -24,10 +24,12 @@ import { cn } from "@/lib/utils";
 import { ToothSelector } from "@/components/order/ToothSelector";
 import { ShadeSelector } from "@/components/order/ShadeSelector";
 import { LabSelector } from "@/components/order/LabSelector";
+import { FileUploadSection } from "@/components/order/FileUploadSection";
 import PageLayout from "@/components/layouts/PageLayout";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
 import { useConflictResolution } from "@/hooks/useConflictResolution";
+import { Paperclip } from "lucide-react";
 
 const formSchema = z.object({
   doctorName: z.string().min(2, "Doctor name is required"),
