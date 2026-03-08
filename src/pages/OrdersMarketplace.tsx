@@ -67,7 +67,7 @@ export default function OrdersMarketplace() {
     queryFn: async () => {
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select("*")
+        .select("id, order_number, restoration_type, urgency, created_at, desired_delivery_date, target_budget, status, auto_assign_pending, assigned_lab_id, teeth_shade, teeth_number, is_visible")
         .eq("auto_assign_pending", true)
         .is("assigned_lab_id", null)
         .order("created_at", { ascending: false });
