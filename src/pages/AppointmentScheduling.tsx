@@ -267,7 +267,10 @@ const AppointmentScheduling = () => {
       <div className="min-h-screen flex flex-col">
         <LandingNav />
         <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
-          <div className="container px-3 sm:px-4 lg:px-6 max-w-5xl mx-auto">
+           <div className="container px-3 sm:px-4 lg:px-6 max-w-5xl mx-auto">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="mb-2">
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back to Dashboard
+            </Button>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
               <div>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
