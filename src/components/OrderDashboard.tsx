@@ -638,7 +638,7 @@ const OrderDashboard = () => {
                         <DropdownMenuContent align="end" className="bg-popover border shadow-md z-50">
                           {order.assigned_lab_id && (
                             <>
-                              <DropdownMenuItem onClick={() => handleOpenChat(order)}>
+                              <DropdownMenuItem onClick={() => { setTimeout(() => handleOpenChat(order), 150); }}>
                                 <MessageCircle className="mr-2 h-4 w-4" />
                                 Open Chat
                               </DropdownMenuItem>
