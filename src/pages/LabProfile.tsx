@@ -38,7 +38,7 @@ export default function LabProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("labs")
-        .select("*")
+        .select("id, name, description, contact_email, contact_phone, address, is_active, max_capacity, current_load, standard_sla_days, urgent_sla_days, pricing_tier, performance_score, logo_url, website_url, is_sponsored, pricing_mode")
         .eq("id", labId)
         .maybeSingle();
       if (error) throw error;
