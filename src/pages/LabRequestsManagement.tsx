@@ -260,7 +260,7 @@ export default function LabRequestsManagement() {
     },
     onSuccess: (data, variables) => {
       if (variables.status === 'accepted' && data.orderNumber && data.orderId) {
-        console.log('[LabRequests] Request accepted, showing animation');
+        
         setAcceptedRequest({ id: variables.requestId, orderId: data.orderId, orderNumber: data.orderNumber });
       } else {
         console.log('[LabRequests] Request declined, invalidating queries');
