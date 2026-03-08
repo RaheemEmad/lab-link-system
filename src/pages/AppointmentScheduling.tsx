@@ -409,7 +409,9 @@ const AppointmentScheduling = () => {
                   <Select value={timeEnd} onValueChange={setTimeEnd}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TIME_SLOTS.filter((t) => t > timeStart).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {availableTimeSlots.filter((t) => t > timeStart).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                     </SelectContent>
                   </Select>
                 </div>
