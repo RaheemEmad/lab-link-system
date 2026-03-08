@@ -354,7 +354,21 @@ const OrderDashboard = () => {
         order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.doctor_name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      
+      // KPI filter takes priority over status dropdown
+      let matchesStatus = true;
+      if (kpiFilter) {
+        if (kpiFilter.status === "active") {
+          matchesStatus = !["Delivered", "Cancelled"].includes(order.status);
+        } else if (kpiFilter.status) {
+          matchesStatus = order.status === kpiFilter.status;
+        }
+        if (kpiFilter.urgency) {
+          matchesStatus = matchesStatus && order.urgency === kpiFilter.urgency && !["Delivered", "Cancelled"].includes(order.status);
+        }
+      } else {
+        matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      }
 
       // Date range filter
       let matchesDate = true;
@@ -389,7 +403,7 @@ const OrderDashboard = () => {
     });
 
     return result;
-  }, [orders, searchTerm, statusFilter, dateRange, sortField, sortDirection]);
+  }, [orders, searchTerm, statusFilter, dateRange, sortField, sortDirection, kpiFilter]);
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
