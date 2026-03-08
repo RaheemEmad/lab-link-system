@@ -159,25 +159,27 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
 
     setMessages(data || []);
     
-    // Mark unread messages as read
-    data?.forEach((msg) => {
-      if (!msg.read_at && msg.sender_id !== currentUserId) {
-        markMessageAsRead(msg.id);
-      }
-    });
+    // Mark unread messages as read in a single batch update
+    const unreadMessageIds = data
+      ?.filter((msg) => !msg.read_at && msg.sender_id !== currentUserId)
+      .map((msg) => msg.id) || [];
+    
+    if (unreadMessageIds.length > 0 && currentUserId) {
+      markMessagesAsRead(unreadMessageIds);
+    }
   };
 
-  const markMessageAsRead = async (messageId: string) => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
+  // Batch mark messages as read - single DB call instead of N+1
+  const markMessagesAsRead = async (messageIds: string[]) => {
+    if (!currentUserId || messageIds.length === 0) return;
 
     await supabase
       .from('chat_messages')
       .update({
         read_at: new Date().toISOString(),
-        read_by: userData.user.id,
+        read_by: currentUserId,
       })
-      .eq('id', messageId)
+      .in('id', messageIds)
       .is('read_at', null);
   };
 
