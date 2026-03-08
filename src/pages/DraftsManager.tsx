@@ -41,10 +41,7 @@ export default function DraftsManager() {
     setDrafts([]);
     setIsDeleting(false);
     
-    toast({
-      title: "All Drafts Deleted",
-      description: `Removed ${count} draft(s) from storage.`,
-    });
+    toast.success(`All Drafts Deleted - Removed ${count} draft(s)`);
   };
 
   const getDraftType = (key: string): string => {
