@@ -1,9 +1,10 @@
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -66,6 +67,7 @@ const LogisticsDashboard = () => {
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
   const [defaultTab, setDefaultTab] = useState<"details" | "notes">("details");
+  const [kpiFilter, setKpiFilter] = useState<string | null>(null);
   const tabBadges = useLogisticsTabBadges(user?.id, shipments);
 
   // Determine active tab from URL or default
@@ -156,6 +158,34 @@ const LogisticsDashboard = () => {
   const urgentShipments = shipments.filter(s => s.urgency === "Urgent").length;
   const priorityHandling = shipments.filter(s => s.urgency === "Urgent" && s.status !== "Delivered").length;
 
+  const kpiCards = [
+    { key: "total", label: "Total Shipments", value: totalShipments, icon: Package, color: "text-muted-foreground", desc: "All tracked orders" },
+    { key: "active", label: "Active Shipments", value: activeShipments, icon: Truck, color: "text-muted-foreground", desc: "With driver assigned" },
+    { key: "inTransit", label: "In Transit", value: ordersInTransit, icon: Package, color: "text-blue-500", desc: "Currently being transported" },
+    { key: "pending", label: "Pending Deliveries", value: pendingDeliveries, icon: AlertTriangle, color: "text-orange-500", desc: "Awaiting final delivery" },
+    { key: "ready", label: "Ready for Shipment", value: readyForShipment, icon: Package, color: "text-green-500", desc: "Ready to be dispatched" },
+    { key: "urgent", label: "Urgent Orders", value: urgentShipments, icon: AlertTriangle, color: "text-destructive", desc: "All urgent cases" },
+    { key: "priority", label: "Priority Handling", value: priorityHandling, icon: AlertTriangle, color: "text-red-500", desc: "Requiring special attention" },
+  ];
+
+  const filteredShipments = useMemo(() => {
+    if (!kpiFilter) return shipments;
+    switch (kpiFilter) {
+      case "total": return shipments;
+      case "active": return shipments.filter(s => s.driver_name || s.carrier_name);
+      case "inTransit": return shipments.filter(s => s.status === "In Progress" || s.status === "Ready for QC");
+      case "pending": return shipments.filter(s => s.status === "Ready for Delivery" && !s.actual_delivery_date);
+      case "ready": return shipments.filter(s => s.status === "Ready for Delivery");
+      case "urgent": return shipments.filter(s => s.urgency === "Urgent");
+      case "priority": return shipments.filter(s => s.urgency === "Urgent" && s.status !== "Delivered");
+      default: return shipments;
+    }
+  }, [shipments, kpiFilter]);
+
+  const handleKpiClick = (key: string) => {
+    setKpiFilter(prev => prev === key ? null : key);
+  };
+
   if (roleLoading || loading) {
     return <ProtectedRoute><LoadingScreen message="Loading logistics data..." /></ProtectedRoute>;
   }
@@ -191,16 +221,31 @@ const LogisticsDashboard = () => {
                 <TabsTrigger value="billing" className="gap-1.5 flex-shrink-0"><Receipt className="h-4 w-4" /><span className="hidden sm:inline">Billing</span>{tabBadges.billing > 0 && <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">{tabBadges.billing}</span>}</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="shipments" className="mt-6">
+              <TabsContent value="shipments" className="mt-6" onClick={(e) => { if (e.target === e.currentTarget && kpiFilter) setKpiFilter(null); }}>
                 {/* Key Metrics */}
                 <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Shipments</CardTitle><Package className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{totalShipments}</div><p className="text-xs text-muted-foreground mt-1">All tracked orders</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Active Shipments</CardTitle><Truck className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{activeShipments}</div><p className="text-xs text-muted-foreground mt-1">With driver assigned</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">In Transit</CardTitle><Package className="h-4 w-4 text-blue-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{ordersInTransit}</div><p className="text-xs text-muted-foreground mt-1">Currently being transported</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle><AlertTriangle className="h-4 w-4 text-orange-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{pendingDeliveries}</div><p className="text-xs text-muted-foreground mt-1">Awaiting final delivery</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Ready for Shipment</CardTitle><Package className="h-4 w-4 text-green-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-green-600 dark:text-green-400">{readyForShipment}</div><p className="text-xs text-muted-foreground mt-1">Ready to be dispatched</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Urgent Orders</CardTitle><AlertTriangle className="h-4 w-4 text-destructive" /></CardHeader><CardContent><div className="text-2xl font-bold text-destructive">{urgentShipments}</div><p className="text-xs text-muted-foreground mt-1">All urgent cases</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Priority Handling</CardTitle><AlertTriangle className="h-4 w-4 text-red-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-red-600 dark:text-red-400">{priorityHandling}</div><p className="text-xs text-muted-foreground mt-1">Requiring special attention</p></CardContent></Card>
+                  {kpiCards.map((card) => {
+                    const isActive = kpiFilter === card.key;
+                    return (
+                      <Card
+                        key={card.key}
+                        className={cn(
+                          "cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02]",
+                          isActive && "ring-2 ring-primary border-primary/50 shadow-md"
+                        )}
+                        onClick={() => handleKpiClick(card.key)}
+                      >
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
+                          <card.icon className={cn("h-4 w-4", card.color)} />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{card.value}</div>
+                          <p className="text-xs text-muted-foreground mt-1">{card.desc}</p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
 
                 {/* Shipment Tracking */}
@@ -210,11 +255,11 @@ const LogisticsDashboard = () => {
                     <CardDescription>Track deliveries and handling requirements</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {shipments.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground"><Package className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No active shipments</p></div>
+                    {filteredShipments.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground"><Package className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>{kpiFilter ? "No shipments match this filter" : "No active shipments"}</p></div>
                     ) : (
                       <div className="space-y-4">
-                        {shipments.map(shipment => (
+                        {filteredShipments.map(shipment => (
                           <div key={shipment.id} className="border rounded-lg p-4 hover:bg-primary/5 transition-colors">
                             <div className="flex items-start justify-between mb-3">
                               <div>

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { RotateCcw } from "lucide-react";
-
+import { createNotifications } from "@/lib/notifications";
 interface RestoreOrderDialogProps {
   orderId: string;
   orderNumber: string;
@@ -55,6 +55,34 @@ export function RestoreOrderDialog({
         .eq("id", orderId);
 
       if (error) throw error;
+
+      // Fetch assigned_lab_id to notify lab staff
+      const { data: orderData } = await supabase
+        .from("orders")
+        .select("assigned_lab_id")
+        .eq("id", orderId)
+        .single();
+
+      if (orderData?.assigned_lab_id) {
+        // Get all lab staff for this lab
+        const { data: labStaff } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("lab_id", orderData.assigned_lab_id)
+          .eq("role", "lab_staff");
+
+        if (labStaff && labStaff.length > 0) {
+          await createNotifications(
+            labStaff.map((staff) => ({
+              user_id: staff.user_id,
+              order_id: orderId,
+              type: "order_restored",
+              title: "Order Restored",
+              message: `Order ${orderNumber} has been restored and is back in your queue.`,
+            }))
+          );
+        }
+      }
 
       // Log to status history
       await supabase.from("order_status_history").insert({
