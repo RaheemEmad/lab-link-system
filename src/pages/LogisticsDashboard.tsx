@@ -10,12 +10,11 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft, FileText, Eye, Receipt, CalendarDays, Clock } from "lucide-react";
+import { Truck, Package, AlertTriangle, TrendingUp, BarChart3, Factory, Edit, ArrowLeft, FileText, Eye, Receipt, CalendarDays, Clock, ChevronRight, MapPin, Phone } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
-import { ShipmentDetailsDialog } from "@/components/order/ShipmentDetailsDialog";
-import { OrderDetailsModal } from "@/components/order/OrderDetailsModal";
+import { ShipmentDetailModal } from "@/components/order/ShipmentDetailModal";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import BillingTab from "@/components/billing/BillingTab";
 import { TrackingTabContent } from "@/components/logistics/TrackingTabContent";
@@ -66,8 +65,7 @@ const LogisticsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [shipments, setShipments] = useState<OrderShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
-  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
-  const [defaultTab, setDefaultTab] = useState<"details" | "notes">("details");
+  const [modalDefaultTab, setModalDefaultTab] = useState<"order" | "shipment" | "notes">("order");
   const [kpiFilter, setKpiFilter] = useState<string | null>(null);
   const tabBadges = useLogisticsTabBadges(user?.id, shipments);
 
@@ -133,7 +131,7 @@ const LogisticsDashboard = () => {
     if (orderId && openNotes === 'true' && shipments.length > 0) {
       const shipment = shipments.find(s => s.id === orderId);
       if (shipment) {
-        setDefaultTab("notes");
+        setModalDefaultTab("notes");
         setSelectedShipment(shipment);
         toast.success("New note received", { description: `Opening notes for order ${shipment.order_number}` });
         searchParams.delete('openNotes');
@@ -260,46 +258,78 @@ const LogisticsDashboard = () => {
                     {filteredShipments.length === 0 ? (
                       <div className="text-center py-12 text-muted-foreground"><Package className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>{kpiFilter ? "No shipments match this filter" : "No active shipments"}</p></div>
                     ) : (
-                      <div className="space-y-4">
-                        {filteredShipments.map(shipment => (
-                          <div key={shipment.id} className="border rounded-lg p-4 hover:bg-primary/5 transition-colors">
-                            <div className="flex items-start justify-between mb-3">
-                              <div>
-                                <div className="font-semibold">{shipment.order_number}</div>
-                                <div className="text-sm text-muted-foreground">{shipment.patient_name}</div>
-                                <div className="text-xs text-muted-foreground mt-1">{new Date(shipment.created_at).toLocaleDateString()} at {new Date(shipment.created_at).toLocaleTimeString()} • Dr. {shipment.doctor_name}</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {filteredShipments.map(shipment => {
+                          const statusAccent = shipment.status === "Delivered" ? "border-l-green-500" :
+                            shipment.status === "Ready for Delivery" ? "border-l-blue-500" :
+                            shipment.status === "In Progress" ? "border-l-yellow-500" : "border-l-muted-foreground";
+
+                          return (
+                            <div
+                              key={shipment.id}
+                              className={cn(
+                                "border rounded-lg border-l-4 p-4 cursor-pointer transition-all duration-200",
+                                "hover:shadow-md hover:bg-accent/50 active:scale-[0.98]",
+                                "min-h-[44px]",
+                                statusAccent
+                              )}
+                              onClick={() => { setModalDefaultTab("order"); setSelectedShipment(shipment); }}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => { if (e.key === "Enter") { setModalDefaultTab("order"); setSelectedShipment(shipment); } }}
+                            >
+                              {/* Header */}
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-sm truncate">{shipment.order_number}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{shipment.patient_name}</p>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", getStatusColor(shipment.status))}>{shipment.status}</Badge>
+                                  {shipment.urgency === "Urgent" && <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Urgent</Badge>}
+                                </div>
                               </div>
-                              <div className="flex gap-2">
-                                <Badge className={getStatusColor(shipment.status)}>{shipment.status}</Badge>
-                                {shipment.urgency === "Urgent" && <Badge variant="destructive">Urgent</Badge>}
+
+                              {/* Body Grid */}
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
+                                {shipment.assigned_lab && (
+                                  <div className="truncate"><span className="text-muted-foreground">Lab: </span><span className="font-medium">{shipment.assigned_lab.name}</span></div>
+                                )}
+                                {shipment.restoration_type && (
+                                  <div className="truncate"><span className="text-muted-foreground">Type: </span><span className="font-medium">{shipment.restoration_type}</span></div>
+                                )}
+                                {shipment.desired_delivery_date && (
+                                  <div><span className="text-muted-foreground">Desired: </span><span className="font-medium">{new Date(shipment.desired_delivery_date).toLocaleDateString()}</span></div>
+                                )}
+                                {shipment.proposed_delivery_date && (
+                                  <div><span className="text-muted-foreground">Proposed: </span><span className="font-medium">{new Date(shipment.proposed_delivery_date).toLocaleDateString()}</span></div>
+                                )}
+                              </div>
+
+                              {/* Carrier strip */}
+                              {(shipment.carrier_name || shipment.driver_name) && (
+                                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                  <Truck className="h-3 w-3 shrink-0" />
+                                  <span className="truncate">{[shipment.carrier_name, shipment.driver_name].filter(Boolean).join(" • ")}</span>
+                                </div>
+                              )}
+
+                              {/* Handling warning */}
+                              {shipment.handling_instructions && (
+                                <div className="flex items-center gap-1.5 mt-2 text-xs rounded bg-yellow-500/10 px-2 py-1 border border-yellow-500/20">
+                                  <AlertTriangle className="h-3 w-3 text-yellow-600 dark:text-yellow-400 shrink-0" />
+                                  <span className="text-yellow-700 dark:text-yellow-300 truncate">{shipment.handling_instructions}</span>
+                                </div>
+                              )}
+
+                              {/* Tap hint (mobile) */}
+                              <div className="flex items-center justify-end mt-2 text-[10px] text-muted-foreground sm:hidden">
+                                <span>Tap for details</span>
+                                <ChevronRight className="h-3 w-3 ml-0.5" />
                               </div>
                             </div>
-                            {shipment.assigned_lab && <div className="text-sm text-muted-foreground mb-2">Lab: {shipment.assigned_lab.name}</div>}
-                            {shipment.shipment_tracking && <div className="flex items-center gap-2 text-sm mb-2"><Truck className="h-4 w-4" /><span className="font-mono">{shipment.shipment_tracking}</span></div>}
-                            {shipment.handling_instructions && (
-                              <div className="flex items-start gap-2 text-sm bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
-                                <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500 mt-0.5" />
-                                <div><div className="font-medium text-yellow-700 dark:text-yellow-400">Handling Instructions:</div><div className="text-yellow-600 dark:text-yellow-300">{shipment.handling_instructions}</div></div>
-                              </div>
-                            )}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                              {shipment.desired_delivery_date && <div className="text-sm"><span className="text-muted-foreground">Desired: </span><span className="font-medium">{new Date(shipment.desired_delivery_date).toLocaleDateString()}</span></div>}
-                              {shipment.proposed_delivery_date && <div className="text-sm"><span className="text-muted-foreground">Proposed: </span><span className="font-medium text-blue-600 dark:text-blue-400">{new Date(shipment.proposed_delivery_date).toLocaleDateString()}</span></div>}
-                            </div>
-                            {shipment.carrier_name && (
-                              <div className="flex items-center gap-4 text-sm mt-3 bg-blue-500/10 p-2 rounded">
-                                <div><span className="text-muted-foreground">Carrier: </span><span className="font-medium">{shipment.carrier_name}</span></div>
-                                {shipment.carrier_phone && <div><span className="text-muted-foreground">Phone: </span><span className="font-medium">{shipment.carrier_phone}</span></div>}
-                              </div>
-                            )}
-                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              <Button size="sm" variant="outline" onClick={() => setSelectedOrderForDetails(shipment)}><FileText className="h-4 w-4 mr-2" />Order Details</Button>
-                              <Button size="sm" variant="outline" onClick={() => setSelectedShipment(shipment)}>
-                                {roleConfirmed && role === "lab_staff" ? (<><Edit className="h-4 w-4 mr-2" />Edit Shipment & Notes</>) : (<><Eye className="h-4 w-4 mr-2" />View Shipment & Notes</>)}
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>
@@ -334,21 +364,13 @@ const LogisticsDashboard = () => {
       </div>
 
       {selectedShipment && (
-        <ShipmentDetailsDialog
+        <ShipmentDetailModal
           open={!!selectedShipment}
-          onOpenChange={(open) => { if (!open) { setSelectedShipment(null); setDefaultTab("details"); } }}
+          onOpenChange={(open) => { if (!open) { setSelectedShipment(null); setModalDefaultTab("order"); } }}
           order={selectedShipment}
           onUpdate={() => { setSelectedShipment(null); window.location.reload(); }}
           userRole={roleConfirmed ? (role || undefined) : undefined}
-          defaultTab={defaultTab}
-        />
-      )}
-
-      {selectedOrderForDetails && (
-        <OrderDetailsModal
-          open={!!selectedOrderForDetails}
-          onOpenChange={(open) => !open && setSelectedOrderForDetails(null)}
-          order={selectedOrderForDetails}
+          defaultTab={modalDefaultTab}
         />
       )}
     </ProtectedRoute>
