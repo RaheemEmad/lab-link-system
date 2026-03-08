@@ -28,6 +28,7 @@ import {
 import { formatEGP } from "@/lib/formatters";
 
 const Analytics = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { role, labId, isDoctor, isLabStaff, isLoading: roleLoading } = useUserRole();
 
