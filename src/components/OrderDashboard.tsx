@@ -631,7 +631,7 @@ const OrderDashboard = () => {
                       )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="min-w-[44px]">
+                          <Button variant="outline" size="sm" className="min-w-[44px] min-h-[44px]">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
