@@ -762,7 +762,7 @@ const OrderDashboard = () => {
                               openSanitizedHtmlPreview(order.html_export!);
                             }
                           }}
-                          className="flex-1"
+                          className="flex-1 min-h-[44px] press-feedback"
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           Preview
