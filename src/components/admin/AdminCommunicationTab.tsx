@@ -86,11 +86,17 @@ const AdminCommunicationTab = () => {
     note.author_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const exportNotes = async () => {
+  const exportNotesCSV = async () => {
     const { exportToCSV, prepareNotesForExport } = await import("@/lib/exportUtils");
     const exportData = prepareNotesForExport(filteredNotes);
     exportToCSV(exportData, `communication-export-${new Date().toISOString().split("T")[0]}`);
-    toast.success("Communication logs exported successfully");
+    toast.success("Communication logs exported as CSV");
+  };
+
+  const exportNotesPDF = async () => {
+    const { exportToPDF, prepareNotesForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareNotesForExport(filteredNotes);
+    exportToPDF(exportData, "Communication Monitor", `communication-export-${new Date().toISOString().split("T")[0]}`);
   };
 
   if (loading) {
