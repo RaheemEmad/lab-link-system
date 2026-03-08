@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon, CalendarIcon, Sparkles } from "lucide-react";
+import { CheckCircle2, Upload, X, Loader2, AlertCircle, Image as ImageIcon, CalendarIcon, Sparkles, Check, ChevronRight, ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
