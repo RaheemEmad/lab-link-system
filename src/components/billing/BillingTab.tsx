@@ -636,10 +636,26 @@ const BillingTab = () => {
         </CardContent>
       </Card>
 
+      {/* Late Fee Settings for Lab Staff */}
+      {(role === 'lab_staff') && <LateFeeSettings />}
+
       {/* Monthly Billing Summary Dialog */}
       <MonthlyBillingSummary 
         open={showMonthlySummary} 
         onOpenChange={setShowMonthlySummary} 
+      />
+
+      {/* Bulk Payment Dialog */}
+      <BulkPaymentDialog
+        open={showBulkPayment}
+        onOpenChange={setShowBulkPayment}
+        invoices={invoices || []}
+      />
+
+      {/* Statement Generator Dialog */}
+      <StatementGenerator
+        open={showStatementGenerator}
+        onOpenChange={setShowStatementGenerator}
       />
     </div>
   );

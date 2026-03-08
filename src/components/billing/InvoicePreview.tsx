@@ -926,6 +926,14 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         currentPaymentReceivedAt={invoice.payment_received_at}
         finalTotal={invoice.final_total}
       />
+
+      <CreditNoteDialog
+        open={showCreditNoteDialog}
+        onOpenChange={setShowCreditNoteDialog}
+        invoiceId={invoice.id}
+        invoiceNumber={invoice.invoice_number}
+        maxAmount={invoice.final_total}
+      />
     </div>
   );
 };
