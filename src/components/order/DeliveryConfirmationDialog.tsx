@@ -42,6 +42,7 @@ export const DeliveryConfirmationDialog = ({
   orderNumber,
   patientName,
   labName,
+  labId,
   restorationData,
   open,
   onOpenChange,
@@ -49,6 +50,7 @@ export const DeliveryConfirmationDialog = ({
 }: DeliveryConfirmationDialogProps) => {
   const { user } = useAuth();
   const [isConfirming, setIsConfirming] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [issueNote, setIssueNote] = useState("");
   const [showIssueForm, setShowIssueForm] = useState(false);
   const [isReportingIssue, setIsReportingIssue] = useState(false);
