@@ -74,6 +74,22 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
   const { user } = useAuth();
   const [doctorName, setDoctorName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+
+  const handleImportData = (data: ExtractedOrderData) => {
+    if (data.patientName) form.setValue("patientName", data.patientName);
+    if (data.doctorName) form.setValue("doctorName", data.doctorName);
+    if (data.restorationType && ["Zirconia", "Zirconia Layer", "Zirco-Max", "PFM", "Acrylic", "E-max"].includes(data.restorationType)) {
+      form.setValue("restorationType", data.restorationType as any);
+    }
+    if (data.teethNumber) form.setValue("teethNumber", data.teethNumber);
+    if (data.teethShade) form.setValue("teethShade", data.teethShade);
+    if (data.biologicalNotes) form.setValue("biologicalNotes", data.biologicalNotes);
+    if (data.handlingInstructions) form.setValue("handlingInstructions", data.handlingInstructions);
+    if (data.urgency && ["Normal", "Urgent"].includes(data.urgency)) {
+      form.setValue("urgency", data.urgency as any);
+    }
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
