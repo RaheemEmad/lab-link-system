@@ -50,6 +50,7 @@ export const DeliveryConfirmationDialog = ({
   const [issueNote, setIssueNote] = useState("");
   const [showIssueForm, setShowIssueForm] = useState(false);
   const [isReportingIssue, setIsReportingIssue] = useState(false);
+  const [saveAsCase, setSaveAsCase] = useState(true);
 
   const handleConfirmDelivery = async () => {
     if (!user) {
