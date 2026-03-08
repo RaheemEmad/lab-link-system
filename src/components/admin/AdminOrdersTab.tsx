@@ -216,11 +216,17 @@ const AdminOrdersTab = () => {
     }
   };
 
-  const exportOrders = async () => {
+  const exportOrdersCSV = async () => {
     const { exportToCSV, prepareOrdersForExport } = await import("@/lib/exportUtils");
     const exportData = prepareOrdersForExport(filteredOrders);
     exportToCSV(exportData, `orders-export-${new Date().toISOString().split("T")[0]}`);
-    toast.success("Orders exported successfully");
+    toast.success("Orders exported as CSV");
+  };
+
+  const exportOrdersPDF = async () => {
+    const { exportToPDF, prepareOrdersForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareOrdersForExport(filteredOrders);
+    exportToPDF(exportData, "Orders Export", `orders-export-${new Date().toISOString().split("T")[0]}`);
   };
 
   if (loading) {
