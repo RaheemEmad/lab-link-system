@@ -223,6 +223,13 @@ const EditOrder = () => {
       form.reset(formData);
       setOriginalData(formData);
       setOrderUpdatedAt(data.updated_at);
+
+      // Fetch existing attachments
+      const { data: attachments } = await supabase
+        .from("order_attachments")
+        .select("*")
+        .eq("order_id", orderId);
+      setExistingAttachments(attachments || []);
     } catch (error: any) {
       console.error("Error fetching order:", error);
       toast.error("Failed to load order", { description: error.message });
