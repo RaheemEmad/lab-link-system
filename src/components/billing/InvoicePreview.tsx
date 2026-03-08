@@ -598,9 +598,21 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         <div className="flex flex-wrap gap-2">
           {/* Allow PDF export for generated, locked, and finalized invoices - for all authenticated users */}
           {(invoice.status === 'finalized' || invoice.status === 'locked' || invoice.status === 'generated') && (
-            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1.5">
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export</span> PDF
+            <>
+              <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1.5">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Export</span> PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShareInvoice} disabled={isGeneratingShareLink} className="gap-1.5">
+                {isGeneratingShareLink ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+                <span className="hidden sm:inline">Share</span>
+              </Button>
+            </>
+          )}
+          {invoice.status === 'finalized' && (role === 'admin' || role === 'lab_staff') && (
+            <Button variant="outline" size="sm" onClick={() => setShowCreditNoteDialog(true)} className="gap-1.5">
+              <MinusCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Credit Note</span>
             </Button>
           )}
           {invoice.status !== 'finalized' && invoice.status !== 'disputed' && (role === 'doctor' || role === 'lab_staff') && (
