@@ -88,7 +88,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
           }
           
           // Mark as read
-          markMessageAsRead(newMessage.id);
+          markMessagesAsRead([newMessage.id]);
         }
       )
       .on(
