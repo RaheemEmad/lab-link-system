@@ -945,11 +945,7 @@ const LabOrderDetail = () => {
                         if (isUrl) {
                           window.open(order.html_export!, '_blank', 'noopener,noreferrer');
                         } else {
-                          const previewWindow = window.open('', '_blank');
-                          if (previewWindow && order.html_export) {
-                            previewWindow.document.write(order.html_export);
-                            previewWindow.document.close();
-                          }
+                          openSanitizedHtmlPreview(order.html_export!);
                         }
                       }}
                     >

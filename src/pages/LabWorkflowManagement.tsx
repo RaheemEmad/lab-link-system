@@ -538,11 +538,7 @@ const OrderWorkflowCard = ({
                   if (isUrl) {
                     window.open(order.html_export!, '_blank', 'noopener,noreferrer');
                   } else {
-                    const previewWindow = window.open('', '_blank');
-                    if (previewWindow && order.html_export) {
-                      previewWindow.document.write(order.html_export);
-                      previewWindow.document.close();
-                    }
+                    openSanitizedHtmlPreview(order.html_export!);
                   }
                 }}
                 className="relative w-16 h-16 rounded-md overflow-hidden border border-border bg-muted flex-shrink-0 hover:border-primary hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
