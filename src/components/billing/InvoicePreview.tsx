@@ -79,6 +79,8 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showResolutionDialog, setShowResolutionDialog] = useState(false);
+  const [showCreditNoteDialog, setShowCreditNoteDialog] = useState(false);
+  const [isGeneratingShareLink, setIsGeneratingShareLink] = useState(false);
 
   // Fetch full order details for PDF
   const { data: orderDetails } = useQuery({
