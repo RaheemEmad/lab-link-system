@@ -31,6 +31,10 @@ import InvoiceGenerator from "./InvoiceGenerator";
 import ExpenseTracker from "./ExpenseTracker";
 import MonthlyBillingSummary from "./MonthlyBillingSummary";
 import InvoiceSortControls, { SortField, SortDirection } from "./InvoiceSortControls";
+import AgingReport from "./AgingReport";
+import BulkPaymentDialog from "./BulkPaymentDialog";
+import StatementGenerator from "./StatementGenerator";
+import LateFeeSettings from "./LateFeeSettings";
 
 import { formatEGP } from "@/lib/formatters";
 
