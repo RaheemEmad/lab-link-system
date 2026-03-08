@@ -274,7 +274,6 @@ export default function OrderNotesDialog({
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("order_notes").insert({
