@@ -234,7 +234,7 @@ export default function LabRequestsManagement() {
         if (refuseError) {
           console.warn('[LabRequests] Error refusing other requests:', refuseError);
         } else {
-          console.log('[LabRequests] Other pending requests refused');
+          
         }
         
         // 5. Send notification to accepted lab
