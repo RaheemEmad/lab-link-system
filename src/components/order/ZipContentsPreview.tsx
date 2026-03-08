@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { formatFileSize } from "@/lib/formatters";
 import { 
   FileArchive, 
   FileText, 
