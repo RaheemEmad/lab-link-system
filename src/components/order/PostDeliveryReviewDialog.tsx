@@ -73,6 +73,8 @@ export const PostDeliveryReviewDialog = ({
   const [qualityRating, setQualityRating] = useState(5);
   const [turnaroundRating, setTurnaroundRating] = useState(5);
   const [communicationRating, setCommunicationRating] = useState(5);
+  const [valueRating, setValueRating] = useState(5);
+  const [accuracyRating, setAccuracyRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
