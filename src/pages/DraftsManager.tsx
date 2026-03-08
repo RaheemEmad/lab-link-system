@@ -31,10 +31,7 @@ export default function DraftsManager() {
     const success = deleteDraft(key);
     if (success) {
       setDrafts(getAllDrafts());
-      toast({
-        title: "Draft Deleted",
-        description: "The draft has been removed.",
-      });
+      toast.success("Draft Deleted");
     }
   };
 
