@@ -74,6 +74,7 @@ const TIME_SLOTS = [
 ];
 
 const AppointmentScheduling = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { isDoctor, isLabStaff, isLoading: roleLoading } = useUserRole();
   const queryClient = useQueryClient();
