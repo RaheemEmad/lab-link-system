@@ -42,10 +42,13 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { OrderStatusDialog } from "./order/OrderStatusDialog";
 import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
-import OrderNotesDialog from "./order/OrderNotesDialog";
 import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
-import { OrderChatWindow } from "./chat/OrderChatWindow";
 import { cn } from "@/lib/utils";
+import { useDialogState } from "./dashboard/useDialogState";
+
+// Lazy-load heavy dialog components
+const OrderNotesDialog = lazy(() => import("./order/OrderNotesDialog"));
+const OrderChatWindow = lazy(() => import("./chat/OrderChatWindow").then(m => ({ default: m.OrderChatWindow })));
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered" | "Cancelled";
 
