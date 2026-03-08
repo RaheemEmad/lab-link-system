@@ -34,6 +34,7 @@ export function CancelOrderDialog({
   trigger,
   onSuccess 
 }: CancelOrderDialogProps) {
+  const { user } = useAuth();
   const [reason, setReason] = useState("");
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
