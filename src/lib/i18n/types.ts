@@ -142,4 +142,20 @@ export interface Translations {
     alerts: string;
     profile: string;
   };
+  inbox: {
+    title: string;
+    subtitle: string;
+    all: string;
+    chats: string;
+    approvals: string;
+    deliveries: string;
+    invoices: string;
+    reply: string;
+    approve: string;
+    reject: string;
+    confirmDelivery: string;
+    payNow: string;
+    allCaughtUp: string;
+    noItems: string;
+  };
 }

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Star, Building2, Truck, Shield, Plus, FilePlus, Package, Settings } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Trophy, Star, Building2, Truck, Shield, Plus, FilePlus, Package, Settings, Inbox as InboxIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageToggle } from "@/components/ui/language-toggle";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -515,17 +515,17 @@ const LandingNav = () => {
                     </Tooltip>
                   )}
 
-                  {/* Notifications Icon */}
+                  {/* Inbox Icon */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300"
-                        onClick={() => navigate("/notifications")}
+                        onClick={() => navigate("/inbox")}
                       >
                         <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
-                        <Bell className={`h-4 w-4 relative z-10 transition-all duration-300 ${hasUrgent ? 'animate-pulse text-destructive' : 'group-hover:scale-110 group-hover:text-ocean-blue'}`} />
+                        <InboxIcon className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-ocean-blue" />
                         {unreadCount > 0 && (
                           <motion.span 
                             className={`absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg border-2 border-background ${
@@ -559,7 +559,7 @@ const LandingNav = () => {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{hasUrgent ? '🔔 Urgent notifications!' : `Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}`}</p>
+                      <p>{hasUrgent ? '🔔 Urgent notifications!' : `Inbox ${unreadCount > 0 ? `(${unreadCount})` : ''}`}</p>
                     </TooltipContent>
                   </Tooltip>
 
