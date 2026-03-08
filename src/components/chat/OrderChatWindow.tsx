@@ -46,7 +46,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
-  const { toast } = useToast();
+  // Removed useToast - using sonner toast directly
   const messageSound = useRef<HTMLAudioElement | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [retryQueue, setRetryQueue] = useState<Map<string, { message: string; retries: number }>>(new Map());
