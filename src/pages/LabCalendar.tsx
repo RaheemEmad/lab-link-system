@@ -168,7 +168,7 @@ const LabCalendar = () => {
             {/* Date Navigation */}
             <Card className="mb-6">
               <CardContent className="py-3 flex items-center justify-between">
-                <Button variant="ghost" size="icon" onClick={() => navigate("prev")}>
+                <Button variant="ghost" size="icon" onClick={() => navigateDate("prev")}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <div className="text-center">
