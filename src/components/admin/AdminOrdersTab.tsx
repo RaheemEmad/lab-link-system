@@ -272,9 +272,7 @@ const AdminOrdersTab = () => {
             <option value="Ready for Delivery">Ready for Delivery</option>
             <option value="Delivered">Delivered</option>
           </select>
-          <Button onClick={exportOrders} variant="outline">
-            Export CSV
-          </Button>
+          <ExportDropdown onExportCSV={exportOrdersCSV} onExportPDF={exportOrdersPDF} />
         </div>
 
         {selectedOrders.size > 0 && (
