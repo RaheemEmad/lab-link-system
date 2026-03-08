@@ -81,6 +81,9 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
         .order("timestamp", { ascending: false })
         .range(offset, offset + ORDERS_PER_PAGE - 1);
 
+      // Filter out soft-deleted orders
+      query = query.eq("is_deleted", false);
+
       // Role-based filtering
       if (isDoctor) {
         query = query.eq("doctor_id", user.id);
