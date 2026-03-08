@@ -66,6 +66,7 @@ const LogisticsDashboard = () => {
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
   const [defaultTab, setDefaultTab] = useState<"details" | "notes">("details");
+  const tabBadges = useLogisticsTabBadges(user?.id, shipments);
 
   // Determine active tab from URL or default
   const tabParam = searchParams.get("tab") as TabValue | null;
