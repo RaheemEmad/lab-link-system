@@ -593,7 +593,7 @@ const LandingNav = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link to="/profile">Profile</Link>
+                        <Link to="/profile">{t.nav.profile}</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/settings">
