@@ -46,6 +46,7 @@ type SignInValues = z.infer<typeof signInSchema>;
 const Auth = () => {
   const { user, signUp, signIn } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [confirmedEmail, setConfirmedEmail] = useState("");
