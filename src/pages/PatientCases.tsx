@@ -188,19 +188,13 @@ const PatientCases = () => {
             ))}
           </div>
         ) : filteredCases.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-              <h3 className="font-semibold text-lg mb-1">
-                {searchQuery ? "No matching cases" : "No patient cases yet"}
-              </h3>
-              <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                {searchQuery
-                  ? "Try a different search term."
-                  : "Cases are automatically saved when you confirm delivery of an order."}
-              </p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={FolderOpen}
+            title={searchQuery ? "No matching cases" : "No patient cases yet"}
+            description={searchQuery ? "Try a different search term." : "Cases are automatically saved when you confirm delivery of an order."}
+            actionLabel={!searchQuery ? "Create New Order" : undefined}
+            onAction={!searchQuery ? () => navigate("/new-order") : undefined}
+          />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCases.map((c) => (

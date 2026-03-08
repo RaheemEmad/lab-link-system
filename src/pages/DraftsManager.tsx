@@ -111,15 +111,13 @@ export default function DraftsManager() {
         </div>
 
         {drafts.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-              <h2 className="text-xl font-semibold mb-2">No Drafts Found</h2>
-              <p className="text-muted-foreground">
-                Your autosaved drafts will appear here when you start filling out forms.
-              </p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={FileText}
+            title="No Drafts Found"
+            description="Your autosaved drafts will appear here when you start filling out forms."
+            actionLabel="Create New Order"
+            onAction={() => window.location.href = "/new-order"}
+          />
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between">

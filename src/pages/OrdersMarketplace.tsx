@@ -449,17 +449,14 @@ export default function OrdersMarketplace() {
                 ))}
               </div>
             ) : !paginatedOrders || paginatedOrders.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 sm:py-12 text-center">
-                  <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-base sm:text-lg font-medium mb-2">
-                    {filteredOrders && filteredOrders.length > 0 ? "No orders match your filters" : "No available orders"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Orders will appear here when doctors submit new cases with auto-assign enabled.
-                  </p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Package}
+                title={filteredOrders && filteredOrders.length > 0 ? "No orders match your filters" : "No available orders"}
+                description="Orders will appear here when doctors submit new cases with auto-assign enabled."
+                actionLabel="Refresh"
+                onAction={() => queryClient.invalidateQueries({ queryKey: ["marketplace-orders", labId] })}
+                actionIcon={RefreshCw}
+              />
             ) : (
               <>
                 <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
