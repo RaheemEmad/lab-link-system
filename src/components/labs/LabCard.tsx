@@ -87,7 +87,7 @@ const getCapacityColor = (currentLoad: number, maxCapacity: number) => {
   return 'text-destructive';
 };
 
-export function LabCard({ lab, specializations, isVerified = false, minLabPrice }: LabCardProps) {
+export const LabCard = memo(function LabCard({ lab, specializations, isVerified = false, minLabPrice }: LabCardProps) {
   const capacityPercentage = (lab.current_load / lab.max_capacity) * 100;
   const isSponsored = lab.is_sponsored;
   
