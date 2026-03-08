@@ -220,16 +220,31 @@ const LogisticsDashboard = () => {
                 <TabsTrigger value="billing" className="gap-1.5 flex-shrink-0"><Receipt className="h-4 w-4" /><span className="hidden sm:inline">Billing</span>{tabBadges.billing > 0 && <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">{tabBadges.billing}</span>}</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="shipments" className="mt-6">
+              <TabsContent value="shipments" className="mt-6" onClick={(e) => { if (e.target === e.currentTarget && kpiFilter) setKpiFilter(null); }}>
                 {/* Key Metrics */}
                 <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Shipments</CardTitle><Package className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{totalShipments}</div><p className="text-xs text-muted-foreground mt-1">All tracked orders</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Active Shipments</CardTitle><Truck className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{activeShipments}</div><p className="text-xs text-muted-foreground mt-1">With driver assigned</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">In Transit</CardTitle><Package className="h-4 w-4 text-blue-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{ordersInTransit}</div><p className="text-xs text-muted-foreground mt-1">Currently being transported</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle><AlertTriangle className="h-4 w-4 text-orange-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{pendingDeliveries}</div><p className="text-xs text-muted-foreground mt-1">Awaiting final delivery</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Ready for Shipment</CardTitle><Package className="h-4 w-4 text-green-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-green-600 dark:text-green-400">{readyForShipment}</div><p className="text-xs text-muted-foreground mt-1">Ready to be dispatched</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Urgent Orders</CardTitle><AlertTriangle className="h-4 w-4 text-destructive" /></CardHeader><CardContent><div className="text-2xl font-bold text-destructive">{urgentShipments}</div><p className="text-xs text-muted-foreground mt-1">All urgent cases</p></CardContent></Card>
-                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Priority Handling</CardTitle><AlertTriangle className="h-4 w-4 text-red-500" /></CardHeader><CardContent><div className="text-2xl font-bold text-red-600 dark:text-red-400">{priorityHandling}</div><p className="text-xs text-muted-foreground mt-1">Requiring special attention</p></CardContent></Card>
+                  {kpiCards.map((card) => {
+                    const isActive = kpiFilter === card.key;
+                    return (
+                      <Card
+                        key={card.key}
+                        className={cn(
+                          "cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02]",
+                          isActive && "ring-2 ring-primary border-primary/50 shadow-md"
+                        )}
+                        onClick={() => handleKpiClick(card.key)}
+                      >
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
+                          <card.icon className={cn("h-4 w-4", card.color)} />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{card.value}</div>
+                          <p className="text-xs text-muted-foreground mt-1">{card.desc}</p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
 
                 {/* Shipment Tracking */}
