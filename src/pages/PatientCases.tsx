@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePatientCases, PatientCase } from "@/hooks/usePatientCases";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PageLayout from "@/components/layouts/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,8 +36,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  ClipboardList,
+  ExternalLink,
 } from "lucide-react";
 import { CasePhotoUploader } from "@/components/patient-cases/CasePhotoUploader";
+import { format } from "date-fns";
 
 const PatientCases = () => {
   const navigate = useNavigate();
