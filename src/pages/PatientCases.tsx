@@ -303,15 +303,55 @@ const PatientCases = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Lightbox */}
-        <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
+        {/* Lightbox with swipe navigation */}
+        <Dialog open={lightboxPhotos.length > 0} onOpenChange={closeLightbox}>
           <DialogContent className="sm:max-w-2xl p-2">
-            {lightboxUrl && (
-              <img
-                src={lightboxUrl}
-                alt="Case photo"
-                className="w-full h-auto rounded-md"
-              />
+            {lightboxPhotos.length > 0 && (
+              <div
+                className="relative select-none"
+                onTouchStart={(e) => {
+                  const startX = e.touches[0].clientX;
+                  const el = e.currentTarget;
+                  const handleEnd = (ev: TouchEvent) => {
+                    const diff = ev.changedTouches[0].clientX - startX;
+                    if (diff > 50) setLightboxIndex((i) => Math.max(i - 1, 0));
+                    if (diff < -50) setLightboxIndex((i) => Math.min(i + 1, lightboxPhotos.length - 1));
+                    el.removeEventListener("touchend", handleEnd);
+                  };
+                  el.addEventListener("touchend", handleEnd);
+                }}
+              >
+                <img
+                  src={lightboxPhotos[lightboxIndex]}
+                  alt={`Photo ${lightboxIndex + 1} of ${lightboxPhotos.length}`}
+                  className="w-full h-auto rounded-md max-h-[70vh] object-contain"
+                />
+                {/* Navigation arrows */}
+                {lightboxPhotos.length > 1 && (
+                  <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between pointer-events-none px-2">
+                    <button
+                      onClick={() => setLightboxIndex((i) => Math.max(i - 1, 0))}
+                      disabled={lightboxIndex === 0}
+                      className="pointer-events-auto p-2 rounded-full bg-background/80 backdrop-blur-sm shadow-md disabled:opacity-30 hover:bg-background transition-colors"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => setLightboxIndex((i) => Math.min(i + 1, lightboxPhotos.length - 1))}
+                      disabled={lightboxIndex === lightboxPhotos.length - 1}
+                      className="pointer-events-auto p-2 rounded-full bg-background/80 backdrop-blur-sm shadow-md disabled:opacity-30 hover:bg-background transition-colors"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
+                {/* Counter */}
+                {lightboxPhotos.length > 1 && (
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm text-xs font-medium">
+                    {lightboxIndex + 1} / {lightboxPhotos.length}
+                  </div>
+                )}
+              </div>
             )}
           </DialogContent>
         </Dialog>
