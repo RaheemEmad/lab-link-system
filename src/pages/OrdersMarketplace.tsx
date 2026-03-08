@@ -486,10 +486,6 @@ export default function OrdersMarketplace() {
                         <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
                           <div className="space-y-3">
                             <div className="flex items-center gap-2 text-xs sm:text-sm">
-                              <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="truncate">Dr. {order.doctor_name}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs sm:text-sm">
                               <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               <span className="truncate">
                                 Submitted: {new Date(order.created_at).toLocaleDateString()}
@@ -506,12 +502,6 @@ export default function OrdersMarketplace() {
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <DollarSign className="h-4 w-4 flex-shrink-0" />
                                 <span>Budget: Open</span>
-                              </div>
-                            )}
-                            {order.biological_notes && (
-                              <div className="bg-muted/50 rounded p-2 mt-2">
-                                <p className="text-xs text-muted-foreground mb-1">Notes:</p>
-                                <p className="text-xs sm:text-sm line-clamp-2">{order.biological_notes}</p>
                               </div>
                             )}
                           </div>
