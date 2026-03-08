@@ -858,7 +858,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 {uploadedFiles.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {uploadedFiles.map((file, index) => (
-                      <div key={index} className="relative group rounded-lg border border-border bg-card overflow-hidden">
+                      <div key={`${file.name}-${file.size}-${file.lastModified}`} className="relative group rounded-lg border border-border bg-card overflow-hidden">
                         <div className="aspect-video relative bg-muted flex items-center justify-center">
                           {thumbnails[index] ? (
                             <img 

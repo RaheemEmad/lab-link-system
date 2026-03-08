@@ -286,7 +286,7 @@ export const AchievementBadge = memo(function AchievementBadge({
       </Tooltip>
     </TooltipProvider>
   );
-}
+});
 
 interface AchievementListProps {
   achievements: { achievement_id: string; earned_at: string }[];

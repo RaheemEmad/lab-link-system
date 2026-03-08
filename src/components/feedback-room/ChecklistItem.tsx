@@ -135,6 +135,8 @@ const ChecklistItem = memo(({ item, isDoctor, isLabStaff, onConfirm }: Checklist
       </div>
     </div>
   );
-};
+});
+
+ChecklistItem.displayName = "ChecklistItem";
 
 export default ChecklistItem;

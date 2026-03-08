@@ -243,4 +243,4 @@ export const LabCard = memo(function LabCard({ lab, specializations, isVerified 
       </Card>
     </Link>
   );
-}
+});
