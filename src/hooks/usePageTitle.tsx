@@ -75,10 +75,6 @@ const routeMetadata: Record<string, RouteMetadata> = {
     title: 'Logistics Dashboard - LabLink',
     description: 'Manage delivery schedules, tracking, and shipment details for all orders.',
   },
-  '/track-orders': {
-    title: 'Track Orders - LabLink',
-    description: 'Monitor your dental lab orders with real-time location and status tracking.',
-  },
   '/achievements': {
     title: 'Achievements - LabLink',
     description: 'View your achievements and milestones on LabLink.',
