@@ -16,12 +16,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { createNotifications } from "@/lib/notifications";
 import { CheckCircle2, AlertTriangle, Package, BookmarkPlus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PostDeliveryReviewDialog } from "./PostDeliveryReviewDialog";
 
 interface DeliveryConfirmationDialogProps {
   orderId: string;
   orderNumber: string;
   patientName: string;
   labName?: string;
+  labId?: string;
   restorationData?: {
     restoration_type?: string;
     teeth_number?: string;
@@ -40,6 +42,7 @@ export const DeliveryConfirmationDialog = ({
   orderNumber,
   patientName,
   labName,
+  labId,
   restorationData,
   open,
   onOpenChange,
@@ -47,6 +50,7 @@ export const DeliveryConfirmationDialog = ({
 }: DeliveryConfirmationDialogProps) => {
   const { user } = useAuth();
   const [isConfirming, setIsConfirming] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [issueNote, setIssueNote] = useState("");
   const [showIssueForm, setShowIssueForm] = useState(false);
   const [isReportingIssue, setIsReportingIssue] = useState(false);
@@ -135,6 +139,11 @@ export const DeliveryConfirmationDialog = ({
 
       onConfirmed();
       onOpenChange(false);
+
+      // Prompt for review if lab info is available
+      if (labId && labName) {
+        setTimeout(() => setShowReviewDialog(true), 500);
+      }
     } catch (error: any) {
       console.error("Failed to confirm delivery:", error);
       toast.error("Failed to confirm delivery", {
@@ -194,6 +203,7 @@ export const DeliveryConfirmationDialog = ({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -297,5 +307,18 @@ export const DeliveryConfirmationDialog = ({
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Post-delivery review dialog */}
+    {labId && labName && (
+      <PostDeliveryReviewDialog
+        orderId={orderId}
+        orderNumber={orderNumber}
+        labId={labId}
+        labName={labName}
+        open={showReviewDialog}
+        onOpenChange={setShowReviewDialog}
+      />
+    )}
+    </>
   );
 };

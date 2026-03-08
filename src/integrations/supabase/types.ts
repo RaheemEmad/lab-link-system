@@ -47,6 +47,88 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          appointment_type: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string | null
+          created_by: string
+          id: string
+          location_address: string | null
+          location_notes: string | null
+          notes: string | null
+          order_id: string
+          scheduled_date: string
+          status: string
+          time_slot_end: string
+          time_slot_start: string
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_type?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          location_address?: string | null
+          location_notes?: string | null
+          notes?: string | null
+          order_id: string
+          scheduled_date: string
+          status?: string
+          time_slot_end: string
+          time_slot_start: string
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_type?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          location_address?: string | null
+          location_notes?: string | null
+          notes?: string | null
+          order_id?: string
+          scheduled_date?: string
+          status?: string
+          time_slot_end?: string
+          time_slot_start?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action_type: string
@@ -1202,33 +1284,42 @@ export type Database = {
       }
       lab_reviews: {
         Row: {
+          communication_rating: number | null
           created_at: string | null
           dentist_id: string
           id: string
           lab_id: string
           order_id: string | null
+          quality_rating: number | null
           rating: number
           review_text: string | null
+          turnaround_rating: number | null
           updated_at: string | null
         }
         Insert: {
+          communication_rating?: number | null
           created_at?: string | null
           dentist_id: string
           id?: string
           lab_id: string
           order_id?: string | null
+          quality_rating?: number | null
           rating: number
           review_text?: string | null
+          turnaround_rating?: number | null
           updated_at?: string | null
         }
         Update: {
+          communication_rating?: number | null
           created_at?: string | null
           dentist_id?: string
           id?: string
           lab_id?: string
           order_id?: string | null
+          quality_rating?: number | null
           rating?: number
           review_text?: string | null
+          turnaround_rating?: number | null
           updated_at?: string | null
         }
         Relationships: [

@@ -56,6 +56,8 @@ const ChatHistory = lazy(() => import("./pages/ChatHistory"));
 const FeedbackRoom = lazy(() => import("./pages/FeedbackRoom"));
 const PatientCases = lazy(() => import("./pages/PatientCases"));
 const LabCalendar = lazy(() => import("./pages/LabCalendar"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const AppointmentScheduling = lazy(() => import("./pages/AppointmentScheduling"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized QueryClient with better caching and stale time settings
@@ -120,6 +122,8 @@ const AppContent = () => {
             <Route path="/feedback-room/:orderId" element={<PageTransition><FeedbackRoom /></PageTransition>} />
             <Route path="/patient-cases" element={<PageTransition><PatientCases /></PageTransition>} />
             <Route path="/lab-calendar" element={<PageTransition><LabCalendar /></PageTransition>} />
+            <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
+            <Route path="/appointments" element={<PageTransition><AppointmentScheduling /></PageTransition>} />
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
             <Route path="/admin/pricing-rules" element={<PageTransition><PricingRulesManagement /></PageTransition>} />
