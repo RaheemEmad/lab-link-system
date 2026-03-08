@@ -71,7 +71,7 @@ const BidRevisionDialog = ({
         .single();
 
       if (request?.requested_by_user_id) {
-        await supabase.from("notifications").insert({
+        await createNotification({
           user_id: request.requested_by_user_id,
           order_id: orderId,
           type: 'bid_revision_requested',
