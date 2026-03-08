@@ -84,7 +84,7 @@ const AttachmentUploader = ({ orderId, onUploadComplete }: AttachmentUploaderPro
     try {
       for (const file of selectedFiles) {
         const fileExt = file.name.split(".").pop();
-        const fileName = `${orderId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const fileName = `${user.id}/${orderId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
         // Upload to storage
         const { error: uploadError } = await supabase.storage
