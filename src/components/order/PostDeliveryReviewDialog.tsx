@@ -91,6 +91,8 @@ export const PostDeliveryReviewDialog = ({
         quality_rating: qualityRating,
         turnaround_rating: turnaroundRating,
         communication_rating: communicationRating,
+        value_rating: valueRating,
+        accuracy_rating: accuracyRating,
         review_text: reviewText.trim() || null,
       });
 
