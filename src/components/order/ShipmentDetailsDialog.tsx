@@ -103,7 +103,6 @@ export function ShipmentDetailsDialog({
   const onSubmit = async (values: ShipmentFormValues) => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       // Update shipment details

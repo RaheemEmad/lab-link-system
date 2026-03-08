@@ -42,7 +42,6 @@ export function CancelOrderDialog({
 
   const cancelMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       // Insert cancellation record

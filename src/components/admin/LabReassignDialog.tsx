@@ -78,7 +78,6 @@ export const LabReassignDialog = ({
       setLoading(true);
 
       // Get current user for audit
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Unauthorized");
         return;

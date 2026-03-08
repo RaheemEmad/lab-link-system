@@ -93,7 +93,6 @@ const AdminOrdersTab = () => {
 
     try {
       // Verify admin access before deletion
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Unauthorized");
         return;

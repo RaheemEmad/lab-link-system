@@ -268,7 +268,6 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
     const totalFiles = files.length;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
       // Step 1: Parallel image compression (if any images)

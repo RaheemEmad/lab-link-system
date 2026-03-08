@@ -343,7 +343,6 @@ export default function OrderNotesDialog({
 
   const handleToggleLike = async (noteId: string, currentlyLiked: boolean) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       if (currentlyLiked) {

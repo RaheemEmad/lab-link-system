@@ -111,7 +111,6 @@ const AdminSecurityTab = () => {
 
   const resolveAlert = async (alertId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       const { error } = await supabase
