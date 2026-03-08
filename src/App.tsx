@@ -54,6 +54,8 @@ const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const PricingRulesManagement = lazy(() => import("./pages/admin/PricingRulesManagement"));
 const ChatHistory = lazy(() => import("./pages/ChatHistory"));
 const FeedbackRoom = lazy(() => import("./pages/FeedbackRoom"));
+const PatientCases = lazy(() => import("./pages/PatientCases"));
+const LabCalendar = lazy(() => import("./pages/LabCalendar"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized QueryClient with better caching and stale time settings
