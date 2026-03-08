@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   id: string;
@@ -47,22 +48,15 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
-  // Removed useToast - using sonner toast directly
   const messageSound = useRef<HTMLAudioElement | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.id ?? null;
   const [retryQueue, setRetryQueue] = useState<Map<string, { message: string; retries: number }>>(new Map());
 
   useEffect(() => {
     // Create notification sound
     messageSound.current = new Audio('/sounds/achievement-unlock.mp3');
     messageSound.current.volume = 0.3;
-
-    // Get current user ID
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setCurrentUserId(data.user.id);
-      }
-    });
   }, []);
 
   useEffect(() => {

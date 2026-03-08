@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { openSanitizedHtmlPreview } from "@/lib/htmlSanitize";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification } from "@/lib/notifications";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +60,7 @@ interface Order {
 
 const LabWorkflowManagement = () => {
   const { user } = useAuth();
+  const { isLabStaff, isAdmin, labId, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,76 +69,50 @@ const LabWorkflowManagement = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
+    if (!user || roleLoading) return;
+
+    if (!isLabStaff && !isAdmin) {
+      toast.error("Access Denied", { description: "You must be lab staff to access this page." });
+      navigate("/dashboard");
       return;
     }
 
-    checkLabStaffAccess();
+    if (!labId) {
+      toast.error("Lab not assigned", { description: "Your account is not assigned to a lab." });
+      setIsLoading(false);
+      return;
+    }
+
     fetchOrders();
 
-    // Realtime subscription
+    // Granular realtime subscription
     const channel = supabase
       .channel('lab-workflow-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          fetchOrders();
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => {
+        fetchOrders();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+        setOrders(prev => prev.map(o => o.id === (payload.new as any).id ? { ...o, ...(payload.new as any) } : o));
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, navigate]);
+  }, [user, roleLoading, isLabStaff, isAdmin, labId, navigate]);
 
-  const checkLabStaffAccess = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!data || (data.role !== 'lab_staff' && data.role !== 'admin')) {
-      toast.error("Access Denied", {
-        description: "You must be lab staff to access this page."
-      });
-      navigate("/dashboard");
-    }
-  };
+  // Access check is now handled by useUserRole() in the useEffect above
 
   const fetchOrders = async () => {
     if (!user) return;
 
     setIsLoading(true);
     try {
-      // Get user's lab ID
-      const { data: userRole } = await supabase
-        .from('user_roles')
-        .select('lab_id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!userRole?.lab_id) {
-        toast.error("Lab not assigned", {
-          description: "Your account is not assigned to a lab."
-        });
-        setIsLoading(false);
-        return;
-      }
 
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
-        .eq('assigned_lab_id', userRole.lab_id)
+        .select('id, order_number, patient_name, doctor_name, restoration_type, status, urgency, created_at, expected_delivery_date, actual_delivery_date, shipment_tracking, design_file_url, design_approved, approval_notes, biological_notes, teeth_number, teeth_shade, html_export, screenshot_url')
+        .eq('assigned_lab_id', labId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

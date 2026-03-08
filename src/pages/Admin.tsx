@@ -1,6 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
@@ -24,45 +25,25 @@ const TabLoadingFallback = () => (
 );
 
 const Admin = () => {
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get("tab") || "dashboard";
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
+  const loading = authLoading || roleLoading;
 
-  const checkAdminAccess = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/admin/login");
-        return;
-      }
+  // Redirect if not authenticated
+  if (!loading && !user) {
+    navigate("/admin/login");
+    return null;
+  }
 
-      const { data: roleData, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .single();
-
-      if (error || !roleData) {
-        navigate("/");
-        return;
-      }
-
-      setIsAdmin(true);
-    } catch (error) {
-      console.error("Error checking admin access:", error);
-      navigate("/admin/login");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Redirect if not admin
+  if (!loading && user && !isAdmin) {
+    navigate("/");
+    return null;
+  }
 
   const handleTabChange = (value: string) => {
     if (value === "dashboard") {
@@ -81,10 +62,6 @@ const Admin = () => {
         </div>
       </div>
     );
-  }
-
-  if (!isAdmin) {
-    return null;
   }
 
   return (

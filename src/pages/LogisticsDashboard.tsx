@@ -59,7 +59,7 @@ type TabValue = "shipments" | "tracking" | "calendar" | "analytics" | "schedulin
 
 const LogisticsDashboard = () => {
   const { user } = useAuth();
-  const { role, roleConfirmed, isLabStaff, isAdmin, isLoading: roleLoading } = useUserRole();
+  const { role, roleConfirmed, isLabStaff, isAdmin, isLoading: roleLoading, labId } = useUserRole();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -102,9 +102,8 @@ const LogisticsDashboard = () => {
           `).not("assigned_lab_id", "is", null).order("created_at", { ascending: false });
 
         if (role === "lab_staff") {
-          // Use labId from useUserRole hook instead of manual query
-          const { data: roleData } = await supabase.from("user_roles").select("lab_id").eq("user_id", user.id).maybeSingle();
-          if (roleData?.lab_id) shipmentQuery = shipmentQuery.eq("assigned_lab_id", roleData.lab_id);
+          // Use labId from useUserRole hook
+          if (labId) shipmentQuery = shipmentQuery.eq("assigned_lab_id", labId);
         } else if (role === "doctor") {
           shipmentQuery = shipmentQuery.eq("doctor_id", user.id);
         }

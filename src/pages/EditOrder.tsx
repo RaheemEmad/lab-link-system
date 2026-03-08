@@ -184,16 +184,18 @@ const EditOrder = () => {
         return;
       }
 
+      // Role check will be done after component renders using useUserRole
+      // For now, use a lightweight check from the existing query context
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
 
-      const isLabStaff = roleData?.role === "lab_staff" || roleData?.role === "admin";
+      const isLabStaffCheck = roleData?.role === "lab_staff" || roleData?.role === "admin";
       setUserRole(roleData?.role || null);
 
-      if (data.doctor_id !== user!.id && !isLabStaff) {
+      if (data.doctor_id !== user!.id && !isLabStaffCheck) {
         toast.error("Access denied", {
           description: "You don't have permission to edit this order",
         });

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,6 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -20,15 +19,32 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      // Use raw supabase auth to avoid useAuth's auto-redirect to /dashboard
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
       if (error) {
         toast.error("Login failed", {
           description: error.message
         });
-      } else {
-        toast.success("Login successful");
-        navigate("/admin");
+      } else if (data.session) {
+        // Verify admin role before redirecting
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id)
+          .eq("role", "admin")
+          .single();
+
+        if (!roleData) {
+          await supabase.auth.signOut();
+          toast.error("Access denied", { description: "Admin privileges required." });
+        } else {
+          toast.success("Login successful");
+          navigate("/admin");
+        }
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
