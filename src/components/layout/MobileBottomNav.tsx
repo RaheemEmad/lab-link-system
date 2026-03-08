@@ -2,8 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { LayoutDashboard, Plus, Store, Inbox, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -21,22 +20,7 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ["mobile-nav-unread", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return 0;
-      const { count, error } = await supabase
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("read", false);
-      if (error) return 0;
-      return count || 0;
-    },
-    enabled: !!user?.id,
-    staleTime: 60_000,
-    refetchInterval: 60_000,
-  });
+  const { unreadCount } = useUnreadCount();
 
   if (!user || isLoading) return null;
 

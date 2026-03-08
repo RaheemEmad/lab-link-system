@@ -204,9 +204,14 @@ export const useRealtimeNotifications = () => {
             showNotificationPopup(notification);
           }
 
-          // Invalidate notifications query to update badge count
+          // Invalidate all notification-related queries for cohesive real-time updates
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
           queryClient.invalidateQueries({ queryKey: ['unread-notifications'] });
+          queryClient.invalidateQueries({ queryKey: ['mobile-nav-unread'] });
+          queryClient.invalidateQueries({ queryKey: ['inbox-chats'] });
+          queryClient.invalidateQueries({ queryKey: ['inbox-approvals'] });
+          queryClient.invalidateQueries({ queryKey: ['inbox-deliveries'] });
+          queryClient.invalidateQueries({ queryKey: ['inbox-invoices'] });
         }
       )
       .subscribe();

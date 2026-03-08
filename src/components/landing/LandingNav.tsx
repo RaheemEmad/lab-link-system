@@ -12,6 +12,7 @@ import lablinkLogo from "@/assets/lablink-logo.png";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import {
   Tooltip,
@@ -53,33 +54,8 @@ const LandingNav = () => {
   const previousUrgentCountRef = useRef<number>(0);
   const previousTotalCountRef = useRef<number>(0);
 
-  // Fetch unread notification count and check for urgent notifications - OPTIMIZED
-  const { data: notificationData } = useQuery({
-    queryKey: ["unread-notifications", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return { count: 0, hasUrgent: false };
-
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("type")
-        .eq("user_id", user.id)
-        .eq("read", false);
-
-      if (error) throw error;
-      
-      const hasUrgent = data?.some(n => 
-        n.type === "status_change" || n.type === "urgent"
-      ) || false;
-
-      return { count: data?.length || 0, hasUrgent };
-    },
-    enabled: !!user?.id,
-    staleTime: 1000 * 60, // 1 minute
-    refetchInterval: 60000, // 1 minute instead of 30 seconds
-  });
-
-  const unreadCount = notificationData?.count || 0;
-  const hasUrgent = notificationData?.hasUrgent || false;
+  // Unified unread count from shared hook
+  const { unreadCount, hasUrgent } = useUnreadCount();
 
   // Request notification permission on mount if user is logged in
   useEffect(() => {
