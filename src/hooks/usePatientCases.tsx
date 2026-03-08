@@ -14,6 +14,7 @@ export interface PatientCase {
   biological_notes: string | null;
   preferred_lab_id: string | null;
   photos_link: string | null;
+  photos: string[];
   last_order_id: string | null;
   order_count: number;
   created_at: string;
@@ -35,7 +36,10 @@ export function usePatientCases() {
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
-      return data as PatientCase[];
+      return (data ?? []).map((row: any) => ({
+        ...row,
+        photos: Array.isArray(row.photos) ? row.photos : [],
+      })) as PatientCase[];
     },
     enabled: !!user?.id,
     staleTime: 30_000,
@@ -51,11 +55,16 @@ export function usePatientCases() {
       biological_notes?: string;
       preferred_lab_id?: string | null;
       photos_link?: string;
+      photos?: string[];
       last_order_id?: string;
     }) => {
       const { data, error } = await supabase
         .from("patient_cases")
-        .insert({ ...params, doctor_id: user!.id })
+        .insert({
+          ...params,
+          doctor_id: user!.id,
+          photos: params.photos ?? [],
+        })
         .select()
         .single();
 

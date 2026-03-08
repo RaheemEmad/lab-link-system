@@ -2280,6 +2280,7 @@ export type Database = {
           last_order_id: string | null
           order_count: number | null
           patient_name: string
+          photos: Json | null
           photos_link: string | null
           preferred_lab_id: string | null
           restoration_type: string
@@ -2296,6 +2297,7 @@ export type Database = {
           last_order_id?: string | null
           order_count?: number | null
           patient_name: string
+          photos?: Json | null
           photos_link?: string | null
           preferred_lab_id?: string | null
           restoration_type: string
@@ -2312,6 +2314,7 @@ export type Database = {
           last_order_id?: string | null
           order_count?: number | null
           patient_name?: string
+          photos?: Json | null
           photos_link?: string | null
           preferred_lab_id?: string | null
           restoration_type?: string

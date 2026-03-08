@@ -102,15 +102,37 @@ export const DeliveryConfirmationDialog = ({
 
       // Optionally save as patient case
       if (saveAsCase && restorationData?.restoration_type && restorationData?.teeth_number && restorationData?.teeth_shade) {
+        // Collect order photos to link to case
+        let orderPhotos: string[] = [];
+        try {
+          const { data: attachments } = await supabase
+            .from("order_attachments")
+            .select("file_path, file_type")
+            .eq("order_id", orderId)
+            .like("file_type", "image/%");
+          if (attachments?.length) {
+            orderPhotos = attachments
+              .map((a) => {
+                const { data } = supabase.storage.from("design-files").getPublicUrl(a.file_path);
+                return data?.publicUrl;
+              })
+              .filter(Boolean) as string[];
+          }
+        } catch {
+          // Non-critical — continue without photos
+        }
+
         // Check if case already exists for this patient
         const { data: existing } = await supabase
           .from("patient_cases")
-          .select("id, order_count")
+          .select("id, order_count, photos")
           .eq("doctor_id", user.id)
           .eq("patient_name", patientName)
           .maybeSingle();
 
         if (existing) {
+          const existingPhotos = Array.isArray(existing.photos) ? existing.photos as string[] : [];
+          const mergedPhotos = [...existingPhotos, ...orderPhotos].slice(0, 6);
           await supabase
             .from("patient_cases")
             .update({
@@ -119,6 +141,7 @@ export const DeliveryConfirmationDialog = ({
               restoration_type: restorationData.restoration_type,
               teeth_number: restorationData.teeth_number,
               teeth_shade: restorationData.teeth_shade,
+              photos: mergedPhotos,
               updated_at: new Date().toISOString(),
             })
             .eq("id", existing.id);
@@ -133,6 +156,7 @@ export const DeliveryConfirmationDialog = ({
             biological_notes: restorationData.biological_notes || null,
             preferred_lab_id: restorationData.assigned_lab_id || null,
             last_order_id: orderId,
+            photos: orderPhotos.slice(0, 6),
           });
         }
       }
