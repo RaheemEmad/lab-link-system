@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layouts/PageLayout";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { useInboxItems, type InboxItemType } from "@/hooks/useInboxItems";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { EmptyState } from "@/components/ui/empty-state";
