@@ -9,7 +9,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import ExportDropdown from "@/components/ui/export-dropdown";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
