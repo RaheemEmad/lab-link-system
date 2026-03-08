@@ -373,8 +373,29 @@ interface LabStatsData {
   monthlyRevenue: { month: string; revenue: number }[];
 }
 
-const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => (
+const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => {
+  const handleExport = async () => {
+    const { exportToCSV } = await import("@/lib/exportUtils");
+    const rows = [
+      { Metric: "Total Orders", Value: String(stats.totalOrders) },
+      { Metric: "Completed", Value: String(stats.completedCount) },
+      { Metric: "In Progress", Value: String(stats.inProgressCount) },
+      { Metric: "Total Revenue (EGP)", Value: String(stats.totalRevenue) },
+      { Metric: "Received (EGP)", Value: String(stats.totalReceived) },
+      { Metric: "On-Time Rate", Value: `${stats.onTimeRate}%` },
+      ...stats.monthlyRevenue.map((m) => ({ Metric: `Revenue ${m.month}`, Value: String(m.revenue) })),
+      ...stats.topClients.map((c) => ({ Metric: `Client: ${c.name}`, Value: `${c.count} orders` })),
+    ];
+    exportToCSV(rows, `lab-analytics-${new Date().toISOString().slice(0, 10)}`);
+  };
+
+  return (
   <div className="space-y-6">
+    <div className="flex justify-end">
+      <Button variant="outline" size="sm" onClick={handleExport}>
+        <Download className="h-4 w-4 mr-1.5" /> Export CSV
+      </Button>
+    </div>
     {/* KPI Cards */}
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard icon={Package} label="Total Orders" value={String(stats.totalOrders)} sub={`${stats.inProgressCount} in progress`} />
