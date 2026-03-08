@@ -21,6 +21,7 @@ import { TrackingTabContent } from "@/components/logistics/TrackingTabContent";
 import { CalendarTabContent } from "@/components/logistics/CalendarTabContent";
 import { AnalyticsTabContent } from "@/components/logistics/AnalyticsTabContent";
 import { SchedulingTabContent } from "@/components/logistics/SchedulingTabContent";
+import { useLogisticsTabBadges } from "@/hooks/useLogisticsTabBadges";
 import { toast } from "sonner";
 
 interface OrderShipment {
