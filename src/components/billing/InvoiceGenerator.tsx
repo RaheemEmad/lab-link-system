@@ -43,6 +43,7 @@ interface EligibleOrder {
 }
 
 import { formatEGP, countTeeth } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 const InvoiceGenerator = ({ onClose, onGenerated }: InvoiceGeneratorProps) => {
   const { user } = useAuth();
