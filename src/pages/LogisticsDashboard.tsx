@@ -157,6 +157,34 @@ const LogisticsDashboard = () => {
   const urgentShipments = shipments.filter(s => s.urgency === "Urgent").length;
   const priorityHandling = shipments.filter(s => s.urgency === "Urgent" && s.status !== "Delivered").length;
 
+  const kpiCards = [
+    { key: "total", label: "Total Shipments", value: totalShipments, icon: Package, color: "text-muted-foreground", desc: "All tracked orders" },
+    { key: "active", label: "Active Shipments", value: activeShipments, icon: Truck, color: "text-muted-foreground", desc: "With driver assigned" },
+    { key: "inTransit", label: "In Transit", value: ordersInTransit, icon: Package, color: "text-blue-500", desc: "Currently being transported" },
+    { key: "pending", label: "Pending Deliveries", value: pendingDeliveries, icon: AlertTriangle, color: "text-orange-500", desc: "Awaiting final delivery" },
+    { key: "ready", label: "Ready for Shipment", value: readyForShipment, icon: Package, color: "text-green-500", desc: "Ready to be dispatched" },
+    { key: "urgent", label: "Urgent Orders", value: urgentShipments, icon: AlertTriangle, color: "text-destructive", desc: "All urgent cases" },
+    { key: "priority", label: "Priority Handling", value: priorityHandling, icon: AlertTriangle, color: "text-red-500", desc: "Requiring special attention" },
+  ];
+
+  const filteredShipments = useMemo(() => {
+    if (!kpiFilter) return shipments;
+    switch (kpiFilter) {
+      case "total": return shipments;
+      case "active": return shipments.filter(s => s.driver_name || s.carrier_name);
+      case "inTransit": return shipments.filter(s => s.status === "In Progress" || s.status === "Ready for QC");
+      case "pending": return shipments.filter(s => s.status === "Ready for Delivery" && !s.actual_delivery_date);
+      case "ready": return shipments.filter(s => s.status === "Ready for Delivery");
+      case "urgent": return shipments.filter(s => s.urgency === "Urgent");
+      case "priority": return shipments.filter(s => s.urgency === "Urgent" && s.status !== "Delivered");
+      default: return shipments;
+    }
+  }, [shipments, kpiFilter]);
+
+  const handleKpiClick = (key: string) => {
+    setKpiFilter(prev => prev === key ? null : key);
+  };
+
   if (roleLoading || loading) {
     return <ProtectedRoute><LoadingScreen message="Loading logistics data..." /></ProtectedRoute>;
   }
