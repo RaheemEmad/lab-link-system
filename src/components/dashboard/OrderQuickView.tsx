@@ -116,12 +116,12 @@ export const OrderQuickView = ({ order, open, onClose, onOpenChat, isDoctor }: O
           {/* Actions */}
           <div className="flex flex-col gap-2">
             {order.assigned_lab_id && (
-              <Button variant="outline" onClick={() => { onClose(); setTimeout(() => onOpenChat(order), 300); }}>
+              <Button variant="outline" className="min-h-[44px] active:scale-[0.98] transition-transform" onClick={() => { onClose(); setTimeout(() => onOpenChat(order), 300); }}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Open Chat
               </Button>
             )}
-            <Button variant="outline" onClick={() => navigate(`/edit-order/${order.id}`)}>
+            <Button variant="outline" className="min-h-[44px] active:scale-[0.98] transition-transform" onClick={() => navigate(`/edit-order/${order.id}`)}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit Order
             </Button>

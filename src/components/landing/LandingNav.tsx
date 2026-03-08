@@ -816,7 +816,7 @@ const LandingNav = () => {
                         </div>
                         <Button
                           variant="outline"
-                          className="w-full gap-2"
+                          className="w-full gap-2 min-h-[44px]"
                           onClick={() => {
                             signOut();
                             setIsOpen(false);

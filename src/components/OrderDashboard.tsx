@@ -985,7 +985,7 @@ const OrderDashboard = () => {
                             <PaginationLink
                               onClick={() => setCurrentPage(page)}
                               isActive={currentPage === page}
-                              className="cursor-pointer w-8 h-8 sm:w-10 sm:h-10"
+                              className="cursor-pointer w-8 h-8 sm:w-10 sm:h-10 active:scale-95 transition-transform"
                               size="sm"
                             >
                               {page}
