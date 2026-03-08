@@ -23,3 +23,16 @@ export const countTeeth = (teethNumber: string): number => {
   if (!teethNumber) return 0;
   return teethNumber.split(',').filter(t => t.trim()).length;
 };
+
+/**
+ * Format file size in bytes to a human-readable string.
+ * @param bytes - File size in bytes
+ * @returns Formatted string (e.g., "2.5 MB")
+ */
+export const formatFileSize = (bytes: number | null): string => {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+};

@@ -112,8 +112,6 @@ const AppContent = () => {
             <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
             <Route path="/install" element={<PageTransition><Install /></PageTransition>} />
             <Route path="/notifications" element={<PageTransition><NotificationHistory /></PageTransition>} />
-            <Route path="/style-guide" element={<PageTransition><StyleGuide /></PageTransition>} />
-            <Route path="/autosave-demo" element={<PageTransition><AutosaveDemo /></PageTransition>} />
             <Route path="/drafts" element={<PageTransition><DraftsManager /></PageTransition>} />
             <Route path="/chat-history" element={<PageTransition><ChatHistory /></PageTransition>} />
             <Route path="/feedback-room" element={<PageTransition><FeedbackRoom /></PageTransition>} />
