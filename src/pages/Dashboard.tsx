@@ -92,34 +92,6 @@ const Dashboard = () => {
     timestamp: new Date().toISOString()
   });
 
-  // Fetch unread notification count and check for urgent notifications
-  const { data: notificationData } = useQuery({
-    queryKey: ["unread-notifications", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return { count: 0, hasUrgent: false };
-
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("type")
-        .eq("user_id", user.id)
-        .eq("read", false);
-
-      if (error) throw error;
-      
-      // Check if any notification is of urgent type (status_change or urgent types)
-      const hasUrgent = data?.some(n => 
-        n.type === "status_change" || n.type === "urgent"
-      ) || false;
-
-      return { count: data?.length || 0, hasUrgent };
-    },
-    enabled: !!user?.id,
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
-
-  const unreadCount = notificationData?.count || 0;
-  const hasUrgent = notificationData?.hasUrgent || false;
-
   // Check if this is first login and show onboarding modal
   useEffect(() => {
     const checkFirstLogin = async () => {
