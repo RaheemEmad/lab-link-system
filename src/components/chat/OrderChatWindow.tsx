@@ -431,11 +431,6 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
 
   const getReadReceiptIcon = (msg: Message) => {
     if (msg.sender_id === currentUserId) {
