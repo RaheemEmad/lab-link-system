@@ -96,7 +96,7 @@ const PatientCases = () => {
     }
   }, [user]);
 
-
+  const filteredCases = useMemo(() => {
     if (!searchQuery.trim()) return cases;
     const q = searchQuery.toLowerCase();
     return cases.filter(
