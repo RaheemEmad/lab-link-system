@@ -91,9 +91,7 @@ const AdminActivityTab = () => {
             Monitor all system actions and changes ({logs.length} recent entries)
           </CardDescription>
         </div>
-        <Button onClick={exportLogs} variant="outline">
-          Export CSV
-        </Button>
+        <ExportDropdown onExportCSV={exportLogsCSV} onExportPDF={exportLogsPDF} />
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
