@@ -288,7 +288,7 @@ const Auth = () => {
                 variant="outline" 
                 className="w-full"
               >
-                Back to Sign In
+                {t.auth.backToSignIn}
               </Button>
             </CardContent>
           </Card>
