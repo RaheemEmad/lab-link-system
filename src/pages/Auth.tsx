@@ -410,7 +410,7 @@ const Auth = () => {
                   />
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                    {isLoading ? t.auth.signingIn : t.auth.signIn}
                   </Button>
                 </form>
               </Form>
