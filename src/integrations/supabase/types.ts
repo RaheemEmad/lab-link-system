@@ -3132,6 +3132,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      check_and_increment_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_identifier: string
+          p_max_per_hour?: number
+          p_max_per_minute?: number
+        }
+        Returns: Json
+      }
       check_auto_invoice_conditions: {
         Args: { p_order_id: string }
         Returns: boolean
