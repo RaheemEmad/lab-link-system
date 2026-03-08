@@ -1,40 +1,16 @@
 import { useState, useEffect, memo } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, Download, Bell, User, LogOut, Trophy, Star } from "lucide-react";
-import { Building2, Truck, Shield, Plus, FilePlus, Package, Settings, Inbox as InboxIcon } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { LanguageToggle } from "@/components/ui/language-toggle";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { motion } from "framer-motion";
-import lablinkLogo from "@/assets/lablink-logo.png";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { useUserRole } from "@/hooks/useUserRole";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { NavLogo } from "./nav/NavLogo";
+import { DesktopNavLinks } from "./nav/DesktopNavLinks";
+import { DesktopRightActions } from "./nav/DesktopRightActions";
+import { MobileNavSheet } from "./nav/MobileNavSheet";
 
 const LandingNav = () => {
   const navigate = useNavigate();
@@ -43,29 +19,23 @@ const LandingNav = () => {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
-
-  // Notifications handled centrally by NotificationPopup - only read counts here
   const { unreadCount, hasUrgent } = useUnreadCount();
+  const { role: userRole, labId } = useUserRole();
 
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
       setIsInstallable(true);
     };
-
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Use centralized role hook instead of manual fetch
-  const { role: userRole, labId } = useUserRole();
-
-  // Fetch count of new unassigned orders - OPTIMIZED
+  // Fetch count of new unassigned orders for lab staff
   const { data: newOrdersCount } = useQuery({
     queryKey: ["new-marketplace-orders-count", labId],
     queryFn: async () => {
       if (!labId) return 0;
-
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -75,7 +45,6 @@ const LandingNav = () => {
         .eq("auto_assign_pending", true)
         .is("assigned_lab_id", null)
         .gte("created_at", today.toISOString());
-      
       if (error) return 0;
 
       const { data: refusedRequests } = await supabase
@@ -84,67 +53,62 @@ const LandingNav = () => {
         .eq("lab_id", labId)
         .eq("status", "refused");
 
-      const refusedOrderIds = new Set(refusedRequests?.map(r => r.order_id) || []);
-      const filteredOrders = ordersData?.filter(order => !refusedOrderIds.has(order.id)) || [];
-      
-      return filteredOrders.length;
+      const refusedOrderIds = new Set(refusedRequests?.map((r) => r.order_id) || []);
+      return ordersData?.filter((order) => !refusedOrderIds.has(order.id)).length || 0;
     },
-    enabled: !!labId && userRole === 'lab_staff',
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    refetchInterval: 120000, // 2 minutes instead of 1 minute
+    enabled: !!labId && userRole === "lab_staff",
+    staleTime: 1000 * 60 * 2,
+    refetchInterval: 120000,
   });
 
-  // Fetch pending lab applications count - OPTIMIZED
+  // Fetch pending lab applications count for doctors
   const { data: pendingRequestsCount = 0 } = useQuery({
     queryKey: ["pending-lab-requests", user?.id],
     queryFn: async () => {
-      if (!user?.id || userRole !== 'doctor') return 0;
-      
+      if (!user?.id || userRole !== "doctor") return 0;
       const { data, error } = await supabase
         .from("lab_work_requests")
         .select("id, orders!inner(doctor_id)")
         .eq("orders.doctor_id", user.id)
         .eq("status", "pending");
-      
       if (error) throw error;
       return data?.length || 0;
     },
-    enabled: !!user?.id && userRole === 'doctor',
-    staleTime: 1000 * 60, // 1 minute
-    refetchInterval: 60000, // 1 minute instead of 30 seconds
+    enabled: !!user?.id && userRole === "doctor",
+    staleTime: 1000 * 60,
+    refetchInterval: 60000,
   });
 
-  // Left navigation links - role-based and cleaner
+  // Navigation links
   const leftNavLinks = [
     { label: t.nav.home, href: "/", type: "route" },
     { label: t.nav.howItWorks, href: "/how-it-works", type: "route" },
-    ...(userRole === 'doctor' ? [{ label: t.nav.labs, href: "/labs", type: "route" }] : []),
-    ...(userRole === 'lab_staff' ? [{ label: t.nav.marketplace, href: "/orders-marketplace", type: "route" }] : []),
+    ...(userRole === "doctor" ? [{ label: t.nav.labs, href: "/labs", type: "route" }] : []),
+    ...(userRole === "lab_staff" ? [{ label: t.nav.marketplace, href: "/orders-marketplace", type: "route" }] : []),
     ...(user ? [{ label: t.nav.dashboard, href: "/dashboard", type: "route" }] : []),
   ];
 
-  // Role-specific dropdown menu items
-  const doctorMenuItems = user && userRole === 'doctor' ? [
-    { label: t.nav.preferredLabs, href: "/preferred-labs" },
-    { 
-      label: t.nav.labApplications, 
-      href: "/lab-requests",
-      badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined
-    },
-    { label: "Order Templates", href: "/templates" },
-  ] : [];
+  const doctorMenuItems =
+    user && userRole === "doctor"
+      ? [
+          { label: t.nav.preferredLabs, href: "/preferred-labs" },
+          { label: t.nav.labApplications, href: "/lab-requests", badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined },
+          { label: "Order Templates", href: "/templates" },
+        ]
+      : [];
 
-  const labStaffMenuItems = (userRole === 'lab_staff' || userRole === 'admin') ? [
-    { label: t.nav.labWorkflow, href: "/lab-workflow" },
-    { label: t.nav.labAdmin, href: "/lab-admin" },
-  ] : [];
+  const labStaffMenuItems =
+    userRole === "lab_staff" || userRole === "admin"
+      ? [
+          { label: t.nav.labWorkflow, href: "/lab-workflow" },
+          { label: t.nav.labAdmin, href: "/lab-admin" },
+        ]
+      : [];
 
   const handleNavClick = (link: { href: string; type?: string }) => {
     if (link.type === "anchor") {
       const element = document.querySelector(link.href);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
+      if (element) element.scrollIntoView({ behavior: "smooth" });
     } else {
       navigate(link.href);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -162,635 +126,42 @@ const LandingNav = () => {
       <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm transition-all duration-300">
         <div className="container px-3 sm:px-4 lg:px-6 mx-auto">
           <div className="flex items-center justify-between h-14 sm:h-16">
-            {/* Logo with animation */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.div 
-                  className="flex items-center gap-3 cursor-pointer group"
-                  onClick={() => navigate("/")}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ 
-                    duration: 0.6, 
-                    ease: [0.22, 1, 0.36, 1],
-                    delay: 0.1 
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <motion.img 
-                    src={lablinkLogo} 
-                    alt="LabLink Logo" 
-                    className="h-8 sm:h-10 w-auto object-contain"
-                    initial={{ opacity: 0, rotate: -10 }}
-                    animate={{ opacity: 1, rotate: 0 }}
-                    transition={{ 
-                      duration: 0.8, 
-                      ease: [0.22, 1, 0.36, 1],
-                      delay: 0.2
-                    }}
-                  />
-                  <motion.span 
-                    className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] transition-all duration-500 group-hover:bg-[length:100%_auto] hidden xs:inline"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      duration: 0.6, 
-                      ease: [0.22, 1, 0.36, 1],
-                      delay: 0.3
-                    }}
-                  >
-                    LabLink
-                  </motion.span>
-                </motion.div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Home</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            {/* Desktop Left Navigation */}
-            <div className="hidden lg:flex items-center gap-6">
-              {leftNavLinks.map((link) => (
-                <Tooltip key={link.href}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => handleNavClick(link)}
-                      className={`relative inline-flex items-center gap-1 text-sm font-medium transition-all duration-300 group ${
-                        isLinkActive(link)
-                          ? "text-ocean-blue font-semibold"
-                          : "text-muted-foreground hover:text-ocean-blue"
-                      }`}
-                    >
-                      <span className="relative z-10">{link.label}</span>
-                      {isLinkActive(link) && (
-                        <motion.span 
-                          className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-ocean-blue to-dark-teal"
-                          layoutId="activeNav"
-                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                        />
-                      )}
-                      {!isLinkActive(link) && (
-                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-ocean-blue to-dark-teal transition-all duration-300 group-hover:w-full" />
-                      )}
-                      {link.label === "Marketplace" && userRole === 'lab_staff' && newOrdersCount && newOrdersCount > 0 && (
-                        <motion.span 
-                          className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-[10px] font-bold text-white bg-gradient-to-r from-ocean-blue to-dark-teal rounded-full shadow-lg border-2 border-background"
-                          initial={{ scale: 0 }}
-                          animate={{ 
-                            scale: 1,
-                            boxShadow: [
-                              "0 0 0 0 hsl(var(--primary) / 0.7)",
-                              "0 0 0 8px hsl(var(--primary) / 0)",
-                              "0 0 0 0 hsl(var(--primary) / 0)"
-                            ]
-                          }}
-                          transition={{ 
-                            scale: { type: "spring", stiffness: 500, damping: 25 },
-                            boxShadow: {
-                              duration: 1.5,
-                              repeat: Infinity,
-                              ease: "easeOut"
-                            }
-                          }}
-                        >
-                          {newOrdersCount > 99 ? "99+" : newOrdersCount}
-                        </motion.span>
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {link.type === "anchor" 
-                        ? `Scroll to ${link.label.toLowerCase()}` 
-                        : `Navigate to ${link.label}`}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-            
-            {/* Desktop Right Section (Auth & User Actions) */}
-             <div className="hidden lg:flex items-center gap-2">
-              <LanguageToggle />
-              <ThemeToggle />
-              {user ? (
-                <>
-                  {/* Create Order Button - Doctor Only */}
-                  {userRole === 'doctor' && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate("/new-order")}
-                          className="h-9 w-9 relative group overflow-hidden hover:bg-primary/10 hover:text-primary transition-all duration-300"
-                        >
-                          <FilePlus className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Create Order</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-
-                  {/* Logistics Dropdown - Doctor */}
-                  {userRole === 'doctor' && (
-                    <DropdownMenu>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300">
-                              <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
-                              <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-ocean-blue" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Orders & Logistics</p>
-                        </TooltipContent>
-                      </Tooltip>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link to="/logistics">Logistics Dashboard</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/logistics?tab=tracking">Track Orders</Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-
-                  {/* Logistics Dropdown - Lab Staff */}
-                  {userRole === 'lab_staff' && (
-                    <DropdownMenu>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300">
-                              <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
-                              <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-ocean-blue" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Orders & Logistics</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link to="/order-tracking">Track Orders</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/logistics">Logistics Dashboard</Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-
-                  {/* Role-specific dropdown menu with innovative icon */}
-                  {(doctorMenuItems.length > 0 || labStaffMenuItems.length > 0) && (
-                    <DropdownMenu>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="relative group overflow-hidden hover:bg-amber-500/10 transition-all duration-300">
-                              {userRole === 'lab_staff' || userRole === 'admin' ? (
-                                <>
-                                  <span className="absolute inset-0 w-0 bg-amber-500/10 transition-all duration-300 group-hover:w-full" />
-                                  <Star className="h-5 w-5 text-amber-500 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
-                                </>
-                              ) : (
-                                <Building2 className="h-5 w-5" />
-                              )}
-                            </Button>
-                          </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{userRole === 'lab_staff' || userRole === 'admin' ? 'Lab Tools' : 'Lab Management'}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <DropdownMenuContent align="end" className="min-w-[200px] bg-background">
-                        {doctorMenuItems.map((item) => (
-                          <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href} className="flex items-center justify-between w-full cursor-pointer">
-                              <span>{item.label}</span>
-                              {item.badge && (
-                                <Badge 
-                                  variant="default" 
-                                  className="ml-2 min-w-[1.5rem] h-5 flex items-center justify-center px-1.5 bg-ocean-blue text-white font-bold text-xs"
-                                >
-                                  {item.badge}
-                                </Badge>
-                              )}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                        {labStaffMenuItems.map((item) => (
-                          <DropdownMenuItem key={item.href} asChild>
-                            <Link to={item.href} className="cursor-pointer">{item.label}</Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-
-                  {/* Achievements Icon - Doctor */}
-                  {userRole === 'doctor' && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate("/doctor-achievements")}
-                          className="h-9 w-9 relative group overflow-hidden hover:bg-forest-green/10 hover:text-forest-green transition-all duration-300"
-                        >
-                          <span className="absolute inset-0 w-0 bg-forest-green/10 transition-all duration-300 group-hover:w-full" />
-                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-forest-green" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>View your achievements</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-
-                  {/* Achievements Icon - Lab Staff */}
-                  {userRole === 'lab_staff' && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate("/lab-achievements")}
-                          className="h-9 w-9 relative group overflow-hidden hover:bg-forest-green/10 hover:text-forest-green transition-all duration-300"
-                        >
-                          <span className="absolute inset-0 w-0 bg-forest-green/10 transition-all duration-300 group-hover:w-full" />
-                          <Trophy className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-forest-green" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>View your lab achievements</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-
-                  {/* Inbox Icon */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 relative group overflow-hidden hover:bg-ocean-blue/10 hover:text-ocean-blue transition-all duration-300"
-                        onClick={() => navigate("/inbox")}
-                      >
-                        <span className="absolute inset-0 w-0 bg-ocean-blue/10 transition-all duration-300 group-hover:w-full" />
-                        <InboxIcon className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-ocean-blue" />
-                        {unreadCount > 0 && (
-                          <motion.span 
-                            className={`absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg border-2 border-background ${
-                              hasUrgent 
-                                ? 'bg-destructive text-destructive-foreground' 
-                                : 'bg-ocean-blue text-white'
-                            }`}
-                            initial={{ scale: 0 }}
-                            animate={{ 
-                              scale: 1,
-                              ...(hasUrgent && {
-                                boxShadow: [
-                                  "0 0 0 0 hsl(var(--destructive) / 0.7)",
-                                  "0 0 0 8px hsl(var(--destructive) / 0)",
-                                  "0 0 0 0 hsl(var(--destructive) / 0)"
-                                ]
-                              })
-                            }}
-                            transition={{ 
-                              scale: { type: "spring", stiffness: 500, damping: 25 },
-                              boxShadow: hasUrgent ? {
-                                duration: 1.5,
-                                repeat: Infinity,
-                                ease: "easeOut"
-                              } : {}
-                            }}
-                          >
-                            {unreadCount > 99 ? "99+" : unreadCount}
-                          </motion.span>
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{hasUrgent ? '🔔 Urgent notifications!' : `Inbox ${unreadCount > 0 ? `(${unreadCount})` : ''}`}</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* Admin Panel Icon - Only for Admins */}
-                  {userRole === 'admin' && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate("/admin")}
-                          className="h-9 w-9 relative group overflow-hidden hover:bg-destructive/10 hover:text-destructive transition-all duration-300"
-                        >
-                          <span className="absolute inset-0 w-0 bg-destructive/10 transition-all duration-300 group-hover:w-full" />
-                          <Shield className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:text-destructive" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Admin Panel</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-
-                  {/* Profile Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="gap-2">
-                        <User className="h-4 w-4" />
-                        <span className="hidden xl:inline">{t.nav.account}</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to="/profile">{t.nav.profile}</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/settings">
-                          <Settings className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-                          {t.nav.settings}
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={signOut} className="text-destructive">
-                        <LogOut className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-                        {t.nav.signOut}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              ) : (
-                <>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate("/auth")}
-                      >
-                        {t.nav.signIn}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Sign in to your account</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        onClick={() => navigate("/auth")}
-                      >
-                        {t.nav.signUp}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Create a new account</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </>
-              )}
-            </div>
-
-          {/* Mobile Menu */}
-          <div className="lg:hidden">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]">
-                  {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px] flex flex-col">
-                <SheetHeader className="flex-shrink-0">
-                  <SheetTitle className="text-2xl font-bold text-primary">
-                    LabLink
-                  </SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-1 -mx-6 px-6">
-                  <div className="flex flex-col gap-4 mt-8 pb-safe stagger-fade-in">
-                  {/* Main Navigation */}
-                  <div className="space-y-2">
-                    {leftNavLinks.map((link) => (
-                      <button
-                        key={link.href}
-                        onClick={() => handleNavClick(link)}
-                        className={`w-full flex items-center justify-between px-4 min-h-[44px] py-3 rounded-lg text-sm font-medium transition-colors active:bg-primary/10 ${
-                          isLinkActive(link)
-                            ? "bg-primary/10 text-primary font-semibold"
-                            : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
-                        }`}
-                      >
-                        <span>{link.label}</span>
-                        {link.label === "Marketplace" && userRole === 'lab_staff' && newOrdersCount && newOrdersCount > 0 && (
-                          <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-[10px] font-bold text-white bg-ocean-blue rounded-full border-2 border-background">
-                            {newOrdersCount > 99 ? "99+" : newOrdersCount}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                    
-                    {/* Create Order - Doctor Only (in navigation menu) */}
-                    {userRole === 'doctor' && (
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          navigate("/new-order");
-                          setIsOpen(false);
-                        }}
-                        className="w-full gap-2 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Create Order
-                      </Button>
-                    )}
-
-                    {/* Lab Tools Section - Lab Staff & Admin Only */}
-                    {(userRole === 'lab_staff' || userRole === 'admin') && (
-                      <>
-                        <div className="border-t border-border my-2" />
-                        <div className="space-y-2">
-                          <div className="px-4 py-2">
-                            <p className="text-xs text-muted-foreground font-semibold flex items-center gap-2">
-                              <Star className="h-3 w-3 text-amber-500" />
-                              Lab Tools
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => {
-                              navigate("/lab-workflow");
-                              setIsOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
-                          >
-                            <Building2 className="h-4 w-4" />
-                            Lab Workflow
-                          </button>
-                          <button
-                            onClick={() => {
-                              navigate("/lab-admin");
-                              setIsOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
-                          >
-                            <Shield className="h-4 w-4" />
-                            Lab Admin
-                          </button>
-                          {userRole === 'lab_staff' && (
-                            <>
-                              <button
-                                onClick={() => {
-                                  navigate("/logistics?tab=tracking");
-                                  setIsOpen(false);
-                                }}
-                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
-                              >
-                                <Truck className="h-4 w-4" />
-                                Track Orders
-                              </button>
-                              <button
-                                onClick={() => {
-                                  navigate("/logistics");
-                                  setIsOpen(false);
-                                }}
-                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
-                              >
-                                <Package className="h-4 w-4" />
-                                Logistics Dashboard
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* User Actions (when logged in) */}
-                  {user && (
-                    <>
-                      <div className="border-t border-border my-2" />
-                      <div className="space-y-2">
-                        <button
-                          onClick={() => {
-                            navigate("/notifications");
-                            setIsOpen(false);
-                          }}
-                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center justify-between min-h-[44px]"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Bell className="h-4 w-4" />
-                            Notifications
-                          </span>
-                          {unreadCount > 0 && (
-                            <Badge 
-                              variant={hasUrgent ? "destructive" : "default"}
-                              className={`h-5 min-w-[1.25rem] rounded-full flex items-center justify-center text-[10px] font-bold px-1.5 border-2 border-background ${
-                                hasUrgent ? "shadow-lg" : ""
-                              }`}
-                              style={hasUrgent ? {
-                                animation: "pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite"
-                              } : {}}
-                            >
-                              {unreadCount > 99 ? "99+" : unreadCount}
-                            </Badge>
-                          )}
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            navigate("/profile");
-                            setIsOpen(false);
-                          }}
-                          className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 active:bg-primary/10 transition-colors flex items-center gap-2 min-h-[44px]"
-                        >
-                          <User className="h-4 w-4" />
-                          Profile
-                        </button>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Install App */}
-                  {isInstallable && (
-                    <>
-                      <div className="border-t border-border my-2" />
-                      <Button
-                        variant="outline"
-                        className="w-full gap-2"
-                        onClick={() => {
-                          navigate("/install");
-                          setIsOpen(false);
-                        }}
-                      >
-                        <Download className="h-4 w-4" />
-                        Install App
-                      </Button>
-                    </>
-                  )}
-
-                  {/* Auth Section */}
-                  <div className="border-t border-border mt-4 pt-4">
-                    {user ? (
-                      <>
-                        <div className="px-4 py-2 mb-2">
-                          <p className="text-xs text-muted-foreground">{t.nav.signedInAs}</p>
-                          <p className="text-sm font-medium truncate">{user.email}</p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          className="w-full gap-2 min-h-[44px]"
-                          onClick={() => {
-                            signOut();
-                            setIsOpen(false);
-                          }}
-                        >
-                          <LogOut className="h-4 w-4" />
-                          {t.nav.signOut}
-                        </Button>
-                      </>
-                    ) : (
-                      <div className="space-y-2">
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => {
-                            navigate("/auth");
-                            setIsOpen(false);
-                          }}
-                        >
-                          {t.nav.signIn}
-                        </Button>
-                        <Button
-                          className="w-full"
-                          onClick={() => {
-                            navigate("/auth");
-                            setIsOpen(false);
-                          }}
-                        >
-                          {t.nav.signUp}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  </div>
-                </ScrollArea>
-              </SheetContent>
-            </Sheet>
+            <NavLogo />
+            <DesktopNavLinks
+              links={leftNavLinks}
+              userRole={userRole}
+              newOrdersCount={newOrdersCount}
+              onNavClick={handleNavClick}
+              isLinkActive={isLinkActive}
+            />
+            <DesktopRightActions
+              user={user}
+              userRole={userRole}
+              unreadCount={unreadCount}
+              hasUrgent={hasUrgent}
+              doctorMenuItems={doctorMenuItems}
+              labStaffMenuItems={labStaffMenuItems}
+              t={t}
+              signOut={signOut}
+            />
+            <MobileNavSheet
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              user={user}
+              userRole={userRole}
+              leftNavLinks={leftNavLinks}
+              unreadCount={unreadCount}
+              hasUrgent={hasUrgent}
+              newOrdersCount={newOrdersCount}
+              isInstallable={isInstallable}
+              t={t}
+              signOut={signOut}
+              onNavClick={handleNavClick}
+              isLinkActive={isLinkActive}
+            />
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
     </TooltipProvider>
   );
 };
