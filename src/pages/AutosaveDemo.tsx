@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 
