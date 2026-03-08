@@ -116,7 +116,7 @@ export const OrderQuickView = ({ order, open, onClose, onOpenChat, isDoctor }: O
           {/* Actions */}
           <div className="flex flex-col gap-2">
             {order.assigned_lab_id && (
-              <Button variant="outline" onClick={() => onOpenChat(order)}>
+              <Button variant="outline" onClick={() => { onClose(); setTimeout(() => onOpenChat(order), 300); }}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Open Chat
               </Button>
