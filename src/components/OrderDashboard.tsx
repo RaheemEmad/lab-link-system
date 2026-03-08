@@ -517,7 +517,7 @@ const OrderDashboard = () => {
               paginatedOrders.map((order) => (
                 <Card
                   key={order.id}
-                  className={cn("overflow-hidden cursor-pointer hover:border-primary/40 transition-colors", selectedOrders.has(order.id) && "ring-2 ring-primary")}
+                  className={cn("overflow-hidden cursor-pointer hover:border-primary/40 transition-all duration-200 active:scale-[0.98]", selectedOrders.has(order.id) && "ring-2 ring-primary")}
                   onClick={() => setQuickViewOrder(order)}
                 >
                   <CardContent className="p-4 space-y-3">
