@@ -155,24 +155,12 @@ const OrderDashboard = () => {
   }, [user, roleLoading, isDoctor, isLabStaff]);
 
   const fetchOrders = async () => {
-    console.debug('[OrderDashboard] fetchOrders called:', {
-      hasUser: !!user,
-      userId: user?.id,
-      roleLoading,
-      role,
-      isDoctor,
-      isLabStaff,
-      timestamp: new Date().toISOString()
-    });
-
     if (!user || roleLoading) {
-      console.debug('[OrderDashboard] Skipping fetch - no user or role still loading');
       return;
     }
 
     try {
       setLoading(true);
-      console.debug('[OrderDashboard] Starting order fetch...', { role, isDoctor, isLabStaff });
       
       let query = supabase
         .from("orders")
@@ -189,23 +177,15 @@ const OrderDashboard = () => {
         .order("timestamp", { ascending: false });
 
       if (isDoctor) {
-        console.debug('[OrderDashboard] Applying doctor filter');
         query = query.eq("doctor_id", user.id);
       } else if (isLabStaff) {
         // For lab staff on dashboard, only show ASSIGNED orders (not marketplace)
-        // Marketplace orders should only appear on the OrdersMarketplace page
-        console.debug('[OrderDashboard] Applying lab staff filter - assigned orders only');
         query = query.not("assigned_lab_id", "is", null);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
-      
-      console.debug('[OrderDashboard] Orders fetched successfully:', {
-        orderCount: data?.length || 0,
-        timestamp: new Date().toISOString()
-      });
       
       setOrders(data || []);
     } catch (error: any) {
