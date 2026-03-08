@@ -274,11 +274,17 @@ const AdminUsersTab = () => {
     }
   };
 
-  const exportUsers = async () => {
+  const exportUsersCSV = async () => {
     const { exportToCSV, prepareUsersForExport } = await import("@/lib/exportUtils");
     const exportData = prepareUsersForExport(filteredUsers);
     exportToCSV(exportData, `users-export-${new Date().toISOString().split("T")[0]}`);
-    toast.success("Users exported successfully");
+    toast.success("Users exported as CSV");
+  };
+
+  const exportUsersPDF = async () => {
+    const { exportToPDF, prepareUsersForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareUsersForExport(filteredUsers);
+    exportToPDF(exportData, "Users Export", `users-export-${new Date().toISOString().split("T")[0]}`);
   };
 
   if (loading) {
