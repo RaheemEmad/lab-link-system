@@ -603,8 +603,8 @@ const LandingNav = () => {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut} className="text-destructive">
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Sign Out
+                        <LogOut className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                        {t.nav.signOut}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
