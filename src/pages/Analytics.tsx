@@ -460,7 +460,9 @@ const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => {
       </Card>
     </div>
   </div>
-);
+  </div>
+  );
+};
 
 // --- Shared Stat Card ---
 const StatCard = ({ icon: Icon, label, value, sub }: { icon: any; label: string; value: string; sub: string }) => (
