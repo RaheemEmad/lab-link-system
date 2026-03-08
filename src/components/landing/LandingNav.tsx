@@ -205,9 +205,9 @@ const LandingNav = () => {
 
   // Role-specific dropdown menu items
   const doctorMenuItems = user && userRole === 'doctor' ? [
-    { label: "Preferred Labs", href: "/preferred-labs" },
+    { label: t.nav.preferredLabs, href: "/preferred-labs" },
     { 
-      label: "Lab Applications", 
+      label: t.nav.labApplications, 
       href: "/lab-requests",
       badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined
     },
