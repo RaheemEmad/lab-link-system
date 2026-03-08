@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { createNotification } from "@/lib/notifications";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -212,7 +213,7 @@ const LabWorkflowManagement = () => {
 
         // Create notification for doctor
         if (order?.doctor_id) {
-          await supabase.from("notifications").insert({
+          await createNotification({
             user_id: order.doctor_id,
             order_id: orderId,
             type: "delivery_confirmation_request",

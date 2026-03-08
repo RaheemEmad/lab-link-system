@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { createNotification } from "@/lib/notifications";
 import { AlertCircle } from "lucide-react";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered" | "Cancelled";
@@ -115,7 +116,7 @@ export const OrderStatusDialog = ({
 
         // Create notification for doctor
         if (order?.doctor_id) {
-          await supabase.from("notifications").insert({
+          await createNotification({
             user_id: order.doctor_id,
             order_id: orderId,
             type: "delivery_confirmation_request",

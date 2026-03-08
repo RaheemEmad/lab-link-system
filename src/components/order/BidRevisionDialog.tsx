@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { createNotification } from "@/lib/notifications";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +71,7 @@ const BidRevisionDialog = ({
         .single();
 
       if (request?.requested_by_user_id) {
-        await supabase.from("notifications").insert({
+        await createNotification({
           user_id: request.requested_by_user_id,
           order_id: orderId,
           type: 'bid_revision_requested',
@@ -121,7 +122,7 @@ const BidRevisionDialog = ({
         .single();
 
       if (order?.doctor_id) {
-        await supabase.from("notifications").insert({
+        await createNotification({
           user_id: order.doctor_id,
           order_id: orderId,
           type: 'bid_revised',

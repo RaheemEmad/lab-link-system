@@ -27,6 +27,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OrderNotes } from "@/components/order/OrderNotes";
 
@@ -78,9 +79,10 @@ export function ShipmentDetailsDialog({
   userRole,
   defaultTab = "details"
 }: ShipmentDetailsDialogProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const isLabStaff = userRole === "lab_staff";
-  const canEdit = isLabStaff; // Lab staff can always edit shipment details
+  const canEdit = isLabStaff;
 
   const form = useForm<ShipmentFormValues>({
     resolver: zodResolver(shipmentSchema),
@@ -101,7 +103,6 @@ export function ShipmentDetailsDialog({
   const onSubmit = async (values: ShipmentFormValues) => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       // Update shipment details

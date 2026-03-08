@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -62,6 +63,7 @@ export default function OrderNotesDialog({
   onOpenChange,
   orderNumber,
 }: OrderNotesDialogProps) {
+  const { user } = useAuth();
   const [notes, setNotes] = useState<OrderNote[]>([]);
   const [newNote, setNewNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -69,19 +71,13 @@ export default function OrderNotesDialog({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const currentUserId = user?.id || null;
   const [soundEnabled, setSoundEnabled] = useState(true);
   const previousNoteCountRef = useRef<number>(0);
   const { playNormalNotification } = useNotificationSound();
   const { requestPermission, showNotification, isGranted, isSupported } = useBrowserNotifications();
 
   useEffect(() => {
-    const getUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getUserId();
-
     // Request browser notification permission on first load
     if (isSupported && !isGranted) {
       requestPermission();
@@ -208,8 +204,6 @@ export default function OrderNotesDialog({
     console.log('Fetching notes for order:', orderId);
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       const { data, error } = await supabase
         .from("order_notes")
         .select(`
@@ -244,7 +238,7 @@ export default function OrderNotesDialog({
             .from("note_likes")
             .select("id")
             .eq("note_id", note.id)
-            .eq("user_id", user?.id || "")
+            .eq("user_id", currentUserId || "")
             .maybeSingle();
 
           return {
@@ -280,7 +274,6 @@ export default function OrderNotesDialog({
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("order_notes").insert({
@@ -350,7 +343,6 @@ export default function OrderNotesDialog({
 
   const handleToggleLike = async (noteId: string, currentlyLiked: boolean) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       if (currentlyLiked) {

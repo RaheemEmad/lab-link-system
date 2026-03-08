@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -40,6 +41,7 @@ export const LabReassignDialog = ({
   order,
   onSuccess,
 }: LabReassignDialogProps) => {
+  const { user } = useAuth();
   const [labs, setLabs] = useState<Lab[]>([]);
   const [selectedLabId, setSelectedLabId] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -76,7 +78,6 @@ export const LabReassignDialog = ({
       setLoading(true);
 
       // Get current user for audit
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Unauthorized");
         return;

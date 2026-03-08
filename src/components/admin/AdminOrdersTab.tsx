@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +48,7 @@ interface Order {
 }
 
 const AdminOrdersTab = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,7 +93,6 @@ const AdminOrdersTab = () => {
 
     try {
       // Verify admin access before deletion
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Unauthorized");
         return;

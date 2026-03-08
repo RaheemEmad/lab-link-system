@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import { compressImage, validateImageType } from "@/lib/imageCompression";
 import { formatFileSize } from "@/lib/formatters";
 import { validateUploadFile, validateZipFile } from "@/lib/fileValidation";
@@ -57,6 +58,7 @@ const ACCEPTED_DOCUMENT_TYPES = ["application/pdf"];
 const ACCEPTED_ARCHIVE_TYPES = ["application/zip", "application/x-zip-compressed"];
 
 export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }: FileUploadSectionProps) {
+  const { user } = useAuth();
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [uploading, setUploading] = useState(false);
   const uploadQueue = useRef(new UploadQueue({
@@ -267,7 +269,6 @@ export function FileUploadSection({ orderId, onFilesChange, existingFiles = [] }
     const totalFiles = files.length;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
       // Step 1: Parallel image compression (if any images)

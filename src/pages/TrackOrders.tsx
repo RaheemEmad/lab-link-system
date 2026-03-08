@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import { createNotification } from "@/lib/notifications";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -266,7 +267,7 @@ const TrackOrders = () => {
 
       // Notify doctor
       if (doctorId) {
-        await supabase.from("notifications").insert({
+        await createNotification({
           user_id: doctorId,
           order_id: orderId,
           type: "shipment_update",

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -33,6 +34,7 @@ export function CancelOrderDialog({
   trigger,
   onSuccess 
 }: CancelOrderDialogProps) {
+  const { user } = useAuth();
   const [reason, setReason] = useState("");
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
@@ -40,7 +42,6 @@ export function CancelOrderDialog({
 
   const cancelMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       // Insert cancellation record
