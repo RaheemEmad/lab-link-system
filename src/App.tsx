@@ -45,7 +45,7 @@ const EditOrder = lazy(() => import("./pages/EditOrder"));
 const OrdersMarketplace = lazy(() => import("./pages/OrdersMarketplace"));
 const LabRequestsManagement = lazy(() => import("./pages/LabRequestsManagement"));
 const LogisticsDashboard = lazy(() => import("./pages/LogisticsDashboard"));
-const TrackOrders = lazy(() => import("./pages/TrackOrders"));
+
 const Achievements = lazy(() => import("./pages/Achievements"));
 const DoctorAchievements = lazy(() => import("./pages/DoctorAchievements"));
 const LabAchievements = lazy(() => import("./pages/LabAchievements"));
@@ -56,9 +56,6 @@ const PricingRulesManagement = lazy(() => import("./pages/admin/PricingRulesMana
 const ChatHistory = lazy(() => import("./pages/ChatHistory"));
 const FeedbackRoom = lazy(() => import("./pages/FeedbackRoom"));
 const PatientCases = lazy(() => import("./pages/PatientCases"));
-const LabCalendar = lazy(() => import("./pages/LabCalendar"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-const AppointmentScheduling = lazy(() => import("./pages/AppointmentScheduling"));
 const SharedInvoice = lazy(() => import("./pages/SharedInvoice"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -108,7 +105,7 @@ const AppContent = () => {
             <Route path="/orders-marketplace" element={<PageTransition><OrdersMarketplace /></PageTransition>} />
             <Route path="/lab-requests" element={<PageTransition><LabRequestsManagement /></PageTransition>} />
             <Route path="/logistics" element={<PageTransition><LogisticsDashboard /></PageTransition>} />
-            <Route path="/track-orders" element={<PageTransition><TrackOrders /></PageTransition>} />
+            
             <Route path="/achievements" element={<PageTransition><Achievements /></PageTransition>} />
             <Route path="/doctor-achievements" element={<PageTransition><DoctorAchievements /></PageTransition>} />
             <Route path="/lab-achievements" element={<PageTransition><LabAchievements /></PageTransition>} />
@@ -124,9 +121,8 @@ const AppContent = () => {
             <Route path="/feedback-room" element={<PageTransition><FeedbackRoom /></PageTransition>} />
             <Route path="/feedback-room/:orderId" element={<PageTransition><FeedbackRoom /></PageTransition>} />
             <Route path="/patient-cases" element={<PageTransition><PatientCases /></PageTransition>} />
-            <Route path="/lab-calendar" element={<PageTransition><LabCalendar /></PageTransition>} />
-            <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
-            <Route path="/appointments" element={<PageTransition><AppointmentScheduling /></PageTransition>} />
+
+
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
             <Route path="/admin/pricing-rules" element={<PageTransition><PricingRulesManagement /></PageTransition>} />

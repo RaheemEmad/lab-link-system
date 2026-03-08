@@ -384,12 +384,12 @@ const LandingNav = () => {
                           <p>Orders & Logistics</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link to="/track-orders">Track Orders</Link>
-                        </DropdownMenuItem>
+                        <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link to="/logistics">Logistics Dashboard</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/logistics?tab=tracking">Track Orders</Link>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -718,7 +718,7 @@ const LandingNav = () => {
                             <>
                               <button
                                 onClick={() => {
-                                  navigate("/track-orders");
+                                  navigate("/logistics?tab=tracking");
                                   setIsOpen(false);
                                 }}
                                 className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors flex items-center gap-2"
