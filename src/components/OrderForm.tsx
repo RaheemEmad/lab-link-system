@@ -553,6 +553,19 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       <CardContent className="px-4 sm:px-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+            {/* Import Button */}
+            <div className="flex justify-end">
+              <Button type="button" variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                Import with AI
+              </Button>
+            </div>
+
+            <ImportOrderDialog
+              open={importDialogOpen}
+              onOpenChange={setImportDialogOpen}
+              onImport={handleImportData}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
