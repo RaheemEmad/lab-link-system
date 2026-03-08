@@ -398,7 +398,9 @@ const AppointmentScheduling = () => {
                   <Select value={timeStart} onValueChange={setTimeStart}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TIME_SLOTS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {availableTimeSlots.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                     </SelectContent>
                   </Select>
                 </div>
