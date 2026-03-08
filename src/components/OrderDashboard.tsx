@@ -135,6 +135,10 @@ const OrderDashboard = () => {
   const dialog = useDialogState<Order>();
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
   const [quickViewOrder, setQuickViewOrder] = useState<Order | null>(null);
+  const [showDeletedOrders, setShowDeletedOrders] = useState(false);
+  const [deletedOrders, setDeletedOrders] = useState<(Order & { pre_delete_status?: string | null })[]>([]);
+  const [deletedLoading, setDeletedLoading] = useState(false);
+  const [restoreOrder, setRestoreOrder] = useState<{ id: string; order_number: string; pre_delete_status: string | null } | null>(null);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
