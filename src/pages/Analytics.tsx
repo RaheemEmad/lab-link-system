@@ -130,14 +130,15 @@ const Analytics = () => {
       const completedOrders = orders?.filter((o) => o.status === "Delivered") ?? [];
       const inProgressOrders = orders?.filter((o) => o.status === "In Progress") ?? [];
 
-      // Revenue
+      // Revenue (one-to-one relation)
       let totalRevenue = 0;
       let totalReceived = 0;
       orders?.forEach((o) => {
-        o.invoices?.forEach((inv: any) => {
+        const inv = o.invoices as any;
+        if (inv) {
           totalRevenue += inv.final_total || 0;
           totalReceived += inv.amount_paid || 0;
-        });
+        }
       });
 
       // On-time deliveries
