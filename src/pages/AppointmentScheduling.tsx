@@ -353,6 +353,17 @@ const AppointmentScheduling = () => {
                 </Select>
               </div>
 
+              {selectedLabId && hasAvailability && (
+                <p className="text-xs text-muted-foreground bg-primary/5 rounded p-2">
+                  📅 Dates and times filtered by lab availability
+                </p>
+              )}
+              {selectedLabId && !hasAvailability && (
+                <p className="text-xs text-muted-foreground bg-muted rounded p-2">
+                  ⚠️ Lab hasn't configured availability — all times shown
+                </p>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Type</Label>
