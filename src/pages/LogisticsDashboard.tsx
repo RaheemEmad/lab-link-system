@@ -255,8 +255,8 @@ const LogisticsDashboard = () => {
                     <CardDescription>Track deliveries and handling requirements</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {shipments.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground"><Package className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No active shipments</p></div>
+                    {filteredShipments.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground"><Package className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>{kpiFilter ? "No shipments match this filter" : "No active shipments"}</p></div>
                     ) : (
                       <div className="space-y-4">
                         {shipments.map(shipment => (
