@@ -263,7 +263,7 @@ export default function LabRequestsManagement() {
         
         setAcceptedRequest({ id: variables.requestId, orderId: data.orderId, orderNumber: data.orderNumber });
       } else {
-        console.log('[LabRequests] Request declined, invalidating queries');
+        
         queryClient.invalidateQueries({ queryKey: ["lab-requests-doctor", user?.id] });
         queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
         queryClient.invalidateQueries({ queryKey: ["orders"] });
