@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ACHIEVEMENTS } from "./AchievementBadge";
-import confetti from "canvas-confetti";
+import type { CreateTypes } from "canvas-confetti";
 import { useAchievementSound } from "@/hooks/useAchievementSound";
 
 export function AchievementToast() {

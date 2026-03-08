@@ -1,5 +1,4 @@
 import * as React from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface InputProps extends React.ComponentProps<"input"> {
@@ -20,14 +19,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             "file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground",
             "placeholder:text-muted-foreground",
             "focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
-            // Default state
             !error && !success && "border-input hover:border-primary/50",
-            // Focus state with blue/teal gradient
             !error && !success && isFocused && "border-primary shadow-[0_0_0_3px_rgba(59,130,246,0.1)] scale-[1.01]",
-            // Error state
             error && "border-destructive/60 hover:border-destructive bg-destructive/5",
             error && isFocused && "border-destructive shadow-[0_0_0_3px_rgba(239,68,68,0.1)] scale-[1.01]",
-            // Success state
             success && "border-success/60 hover:border-success bg-success/5",
             success && isFocused && "border-success shadow-[0_0_0_3px_rgba(34,197,94,0.1)] scale-[1.01]",
             className,
@@ -44,14 +39,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         
-        {/* Animated border gradient on focus */}
+        {/* CSS-only gradient border on focus */}
         {isFocused && !error && !success && (
-          <motion.div
-            className="absolute inset-0 rounded-lg pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+          <div
+            className="absolute inset-0 rounded-lg pointer-events-none animate-in fade-in duration-200"
             style={{
               background: "linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)",
               padding: "2px",
