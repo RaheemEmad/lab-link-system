@@ -49,14 +49,15 @@ const Analytics = () => {
       const completedOrders = orders?.filter((o) => o.status === "Delivered") ?? [];
       const cancelledOrders = orders?.filter((o) => o.status === "Cancelled") ?? [];
 
-      // Spending from invoices
+      // Spending from invoices (one-to-one relation)
       let totalSpent = 0;
       let totalPaid = 0;
       orders?.forEach((o) => {
-        o.invoices?.forEach((inv: any) => {
+        const inv = o.invoices as any;
+        if (inv) {
           totalSpent += inv.final_total || 0;
           totalPaid += inv.amount_paid || 0;
-        });
+        }
       });
 
       // Avg turnaround (created -> delivered)
