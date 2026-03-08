@@ -78,7 +78,7 @@ class SLAMonitor {
     const metricKey = `${metric.name}_${metric.severity}`;
     
     if (!this.shouldAlert(metricKey)) {
-      console.log(`Alert cooldown active for ${metricKey}`);
+      
       return;
     }
 
