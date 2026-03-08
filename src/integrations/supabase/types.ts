@@ -2244,6 +2244,75 @@ export type Database = {
           },
         ]
       }
+      order_templates: {
+        Row: {
+          assigned_lab_id: string | null
+          biological_notes: string | null
+          created_at: string | null
+          handling_instructions: string | null
+          id: string
+          is_favorite: boolean | null
+          name: string
+          restoration_type: string | null
+          shade_system: string | null
+          teeth_number: string | null
+          teeth_shade: string | null
+          updated_at: string | null
+          urgency: string | null
+          use_count: number | null
+          user_id: string
+        }
+        Insert: {
+          assigned_lab_id?: string | null
+          biological_notes?: string | null
+          created_at?: string | null
+          handling_instructions?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          name: string
+          restoration_type?: string | null
+          shade_system?: string | null
+          teeth_number?: string | null
+          teeth_shade?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          use_count?: number | null
+          user_id: string
+        }
+        Update: {
+          assigned_lab_id?: string | null
+          biological_notes?: string | null
+          created_at?: string | null
+          handling_instructions?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          name?: string
+          restoration_type?: string | null
+          shade_system?: string | null
+          teeth_number?: string | null
+          teeth_shade?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          use_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_templates_assigned_lab_id_fkey"
+            columns: ["assigned_lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           actual_delivery_date: string | null

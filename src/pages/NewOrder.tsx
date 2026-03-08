@@ -3,61 +3,41 @@ import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import OrderForm from "@/components/OrderForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import LandingNav from "@/components/landing/LandingNav";
-import LandingFooter from "@/components/landing/LandingFooter";
+import PageLayout from "@/components/layouts/PageLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 
 const NewOrder = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDoctor, roleConfirmed } = useUserRole();
 
   useEffect(() => {
-    const checkRole = async () => {
-      if (!user) return;
-      
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data?.role !== 'doctor') {
-        toast.error("Access denied", {
-          description: "Only doctors can create orders"
-        });
-        navigate('/dashboard');
-      }
-    };
-    
-    checkRole();
-  }, [user, navigate]);
+    if (roleConfirmed && !isDoctor) {
+      toast.error("Access denied", {
+        description: "Only doctors can create orders"
+      });
+      navigate('/dashboard');
+    }
+  }, [roleConfirmed, isDoctor, navigate]);
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col">
-        <LandingNav />
-        <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
-          <div className="container px-3 sm:px-4 lg:px-6">
-            <div className="mx-auto max-w-3xl">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/dashboard")}
-                className="mb-4 w-fit"
-              >
-                <ArrowLeft className="h-4 w-4 mr-1.5" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6">Create New Order</h1>
-              <OrderForm onSubmitSuccess={() => navigate("/dashboard")} />
-            </div>
-          </div>
-        </div>
-        <LandingFooter />
-      </div>
+      <PageLayout bgClass="bg-secondary/30" maxWidth="max-w-3xl">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/dashboard")}
+          className="mb-4 w-fit"
+        >
+          <ArrowLeft className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
+          Back to Dashboard
+        </Button>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6">Create New Order</h1>
+        <OrderForm onSubmitSuccess={() => navigate("/dashboard")} />
+      </PageLayout>
     </ProtectedRoute>
   );
 };

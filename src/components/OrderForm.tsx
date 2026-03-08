@@ -1050,19 +1050,50 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 )}
               </div>
             </div>
+            </div>
+            {/* End Step 3 */}
 
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {uploadProgress > 0 && uploadProgress < 100 
-                    ? `Uploading ${uploadProgress}%` 
-                    : "Creating Order..."}
-                </>
+            {/* Step Navigation */}
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="min-h-[44px]"
+              >
+                <ChevronLeft className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
+                Previous
+              </Button>
+
+              <span className="text-sm text-muted-foreground">
+                Step {currentStep + 1} of {STEPS.length}
+              </span>
+
+              {currentStep < STEPS.length - 1 ? (
+                <Button
+                  type="button"
+                  onClick={nextStep}
+                  className="min-h-[44px]"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ltr:ml-1 rtl:mr-1" />
+                </Button>
               ) : (
-                "Submit Order"
+                <Button type="submit" className="min-h-[44px]" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
+                      {uploadProgress > 0 && uploadProgress < 100 
+                        ? `Uploading ${uploadProgress}%` 
+                        : "Creating Order..."}
+                    </>
+                  ) : (
+                    "Submit Order"
+                  )}
+                </Button>
               )}
-            </Button>
+            </div>
           </form>
         </Form>
       </CardContent>
