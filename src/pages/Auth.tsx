@@ -424,7 +424,7 @@ const Auth = () => {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>{t.auth.fullName}</FormLabel>
                         <FormControl>
                           <Input placeholder="Dr. John Smith" {...field} />
                         </FormControl>
