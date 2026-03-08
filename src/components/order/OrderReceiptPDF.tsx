@@ -73,9 +73,10 @@ export const OrderReceiptPDF = ({ orderId, onClose }: OrderReceiptPDFProps) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("chat_messages")
-        .select("*")
+        .select("id, message_text, sender_role, created_at")
         .eq("order_id", orderId)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .limit(100);
       
       if (error) throw error;
       return data;
