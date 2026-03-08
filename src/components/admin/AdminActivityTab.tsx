@@ -57,11 +57,17 @@ const AdminActivityTab = () => {
     return <Badge variant="secondary">{action}</Badge>;
   };
 
-  const exportLogs = async () => {
+  const exportLogsCSV = async () => {
     const { exportToCSV, prepareActivityLogsForExport } = await import("@/lib/exportUtils");
     const exportData = prepareActivityLogsForExport(logs);
     exportToCSV(exportData, `activity-logs-${new Date().toISOString().split("T")[0]}`);
-    toast.success("Activity logs exported successfully");
+    toast.success("Activity logs exported as CSV");
+  };
+
+  const exportLogsPDF = async () => {
+    const { exportToPDF, prepareActivityLogsForExport } = await import("@/lib/exportUtils");
+    const exportData = prepareActivityLogsForExport(logs);
+    exportToPDF(exportData, "System Activity Log", `activity-logs-${new Date().toISOString().split("T")[0]}`);
   };
 
   if (loading) {
