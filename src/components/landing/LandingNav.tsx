@@ -43,45 +43,9 @@ const LandingNav = () => {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
-  const { playUrgentNotification } = useNotificationSound();
-  const { 
-    requestPermission, 
-    showUrgentNotification, 
-    showNormalNotification,
-    isGranted,
-    isSupported 
-  } = useBrowserNotifications();
-  const previousUrgentCountRef = useRef<number>(0);
-  const previousTotalCountRef = useRef<number>(0);
 
-  // Unified unread count from shared hook
+  // Notifications handled centrally by NotificationPopup - only read counts here
   const { unreadCount, hasUrgent } = useUnreadCount();
-
-  // Request notification permission on mount if user is logged in
-  useEffect(() => {
-    if (user && isSupported && !isGranted) {
-      const timer = setTimeout(() => {
-        requestPermission();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [user, isSupported, isGranted, requestPermission]);
-
-  // Play sound and show browser notification when new urgent notifications arrive
-  useEffect(() => {
-    const isNewUrgent = hasUrgent && unreadCount > previousUrgentCountRef.current && previousUrgentCountRef.current > 0;
-    const isNewNotification = unreadCount > previousTotalCountRef.current && previousTotalCountRef.current > 0;
-
-    if (isNewUrgent) {
-      playUrgentNotification();
-      showUrgentNotification(unreadCount);
-    } else if (isNewNotification) {
-      showNormalNotification(unreadCount);
-    }
-
-    previousUrgentCountRef.current = unreadCount;
-    previousTotalCountRef.current = unreadCount;
-  }, [unreadCount, hasUrgent, playUrgentNotification, showUrgentNotification, showNormalNotification]);
 
   useEffect(() => {
     const handler = (e: Event) => {
