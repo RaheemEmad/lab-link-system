@@ -741,7 +741,10 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 </FormItem>
               )}
             />
+            </div>
 
+            {/* Teeth selector is part of Step 1 but placed here to maintain form field order */}
+            <div className={currentStep !== 0 ? 'hidden' : 'space-y-4 sm:space-y-6'}>
             <FormField
               control={form.control}
               name="teethNumber"
