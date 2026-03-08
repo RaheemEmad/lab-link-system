@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.extract-order-details]
 verify_jwt = false
+
+[functions.shade-match]
+verify_jwt = false

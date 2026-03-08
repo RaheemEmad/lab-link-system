@@ -738,7 +738,13 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+            />
+
+            {/* AI Shade Match Assistant */}
+            <ShadeMatchAssistant
+              shadeSystem={form.watch("shadeSystem")}
+              onShadeSelect={(shade) => form.setValue("teethShade", shade)}
+            />
             </div>
 
             <FormField
