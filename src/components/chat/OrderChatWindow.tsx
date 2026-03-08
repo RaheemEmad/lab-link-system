@@ -224,11 +224,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
 
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Maximum file size is 10MB',
-        variant: 'destructive',
-      });
+      toast.error('File too large', { description: 'Maximum file size is 10MB' });
       return;
     }
 
