@@ -186,7 +186,7 @@ const LabCalendar = () => {
                     Today
                   </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => navigate("next")}>
+                <Button variant="ghost" size="icon" onClick={() => navigateDate("next")}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </CardContent>
