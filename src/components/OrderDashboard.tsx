@@ -113,6 +113,8 @@ const OrderDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
+  // Bulk selection state
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
   const [bulkUpdating, setBulkUpdating] = useState(false);
   
