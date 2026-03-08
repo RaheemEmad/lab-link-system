@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ExportDropdown from "@/components/ui/export-dropdown";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Trash2, Edit, UserCheck, UserX, Search, KeyRound, Unlock } from "lucide-react";
