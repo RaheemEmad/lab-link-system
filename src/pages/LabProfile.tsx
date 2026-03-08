@@ -10,6 +10,7 @@ import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
