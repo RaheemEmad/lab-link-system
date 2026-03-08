@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Filter, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X } from "lucide-react";
+import { Search, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X, ArrowUpDown, ArrowUp, ArrowDown, Download, Copy, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -45,6 +45,12 @@ import { OrderHistoryTimeline } from "./order/OrderHistoryTimeline";
 import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
 import { cn } from "@/lib/utils";
 import { useDialogState } from "./dashboard/useDialogState";
+import { DashboardKPICards } from "./dashboard/DashboardKPICards";
+import { OrderProgressStrip } from "./dashboard/OrderProgressStrip";
+import { WorkloadHeatmap } from "./dashboard/WorkloadHeatmap";
+import { OrderQuickView } from "./dashboard/OrderQuickView";
+import { SavedFilters } from "./dashboard/SavedFilters";
+import { format, isAfter, isBefore, addDays, startOfWeek, startOfMonth, subDays } from "date-fns";
 
 // Lazy-load heavy dialog components
 const OrderNotesDialog = lazy(() => import("./order/OrderNotesDialog"));
@@ -67,6 +73,8 @@ interface Order {
   screenshot_url: string | null;
   assigned_lab_id: string | null;
   delivery_pending_confirmation: boolean | null;
+  expected_delivery_date: string | null;
+  shade_system: string | null;
   labs: {
     id: string;
     name: string;
@@ -75,6 +83,9 @@ interface Order {
     description: string | null;
   } | null;
 }
+
+type SortField = "order_number" | "patient_name" | "restoration_type" | "urgency" | "status" | "timestamp" | "expected_delivery_date";
+type SortDirection = "asc" | "desc";
 
 const statusColors: Record<OrderStatus | "Awaiting Confirmation", string> = {
   "Pending": "bg-warning/10 text-warning border-warning/20",
@@ -101,14 +112,27 @@ const BULK_STATUS_OPTIONS: { value: OrderStatus; label: string; roles: string[] 
   { value: "Cancelled", label: "Cancelled", roles: ["doctor", "lab_staff"] },
 ];
 
+// Deadline color helper
+const getDeadlineColor = (dateStr: string | null): string => {
+  if (!dateStr) return "text-muted-foreground";
+  const deadline = new Date(dateStr);
+  const now = new Date();
+  if (isBefore(deadline, now)) return "text-destructive font-medium";
+  if (isBefore(deadline, addDays(now, 3))) return "text-warning font-medium";
+  return "text-success";
+};
+
 const OrderDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<string>("all");
+  const [sortField, setSortField] = useState<SortField>("timestamp");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [loading, setLoading] = useState(true);
-  // Consolidated dialog state - replaces 12 individual useState pairs
   const dialog = useDialogState<Order>();
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+  const [quickViewOrder, setQuickViewOrder] = useState<Order | null>(null);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -122,40 +146,23 @@ const OrderDashboard = () => {
   const { isDoctor, isLabStaff, isLoading: roleLoading, labId, role } = useUserRole();
   const navigate = useNavigate();
 
-  // Debug logging removed for performance (was logging on every render)
-
   useEffect(() => {
-    // Wait for both user AND role to be loaded before fetching orders
     if (!user || roleLoading) return;
     
     fetchOrders();
     
-    // Set up realtime subscription for order updates
     const channel = supabase
       .channel('orders-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        (payload) => {
-          console.log('Order update received:', payload);
-          fetchOrders(); // Refresh orders on any change
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        fetchOrders();
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [user, roleLoading, isDoctor, isLabStaff]);
 
   const fetchOrders = async () => {
-    if (!user || roleLoading) {
-      return;
-    }
+    if (!user || roleLoading) return;
 
     try {
       setLoading(true);
@@ -177,14 +184,11 @@ const OrderDashboard = () => {
       if (isDoctor) {
         query = query.eq("doctor_id", user.id);
       } else if (isLabStaff) {
-        // For lab staff on dashboard, only show ASSIGNED orders (not marketplace)
         query = query.not("assigned_lab_id", "is", null);
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
-      
       setOrders(data || []);
     } catch (error: any) {
       console.error('[OrderDashboard] Failed to fetch orders:', error.message);
@@ -196,13 +200,8 @@ const OrderDashboard = () => {
 
   const handleDelete = async (orderId: string) => {
     try {
-      const { error } = await supabase
-        .from("orders")
-        .delete()
-        .eq("id", orderId);
-
+      const { error } = await supabase.from("orders").delete().eq("id", orderId);
       if (error) throw error;
-
       toast.success("Order deleted successfully");
       fetchOrders();
     } catch (error: any) {
@@ -213,55 +212,42 @@ const OrderDashboard = () => {
     }
   };
 
-  const handleEdit = (orderId: string) => {
-    navigate(`/edit-order/${orderId}`);
-  };
+  const handleEdit = (orderId: string) => navigate(`/edit-order/${orderId}`);
+  const handleStatusUpdate = (order: Order) => dialog.open("status", order);
+  const handleViewHistory = (order: Order) => dialog.open("history", order);
+  const handleViewNotes = (order: Order) => dialog.open("notes", order);
+  const handleOpenChat = (order: Order) => dialog.open("chat", order);
 
-  const handleStatusUpdate = (order: Order) => {
-    dialog.open("status", order);
-  };
-
-  const handleViewHistory = (order: Order) => {
-    dialog.open("history", order);
-  };
-
-  const handleViewNotes = (order: Order) => {
-    dialog.open("notes", order);
-  };
-
-  const handleOpenChat = (order: Order) => {
-    dialog.open("chat", order);
+  // Reorder handler for doctors
+  const handleReorder = (order: Order) => {
+    const params = new URLSearchParams();
+    if (order.patient_name) params.set("patient_name", order.patient_name);
+    if (order.restoration_type) params.set("restoration_type", order.restoration_type);
+    if (order.teeth_shade) params.set("teeth_shade", order.teeth_shade);
+    if (order.teeth_number) params.set("teeth_number", order.teeth_number);
+    if (order.shade_system) params.set("shade_system", order.shade_system);
+    navigate(`/new-order?${params.toString()}`);
   };
 
   // Bulk selection handlers
   const toggleOrderSelection = (orderId: string) => {
     setSelectedOrders(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(orderId)) {
-        newSet.delete(orderId);
-      } else {
-        newSet.add(orderId);
-      }
+      if (newSet.has(orderId)) newSet.delete(orderId);
+      else newSet.add(orderId);
       return newSet;
     });
   };
 
   const toggleAllOrders = () => {
-    if (selectedOrders.size === paginatedOrders.length) {
-      setSelectedOrders(new Set());
-    } else {
-      setSelectedOrders(new Set(paginatedOrders.map(o => o.id)));
-    }
+    if (selectedOrders.size === paginatedOrders.length) setSelectedOrders(new Set());
+    else setSelectedOrders(new Set(paginatedOrders.map(o => o.id)));
   };
 
-  const clearSelection = () => {
-    setSelectedOrders(new Set());
-  };
+  const clearSelection = () => setSelectedOrders(new Set());
 
-  // Bulk status update
   const handleBulkStatusUpdate = async (newStatus: OrderStatus) => {
     if (selectedOrders.size === 0) return;
-    
     setBulkUpdating(true);
     let successCount = 0;
     let failCount = 0;
@@ -270,17 +256,10 @@ const OrderDashboard = () => {
       for (const orderId of selectedOrders) {
         const { error } = await supabase
           .from("orders")
-          .update({ 
-            status: newStatus,
-            status_updated_at: new Date().toISOString()
-          })
+          .update({ status: newStatus, status_updated_at: new Date().toISOString() })
           .eq("id", orderId);
 
-        if (error) {
-          console.error(`Failed to update order ${orderId}:`, error);
-          failCount++;
-        } else {
-          // Log status change in history
+        if (error) { failCount++; } else {
           await supabase.from("order_status_history").insert({
             order_id: orderId,
             old_status: orders.find(o => o.id === orderId)?.status || "Pending",
@@ -292,17 +271,12 @@ const OrderDashboard = () => {
         }
       }
 
-      if (successCount > 0) {
-        toast.success(`Updated ${successCount} order${successCount > 1 ? 's' : ''} to ${newStatus}`);
-      }
-      if (failCount > 0) {
-        toast.error(`Failed to update ${failCount} order${failCount > 1 ? 's' : ''}`);
-      }
+      if (successCount > 0) toast.success(`Updated ${successCount} order${successCount > 1 ? 's' : ''} to ${newStatus}`);
+      if (failCount > 0) toast.error(`Failed to update ${failCount} order${failCount > 1 ? 's' : ''}`);
 
       setSelectedOrders(new Set());
       fetchOrders();
     } catch (error: any) {
-      console.error("Bulk update error:", error);
       toast.error("Failed to update orders");
     } finally {
       setBulkUpdating(false);
@@ -310,42 +284,130 @@ const OrderDashboard = () => {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.doctor_name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+  // Sort toggle handler
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
-    return matchesSearch && matchesStatus;
-  });
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDirection === "asc"
+      ? <ArrowUp className="h-3 w-3 ml-1" />
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
+  // Filtered + sorted orders
+  const filteredOrders = useMemo(() => {
+    const now = new Date();
+    let result = orders.filter((order) => {
+      const matchesSearch =
+        order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.doctor_name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+
+      // Date range filter
+      let matchesDate = true;
+      if (dateRange !== "all") {
+        const orderDate = new Date(order.timestamp);
+        if (dateRange === "week") matchesDate = isAfter(orderDate, startOfWeek(now));
+        else if (dateRange === "month") matchesDate = isAfter(orderDate, startOfMonth(now));
+        else if (dateRange === "30days") matchesDate = isAfter(orderDate, subDays(now, 30));
+      }
+
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+
+    // Sort
+    result.sort((a, b) => {
+      let valA: string | number = "";
+      let valB: string | number = "";
+
+      switch (sortField) {
+        case "order_number": valA = a.order_number; valB = b.order_number; break;
+        case "patient_name": valA = a.patient_name.toLowerCase(); valB = b.patient_name.toLowerCase(); break;
+        case "restoration_type": valA = a.restoration_type; valB = b.restoration_type; break;
+        case "urgency": valA = a.urgency === "Urgent" ? 0 : 1; valB = b.urgency === "Urgent" ? 0 : 1; break;
+        case "status": valA = a.status; valB = b.status; break;
+        case "timestamp": valA = a.timestamp; valB = b.timestamp; break;
+        case "expected_delivery_date": valA = a.expected_delivery_date || "9999"; valB = b.expected_delivery_date || "9999"; break;
+      }
+
+      if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [orders, searchTerm, statusFilter, dateRange, sortField, sortDirection]);
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
-  // Get available bulk status options based on role
   const availableBulkStatuses = BULK_STATUS_OPTIONS.filter(opt => 
     opt.roles.includes(isDoctor ? "doctor" : "lab_staff")
   );
 
+  // Batch Export handler
+  const handleExport = async () => {
+    const { exportToCSV } = await import("@/lib/exportUtils");
+    const rows = filteredOrders.map(o => ({
+      OrderNumber: o.order_number,
+      Patient: o.patient_name,
+      Doctor: o.doctor_name,
+      Type: o.restoration_type,
+      Shade: o.teeth_shade,
+      Teeth: o.teeth_number,
+      Urgency: o.urgency,
+      Status: o.status,
+      Lab: o.labs?.name || "Unassigned",
+      Deadline: o.expected_delivery_date || "",
+      Created: o.timestamp,
+    }));
+    exportToCSV(rows, `orders-export-${format(new Date(), "yyyy-MM-dd")}`);
+    toast.success("Orders exported to CSV");
+  };
+
+  // Load preset handler
+  const handleLoadPreset = (preset: { statusFilter: string; dateRange: string; searchTerm: string }) => {
+    setStatusFilter(preset.statusFilter);
+    setDateRange(preset.dateRange);
+    setSearchTerm(preset.searchTerm);
+    setCurrentPage(1);
+  };
+
   if (loading || roleLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Loading Orders...</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SkeletonTable />
-        </CardContent>
+        <CardHeader><CardTitle>Loading Orders...</CardTitle></CardHeader>
+        <CardContent><SkeletonTable /></CardContent>
       </Card>
     );
   }
 
   return (
     <TooltipProvider>
+      {/* KPI Cards */}
+      <div className="mb-4">
+        <DashboardKPICards orders={orders} isLabStaff={!!isLabStaff} />
+      </div>
+
+      {/* Workload Heatmap (Lab only) */}
+      {isLabStaff && orders.length > 0 && (
+        <Card className="mb-4">
+          <CardContent className="py-4">
+            <WorkloadHeatmap orders={orders} />
+          </CardContent>
+        </Card>
+      )}
+
       <Card data-tour="order-dashboard">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -364,20 +426,11 @@ const OrderDashboard = () => {
                 {selectedOrders.size} order{selectedOrders.size > 1 ? 's' : ''} selected
               </span>
               <div className="flex-1" />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setBulkStatusDialogOpen(true)}
-                disabled={availableBulkStatuses.length === 0}
-              >
+              <Button variant="outline" size="sm" onClick={() => setBulkStatusDialogOpen(true)} disabled={availableBulkStatuses.length === 0}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Update Status
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearSelection}
-              >
+              <Button variant="ghost" size="sm" onClick={clearSelection}>
                 <X className="h-4 w-4 mr-2" />
                 Clear
               </Button>
@@ -391,12 +444,12 @@ const OrderDashboard = () => {
               <Input
                 placeholder="Search orders..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 className="pl-9"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -407,6 +460,19 @@ const OrderDashboard = () => {
                   <SelectItem value="Ready for QC">Ready for QC</SelectItem>
                   <SelectItem value="Ready for Delivery">Ready for Delivery</SelectItem>
                   <SelectItem value="Delivered">Delivered</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Date Range Filter */}
+              <Select value={dateRange} onValueChange={(v) => { setDateRange(v); setCurrentPage(1); }}>
+                <SelectTrigger className="w-full sm:w-[160px]">
+                  <SelectValue placeholder="Date range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="week">This Week</SelectItem>
+                  <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="30days">Last 30 Days</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -421,6 +487,21 @@ const OrderDashboard = () => {
                   <SelectItem value="50">50 / page</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* Saved Filters & Export */}
+              <div className="flex gap-2">
+                {user && (
+                  <SavedFilters
+                    userId={user.id}
+                    currentFilters={{ statusFilter, dateRange, searchTerm }}
+                    onLoadPreset={handleLoadPreset}
+                  />
+                )}
+                <Button variant="outline" size="sm" onClick={handleExport} disabled={filteredOrders.length === 0}>
+                  <Download className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -434,10 +515,14 @@ const OrderDashboard = () => {
               </div>
             ) : (
               paginatedOrders.map((order) => (
-                <Card key={order.id} className={cn("overflow-hidden", selectedOrders.has(order.id) && "ring-2 ring-primary")}>
+                <Card
+                  key={order.id}
+                  className={cn("overflow-hidden cursor-pointer hover:border-primary/40 transition-colors", selectedOrders.has(order.id) && "ring-2 ring-primary")}
+                  onClick={() => setQuickViewOrder(order)}
+                >
                   <CardContent className="p-4 space-y-3">
                     {/* Header with Checkbox */}
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-2" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-start gap-3">
                         <Checkbox
                           checked={selectedOrders.has(order.id)}
@@ -467,6 +552,17 @@ const OrderDashboard = () => {
                       <span className="font-medium">{order.patient_name}</span>
                     </div>
 
+                    {/* Progress Strip for doctors */}
+                    {isDoctor && <OrderProgressStrip status={order.status} />}
+
+                    {/* Deadline for lab */}
+                    {isLabStaff && order.expected_delivery_date && (
+                      <div className={cn("flex items-center gap-1 text-xs", getDeadlineColor(order.expected_delivery_date))}>
+                        <Calendar className="h-3 w-3" />
+                        Due: {format(new Date(order.expected_delivery_date), "MMM d")}
+                      </div>
+                    )}
+
                     {/* Restoration Details */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -484,7 +580,7 @@ const OrderDashboard = () => {
                     </div>
 
                     {/* Lab Info */}
-                    <div className="pt-2 border-t border-border">
+                    <div className="pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
                       {order.labs ? (
                         <button
                           onClick={() => navigate(`/labs/${order.labs!.id}`)}
@@ -510,7 +606,7 @@ const OrderDashboard = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2">
+                    <div className="flex items-center gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                       {order.html_export && (
                         <Button
                           size="sm"
@@ -570,6 +666,15 @@ const OrderDashboard = () => {
                               </DropdownMenuItem>
                             </>
                           )}
+                          {isDoctor && order.status === "Delivered" && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleReorder(order)}>
+                                <Copy className="mr-2 h-4 w-4" />
+                                Reorder
+                              </DropdownMenuItem>
+                            </>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleEdit(order.id)}>
                             <Pencil className="mr-2 h-4 w-4" />
@@ -602,15 +707,31 @@ const OrderDashboard = () => {
                       onCheckedChange={toggleAllOrders}
                     />
                   </TableHead>
-                  <TableHead>Order ID</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("order_number")}>
+                    <span className="flex items-center">Order ID <SortIcon field="order_number" /></span>
+                  </TableHead>
                   {!isDoctor && <TableHead>Doctor</TableHead>}
-                  <TableHead>Patient</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("patient_name")}>
+                    <span className="flex items-center">Patient <SortIcon field="patient_name" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("restoration_type")}>
+                    <span className="flex items-center">Type <SortIcon field="restoration_type" /></span>
+                  </TableHead>
                   <TableHead>Shade</TableHead>
                   <TableHead>Teeth</TableHead>
                   <TableHead>Lab</TableHead>
-                  <TableHead>Urgency</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("urgency")}>
+                    <span className="flex items-center">Urgency <SortIcon field="urgency" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
+                    <span className="flex items-center">Status <SortIcon field="status" /></span>
+                  </TableHead>
+                  {isLabStaff && (
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("expected_delivery_date")}>
+                      <span className="flex items-center">Deadline <SortIcon field="expected_delivery_date" /></span>
+                    </TableHead>
+                  )}
+                  {isDoctor && <TableHead>Progress</TableHead>}
                   <TableHead>Preview</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -618,7 +739,7 @@ const OrderDashboard = () => {
               <TableBody>
                 {paginatedOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDoctor ? 11 : 12} className="text-center py-8 sm:py-12">
+                    <TableCell colSpan={isDoctor ? 13 : 14} className="text-center py-8 sm:py-12">
                       <div className="flex flex-col items-center justify-center">
                         <FileText className="h-10 w-10 sm:h-12 sm:w-12 mb-4 text-muted-foreground opacity-50" />
                         <p className="text-base sm:text-lg font-medium mb-2">No orders found</p>
@@ -629,174 +750,202 @@ const OrderDashboard = () => {
                 ) : (
                   <>
                     {paginatedOrders.map((order) => (
-                      <TableRow key={order.id} className={cn(selectedOrders.has(order.id) && "bg-primary/5")}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedOrders.has(order.id)}
-                          onCheckedChange={() => toggleOrderSelection(order.id)}
-                        />
-                      </TableCell>
-                      <TableCell className="font-mono font-medium">{order.order_number}</TableCell>
-                      {!isDoctor && <TableCell>{order.doctor_name}</TableCell>}
-                      <TableCell>{order.patient_name}</TableCell>
-                      <TableCell>{order.restoration_type}</TableCell>
-                      <TableCell>{order.teeth_shade}</TableCell>
-                      <TableCell>{order.teeth_number}</TableCell>
-                      <TableCell>
-                        {order.labs ? (
-                          <HoverCard>
-                            <HoverCardTrigger asChild>
-                              <button
-                                onClick={() => navigate(`/labs/${order.labs!.id}`)}
-                                className="flex items-center gap-2 hover:text-primary transition-colors group"
-                              >
-                                <div className="relative w-8 h-8 rounded overflow-hidden border border-border bg-muted flex-shrink-0 group-hover:border-primary transition-colors">
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <Building2 className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                  </div>
-                                </div>
-                                <span className="text-sm font-medium truncate max-w-[120px]">{order.labs.name}</span>
-                              </button>
-                            </HoverCardTrigger>
-                            <HoverCardContent side="top" className="w-80">
-                              <div className="space-y-3">
-                                <div>
-                                  <h4 className="font-semibold flex items-center gap-2">
-                                    <Building2 className="h-4 w-4" />
-                                    {order.labs.name}
-                                  </h4>
-                                  {order.labs.description && (
-                                    <p className="text-sm text-muted-foreground mt-1">{order.labs.description}</p>
-                                  )}
-                                </div>
-                                <div className="space-y-1 text-sm">
-                                  {order.labs.contact_email && (
-                                    <p className="flex items-center gap-2">
-                                      <Mail className="h-3 w-3 text-muted-foreground" />
-                                      <span className="truncate">{order.labs.contact_email}</span>
-                                    </p>
-                                  )}
-                                  {order.labs.contact_phone && (
-                                    <p className="flex items-center gap-2">
-                                      <Phone className="h-3 w-3 text-muted-foreground" />
-                                      {order.labs.contact_phone}
-                                    </p>
-                                  )}
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-full"
+                      <TableRow
+                        key={order.id}
+                        className={cn(
+                          "cursor-pointer hover:bg-muted/50",
+                          selectedOrders.has(order.id) && "bg-primary/5"
+                        )}
+                        onClick={() => setQuickViewOrder(order)}
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedOrders.has(order.id)}
+                            onCheckedChange={() => toggleOrderSelection(order.id)}
+                          />
+                        </TableCell>
+                        <TableCell className="font-mono font-medium">{order.order_number}</TableCell>
+                        {!isDoctor && <TableCell>{order.doctor_name}</TableCell>}
+                        <TableCell>{order.patient_name}</TableCell>
+                        <TableCell>{order.restoration_type}</TableCell>
+                        <TableCell>{order.teeth_shade}</TableCell>
+                        <TableCell>{order.teeth_number}</TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          {order.labs ? (
+                            <HoverCard>
+                              <HoverCardTrigger asChild>
+                                <button
                                   onClick={() => navigate(`/labs/${order.labs!.id}`)}
+                                  className="flex items-center gap-2 hover:text-primary transition-colors group"
                                 >
-                                  View Lab Profile
-                                  <ExternalLink className="h-3 w-3 ml-2" />
-                                </Button>
-                              </div>
-                            </HoverCardContent>
-                          </HoverCard>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Not assigned</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="whitespace-nowrap">
-                          {order.urgency}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={`${statusColors[getDisplayStatus(order) as keyof typeof statusColors]} whitespace-nowrap`}>
-                          {getDisplayStatus(order)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {order.html_export && (
-                          <button
-                            onClick={() => {
-                              const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
-                              if (isUrl) {
-                                window.open(order.html_export!, '_blank', 'noopener,noreferrer');
-                              } else {
-                                const previewWindow = window.open('', '_blank');
-                                if (previewWindow && order.html_export) {
-                                  previewWindow.document.write(order.html_export);
-                                  previewWindow.document.close();
-                                }
-                              }
-                            }}
-                            className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted hover:border-primary hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
-                            title="Click to preview HTML export"
-                          >
-                            {order.screenshot_url ? (
-                              <img 
-                                src={order.screenshot_url} 
-                                alt="HTML Preview" 
-                                className="w-full h-full object-cover"
-                              />
+                                  <div className="relative w-8 h-8 rounded overflow-hidden border border-border bg-muted flex-shrink-0 group-hover:border-primary transition-colors">
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Building2 className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    </div>
+                                  </div>
+                                  <span className="text-sm font-medium truncate max-w-[120px]">{order.labs.name}</span>
+                                </button>
+                              </HoverCardTrigger>
+                              <HoverCardContent side="top" className="w-80">
+                                <div className="space-y-3">
+                                  <div>
+                                    <h4 className="font-semibold flex items-center gap-2">
+                                      <Building2 className="h-4 w-4" />
+                                      {order.labs.name}
+                                    </h4>
+                                    {order.labs.description && (
+                                      <p className="text-sm text-muted-foreground mt-1">{order.labs.description}</p>
+                                    )}
+                                  </div>
+                                  <div className="space-y-1 text-sm">
+                                    {order.labs.contact_email && (
+                                      <p className="flex items-center gap-2">
+                                        <Mail className="h-3 w-3 text-muted-foreground" />
+                                        <span className="truncate">{order.labs.contact_email}</span>
+                                      </p>
+                                    )}
+                                    {order.labs.contact_phone && (
+                                      <p className="flex items-center gap-2">
+                                        <Phone className="h-3 w-3 text-muted-foreground" />
+                                        {order.labs.contact_phone}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={() => navigate(`/labs/${order.labs!.id}`)}
+                                  >
+                                    View Lab Profile
+                                    <ExternalLink className="h-3 w-3 ml-2" />
+                                  </Button>
+                                </div>
+                              </HoverCardContent>
+                            </HoverCard>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Not assigned</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"} className="whitespace-nowrap">
+                            {order.urgency}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`${statusColors[getDisplayStatus(order) as keyof typeof statusColors]} whitespace-nowrap`}>
+                            {getDisplayStatus(order)}
+                          </Badge>
+                        </TableCell>
+                        {isLabStaff && (
+                          <TableCell>
+                            {order.expected_delivery_date ? (
+                              <span className={cn("text-xs whitespace-nowrap", getDeadlineColor(order.expected_delivery_date))}>
+                                {format(new Date(order.expected_delivery_date), "MMM d, yyyy")}
+                              </span>
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <FileText className="h-5 w-5 text-muted-foreground" />
-                              </div>
+                              <span className="text-xs text-muted-foreground">—</span>
                             )}
-                          </button>
+                          </TableCell>
                         )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-popover border shadow-md z-50">
-                            {order.assigned_lab_id && (
-                              <>
-                                <DropdownMenuItem onClick={() => handleOpenChat(order)}>
-                                  <MessageCircle className="mr-2 h-4 w-4" />
-                                  Open Chat
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate(`/feedback-room/${order.id}`)}>
-                                  <MessageSquareMore className="mr-2 h-4 w-4" />
-                                  Feedback Room
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
-                            <DropdownMenuItem onClick={() => handleViewHistory(order)}>
-                              <History className="mr-2 h-4 w-4" />
-                              View History
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleViewNotes(order)}>
-                              <MessageSquare className="mr-2 h-4 w-4" />
-                              View Notes
-                            </DropdownMenuItem>
-                            {isLabStaff && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(order)}>
-                                  <RefreshCw className="mr-2 h-4 w-4" />
-                                  Update Status
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleEdit(order.id)}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit Order
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => setDeleteOrderId(order.id)}
-                              className="text-destructive focus:text-destructive"
+                        {isDoctor && (
+                          <TableCell>
+                            <OrderProgressStrip status={order.status} />
+                          </TableCell>
+                        )}
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          {order.html_export && (
+                            <button
+                              onClick={() => {
+                                const isUrl = order.html_export?.startsWith('http://') || order.html_export?.startsWith('https://');
+                                if (isUrl) {
+                                  window.open(order.html_export!, '_blank', 'noopener,noreferrer');
+                                } else {
+                                  const previewWindow = window.open('', '_blank');
+                                  if (previewWindow && order.html_export) {
+                                    previewWindow.document.write(order.html_export);
+                                    previewWindow.document.close();
+                                  }
+                                }
+                              }}
+                              className="relative w-12 h-12 rounded overflow-hidden border border-border bg-muted hover:border-primary hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
+                              title="Click to preview HTML export"
                             >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Order
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                ))}
-              </>
+                              {order.screenshot_url ? (
+                                <img src={order.screenshot_url} alt="HTML Preview" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <FileText className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                              )}
+                            </button>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-popover border shadow-md z-50">
+                              {order.assigned_lab_id && (
+                                <>
+                                  <DropdownMenuItem onClick={() => handleOpenChat(order)}>
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    Open Chat
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => navigate(`/feedback-room/${order.id}`)}>
+                                    <MessageSquareMore className="mr-2 h-4 w-4" />
+                                    Feedback Room
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
+                              <DropdownMenuItem onClick={() => handleViewHistory(order)}>
+                                <History className="mr-2 h-4 w-4" />
+                                View History
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewNotes(order)}>
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                View Notes
+                              </DropdownMenuItem>
+                              {isLabStaff && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => handleStatusUpdate(order)}>
+                                    <RefreshCw className="mr-2 h-4 w-4" />
+                                    Update Status
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              {isDoctor && order.status === "Delivered" && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => handleReorder(order)}>
+                                    <Copy className="mr-2 h-4 w-4" />
+                                    Reorder
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleEdit(order.id)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit Order
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => setDeleteOrderId(order.id)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Order
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </>
                 )}
               </TableBody>
             </Table>
@@ -815,15 +964,11 @@ const OrderDashboard = () => {
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className={cn(
-                          "cursor-pointer",
-                          currentPage === 1 && "pointer-events-none opacity-50"
-                        )}
+                        className={cn("cursor-pointer", currentPage === 1 && "pointer-events-none opacity-50")}
                       />
                     </PaginationItem>
                     
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                      // On mobile, show fewer pages
                       const showOnMobile = page === 1 || page === totalPages || page === currentPage;
                       const showOnTablet = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1);
                       const showOnDesktop = page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2);
@@ -860,10 +1005,7 @@ const OrderDashboard = () => {
                     <PaginationItem>
                       <PaginationNext 
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className={cn(
-                          "cursor-pointer",
-                          currentPage === totalPages && "pointer-events-none opacity-50"
-                        )}
+                        className={cn("cursor-pointer", currentPage === totalPages && "pointer-events-none opacity-50")}
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -873,6 +1015,15 @@ const OrderDashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Quick View Drawer */}
+      <OrderQuickView
+        order={quickViewOrder}
+        open={!!quickViewOrder}
+        onClose={() => setQuickViewOrder(null)}
+        onOpenChat={handleOpenChat}
+        isDoctor={!!isDoctor}
+      />
 
       {/* Dialogs - using consolidated dialog state */}
       {dialog.state.data && dialog.isOpen("status") && (
