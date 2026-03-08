@@ -132,7 +132,7 @@ class AutoScalingManager {
         }
       });
 
-      console.log(`Auto-scaling alert sent: ${policy.name} - ${policy.action}`);
+      
     } catch (error) {
       console.error('Failed to create auto-scaling alert:', error);
     }

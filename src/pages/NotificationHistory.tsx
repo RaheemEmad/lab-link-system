@@ -110,7 +110,7 @@ const NotificationHistory = () => {
         throw error;
       }
 
-      console.log('[NotificationHistory] Successfully marked all notifications as read');
+      
     },
     onSuccess: () => {
       // CRITICAL: Invalidate ALL notification-related queries to update nav badge

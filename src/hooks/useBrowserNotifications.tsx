@@ -74,7 +74,7 @@ export const useBrowserNotifications = () => {
           }
         };
 
-        console.log("Browser notification shown:", title);
+        
       } catch (error) {
         console.error("Error showing notification:", error);
       }

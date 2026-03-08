@@ -98,7 +98,7 @@ class SLAMonitor {
       });
 
       this.alertCooldowns.set(metricKey, Date.now());
-      console.log(`SLA alert sent: ${metric.name} - ${metric.severity}`);
+      
     } catch (error) {
       console.error('Failed to create SLA alert:', error);
     }

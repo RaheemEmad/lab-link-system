@@ -56,7 +56,7 @@ export function useDraftCleanup({
       }
 
       if (cleanedCount > 0) {
-        console.log(`✅ Cleaned up ${cleanedCount} old draft(s)`);
+        
       }
     } catch (error) {
       console.error('Failed to cleanup old drafts:', error);
