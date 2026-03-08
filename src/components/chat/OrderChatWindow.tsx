@@ -184,14 +184,13 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   };
 
   const updateTypingStatus = async (typing: boolean) => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
+    if (!currentUserId) return;
 
     await supabase
       .from('chat_typing_indicators')
       .upsert({
         order_id: orderId,
-        user_id: userData.user.id,
+        user_id: currentUserId,
         is_typing: typing,
         updated_at: new Date().toISOString(),
       }, {
