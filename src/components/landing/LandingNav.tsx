@@ -131,6 +131,7 @@ const LandingNav = () => {
       href: "/lab-requests",
       badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined
     },
+    { label: "Order Templates", href: "/templates" },
   ] : [];
 
   const labStaffMenuItems = (userRole === 'lab_staff' || userRole === 'admin') ? [
