@@ -228,9 +228,14 @@ const Dashboard = () => {
           <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
             <div className="container px-3 sm:px-4 lg:px-6">
               <div className="mb-4 sm:mb-6 flex flex-col gap-3 sm:gap-4">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Order Dashboard</h1>
+                <div>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Order Dashboard</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    {isLabStaff ? "Lab View" : "Doctor View"}
+                  </p>
+                </div>
               
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
