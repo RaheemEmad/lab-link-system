@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { formatFileSize } from '@/lib/formatters';
 import { X, Send, Loader2, Paperclip, Download, Check, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
