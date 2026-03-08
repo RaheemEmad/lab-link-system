@@ -674,7 +674,10 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 )}
               />
             </div>
+            </div>
 
+            {/* ===== STEP 2: Restoration & Shade ===== */}
+            <div className={currentStep !== 1 ? 'hidden' : 'space-y-4 sm:space-y-6'}>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
