@@ -16,7 +16,7 @@ export const HelpButton: React.FC = () => {
         <Button
           variant="outline"
           size="icon"
-          className="fixed bottom-6 right-6 z-[9999] rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-background border-2 border-primary/20 hover:border-primary"
+          className="fixed bottom-20 right-6 z-40 h-10 w-10 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-background border-2 border-primary/20 hover:border-primary"
         >
           <HelpCircle className="h-5 w-5 text-primary" />
         </Button>
