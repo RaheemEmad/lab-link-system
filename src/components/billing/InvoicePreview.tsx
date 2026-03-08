@@ -18,7 +18,9 @@ import {
   Plus,
   CreditCard,
   Calendar,
-  Gavel
+  Gavel,
+  Share2,
+  MinusCircle
 } from "lucide-react";
 import { formatDistanceToNow, format, isPast, startOfDay } from "date-fns";
 import InvoiceLineItems from "./InvoiceLineItems";
@@ -26,6 +28,7 @@ import AdjustmentDialog from "./AdjustmentDialog";
 import DisputeDialog from "./DisputeDialog";
 import PaymentDialog from "./PaymentDialog";
 import DisputeResolutionDialog from "./DisputeResolutionDialog";
+import CreditNoteDialog from "./CreditNoteDialog";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -76,6 +79,8 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showResolutionDialog, setShowResolutionDialog] = useState(false);
+  const [showCreditNoteDialog, setShowCreditNoteDialog] = useState(false);
+  const [isGeneratingShareLink, setIsGeneratingShareLink] = useState(false);
 
   // Fetch full order details for PDF
   const { data: orderDetails } = useQuery({
@@ -149,6 +154,41 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
       return data;
     },
   });
+
+  // Fetch credit notes
+  const { data: creditNotes } = useQuery({
+    queryKey: ['credit-notes', invoice.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('credit_notes')
+        .select('*')
+        .eq('invoice_id', invoice.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const totalCredits = creditNotes?.reduce((sum, cn) => sum + cn.amount, 0) || 0;
+
+  // Share invoice
+  const handleShareInvoice = async () => {
+    setIsGeneratingShareLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('invoice-share', {
+        body: { invoice_id: invoice.id },
+      });
+      if (error) throw error;
+
+      const shareUrl = `${window.location.origin}/invoice/${data.token}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Share link copied to clipboard!');
+    } catch (err) {
+      toast.error('Failed to generate share link');
+    } finally {
+      setIsGeneratingShareLink(false);
+    }
+  };
 
   // Lock invoice mutation
   const lockMutation = useMutation({
@@ -558,9 +598,21 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         <div className="flex flex-wrap gap-2">
           {/* Allow PDF export for generated, locked, and finalized invoices - for all authenticated users */}
           {(invoice.status === 'finalized' || invoice.status === 'locked' || invoice.status === 'generated') && (
-            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1.5">
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export</span> PDF
+            <>
+              <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1.5">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Export</span> PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShareInvoice} disabled={isGeneratingShareLink} className="gap-1.5">
+                {isGeneratingShareLink ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+                <span className="hidden sm:inline">Share</span>
+              </Button>
+            </>
+          )}
+          {invoice.status === 'finalized' && (role === 'admin' || role === 'lab_staff') && (
+            <Button variant="outline" size="sm" onClick={() => setShowCreditNoteDialog(true)} className="gap-1.5">
+              <MinusCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Credit Note</span>
             </Button>
           )}
           {invoice.status !== 'finalized' && invoice.status !== 'disputed' && (role === 'doctor' || role === 'lab_staff') && (
@@ -709,6 +761,35 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         </CardContent>
       </Card>
 
+      {/* Credit Notes */}
+      {creditNotes && creditNotes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MinusCircle className="h-5 w-5" />
+              Credit Notes
+              <Badge variant="secondary">{formatEGP(totalCredits)} total</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {creditNotes.map((cn) => (
+                <div key={cn.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div>
+                    <Badge variant="outline" className="mb-1">{cn.status}</Badge>
+                    <p className="text-sm">{cn.reason}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(cn.created_at), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-destructive">-{formatEGP(cn.amount)}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Line Items */}
       <InvoiceLineItems invoiceId={invoice.id} />
 
@@ -844,6 +925,14 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
         currentDueDate={invoice.due_date}
         currentPaymentReceivedAt={invoice.payment_received_at}
         finalTotal={invoice.final_total}
+      />
+
+      <CreditNoteDialog
+        open={showCreditNoteDialog}
+        onOpenChange={setShowCreditNoteDialog}
+        invoiceId={invoice.id}
+        invoiceNumber={invoice.invoice_number}
+        maxAmount={invoice.final_total}
       />
     </div>
   );

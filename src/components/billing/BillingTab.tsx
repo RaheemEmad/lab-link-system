@@ -31,6 +31,10 @@ import InvoiceGenerator from "./InvoiceGenerator";
 import ExpenseTracker from "./ExpenseTracker";
 import MonthlyBillingSummary from "./MonthlyBillingSummary";
 import InvoiceSortControls, { SortField, SortDirection } from "./InvoiceSortControls";
+import AgingReport from "./AgingReport";
+import BulkPaymentDialog from "./BulkPaymentDialog";
+import StatementGenerator from "./StatementGenerator";
+import LateFeeSettings from "./LateFeeSettings";
 
 import { formatEGP } from "@/lib/formatters";
 
@@ -77,6 +81,9 @@ const BillingTab = () => {
   const [selectedOrderForExpense, setSelectedOrderForExpense] = useState<string | null>(null);
   const [showInvoiceGenerator, setShowInvoiceGenerator] = useState(false);
   const [showMonthlySummary, setShowMonthlySummary] = useState(false);
+  const [showAgingReport, setShowAgingReport] = useState(false);
+  const [showBulkPayment, setShowBulkPayment] = useState(false);
+  const [showStatementGenerator, setShowStatementGenerator] = useState(false);
   
   // Sorting state with localStorage persistence
   const [sortField, setSortField] = useState<SortField>(() => {
@@ -358,6 +365,10 @@ const BillingTab = () => {
     );
   }
 
+  if (showAgingReport) {
+    return <AgingReport invoices={invoices || []} onClose={() => setShowAgingReport(false)} />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Analytics Dashboard */}
@@ -377,7 +388,7 @@ const BillingTab = () => {
                   Generate invoices for delivered orders with confirmed delivery
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={() => setShowInvoiceGenerator(true)} className="gap-2">
                   <Plus className="h-4 w-4" />
                   Generate Invoices
@@ -385,6 +396,18 @@ const BillingTab = () => {
                 <Button variant="outline" onClick={() => setShowMonthlySummary(true)} className="gap-2">
                   <CalendarDays className="h-4 w-4" />
                   Monthly Summary
+                </Button>
+                <Button variant="outline" onClick={() => setShowAgingReport(true)} className="gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Aging Report
+                </Button>
+                <Button variant="outline" onClick={() => setShowBulkPayment(true)} className="gap-2">
+                  <Receipt className="h-4 w-4" />
+                  Bulk Payment
+                </Button>
+                <Button variant="outline" onClick={() => setShowStatementGenerator(true)} className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Statement
                 </Button>
               </div>
             </div>
@@ -613,10 +636,26 @@ const BillingTab = () => {
         </CardContent>
       </Card>
 
+      {/* Late Fee Settings for Lab Staff */}
+      {(role === 'lab_staff') && <LateFeeSettings />}
+
       {/* Monthly Billing Summary Dialog */}
       <MonthlyBillingSummary 
         open={showMonthlySummary} 
         onOpenChange={setShowMonthlySummary} 
+      />
+
+      {/* Bulk Payment Dialog */}
+      <BulkPaymentDialog
+        open={showBulkPayment}
+        onOpenChange={setShowBulkPayment}
+        invoices={invoices || []}
+      />
+
+      {/* Statement Generator Dialog */}
+      <StatementGenerator
+        open={showStatementGenerator}
+        onOpenChange={setShowStatementGenerator}
       />
     </div>
   );

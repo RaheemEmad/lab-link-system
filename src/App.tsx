@@ -58,6 +58,7 @@ const PatientCases = lazy(() => import("./pages/PatientCases"));
 const LabCalendar = lazy(() => import("./pages/LabCalendar"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const AppointmentScheduling = lazy(() => import("./pages/AppointmentScheduling"));
+const SharedInvoice = lazy(() => import("./pages/SharedInvoice"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized QueryClient with better caching and stale time settings
@@ -127,6 +128,7 @@ const AppContent = () => {
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
             <Route path="/admin/pricing-rules" element={<PageTransition><PricingRulesManagement /></PageTransition>} />
+            <Route path="/invoice/:token" element={<PageTransition><SharedInvoice /></PageTransition>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
           </Routes>

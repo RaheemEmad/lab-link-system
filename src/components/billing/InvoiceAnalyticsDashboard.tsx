@@ -116,7 +116,7 @@ const InvoiceAnalyticsDashboard = ({ invoices }: InvoiceAnalyticsDashboardProps)
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Collected</span>
+                <span className="text-muted-foreground">Collected (Net of Credits)</span>
                 <span className="font-semibold">{formatEGP(analytics.totalPaid)}</span>
               </div>
               <Progress value={analytics.paymentRate} className="h-2" />

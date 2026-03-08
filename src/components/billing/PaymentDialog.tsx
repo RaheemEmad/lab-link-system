@@ -17,12 +17,16 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, Loader2, AlertTriangle } from "lucide-react";
 import { format, isPast, startOfDay } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { formatEGP } from "@/lib/formatters";
 
 type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
+
+const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Mobile Wallet', 'Check'] as const;
 
 interface PaymentDialogProps {
   open: boolean;
@@ -32,10 +36,10 @@ interface PaymentDialogProps {
   currentAmountPaid: number;
   currentDueDate: string | null;
   currentPaymentReceivedAt: string | null;
+  currentPaymentMethod?: string | null;
+  currentPaymentReference?: string | null;
   finalTotal: number;
 }
-
-import { formatEGP } from "@/lib/formatters";
 
 const PaymentDialog = ({
   open,
@@ -45,6 +49,8 @@ const PaymentDialog = ({
   currentAmountPaid,
   currentDueDate,
   currentPaymentReceivedAt,
+  currentPaymentMethod,
+  currentPaymentReference,
   finalTotal,
 }: PaymentDialogProps) => {
   const { user } = useAuth();
@@ -58,6 +64,8 @@ const PaymentDialog = ({
   const [paymentReceivedAt, setPaymentReceivedAt] = useState<Date | undefined>(
     currentPaymentReceivedAt ? new Date(currentPaymentReceivedAt) : undefined
   );
+  const [paymentMethod, setPaymentMethod] = useState(currentPaymentMethod || '');
+  const [paymentReference, setPaymentReference] = useState(currentPaymentReference || '');
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -66,8 +74,10 @@ const PaymentDialog = ({
       setAmountPaid(currentAmountPaid?.toString() || '0');
       setDueDate(currentDueDate ? new Date(currentDueDate) : undefined);
       setPaymentReceivedAt(currentPaymentReceivedAt ? new Date(currentPaymentReceivedAt) : undefined);
+      setPaymentMethod(currentPaymentMethod || '');
+      setPaymentReference(currentPaymentReference || '');
     }
-  }, [open, currentStatus, currentAmountPaid, currentDueDate, currentPaymentReceivedAt]);
+  }, [open, currentStatus, currentAmountPaid, currentDueDate, currentPaymentReceivedAt, currentPaymentMethod, currentPaymentReference]);
 
   // Auto-calculate status based on amount
   const handleAmountChange = (value: string) => {
@@ -120,6 +130,8 @@ const PaymentDialog = ({
           amount_paid: numAmount,
           due_date: dueDate ? dueDate.toISOString() : null,
           payment_received_at: paymentReceivedAt ? paymentReceivedAt.toISOString() : null,
+          payment_method: paymentMethod || null,
+          payment_reference: paymentReference || null,
         })
         .eq('id', invoiceId);
 
@@ -251,6 +263,32 @@ const PaymentDialog = ({
                 This invoice is past due
               </div>
             )}
+          </div>
+
+          {/* Payment Method */}
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select method" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_METHODS.map(m => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Payment Reference */}
+          <div className="space-y-2">
+            <Label htmlFor="payment-ref">Reference Number</Label>
+            <Input
+              id="payment-ref"
+              value={paymentReference}
+              onChange={(e) => setPaymentReference(e.target.value)}
+              placeholder="e.g. Transaction ID, check number..."
+            />
           </div>
 
           {/* Payment Received Date */}
