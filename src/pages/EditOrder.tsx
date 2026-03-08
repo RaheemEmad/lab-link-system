@@ -195,7 +195,7 @@ const EditOrder = () => {
       const isLabStaffCheck = roleData?.role === "lab_staff" || roleData?.role === "admin";
       setUserRole(roleData?.role || null);
 
-      if (data.doctor_id !== user!.id && !isLabStaff) {
+      if (data.doctor_id !== user!.id && !isLabStaffCheck) {
         toast.error("Access denied", {
           description: "You don't have permission to edit this order",
         });

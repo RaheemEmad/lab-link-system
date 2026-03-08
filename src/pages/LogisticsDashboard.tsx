@@ -59,7 +59,7 @@ type TabValue = "shipments" | "tracking" | "calendar" | "analytics" | "schedulin
 
 const LogisticsDashboard = () => {
   const { user } = useAuth();
-  const { role, roleConfirmed, isLabStaff, isAdmin, isLoading: roleLoading } = useUserRole();
+  const { role, roleConfirmed, isLabStaff, isAdmin, isLoading: roleLoading, labId } = useUserRole();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);

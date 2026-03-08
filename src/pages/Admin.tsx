@@ -64,10 +64,6 @@ const Admin = () => {
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
-
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">

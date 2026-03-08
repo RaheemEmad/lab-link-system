@@ -125,8 +125,8 @@ const LabWorkflowManagement = () => {
 
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
-        .eq('assigned_lab_id', userRole.lab_id)
+        .select('id, order_number, patient_name, doctor_name, restoration_type, status, urgency, created_at, expected_delivery_date, actual_delivery_date, shipment_tracking, design_file_url, design_approved, approval_notes, biological_notes, teeth_number, teeth_shade, html_export, screenshot_url')
+        .eq('assigned_lab_id', labId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

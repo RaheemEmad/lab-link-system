@@ -67,7 +67,7 @@ const DesignApprovalWorkflow = () => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select('id, order_number, patient_name, restoration_type, status, design_file_url, design_approved, approval_notes')
         .eq('doctor_id', user.id)
         .not('design_file_url', 'is', null)
         .order('created_at', { ascending: false });
