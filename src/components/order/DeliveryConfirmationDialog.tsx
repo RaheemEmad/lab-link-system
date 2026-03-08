@@ -306,5 +306,18 @@ export const DeliveryConfirmationDialog = ({
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Post-delivery review dialog */}
+    {labId && labName && (
+      <PostDeliveryReviewDialog
+        orderId={orderId}
+        orderNumber={orderNumber}
+        labId={labId}
+        labName={labName}
+        open={showReviewDialog}
+        onOpenChange={setShowReviewDialog}
+      />
+    )}
+    </>
   );
 };
