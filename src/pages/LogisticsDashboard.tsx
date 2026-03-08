@@ -53,7 +53,6 @@ interface OrderShipment {
   shade_system: string | null;
   biological_notes: string | null;
   approval_notes: string | null;
-  handling_instructions: string | null;
   assigned_lab: { name: string } | null;
 }
 
