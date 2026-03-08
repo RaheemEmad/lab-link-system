@@ -573,14 +573,14 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
               }
             }}
             placeholder="Type your message..."
-            className="min-h-[60px] resize-none"
+            className="min-h-[44px] sm:min-h-[60px] resize-none text-sm"
             disabled={isLoading}
           />
           <Button
             onClick={() => handleSendMessage()}
             disabled={isLoading || !inputMessage.trim()}
             size="icon"
-            className="h-[60px] w-[60px]"
+            className="h-[44px] w-[44px] sm:h-[60px] sm:w-[60px] shrink-0"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

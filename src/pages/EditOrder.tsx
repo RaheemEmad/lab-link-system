@@ -77,6 +77,7 @@ const EditOrder = () => {
   const [orderNumber, setOrderNumber] = useState<string>("");
   const [orderStatus, setOrderStatus] = useState<string>("");
   const [changesOpen, setChangesOpen] = useState(false);
+  const [existingAttachments, setExistingAttachments] = useState<any[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
