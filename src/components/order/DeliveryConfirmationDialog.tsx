@@ -96,6 +96,43 @@ export const DeliveryConfirmationDialog = ({
         description: `Order #${orderNumber} has been marked as delivered.`,
       });
 
+      // Optionally save as patient case
+      if (saveAsCase && restorationData?.restoration_type && restorationData?.teeth_number && restorationData?.teeth_shade) {
+        // Check if case already exists for this patient
+        const { data: existing } = await supabase
+          .from("patient_cases")
+          .select("id, order_count")
+          .eq("doctor_id", user.id)
+          .eq("patient_name", patientName)
+          .maybeSingle();
+
+        if (existing) {
+          await supabase
+            .from("patient_cases")
+            .update({
+              last_order_id: orderId,
+              order_count: (existing.order_count || 1) + 1,
+              restoration_type: restorationData.restoration_type,
+              teeth_number: restorationData.teeth_number,
+              teeth_shade: restorationData.teeth_shade,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existing.id);
+        } else {
+          await supabase.from("patient_cases").insert({
+            doctor_id: user.id,
+            patient_name: patientName,
+            restoration_type: restorationData.restoration_type,
+            teeth_number: restorationData.teeth_number,
+            teeth_shade: restorationData.teeth_shade,
+            shade_system: restorationData.shade_system || null,
+            biological_notes: restorationData.biological_notes || null,
+            preferred_lab_id: restorationData.assigned_lab_id || null,
+            last_order_id: orderId,
+          });
+        }
+      }
+
       onConfirmed();
       onOpenChange(false);
     } catch (error: any) {
