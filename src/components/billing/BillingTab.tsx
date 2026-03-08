@@ -365,6 +365,10 @@ const BillingTab = () => {
     );
   }
 
+  if (showAgingReport) {
+    return <AgingReport invoices={invoices || []} onClose={() => setShowAgingReport(false)} />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Analytics Dashboard */}
