@@ -388,7 +388,7 @@ const BillingTab = () => {
                   Generate invoices for delivered orders with confirmed delivery
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={() => setShowInvoiceGenerator(true)} className="gap-2">
                   <Plus className="h-4 w-4" />
                   Generate Invoices
@@ -396,6 +396,18 @@ const BillingTab = () => {
                 <Button variant="outline" onClick={() => setShowMonthlySummary(true)} className="gap-2">
                   <CalendarDays className="h-4 w-4" />
                   Monthly Summary
+                </Button>
+                <Button variant="outline" onClick={() => setShowAgingReport(true)} className="gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Aging Report
+                </Button>
+                <Button variant="outline" onClick={() => setShowBulkPayment(true)} className="gap-2">
+                  <Receipt className="h-4 w-4" />
+                  Bulk Payment
+                </Button>
+                <Button variant="outline" onClick={() => setShowStatementGenerator(true)} className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Statement
                 </Button>
               </div>
             </div>
