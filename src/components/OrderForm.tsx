@@ -631,8 +631,20 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
       <CardContent className="px-4 sm:px-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-            {/* Import Button - always visible */}
-            <div className="flex justify-end">
+            {/* Action Bar - Templates + Import */}
+            <div className="flex flex-wrap gap-2 justify-end">
+              <OrderTemplateSelector
+                onSelect={(template) => {
+                  if (template.restoration_type) form.setValue("restorationType", template.restoration_type as any);
+                  if (template.teeth_shade) form.setValue("teethShade", template.teeth_shade);
+                  if (template.shade_system) form.setValue("shadeSystem", template.shade_system as any);
+                  if (template.teeth_number) form.setValue("teethNumber", template.teeth_number);
+                  if (template.biological_notes) form.setValue("biologicalNotes", template.biological_notes);
+                  if (template.urgency) form.setValue("urgency", template.urgency as any);
+                  if (template.handling_instructions) form.setValue("handlingInstructions", template.handling_instructions);
+                  if (template.assigned_lab_id) form.setValue("assignedLabId", template.assigned_lab_id);
+                }}
+              />
               <Button type="button" variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
                 <Sparkles className="h-4 w-4 ltr:mr-1.5 rtl:ml-1.5" />
                 Import with AI
