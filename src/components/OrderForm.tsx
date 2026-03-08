@@ -755,7 +755,10 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                 </FormItem>
               )}
             />
+            </div>
 
+            {/* ===== STEP 3: Lab & Delivery ===== */}
+            <div className={currentStep !== 2 ? 'hidden' : 'space-y-4 sm:space-y-6'}>
             {/* Only show lab selector for doctors */}
             {userRole === 'doctor' && (
               <FormField
