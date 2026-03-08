@@ -45,7 +45,7 @@ const EditOrder = lazy(() => import("./pages/EditOrder"));
 const OrdersMarketplace = lazy(() => import("./pages/OrdersMarketplace"));
 const LabRequestsManagement = lazy(() => import("./pages/LabRequestsManagement"));
 const LogisticsDashboard = lazy(() => import("./pages/LogisticsDashboard"));
-const TrackOrders = lazy(() => import("./pages/TrackOrders"));
+
 const Achievements = lazy(() => import("./pages/Achievements"));
 const DoctorAchievements = lazy(() => import("./pages/DoctorAchievements"));
 const LabAchievements = lazy(() => import("./pages/LabAchievements"));
