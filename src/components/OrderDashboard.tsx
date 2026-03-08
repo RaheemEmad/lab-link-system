@@ -218,23 +218,19 @@ const OrderDashboard = () => {
   };
 
   const handleStatusUpdate = (order: Order) => {
-    setSelectedOrder(order);
-    setStatusDialogOpen(true);
+    dialog.open("status", order);
   };
 
   const handleViewHistory = (order: Order) => {
-    setHistoryOrder(order);
-    setHistoryDialogOpen(true);
+    dialog.open("history", order);
   };
 
   const handleViewNotes = (order: Order) => {
-    setNotesOrder(order);
-    setNotesDialogOpen(true);
+    dialog.open("notes", order);
   };
 
   const handleOpenChat = (order: Order) => {
-    setChatOrder(order);
-    setChatDialogOpen(true);
+    dialog.open("chat", order);
   };
 
   // Bulk selection handlers
