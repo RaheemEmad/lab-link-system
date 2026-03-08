@@ -165,7 +165,7 @@ export default function LabRequestsManagement() {
       
       // If accepting, do the full assignment flow
       if (status === 'accepted' && orderId) {
-        console.log('[LabRequests] Accepting request - starting full assignment flow');
+        
         
         // Pre-check: Verify lab has pricing configured
         const { data: labPricingCheck, error: pricingError } = await supabase
