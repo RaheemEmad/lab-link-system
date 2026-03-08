@@ -108,20 +108,6 @@ const LabWorkflowManagement = () => {
 
     setIsLoading(true);
     try {
-      // Get user's lab ID
-      const { data: userRole } = await supabase
-        .from('user_roles')
-        .select('lab_id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!userRole?.lab_id) {
-        toast.error("Lab not assigned", {
-          description: "Your account is not assigned to a lab."
-        });
-        setIsLoading(false);
-        return;
-      }
 
       const { data, error } = await supabase
         .from('orders')
