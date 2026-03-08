@@ -1,18 +1,18 @@
-import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { 
   TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
+  Clock,
+  BarChart3,
   AlertCircle,
   CheckCircle2,
-  Clock,
-  BarChart3
+  DollarSign,
 } from "lucide-react";
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
+
+import { formatEGP } from "@/lib/formatters";
+import { useInvoiceAnalytics } from "@/hooks/useInvoiceAnalytics";
 
 interface Invoice {
   id: string;
@@ -39,75 +39,8 @@ interface InvoiceAnalyticsDashboardProps {
   invoices: Invoice[];
 }
 
-import { formatEGP, countTeeth } from "@/lib/formatters";
-
 const InvoiceAnalyticsDashboard = ({ invoices }: InvoiceAnalyticsDashboardProps) => {
-  const analytics = useMemo(() => {
-    const now = new Date();
-    const thisMonthStart = startOfMonth(now);
-    const thisMonthEnd = endOfMonth(now);
-    
-    // Filter this month's invoices
-    const thisMonthInvoices = invoices.filter(inv => 
-      isWithinInterval(parseISO(inv.created_at), { start: thisMonthStart, end: thisMonthEnd })
-    );
-
-    // Calculate totals
-    const totalRevenue = invoices.reduce((sum, inv) => sum + inv.final_total, 0);
-    const thisMonthRevenue = thisMonthInvoices.reduce((sum, inv) => sum + inv.final_total, 0);
-    
-    const totalPaid = invoices.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0);
-    const totalDue = totalRevenue - totalPaid;
-    
-    const thisMonthDue = thisMonthInvoices.reduce((sum, inv) => {
-      const paid = inv.amount_paid || 0;
-      return sum + (inv.final_total - paid);
-    }, 0);
-
-    // Count by status
-    const finalizedCount = invoices.filter(i => i.status === 'finalized').length;
-    const pendingCount = invoices.filter(i => i.status === 'generated' || i.status === 'locked').length;
-    const disputedCount = invoices.filter(i => i.status === 'disputed').length;
-
-    // Calculate crown stats
-    const totalCrowns = invoices.reduce((sum, inv) => 
-      sum + countTeeth(inv.order?.teeth_number || ''), 0
-    );
-
-    // Group by restoration type
-    const byType: Record<string, { count: number; revenue: number }> = {};
-    invoices.forEach(inv => {
-      const type = inv.order?.restoration_type || 'Unknown';
-      if (!byType[type]) {
-        byType[type] = { count: 0, revenue: 0 };
-      }
-      byType[type].count++;
-      byType[type].revenue += inv.final_total;
-    });
-
-    // Sort types by revenue
-    const sortedTypes = Object.entries(byType)
-      .sort((a, b) => b[1].revenue - a[1].revenue)
-      .slice(0, 5);
-
-    // Payment rate
-    const paymentRate = totalRevenue > 0 ? (totalPaid / totalRevenue) * 100 : 0;
-
-    return {
-      totalRevenue,
-      thisMonthRevenue,
-      totalPaid,
-      totalDue,
-      thisMonthDue,
-      finalizedCount,
-      pendingCount,
-      disputedCount,
-      totalCrowns,
-      sortedTypes,
-      paymentRate,
-      invoiceCount: invoices.length
-    };
-  }, [invoices]);
+  const analytics = useInvoiceAnalytics(invoices);
 
   return (
     <div className="space-y-4">
