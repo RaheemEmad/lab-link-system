@@ -40,7 +40,7 @@ export function RestoreOrderDialog({
     mutationFn: async () => {
       if (!user) throw new Error("Not authenticated");
 
-      const restoredStatus = preDeleteStatus || "Pending";
+      const restoredStatus = (preDeleteStatus || "Pending") as "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered" | "Cancelled";
 
       const { error } = await supabase
         .from("orders")
@@ -59,7 +59,7 @@ export function RestoreOrderDialog({
       // Log to status history
       await supabase.from("order_status_history").insert({
         order_id: orderId,
-        old_status: "Cancelled",
+        old_status: "Cancelled" as const,
         new_status: restoredStatus,
         changed_by: user.id,
         notes: `Order restored by doctor. Previous status: ${restoredStatus}`,
