@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell, Package, Compass, Truck, Trophy, MessageSquareMore, FolderOpen, CalendarDays } from "lucide-react";
+import { Plus, Bell, Package, Compass, Truck, Trophy, MessageSquareMore, FolderOpen, CalendarDays, BarChart3, Clock } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
