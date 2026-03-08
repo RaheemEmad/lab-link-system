@@ -488,7 +488,7 @@ const OrderDashboard = () => {
         </Card>
       )}
 
-      <Card data-tour="order-dashboard">
+      <Card data-tour="order-dashboard" ref={ordersTableRef}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Order Management
