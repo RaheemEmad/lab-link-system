@@ -37,7 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X, ArrowUpDown, ArrowUp, ArrowDown, Download, Copy, Calendar, RotateCcw, Archive } from "lucide-react";
+import { Search, MoreVertical, Pencil, Trash2, RefreshCw, History, MessageSquare, FileText, Building2, Mail, Phone, ExternalLink, MessageCircle, User, Palette, Hash, MessageSquareMore, CheckSquare, X, ArrowUpDown, ArrowUp, ArrowDown, Download, Copy, Calendar, RotateCcw, Archive, SlidersHorizontal } from "lucide-react";
 import { RestoreOrderDialog } from "./order/RestoreOrderDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
