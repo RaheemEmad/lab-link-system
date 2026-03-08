@@ -259,7 +259,7 @@ const Dashboard = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => navigate("/logistics")} 
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto min-h-[44px] sm:min-h-0 press-feedback"
                       data-tour="track-orders-btn"
                     >
                       <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
