@@ -238,7 +238,7 @@ export default function OrderNotesDialog({
             .from("note_likes")
             .select("id")
             .eq("note_id", note.id)
-            .eq("user_id", user?.id || "")
+            .eq("user_id", currentUserId || "")
             .maybeSingle();
 
           return {
