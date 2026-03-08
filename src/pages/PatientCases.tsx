@@ -211,6 +211,11 @@ const PatientCases = () => {
                       <CardTitle className="text-base">{c.patient_name}</CardTitle>
                       <CardDescription className="mt-0.5">
                         {c.order_count} order{c.order_count !== 1 ? "s" : ""}
+                        {c.last_order && (
+                          <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">
+                            {c.last_order.status}
+                          </Badge>
+                        )}
                       </CardDescription>
                     </div>
                     <Badge variant="secondary" className="text-xs shrink-0">
