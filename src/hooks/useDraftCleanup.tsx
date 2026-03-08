@@ -46,7 +46,7 @@ export function useDraftCleanup({
             if (age > maxAge) {
               localStorage.removeItem(key);
               cleanedCount++;
-              console.log(`🗑️ Cleaned up old draft: ${key} (${Math.floor(age / (24 * 60 * 60 * 1000))} days old)`);
+              
             }
           }
         } catch (error) {
