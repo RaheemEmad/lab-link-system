@@ -131,7 +131,7 @@ const LogisticsDashboard = () => {
     if (orderId && openNotes === 'true' && shipments.length > 0) {
       const shipment = shipments.find(s => s.id === orderId);
       if (shipment) {
-        setDefaultTab("notes");
+        setModalDefaultTab("notes");
         setSelectedShipment(shipment);
         toast.success("New note received", { description: `Opening notes for order ${shipment.order_number}` });
         searchParams.delete('openNotes');
