@@ -18,6 +18,7 @@ import { ThemeProvider } from "next-themes";
 import { lazy, Suspense, useEffect } from "react";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 
 // Eager load critical pages
 import Home from "./pages/Home";
