@@ -108,7 +108,7 @@ const AppContent = () => {
             <Route path="/orders-marketplace" element={<PageTransition><OrdersMarketplace /></PageTransition>} />
             <Route path="/lab-requests" element={<PageTransition><LabRequestsManagement /></PageTransition>} />
             <Route path="/logistics" element={<PageTransition><LogisticsDashboard /></PageTransition>} />
-            <Route path="/track-orders" element={<PageTransition><TrackOrders /></PageTransition>} />
+            
             <Route path="/achievements" element={<PageTransition><Achievements /></PageTransition>} />
             <Route path="/doctor-achievements" element={<PageTransition><DoctorAchievements /></PageTransition>} />
             <Route path="/lab-achievements" element={<PageTransition><LabAchievements /></PageTransition>} />
