@@ -65,8 +65,7 @@ const LogisticsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [shipments, setShipments] = useState<OrderShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<OrderShipment | null>(null);
-  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<OrderShipment | null>(null);
-  const [defaultTab, setDefaultTab] = useState<"details" | "notes">("details");
+  const [modalDefaultTab, setModalDefaultTab] = useState<"order" | "shipment" | "notes">("order");
   const [kpiFilter, setKpiFilter] = useState<string | null>(null);
   const tabBadges = useLogisticsTabBadges(user?.id, shipments);
 
