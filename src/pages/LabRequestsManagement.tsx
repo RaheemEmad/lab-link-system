@@ -103,7 +103,7 @@ export default function LabRequestsManagement() {
         throw error;
       }
       
-      console.log('[LabRequests] Successfully fetched requests:', data?.length || 0);
+      
       return data || [];
     },
     enabled: !!user?.id,
