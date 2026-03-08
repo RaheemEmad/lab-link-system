@@ -185,7 +185,12 @@ const OrderDashboard = () => {
       let query = supabase
         .from("orders")
         .select(`
-          *,
+          id, order_number, doctor_name, patient_name, restoration_type,
+          teeth_shade, teeth_number, urgency, status, timestamp,
+          html_export, screenshot_url, assigned_lab_id,
+          delivery_pending_confirmation, expected_delivery_date,
+          shade_system, is_deleted, deleted_at, deleted_by, pre_delete_status,
+          doctor_id, status_updated_at,
           labs (
             id,
             name,
@@ -199,8 +204,8 @@ const OrderDashboard = () => {
 
       if (isDoctor) {
         query = query.eq("doctor_id", user.id);
-      } else if (isLabStaff) {
-        query = query.not("assigned_lab_id", "is", null);
+      } else if (isLabStaff && labId) {
+        query = query.eq("assigned_lab_id", labId);
       }
 
       const { data, error } = await query;
