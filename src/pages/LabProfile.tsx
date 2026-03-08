@@ -224,15 +224,42 @@ export default function LabProfile() {
 
   if (!lab) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Lab not found</p>
-            <Button onClick={() => navigate(-1)} className="mt-4">
-              Back
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex flex-col">
+        <LandingNav />
+        <div className="flex-1 bg-secondary/30 py-8 flex items-center justify-center">
+          <Card className="max-w-md w-full mx-4">
+            <CardContent className="py-8 text-center space-y-4">
+              <Building2 className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
+              {!user ? (
+                <>
+                  <p className="font-semibold text-lg">Sign in Required</p>
+                  <p className="text-sm text-muted-foreground">
+                    Please sign in to view lab profiles. Lab details are only available to authenticated users.
+                  </p>
+                  <Button onClick={() => navigate("/auth")} className="mt-2">
+                    Sign In
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-lg">Lab Not Found</p>
+                  <p className="text-sm text-muted-foreground">
+                    This lab profile is unavailable. It may have been deactivated or the link may be incorrect.
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <Button variant="outline" onClick={() => navigate(-1)}>
+                      Go Back
+                    </Button>
+                    <Button onClick={() => navigate("/labs")}>
+                      Browse Labs
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        <LandingFooter />
       </div>
     );
   }
