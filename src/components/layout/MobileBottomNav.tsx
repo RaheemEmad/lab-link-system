@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Plus, Store, Bell, User } from "lucide-react";
@@ -16,10 +17,10 @@ interface NavItem {
 const MobileBottomNav = () => {
   const { user } = useAuth();
   const { isDoctor, isLabStaff, isLoading } = useUserRole();
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Fetch unread notification count
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["mobile-nav-unread", user?.id],
     queryFn: async () => {
@@ -39,19 +40,18 @@ const MobileBottomNav = () => {
 
   if (!user || isLoading) return null;
 
-  // Hide on public/auth pages
   const hiddenPaths = ["/", "/auth", "/reset-password", "/onboarding", "/how-it-works", "/about", "/privacy", "/terms", "/contact", "/install", "/admin/login"];
   if (hiddenPaths.includes(location.pathname)) return null;
 
   const navItems: NavItem[] = [
-    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { label: t.mobileNav.dashboard, icon: LayoutDashboard, href: "/dashboard" },
     ...(isDoctor
-      ? [{ label: "New Order", icon: Plus, href: "/new-order" }]
+      ? [{ label: t.mobileNav.newOrder, icon: Plus, href: "/new-order" }]
       : isLabStaff
-        ? [{ label: "Marketplace", icon: Store, href: "/orders-marketplace" }]
+        ? [{ label: t.mobileNav.marketplace, icon: Store, href: "/orders-marketplace" }]
         : []),
-    { label: "Alerts", icon: Bell, href: "/notifications" },
-    { label: "Profile", icon: User, href: "/profile" },
+    { label: t.mobileNav.alerts, icon: Bell, href: "/notifications" },
+    { label: t.mobileNav.profile, icon: User, href: "/profile" },
   ];
 
   const isActive = (href: string) => location.pathname === href;
@@ -76,11 +76,11 @@ const MobileBottomNav = () => {
             >
               <div className="relative">
                 <item.icon className={cn("h-5 w-5 transition-transform duration-200", active && "scale-110")} />
-                {item.label === "Alerts" && unreadCount > 0 && (
+                {item.label === t.mobileNav.alerts && unreadCount > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1 border-2 border-background"
+                    className="absolute -top-1.5 ltr:-right-2 rtl:-left-2 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1 border-2 border-background"
                   >
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </motion.span>

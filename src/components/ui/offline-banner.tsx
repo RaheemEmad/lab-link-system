@@ -1,10 +1,11 @@
 import { WifiOff, Wifi } from "lucide-react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 
 export const OfflineBanner = () => {
   const { isOnline, wasOffline } = useNetworkStatus();
+  const { t } = useLanguage();
 
   return (
     <AnimatePresence>
@@ -18,7 +19,7 @@ export const OfflineBanner = () => {
         >
           <div className="flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium">
             <WifiOff className="h-4 w-4" />
-            <span>You're offline. Changes will sync when reconnected.</span>
+            <span>{t.offline.offlineMessage}</span>
           </div>
         </motion.div>
       )}
@@ -32,7 +33,7 @@ export const OfflineBanner = () => {
         >
           <div className="flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium">
             <Wifi className="h-4 w-4" />
-            <span>Back online!</span>
+            <span>{t.offline.backOnline}</span>
           </div>
         </motion.div>
       )}
