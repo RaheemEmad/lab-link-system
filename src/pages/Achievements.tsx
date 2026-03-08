@@ -232,7 +232,7 @@ export default function Achievements() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_badges")
-        .select("id, badge_type, badge_value, tier, earned_at")
+        .select("id, badge_id, tier, earned_at")
         .eq("user_id", user?.id!);
       
       if (error) throw error;
