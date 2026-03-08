@@ -23,6 +23,7 @@ interface DeliveryConfirmationDialogProps {
   orderNumber: string;
   patientName: string;
   labName?: string;
+  labId?: string;
   restorationData?: {
     restoration_type?: string;
     teeth_number?: string;
