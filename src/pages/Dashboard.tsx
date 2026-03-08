@@ -76,16 +76,9 @@ const Dashboard = () => {
   const [runTour, setRunTour] = useState(false);
   const [showReceiveAnimation, setShowReceiveAnimation] = useState(false);
   const [receivedOrderNumber, setReceivedOrderNumber] = useState<string>("");
-  const { playUrgentNotification } = useNotificationSound();
-  const { 
-    requestPermission, 
-    showUrgentNotification, 
-    showNormalNotification,
-    isGranted,
-    isSupported 
-  } = useBrowserNotifications();
-  const previousUrgentCountRef = useRef<number>(0);
-  const previousTotalCountRef = useRef<number>(0);
+  
+  // Use shared unread count hook - notifications are handled centrally by NotificationPopup
+  const { unreadCount, hasUrgent } = useUnreadCount();
 
   // DEBUG: Log every render with current state
   console.debug('[Dashboard] Render:', {
