@@ -351,6 +351,7 @@ const LandingNav = () => {
             
             {/* Desktop Right Section (Auth & User Actions) */}
              <div className="hidden lg:flex items-center gap-2">
+              <LanguageToggle />
               <ThemeToggle />
               {user ? (
                 <>
