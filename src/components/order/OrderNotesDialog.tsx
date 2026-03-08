@@ -78,12 +78,6 @@ export default function OrderNotesDialog({
   const { requestPermission, showNotification, isGranted, isSupported } = useBrowserNotifications();
 
   useEffect(() => {
-    const getUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getUserId();
-
     // Request browser notification permission on first load
     if (isSupported && !isGranted) {
       requestPermission();
