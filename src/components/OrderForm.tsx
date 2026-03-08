@@ -157,26 +157,6 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
     fetchDoctorName();
   }, [user, form]);
 
-  // Auto-fill doctor name from user profile
-  useEffect(() => {
-    const fetchDoctorName = async () => {
-      if (!user) return;
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.full_name) {
-        setDoctorName(profile.full_name);
-        form.setValue('doctorName', profile.full_name);
-      }
-    };
-
-    fetchDoctorName();
-  }, [user, form]);
-  
   // Cleanup thumbnails on unmount
   useEffect(() => {
     return () => {
