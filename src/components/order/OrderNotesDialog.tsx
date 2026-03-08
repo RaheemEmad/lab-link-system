@@ -63,6 +63,7 @@ export default function OrderNotesDialog({
   onOpenChange,
   orderNumber,
 }: OrderNotesDialogProps) {
+  const { user } = useAuth();
   const [notes, setNotes] = useState<OrderNote[]>([]);
   const [newNote, setNewNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +71,7 @@ export default function OrderNotesDialog({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const currentUserId = user?.id || null;
   const [soundEnabled, setSoundEnabled] = useState(true);
   const previousNoteCountRef = useRef<number>(0);
   const { playNormalNotification } = useNotificationSound();
