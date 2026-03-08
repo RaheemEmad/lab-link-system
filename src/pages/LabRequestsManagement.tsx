@@ -46,7 +46,7 @@ export default function LabRequestsManagement() {
         return [];
       }
       
-      console.log('[LabRequests] Fetching lab work requests for doctor:', user.id);
+      
       
       const { data, error } = await supabase
         .from("lab_work_requests")
