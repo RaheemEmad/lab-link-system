@@ -403,7 +403,7 @@ const Auth = () => {
                           />
                         </FormControl>
                         <FormLabel className="text-sm font-normal cursor-pointer">
-                          Remember me for 30 days
+                          {t.auth.rememberMe}
                         </FormLabel>
                       </FormItem>
                     )}
