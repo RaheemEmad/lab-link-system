@@ -364,21 +364,13 @@ const LogisticsDashboard = () => {
       </div>
 
       {selectedShipment && (
-        <ShipmentDetailsDialog
+        <ShipmentDetailModal
           open={!!selectedShipment}
-          onOpenChange={(open) => { if (!open) { setSelectedShipment(null); setDefaultTab("details"); } }}
+          onOpenChange={(open) => { if (!open) { setSelectedShipment(null); setModalDefaultTab("order"); } }}
           order={selectedShipment}
           onUpdate={() => { setSelectedShipment(null); window.location.reload(); }}
           userRole={roleConfirmed ? (role || undefined) : undefined}
-          defaultTab={defaultTab}
-        />
-      )}
-
-      {selectedOrderForDetails && (
-        <OrderDetailsModal
-          open={!!selectedOrderForDetails}
-          onOpenChange={(open) => !open && setSelectedOrderForDetails(null)}
-          order={selectedOrderForDetails}
+          defaultTab={modalDefaultTab}
         />
       )}
     </ProtectedRoute>
