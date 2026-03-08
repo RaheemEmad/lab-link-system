@@ -255,7 +255,7 @@ export default function LabRequestsManagement() {
         }
       }
       
-      console.log('[LabRequests] Request status update completed successfully');
+      
       return { requestId, orderId, orderNumber };
     },
     onSuccess: (data, variables) => {
