@@ -472,7 +472,7 @@ const Auth = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel>{t.auth.password}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input 
