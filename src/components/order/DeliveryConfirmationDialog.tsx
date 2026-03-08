@@ -40,6 +40,7 @@ export const DeliveryConfirmationDialog = ({
   orderNumber,
   patientName,
   labName,
+  restorationData,
   open,
   onOpenChange,
   onConfirmed,
