@@ -588,7 +588,7 @@ const LandingNav = () => {
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="gap-2">
                         <User className="h-4 w-4" />
-                        <span className="hidden xl:inline">Account</span>
+                        <span className="hidden xl:inline">{t.nav.account}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
