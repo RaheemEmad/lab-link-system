@@ -508,7 +508,7 @@ const Auth = () => {
                               placeholder="••••••••" 
                               {...field} 
                             />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <div className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                               {signUpConfirmPassword && signUpPassword && signUpPassword === signUpConfirmPassword && (
                                 <Check className="h-4 w-4 text-green-600" />
                               )}
