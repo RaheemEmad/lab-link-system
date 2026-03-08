@@ -266,10 +266,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
 
       if (insertError) throw insertError;
 
-      toast({
-        title: 'File shared',
-        description: 'File uploaded successfully',
-      });
+      toast.success('File shared');
     } catch (error) {
       console.error('Error uploading file:', error);
       toast({
