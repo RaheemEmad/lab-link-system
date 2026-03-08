@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, MessageSquare, Calendar, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, MessageSquare, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import LandingNav from '@/components/landing/LandingNav';
 import LandingFooter from '@/components/landing/LandingFooter';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -23,41 +24,27 @@ interface ChatConversation {
   total_messages: number;
 }
 
+const PAGE_SIZE = 50;
+
 export default function ChatHistory() {
   const { user } = useAuth();
+  const { role, labId } = useUserRole();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChat, setSelectedChat] = useState<{
     orderId: string;
     orderNumber: string;
   } | null>(null);
-  const [currentUserRole, setCurrentUserRole] = useState<'doctor' | 'lab_staff'>('doctor');
+  const [page, setPage] = useState(0);
 
-  // Get user role
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      if (!user?.id) return;
-      
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data?.role) {
-        setCurrentUserRole(data.role as 'doctor' | 'lab_staff');
-      }
-    };
-    
-    fetchUserRole();
-  }, [user]);
+  const currentUserRole: 'doctor' | 'lab_staff' = role === 'lab_staff' ? 'lab_staff' : 'doctor';
 
-  // Fetch chat conversations
+  // Fetch chat conversations with pagination
   const { data: conversations, isLoading } = useQuery({
-    queryKey: ['chat-conversations', user?.id],
+    queryKey: ['chat-conversations', user?.id, role, labId, page],
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Get all orders with messages for this user
+      // Paginated query — fetch PAGE_SIZE messages at a time
       const { data: messagesData, error } = await supabase
         .from('chat_messages')
         .select(`
@@ -73,16 +60,10 @@ export default function ChatHistory() {
             assigned_lab_id
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
       if (error) throw error;
-
-      // Get user's lab if they're lab staff
-      const { data: userRole } = await supabase
-        .from('user_roles')
-        .select('lab_id, role')
-        .eq('user_id', user.id)
-        .single();
 
       // Group messages by order
       const conversationsMap = new Map<string, ChatConversation>();
@@ -91,10 +72,10 @@ export default function ChatHistory() {
         const order = msg.orders;
         if (!order) return;
 
-        // Check if user has access to this order
+        // Check access using already-fetched role
         const hasAccess =
           order.doctor_id === user.id ||
-          (userRole?.role === 'lab_staff' && order.assigned_lab_id === userRole.lab_id);
+          (role === 'lab_staff' && order.assigned_lab_id === labId);
 
         if (!hasAccess) return;
 
@@ -125,7 +106,8 @@ export default function ChatHistory() {
           new Date(a.last_message_at).getTime()
       );
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!role,
+    staleTime: 30_000,
   });
 
   // Filter conversations based on search
@@ -135,6 +117,8 @@ export default function ChatHistory() {
       conv.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       conv.last_message.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const hasMore = (conversations?.length ?? 0) >= PAGE_SIZE;
 
   return (
     <ProtectedRoute>
@@ -184,54 +168,79 @@ export default function ChatHistory() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
-                {filteredConversations.map((conv) => (
-                  <Card
-                    key={conv.order_id}
-                    className="cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() =>
-                      setSelectedChat({
-                        orderId: conv.order_id,
-                        orderNumber: conv.order_number,
-                      })
-                    }
-                  >
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            Order {conv.order_number}
-                            {conv.unread_count > 0 && (
-                              <Badge variant="destructive" className="ml-2">
-                                {conv.unread_count} unread
-                              </Badge>
-                            )}
-                          </CardTitle>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <User className="h-4 w-4" />
-                              {conv.patient_name}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              {new Date(conv.last_message_at).toLocaleDateString()}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <MessageSquare className="h-4 w-4" />
-                              {conv.total_messages} messages
+              <>
+                <div className="space-y-4">
+                  {filteredConversations.map((conv) => (
+                    <Card
+                      key={conv.order_id}
+                      className="cursor-pointer hover:shadow-lg transition-shadow"
+                      onClick={() =>
+                        setSelectedChat({
+                          orderId: conv.order_id,
+                          orderNumber: conv.order_number,
+                        })
+                      }
+                    >
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              Order {conv.order_number}
+                              {conv.unread_count > 0 && (
+                                <Badge variant="destructive" className="ml-2">
+                                  {conv.unread_count} unread
+                                </Badge>
+                              )}
+                            </CardTitle>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <User className="h-4 w-4" />
+                                {conv.patient_name}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                {new Date(conv.last_message_at).toLocaleDateString()}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MessageSquare className="h-4 w-4" />
+                                {conv.total_messages} messages
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {conv.last_message}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {conv.last_message}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-center gap-4 mt-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">Page {page + 1}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!hasMore}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </>
             )}
           </div>
         </div>
