@@ -77,12 +77,19 @@ const AppContent = () => {
   useServiceWorkerUpdate();
   const location = useLocation();
   usePageTitle();
+
+  // Add bottom nav body spacing class on mobile when authenticated
+  useEffect(() => {
+    document.body.classList.add("has-bottom-nav");
+    return () => document.body.classList.remove("has-bottom-nav");
+  }, []);
   
   return (
     <>
       <HelpButton />
       <SessionTimeoutWarning />
       <NotificationPopup />
+      <MobileBottomNav />
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingScreen />}>
           <Routes location={location} key={location.pathname}>
