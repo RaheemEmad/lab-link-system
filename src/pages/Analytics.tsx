@@ -357,7 +357,9 @@ const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => {
       </Card>
     </div>
   </div>
-);
+  </div>
+  );
+};
 
 // --- Lab View ---
 interface LabStatsData {
