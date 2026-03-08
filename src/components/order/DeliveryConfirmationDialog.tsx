@@ -22,6 +22,14 @@ interface DeliveryConfirmationDialogProps {
   orderNumber: string;
   patientName: string;
   labName?: string;
+  restorationData?: {
+    restoration_type?: string;
+    teeth_number?: string;
+    teeth_shade?: string;
+    shade_system?: string;
+    biological_notes?: string;
+    assigned_lab_id?: string | null;
+  };
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmed: () => void;
