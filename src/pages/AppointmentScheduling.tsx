@@ -401,8 +401,6 @@ const AppointmentScheduling = () => {
                       {availableTimeSlots.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>End Time</Label>
@@ -410,8 +408,6 @@ const AppointmentScheduling = () => {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {availableTimeSlots.filter((t) => t > timeStart).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
                     </SelectContent>
                   </Select>
                 </div>
