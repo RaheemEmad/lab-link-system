@@ -50,7 +50,7 @@ const MobileBottomNav = () => {
       : isLabStaff
         ? [{ label: t.mobileNav.marketplace, icon: Store, href: "/orders-marketplace" }]
         : []),
-    { label: t.mobileNav.alerts, icon: Bell, href: "/notifications" },
+    { label: t.mobileNav.alerts, icon: Inbox, href: "/inbox" },
     { label: t.mobileNav.profile, icon: User, href: "/profile" },
   ];
 
