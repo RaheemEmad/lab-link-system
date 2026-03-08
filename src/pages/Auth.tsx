@@ -269,17 +269,17 @@ const Auth = () => {
             <CardContent className="px-4 sm:px-6 space-y-4">
               <Alert className="border-accent bg-accent/10">
                 <Mail className="h-4 w-4 text-accent" />
-                <AlertDescription className="text-sm ml-2">
-                  <strong>Email Verification Pending</strong>
-                  <p className="mt-1">We've sent a confirmation link to verify your email address.</p>
+                <AlertDescription className="text-sm ltr:ml-2 rtl:mr-2">
+                  <strong>{t.auth.emailVerificationPending}</strong>
+                  <p className="mt-1">{t.auth.emailVerificationDesc}</p>
                 </AlertDescription>
               </Alert>
               
               <div className="text-center text-muted-foreground text-sm space-y-2">
-                <p>Click the link in the email to verify your account.</p>
-                <p>Once verified, you can sign in to your account.</p>
+                <p>{t.auth.clickLink}</p>
+                <p>{t.auth.onceVerified}</p>
                 <p className="text-xs text-muted-foreground/70 mt-3">
-                  Didn't receive the email? Check your spam folder.
+                  {t.auth.checkSpam}
                 </p>
               </div>
               
