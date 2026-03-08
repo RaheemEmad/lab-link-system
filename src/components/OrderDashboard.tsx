@@ -460,6 +460,7 @@ const OrderDashboard = () => {
 
   return (
     <TooltipProvider>
+      <div onClick={(e) => { if (e.target === e.currentTarget && kpiFilter) setKpiFilter(null); }}>
       {/* KPI Cards */}
       <div className="mb-4">
         <DashboardKPICards
