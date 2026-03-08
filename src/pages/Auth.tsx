@@ -528,7 +528,7 @@ const Auth = () => {
                   />
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Create Account"}
+                    {isLoading ? t.auth.creatingAccount : t.auth.signUp}
                   </Button>
                 </form>
               </Form>
