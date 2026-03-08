@@ -77,6 +77,10 @@ interface Order {
   delivery_pending_confirmation: boolean | null;
   expected_delivery_date: string | null;
   shade_system: string | null;
+  is_deleted?: boolean;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
+  pre_delete_status?: string | null;
   labs: {
     id: string;
     name: string;
