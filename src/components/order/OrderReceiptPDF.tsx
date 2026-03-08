@@ -145,7 +145,7 @@ export const OrderReceiptPDF = ({ orderId, onClose }: OrderReceiptPDFProps) => {
     }, 100);
   };
 
-  // formatEGP imported from @/lib/formatters
+  
 
   if (orderLoading) {
     return (
