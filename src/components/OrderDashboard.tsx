@@ -450,7 +450,7 @@ const OrderDashboard = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
               <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] min-h-[44px] sm:min-h-0">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
