@@ -26,12 +26,10 @@ import { compressImage, createThumbnail, validateImageType, validateImageSize, f
 import { processImageForUpload } from "@/lib/imageMetadata";
 import { validateUploadFile } from "@/lib/fileValidation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
 import BudgetSection from "./order/BudgetSection";
 import { ImportOrderDialog, ExtractedOrderData } from "./order/ImportOrderDialog";
-import BudgetSection from "./order/BudgetSection";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
