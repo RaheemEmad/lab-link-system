@@ -19,6 +19,7 @@ import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-re
 import { toast } from "sonner";
 
 import { formatEGP } from "@/lib/formatters";
+import { createNotification } from "@/lib/notifications";
 
 interface Order {
   id: string;
