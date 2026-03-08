@@ -60,6 +60,7 @@ interface Order {
 
 const LabWorkflowManagement = () => {
   const { user } = useAuth();
+  const { isLabStaff, isAdmin, labId, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,34 +69,37 @@ const LabWorkflowManagement = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
+    if (!user || roleLoading) return;
+
+    if (!isLabStaff && !isAdmin) {
+      toast.error("Access Denied", { description: "You must be lab staff to access this page." });
+      navigate("/dashboard");
       return;
     }
 
-    checkLabStaffAccess();
+    if (!labId) {
+      toast.error("Lab not assigned", { description: "Your account is not assigned to a lab." });
+      setIsLoading(false);
+      return;
+    }
+
     fetchOrders();
 
-    // Realtime subscription
+    // Granular realtime subscription
     const channel = supabase
       .channel('lab-workflow-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          fetchOrders();
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => {
+        fetchOrders();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+        setOrders(prev => prev.map(o => o.id === (payload.new as any).id ? { ...o, ...(payload.new as any) } : o));
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, navigate]);
+  }, [user, roleLoading, isLabStaff, isAdmin, labId, navigate]);
 
   const checkLabStaffAccess = async () => {
     if (!user) return;
