@@ -101,22 +101,7 @@ const LabWorkflowManagement = () => {
     };
   }, [user, roleLoading, isLabStaff, isAdmin, labId, navigate]);
 
-  const checkLabStaffAccess = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!data || (data.role !== 'lab_staff' && data.role !== 'admin')) {
-      toast.error("Access Denied", {
-        description: "You must be lab staff to access this page."
-      });
-      navigate("/dashboard");
-    }
-  };
+  // Access check is now handled by useUserRole() in the useEffect above
 
   const fetchOrders = async () => {
     if (!user) return;
