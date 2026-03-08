@@ -365,9 +365,9 @@ const Auth = () => {
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center justify-between">
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{t.auth.password}</FormLabel>
                           <Link to="/reset-password" className="text-xs text-primary hover:underline">
-                            Forgot Password?
+                            {t.auth.forgotPassword}
                           </Link>
                         </div>
                         <FormControl>
