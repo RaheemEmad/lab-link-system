@@ -37,6 +37,7 @@ import {
 type ViewMode = "week" | "month";
 
 const LabCalendar = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { labId, isLabStaff, isAdmin, isLoading: roleLoading } = useUserRole();
   const [currentDate, setCurrentDate] = useState(new Date());
