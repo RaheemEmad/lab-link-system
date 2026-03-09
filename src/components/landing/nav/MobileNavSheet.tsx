@@ -39,7 +39,7 @@ export const MobileNavSheet = ({
   unreadCount,
   hasUrgent,
   newOrdersCount,
-  isInstallable,
+  isInstallable: _isInstallableProp,
   t,
   signOut,
   onNavClick,
