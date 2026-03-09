@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { User as UserType } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +23,7 @@ interface MobileNavSheetProps {
   unreadCount: number;
   hasUrgent: boolean;
   newOrdersCount?: number;
-  isInstallable: boolean;
+  isInstallable?: boolean; // deprecated — hook used internally
   t: Translations;
   signOut: () => void;
   onNavClick: (link: NavLink) => void;
@@ -38,13 +39,14 @@ export const MobileNavSheet = ({
   unreadCount,
   hasUrgent,
   newOrdersCount,
-  isInstallable,
+  isInstallable: _isInstallableProp,
   t,
   signOut,
   onNavClick,
   isLinkActive,
 }: MobileNavSheetProps) => {
   const navigate = useNavigate();
+  const { isInstallable, promptInstall } = usePWAInstall();
 
   return (
     <div className="lg:hidden">

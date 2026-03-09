@@ -14,6 +14,9 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt"],
       manifest: {
@@ -31,68 +34,39 @@ export default defineConfig(({ mode }) => ({
             src: "/lablink-icon.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any maskable"
+            purpose: "any",
+          },
+          {
+            src: "/lablink-icon.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
           },
           {
             src: "/lablink-icon.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable"
-          }
+            purpose: "any",
+          },
+          {
+            src: "/lablink-icon.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
         categories: ["medical", "business", "productivity"],
         screenshots: [
           {
             src: "/splash-screen.png",
             sizes: "1080x1920",
-            type: "image/png"
-          }
-        ]
-      },
-      workbox: {
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB
-        globPatterns: ["**/*.{js,css,html,ico,png,jpg,svg,woff,woff2}"],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/ilpbkhrtbhbfcfbwvmyz\.supabase\.co\/rest\/v1\/.*/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 5, // 5 minutes
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "images-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-            },
+            type: "image/png",
           },
         ],
+      },
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        globPatterns: ["**/*.{js,css,html,ico,png,jpg,svg,woff,woff2}"],
       },
       devOptions: {
         enabled: false,
