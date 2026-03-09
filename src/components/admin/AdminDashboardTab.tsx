@@ -1,4 +1,5 @@
-import { useState, useEffect, memo, lazy, Suspense } from "react";
+import { memo, lazy, Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,159 +72,41 @@ const StatsCards = memo(({ stats }: { stats: Stats }) => (
 
 StatsCards.displayName = "StatsCards";
 
+const defaultStats: Stats = {
+  totalUsers: 0,
+  activeUsers: 0,
+  totalOrders: 0,
+  pendingOrders: 0,
+  completedOrders: 0,
+  ordersByStatus: [],
+  ordersByDay: [],
+  roleDistribution: [],
+};
+
 const AdminDashboardTab = () => {
-  const [stats, setStats] = useState<Stats>({
-    totalUsers: 0,
-    activeUsers: 0,
-    totalOrders: 0,
-    pendingOrders: 0,
-    completedOrders: 0,
-    ordersByStatus: [],
-    ordersByDay: [],
-    roleDistribution: [],
+  const { data: stats = defaultStats, isLoading: loading } = useQuery({
+    queryKey: ["admin-dashboard-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_admin_dashboard_stats" as any);
+      if (error) throw error;
+
+      const raw = data as any;
+      return {
+        totalUsers: raw.totalUsers ?? 0,
+        activeUsers: raw.activeUsers ?? 0,
+        totalOrders: raw.totalOrders ?? 0,
+        pendingOrders: raw.pendingOrders ?? 0,
+        completedOrders: raw.completedOrders ?? 0,
+        ordersByStatus: raw.ordersByStatus ?? [],
+        ordersByDay: raw.ordersByDay ?? [],
+        roleDistribution: raw.roleDistribution ?? [],
+      } as Stats;
+    },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    retry: 1,
+    meta: { errorMessage: "Failed to load dashboard statistics" },
   });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchStats();
-    setupRealtimeSubscriptions();
-  }, []);
-
-  const setupRealtimeSubscriptions = () => {
-    // Subscribe to order changes
-    const ordersChannel = supabase
-      .channel("orders-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "orders",
-        },
-        () => {
-          fetchStats();
-        }
-      )
-      .subscribe();
-
-    // Subscribe to profile changes
-    const profilesChannel = supabase
-      .channel("profiles-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-        },
-        () => {
-          fetchStats();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(ordersChannel);
-      supabase.removeChannel(profilesChannel);
-    };
-  };
-
-  const fetchStats = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch user stats
-      const { count: totalUsers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
-
-      const { count: activeUsers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("onboarding_completed", true);
-
-      // Fetch order stats
-      const { count: totalOrders } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true });
-
-      const { count: pendingOrders } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "Pending");
-
-      const { count: completedOrders } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "Delivered");
-
-      // Fetch orders by status
-      const { data: ordersData } = await supabase
-        .from("orders")
-        .select("status");
-
-      const statusCounts = (ordersData || []).reduce((acc: any, order) => {
-        acc[order.status] = (acc[order.status] || 0) + 1;
-        return acc;
-      }, {});
-
-      const ordersByStatus = Object.entries(statusCounts).map(([status, count]) => ({
-        status,
-        count: count as number,
-      }));
-
-      // Fetch orders by day (last 7 days)
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const { data: recentOrders } = await supabase
-        .from("orders")
-        .select("created_at")
-        .gte("created_at", sevenDaysAgo.toISOString());
-
-      const ordersByDay = (recentOrders || []).reduce((acc: any, order) => {
-        const date = new Date(order.created_at).toLocaleDateString();
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-      }, {});
-
-      const ordersTimeline = Object.entries(ordersByDay).map(([date, count]) => ({
-        date,
-        count: count as number,
-      }));
-
-      // Fetch role distribution
-      const { data: rolesData } = await supabase
-        .from("user_roles")
-        .select("role");
-
-      const roleCounts = (rolesData || []).reduce((acc: any, { role }) => {
-        acc[role] = (acc[role] || 0) + 1;
-        return acc;
-      }, {});
-
-      const roleDistribution = Object.entries(roleCounts).map(([role, count]) => ({
-        role,
-        count: count as number,
-      }));
-
-      setStats({
-        totalUsers: totalUsers || 0,
-        activeUsers: activeUsers || 0,
-        totalOrders: totalOrders || 0,
-        pendingOrders: pendingOrders || 0,
-        completedOrders: completedOrders || 0,
-        ordersByStatus,
-        ordersByDay: ordersTimeline,
-        roleDistribution,
-      });
-    } catch (error) {
-      console.error("Error fetching stats:", error);
-      toast.error("Failed to load dashboard statistics");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -278,7 +161,7 @@ const AdminDashboardTab = () => {
                 <span className="font-medium text-sm md:text-base">User Engagement</span>
               </div>
               <span className="text-xs md:text-sm text-muted-foreground shrink-0">
-                {Math.round((stats.activeUsers / stats.totalUsers) * 100)}% activation rate
+                {stats.totalUsers > 0 ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0}% activation rate
               </span>
             </div>
           </div>
