@@ -145,6 +145,10 @@ const AppContent = () => {
             <Route path="/patient-cases" element={<PageTransition><PatientCases /></PageTransition>} />
             <Route path="/inbox" element={<PageTransition><Inbox /></PageTransition>} />
             <Route path="/templates" element={<PageTransition><TemplatesLibrary /></PageTransition>} />
+            <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
+            <Route path="/appointment-scheduling" element={<PageTransition><AppointmentScheduling /></PageTransition>} />
+            <Route path="/track-orders" element={<PageTransition><TrackOrders /></PageTransition>} />
+            <Route path="/lab-calendar" element={<PageTransition><LabCalendar /></PageTransition>} />
 
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
