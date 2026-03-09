@@ -3225,7 +3225,17 @@ export type Database = {
       }
       generate_invoice_number: { Args: never; Returns: string }
       generate_order_number: { Args: never; Returns: string }
+      get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_application_stats: { Args: never; Returns: Json }
+      get_ranked_labs: {
+        Args: {
+          p_limit?: number
+          p_restoration_type: string
+          p_urgency?: string
+          p_user_id?: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
