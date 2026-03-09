@@ -19,7 +19,7 @@ import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import BidSubmissionDialog from "@/components/order/BidSubmissionDialog";
-import { RoleGuard } from "@/components/auth/RoleGuard";
+import RoleGuard from "@/components/auth/RoleGuard";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
