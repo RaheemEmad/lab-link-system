@@ -5,18 +5,18 @@ export const useApplicationStats = () => {
   return useQuery({
     queryKey: ['application-stats'],
     queryFn: async () => {
-      const [ordersResult, labsResult, deliveredResult] = await Promise.all([
-        supabase.from('orders').select('id', { count: 'exact', head: true }),
-        supabase.from('labs').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'Delivered')
-      ]);
+      const { data, error } = await supabase.rpc('get_application_stats' as any);
+      
+      if (error) throw error;
+      
+      const stats = data as { totalOrders: number; activeLabs: number; processedCases: number } | null;
       
       return {
-        totalOrders: ordersResult.count || 0,
-        activeLabs: labsResult.count || 0,
-        processedCases: deliveredResult.count || 0
+        totalOrders: stats?.totalOrders || 0,
+        activeLabs: stats?.activeLabs || 0,
+        processedCases: stats?.processedCases || 0
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 };
