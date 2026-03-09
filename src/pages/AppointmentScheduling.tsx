@@ -191,8 +191,43 @@ const AppointmentScheduling = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      // Notify the other party (lab or doctor)
+      if (selectedOrderId) {
+        const { data: order } = await supabase
+          .from("orders")
+          .select("doctor_id, assigned_lab_id, order_number")
+          .eq("id", selectedOrderId)
+          .single();
+        if (order) {
+          // If creator is doctor, notify lab; if lab, notify doctor
+          if (isDoctor && order.assigned_lab_id) {
+            const { data: labStaff } = await supabase
+              .from("user_roles")
+              .select("user_id")
+              .eq("lab_id", order.assigned_lab_id)
+              .eq("role", "lab_staff");
+            for (const s of labStaff || []) {
+              await createNotification({
+                user_id: s.user_id,
+                order_id: selectedOrderId,
+                type: "appointment_scheduled",
+                title: "Appointment Scheduled",
+                message: `A ${appointmentType} appointment was scheduled for order #${order.order_number}`,
+              });
+            }
+          } else if (isLabStaff) {
+            await createNotification({
+              user_id: order.doctor_id,
+              order_id: selectedOrderId,
+              type: "appointment_scheduled",
+              title: "Appointment Scheduled",
+              message: `A ${appointmentType} appointment was scheduled for order #${order.order_number}`,
+            });
+          }
+        }
+      }
       toast.success("Appointment scheduled");
       setCreateOpen(false);
       resetForm();
