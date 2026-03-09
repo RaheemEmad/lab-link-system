@@ -33,7 +33,8 @@ const AdminNotifications = () => {
 
   useEffect(() => {
     fetchNotifications();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
   }, []);
 
   const fetchNotifications = async () => {

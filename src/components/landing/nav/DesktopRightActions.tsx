@@ -2,16 +2,19 @@ import { useNavigate, Link } from "react-router-dom";
 import { User as UserType } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, LogOut, Trophy, Star, Building2, Truck, Shield, FilePlus, Settings, Inbox as InboxIcon } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { LanguageToggle } from "@/components/ui/language-toggle";
+import { User, LogOut, Trophy, Star, Building2, Truck, Shield, FilePlus, Settings, Inbox as InboxIcon, Globe, Moon, Sun, Monitor, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useTheme } from "next-themes";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Translations } from "@/lib/i18n/types";
@@ -44,11 +47,11 @@ export const DesktopRightActions = ({
   signOut,
 }: DesktopRightActionsProps) => {
   const navigate = useNavigate();
+  const { language, setLanguage } = useLanguage();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="hidden lg:flex items-center gap-2">
-      <LanguageToggle />
-      <ThemeToggle />
       {user ? (
         <>
           {/* Create Order Button - Doctor Only */}
@@ -238,7 +241,7 @@ export const DesktopRightActions = ({
                 <span className="hidden xl:inline">{t.nav.account}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="min-w-[200px]">
               <DropdownMenuItem asChild>
                 <Link to="/profile">{t.nav.profile}</Link>
               </DropdownMenuItem>
@@ -249,6 +252,38 @@ export const DesktopRightActions = ({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setLanguage(language === "en" ? "ar" : "en")}>
+                <Globe className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {language === "en" ? "العربية" : "English"}
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {theme === "dark" ? (
+                    <Moon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  ) : (
+                    <Sun className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  )}
+                  Theme
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => setTheme("light")}>
+                    <Sun className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    Light
+                    {theme === "light" && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    <Moon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    Dark
+                    {theme === "dark" && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                    <Monitor className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    System
+                    {theme === "system" && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="text-destructive">
                 <LogOut className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
                 {t.nav.signOut}
@@ -258,6 +293,21 @@ export const DesktopRightActions = ({
         </>
       ) : (
         <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+                className="h-9 w-9"
+              >
+                <Globe className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{language === "en" ? "العربية" : "English"}</p>
+            </TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>

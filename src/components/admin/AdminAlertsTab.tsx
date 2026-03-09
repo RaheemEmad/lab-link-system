@@ -29,7 +29,8 @@ const AdminAlertsTab = () => {
 
   useEffect(() => {
     fetchAlerts();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
   }, []);
 
   const fetchAlerts = async () => {
