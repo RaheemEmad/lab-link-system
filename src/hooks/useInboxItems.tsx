@@ -83,7 +83,9 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
         }));
     },
     enabled: !!userId,
-    staleTime: 30_000,
+    staleTime: 20_000,
+    gcTime: 2 * 60_000,
+    retry: 1,
   });
 
   // 2. Pending design approvals (doctor-only)
