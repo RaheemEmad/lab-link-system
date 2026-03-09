@@ -184,9 +184,9 @@ Deno.serve(async (req) => {
       .single();
 
     if (insertError) {
-      console.error('Database error:', insertError);
+      console.error('Database insert error:', JSON.stringify(insertError));
       return new Response(
-        JSON.stringify({ error: 'Database error', message: insertError.message }),
+        JSON.stringify({ error: 'DATABASE_WRITE_FAILED', message: 'Failed to create order. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
