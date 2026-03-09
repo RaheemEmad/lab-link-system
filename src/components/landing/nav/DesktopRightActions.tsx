@@ -47,11 +47,11 @@ export const DesktopRightActions = ({
   signOut,
 }: DesktopRightActionsProps) => {
   const navigate = useNavigate();
+  const { language, setLanguage } = useLanguage();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="hidden lg:flex items-center gap-2">
-      <LanguageToggle />
-      <ThemeToggle />
       {user ? (
         <>
           {/* Create Order Button - Doctor Only */}
