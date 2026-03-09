@@ -295,6 +295,21 @@ export const DesktopRightActions = ({
         <>
           <Tooltip>
             <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+                className="h-9 w-9"
+              >
+                <Globe className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{language === "en" ? "العربية" : "English"}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
                 {t.nav.signIn}
               </Button>
