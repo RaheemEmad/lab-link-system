@@ -12,6 +12,7 @@ import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
 import { HelpButton } from "@/components/layout/HelpButton";
 import { NotificationPopup } from "@/components/notifications/NotificationPopup";
+import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { ThemeProvider } from "next-themes";
