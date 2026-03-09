@@ -303,6 +303,22 @@ const Labs = () => {
     setAvailableOnly(false);
   };
 
+  const toggleCompare = (labId: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(labId)) return prev.filter((id) => id !== labId);
+      if (prev.length >= 3) {
+        toast({ title: "Compare limit", description: "You can compare up to 3 labs at a time", variant: "destructive" });
+        return prev;
+      }
+      return [...prev, labId];
+    });
+  };
+
+  const compareLabData = useMemo(() => {
+    if (!allLabs) return [];
+    return compareIds.map((id) => allLabs.find((l) => l.id === id)).filter(Boolean);
+  }, [compareIds, allLabs]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNav />
