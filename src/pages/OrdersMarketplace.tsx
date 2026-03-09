@@ -208,8 +208,23 @@ export default function OrdersMarketplace() {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async (_data, orderId) => {
       queryClient.invalidateQueries({ queryKey: ["lab-requests", labId] });
+      // Notify the doctor that a lab applied
+      const { data: order } = await supabase
+        .from("orders")
+        .select("doctor_id, order_number")
+        .eq("id", orderId)
+        .single();
+      if (order?.doctor_id) {
+        await createNotification({
+          user_id: order.doctor_id,
+          order_id: orderId,
+          type: "new_marketplace_application",
+          title: "New Lab Application",
+          message: `A lab has applied to work on order #${order.order_number}`,
+        });
+      }
       toast({
         title: "Request sent",
         description: "Your request to work on this order has been sent to the doctor.",
