@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { cn } from "@/lib/utils";
 import BidSubmissionDialog from "@/components/order/BidSubmissionDialog";
 import RoleGuard from "@/components/auth/RoleGuard";
+import { createNotification } from "@/lib/notifications";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
