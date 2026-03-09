@@ -326,8 +326,37 @@ export default function OrdersMarketplace() {
       
       return { success: true };
     },
-    onSuccess: () => {
+    onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
+      // Notify lab staff of assignment
+      const { data: labStaff } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("lab_id", variables.labId)
+        .eq("role", "lab_staff");
+      const { data: order } = await supabase
+        .from("orders")
+        .select("doctor_id, order_number")
+        .eq("id", variables.orderId)
+        .single();
+      if (labStaff?.length && order) {
+        const notifications = labStaff.map((s) => ({
+          user_id: s.user_id,
+          order_id: variables.orderId,
+          type: "admin_order_override",
+          title: "Order Assigned by Admin",
+          message: `You've been assigned order #${order.order_number}`,
+        }));
+        // Also notify doctor
+        notifications.push({
+          user_id: order.doctor_id,
+          order_id: variables.orderId,
+          type: "admin_order_override",
+          title: "Lab Assigned to Your Order",
+          message: `An admin has assigned a lab to order #${order.order_number}`,
+        });
+        await supabase.from("notifications").insert(notifications);
+      }
       setOverrideOrderId(null);
       setSelectedLabForOverride(null);
       toast({

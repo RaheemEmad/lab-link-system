@@ -154,10 +154,25 @@ const Messages = () => {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setMessageText("");
       queryClient.invalidateQueries({ queryKey: ["dm-messages"] });
       queryClient.invalidateQueries({ queryKey: ["dm-conversations"] });
+      // Notify receiver of new message
+      if (selectedUserId) {
+        const { data: senderProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user!.id)
+          .single();
+        await createNotification({
+          user_id: selectedUserId,
+          order_id: selectedUserId, // No order context, use receiver id as placeholder
+          type: "new_message",
+          title: "New Message",
+          message: `${senderProfile?.full_name || "Someone"} sent you a message`,
+        });
+      }
     },
   });
 

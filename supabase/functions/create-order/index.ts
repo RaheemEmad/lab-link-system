@@ -200,6 +200,27 @@ Deno.serve(async (req) => {
 
     console.log('Order created successfully:', orderData.order_number);
 
+    // Notify assigned lab if directly assigned
+    if (orderData.assigned_lab_id) {
+      const { data: labStaff } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('lab_id', orderData.assigned_lab_id)
+        .eq('role', 'lab_staff');
+
+      if (labStaff?.length) {
+        await supabase.from('notifications').insert(
+          labStaff.map((s: any) => ({
+            user_id: s.user_id,
+            order_id: orderData.id,
+            type: 'new_order',
+            title: 'New Order Assigned',
+            message: `You've been assigned a new ${orderData.restoration_type} order #${orderData.order_number}`,
+          }))
+        );
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,

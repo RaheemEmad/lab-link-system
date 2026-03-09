@@ -237,6 +237,25 @@ const AppointmentScheduling = () => {
     },
   });
 
+  const notifyAppointmentParty = async (appointmentId: string, type: string, title: string, actionLabel: string) => {
+    const { data: appt } = await supabase
+      .from("appointments")
+      .select("order_id, created_by, order:orders(doctor_id, assigned_lab_id, order_number)")
+      .eq("id", appointmentId)
+      .single();
+    if (!appt?.order) return;
+    const order = appt.order as any;
+    // Notify the party that didn't trigger this action
+    if (user?.id === order.doctor_id && order.assigned_lab_id) {
+      const { data: labStaff } = await supabase.from("user_roles").select("user_id").eq("lab_id", order.assigned_lab_id).eq("role", "lab_staff");
+      for (const s of labStaff || []) {
+        await createNotification({ user_id: s.user_id, order_id: appt.order_id, type, title, message: `${actionLabel} for order #${order.order_number}` });
+      }
+    } else {
+      await createNotification({ user_id: order.doctor_id, order_id: appt.order_id, type, title, message: `${actionLabel} for order #${order.order_number}` });
+    }
+  };
+
   const confirmAppointment = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -244,9 +263,11 @@ const AppointmentScheduling = () => {
         .update({ status: "confirmed", confirmed_by: user!.id, confirmed_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: async (id) => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      await notifyAppointmentParty(id, "appointment_confirmed", "Appointment Confirmed", "Appointment confirmed");
       toast.success("Appointment confirmed");
     },
   });
@@ -258,9 +279,11 @@ const AppointmentScheduling = () => {
         .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: async (id) => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      await notifyAppointmentParty(id, "appointment_cancelled", "Appointment Cancelled", "Appointment cancelled");
       toast.success("Appointment cancelled");
     },
   });
