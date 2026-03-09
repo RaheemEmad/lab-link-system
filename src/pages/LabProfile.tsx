@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, MapPin, Phone, Mail, Globe, Clock, Star, Users, Heart, ArrowLeft, Package, Sparkles } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, Globe, Clock, Star, Users, Heart, ArrowLeft, Package, Sparkles, MessageSquare } from "lucide-react";
 import { LabPricingDisplay } from "@/components/billing/LabPricingDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
