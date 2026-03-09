@@ -15,10 +15,13 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  GitCompareArrows,
+  X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LabCard } from "@/components/labs/LabCard";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface Lab {
   id: string;
@@ -49,6 +52,8 @@ const ITEMS_PER_PAGE = 9;
 
 const Labs = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
+  const [compareIds, setCompareIds] = useState<string[]>([]);
   
   // Get state from URL or defaults
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -297,6 +302,22 @@ const Labs = () => {
     setMaxTurnaround(999);
     setAvailableOnly(false);
   };
+
+  const toggleCompare = (labId: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(labId)) return prev.filter((id) => id !== labId);
+      if (prev.length >= 3) {
+        toast({ title: "Compare limit", description: "You can compare up to 3 labs at a time", variant: "destructive" });
+        return prev;
+      }
+      return [...prev, labId];
+    });
+  };
+
+  const compareLabData = useMemo(() => {
+    if (!allLabs) return [];
+    return compareIds.map((id) => allLabs.find((l) => l.id === id)).filter(Boolean);
+  }, [compareIds, allLabs]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -588,6 +609,40 @@ const Labs = () => {
         </div>
         <ScrollToTop />
       </div>
+
+      {/* Compare floating bar */}
+      {compareIds.length > 0 && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-background border-2 border-primary rounded-2xl shadow-xl px-6 py-3 flex items-center gap-4">
+          <GitCompareArrows className="h-5 w-5 text-primary" />
+          <span className="text-sm font-medium">{compareIds.length} labs selected</span>
+          <div className="flex items-center gap-2">
+            {compareLabData.map((lab: any) => (
+              <Badge key={lab.id} variant="secondary" className="gap-1">
+                {lab.name}
+                <button onClick={() => toggleCompare(lab.id)} className="ml-1 hover:text-destructive">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+          <Button
+            size="sm"
+            disabled={compareIds.length < 2}
+            onClick={() => {
+              // Open compare in new tab or navigate
+              const params = new URLSearchParams();
+              compareIds.forEach((id) => params.append("lab", id));
+              window.open(`/labs?compare=${compareIds.join(",")}`, "_blank");
+            }}
+          >
+            Compare ({compareIds.length}/3)
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setCompareIds([])}>
+            Clear
+          </Button>
+        </div>
+      )}
+
       <LandingFooter />
     </div>
   );

@@ -51,6 +51,8 @@ const OrdersMarketplace = lazy(() => import("./pages/OrdersMarketplace"));
 const LabRequestsManagement = lazy(() => import("./pages/LabRequestsManagement"));
 const LogisticsDashboard = lazy(() => import("./pages/LogisticsDashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Messages = lazy(() => import("./pages/Messages"));
+const SupportCenter = lazy(() => import("./pages/SupportCenter"));
 
 const Achievements = lazy(() => import("./pages/Achievements"));
 const DoctorAchievements = lazy(() => import("./pages/DoctorAchievements"));
@@ -127,7 +129,9 @@ const AppContent = () => {
             <Route path="/lab-requests" element={<PageTransition><LabRequestsManagement /></PageTransition>} />
             <Route path="/logistics" element={<PageTransition><LogisticsDashboard /></PageTransition>} />
             <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
-            
+            <Route path="/messages" element={<PageTransition><Messages /></PageTransition>} />
+            <Route path="/support" element={<PageTransition><SupportCenter /></PageTransition>} />
+
             <Route path="/achievements" element={<PageTransition><Achievements /></PageTransition>} />
             <Route path="/doctor-achievements" element={<PageTransition><DoctorAchievements /></PageTransition>} />
             <Route path="/lab-achievements" element={<PageTransition><LabAchievements /></PageTransition>} />

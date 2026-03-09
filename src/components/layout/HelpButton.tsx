@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { HelpCircle, Mail, Phone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { HelpCircle, Mail, Phone, MessageSquare, TicketPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useAuth } from '@/hooks/useAuth';
 
 export const HelpButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -30,6 +34,27 @@ export const HelpButton: React.FC = () => {
             </p>
           </div>
           
+          {user && (
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={() => { setIsOpen(false); navigate('/support'); }}
+              >
+                <TicketPlus className="h-4 w-4" />
+                Submit Support Ticket
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={() => { setIsOpen(false); navigate('/messages'); }}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Direct Messages
+              </Button>
+            </div>
+          )}
+
           <div className="space-y-3">
             <div className="flex items-start gap-3">
               <Mail className="h-5 w-5 text-primary mt-0.5" />
