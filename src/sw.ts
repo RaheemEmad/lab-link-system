@@ -2,8 +2,8 @@
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { NetworkFirst, CacheFirst, NetworkOnly } from 'workbox-strategies';
-import type { ExpirationPlugin as ExpirationPluginType } from 'workbox-expiration';
-import type { CacheableResponsePlugin as CacheableResponsePluginType } from 'workbox-cacheable-response';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
