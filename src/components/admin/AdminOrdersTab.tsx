@@ -86,7 +86,7 @@ const AdminOrdersTab = () => {
         .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
       if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
+        query = query.eq("status", statusFilter as any);
       }
 
       const { data, error, count } = await query;
