@@ -47,6 +47,7 @@ import {
   Truck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { createNotification } from "@/lib/notifications";
 
 interface Appointment {
   id: string;
