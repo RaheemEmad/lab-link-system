@@ -103,46 +103,37 @@ const AdminAnalyticsTab = () => {
   };
 
   const processAnalyticsData = (orders: any[], users: any[]): Analytics => {
-    // Group orders by date
-    const ordersByDate = orders.reduce((acc, order) => {
+    // Single-pass processing for orders: ordersByDate, statusDist, trendsByDate
+    const ordersByDate: Record<string, number> = {};
+    const statusDist: Record<string, number> = {};
+    const trendsByDate: Record<string, { total: number; completed: number; pending: number }> = {};
+
+    orders.forEach((order) => {
       const date = format(new Date(order.created_at), "yyyy-MM-dd");
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Group users by date
-    const usersByDate = users.reduce((acc, user) => {
-      const date = format(new Date(user.created_at), "yyyy-MM-dd");
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Status distribution
-    const statusDist = orders.reduce((acc, order) => {
-      acc[order.status] = (acc[order.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Order trends by status
-    const trendsByDate = orders.reduce((acc, order) => {
-      const date = format(new Date(order.created_at), "yyyy-MM-dd");
-      if (!acc[date]) {
-        acc[date] = { total: 0, completed: 0, pending: 0 };
+      ordersByDate[date] = (ordersByDate[date] || 0) + 1;
+      statusDist[order.status] = (statusDist[order.status] || 0) + 1;
+      if (!trendsByDate[date]) {
+        trendsByDate[date] = { total: 0, completed: 0, pending: 0 };
       }
-      acc[date].total += 1;
-      if (order.status === "Delivered") acc[date].completed += 1;
-      if (order.status === "Pending") acc[date].pending += 1;
-      return acc;
-    }, {} as Record<string, { total: number; completed: number; pending: number }>);
+      trendsByDate[date].total += 1;
+      if (order.status === "Delivered") trendsByDate[date].completed += 1;
+      if (order.status === "Pending") trendsByDate[date].pending += 1;
+    });
+
+    // Separate pass for users (different data source)
+    const usersByDate: Record<string, number> = {};
+    users.forEach((user) => {
+      const date = format(new Date(user.created_at), "yyyy-MM-dd");
+      usersByDate[date] = (usersByDate[date] || 0) + 1;
+    });
 
     return {
-      orders: Object.entries(ordersByDate).map(([date, count]) => ({ date, count: count as number })),
-      users: Object.entries(usersByDate).map(([date, count]) => ({ date, count: count as number })),
-      statusDistribution: Object.entries(statusDist).map(([status, count]) => ({ status, count: count as number })),
-      orderTrends: Object.entries(trendsByDate).map(([date, data]) => {
-        const trendData = data as { total: number; completed: number; pending: number };
-        return { date, total: trendData.total, completed: trendData.completed, pending: trendData.pending };
-      }),
+      orders: Object.entries(ordersByDate).map(([date, count]) => ({ date, count })),
+      users: Object.entries(usersByDate).map(([date, count]) => ({ date, count })),
+      statusDistribution: Object.entries(statusDist).map(([status, count]) => ({ status, count })),
+      orderTrends: Object.entries(trendsByDate).map(([date, data]) => ({
+        date, total: data.total, completed: data.completed, pending: data.pending,
+      })),
     };
   };
 

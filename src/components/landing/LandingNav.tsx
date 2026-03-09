@@ -2,7 +2,7 @@ import { useState, memo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { useUnreadCount } from "@/hooks/useUnreadCount";
+import { useNotificationData } from "@/hooks/useNotificationData";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

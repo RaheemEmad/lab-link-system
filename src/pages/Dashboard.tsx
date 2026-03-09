@@ -13,7 +13,7 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useUnreadCount } from "@/hooks/useUnreadCount";
+import { useNotificationData } from "@/hooks/useNotificationData";
 import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
 import { DashboardTour } from "@/components/dashboard/DashboardTour";
 import { AchievementToast } from "@/components/dashboard/AchievementToast";
