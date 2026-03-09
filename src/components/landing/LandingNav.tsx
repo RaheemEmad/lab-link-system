@@ -143,7 +143,7 @@ const LandingNav = () => {
               unreadCount={unreadCount}
               hasUrgent={hasUrgent}
               newOrdersCount={newOrdersCount}
-              isInstallable={isInstallable}
+              isInstallable={false}
               t={t}
               signOut={signOut}
               onNavClick={handleNavClick}

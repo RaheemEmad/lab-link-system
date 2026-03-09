@@ -46,6 +46,7 @@ export const MobileNavSheet = ({
   isLinkActive,
 }: MobileNavSheetProps) => {
   const navigate = useNavigate();
+  const { isInstallable, promptInstall } = usePWAInstall();
 
   return (
     <div className="lg:hidden">
