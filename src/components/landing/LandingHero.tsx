@@ -132,7 +132,7 @@ const LandingHero = () => {
               >
                 <span className="relative z-10 flex items-center justify-center">
                   <Stethoscope className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                  <span className="hidden xs:inline">{isRTL ? "" : "For "}</span>{t.hero.ctaDentists}
+                  <span className="hidden xs:inline">{isRTL ? "" : "For\u00A0"}</span>{t.hero.ctaDentists}
                   <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1 transition-transform" />
                 </span>
               </Button>
@@ -144,7 +144,7 @@ const LandingHero = () => {
                 onClick={() => navigate(user ? "/lab-admin" : "/auth")}
               >
                 <Building2 className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                <span className="hidden xs:inline">{isRTL ? "" : "For "}</span>{t.hero.ctaLabs}
+                <span className="hidden xs:inline">{isRTL ? "" : "For\u00A0"}</span>{t.hero.ctaLabs}
                 <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1 transition-transform" />
               </Button>
             </motion.div>
