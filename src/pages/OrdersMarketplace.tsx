@@ -367,6 +367,7 @@ export default function OrdersMarketplace() {
   }, [urgencyFilter, restorationTypeFilter, sortBy]);
 
   return (
+    <RoleGuard allowedRoles={["lab_staff", "admin"]}>
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
