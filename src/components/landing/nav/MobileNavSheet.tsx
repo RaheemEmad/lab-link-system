@@ -23,7 +23,7 @@ interface MobileNavSheetProps {
   unreadCount: number;
   hasUrgent: boolean;
   newOrdersCount?: number;
-  isInstallable: boolean;
+  isInstallable?: boolean; // deprecated — hook used internally
   t: Translations;
   signOut: () => void;
   onNavClick: (link: NavLink) => void;
