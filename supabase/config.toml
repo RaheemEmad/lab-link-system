@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.shade-match]
 verify_jwt = false
+
+[functions.export-user-data]
+verify_jwt = false
+
+[functions.delete-user-data]
+verify_jwt = false

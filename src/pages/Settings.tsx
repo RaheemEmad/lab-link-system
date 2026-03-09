@@ -5,14 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor, Palette, Bell, Shield, Keyboard, Globe } from "lucide-react";
+import { Sun, Moon, Monitor, Palette, Bell, Shield, Keyboard, Globe, Lock } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { cn } from "@/lib/utils";
+import { PrivacyTab } from "@/components/settings/PrivacyTab";
+import { SecurityTab } from "@/components/settings/SecurityTab";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -46,6 +47,9 @@ const Settings = () => {
               </TabsTrigger>
               <TabsTrigger value="notifications" className="gap-1.5">
                 <Bell className="h-4 w-4" /> {t.settings.notifications}
+              </TabsTrigger>
+              <TabsTrigger value="security" className="gap-1.5">
+                <Lock className="h-4 w-4" /> Security
               </TabsTrigger>
               <TabsTrigger value="privacy" className="gap-1.5">
                 <Shield className="h-4 w-4" /> {t.settings.privacy}
@@ -83,7 +87,6 @@ const Settings = () => {
                 </CardContent>
               </Card>
 
-              {/* Language */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -135,31 +138,14 @@ const Settings = () => {
               </Card>
             </TabsContent>
 
-            {/* Privacy */}
+            {/* Security - NEW */}
+            <TabsContent value="security">
+              <SecurityTab />
+            </TabsContent>
+
+            {/* Privacy - UPGRADED */}
             <TabsContent value="privacy">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t.settings.privacyData}</CardTitle>
-                  <CardDescription>{t.settings.manageData}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{t.settings.exportData}</p>
-                      <p className="text-xs text-muted-foreground">{t.settings.exportDataDesc}</p>
-                    </div>
-                    <Button variant="outline" size="sm">{t.settings.export}</Button>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-destructive">{t.settings.deleteAccount}</p>
-                      <p className="text-xs text-muted-foreground">{t.settings.deleteAccountDesc}</p>
-                    </div>
-                    <Button variant="destructive" size="sm">{t.settings.delete}</Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <PrivacyTab />
             </TabsContent>
 
             {/* Shortcuts */}
