@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,20 @@ interface CasePhotoUploaderProps {
 }
 
 const MAX_PHOTOS = 6;
+const SIGNED_URL_EXPIRY = 3600; // 1 hour
+
+/**
+ * Extracts the storage path from either a full public URL or a raw path.
+ * Handles both legacy public URLs and new path-only entries.
+ */
+function extractStoragePath(entry: string): string {
+  const marker = "/patient-case-photos/";
+  const idx = entry.indexOf(marker);
+  if (idx !== -1) {
+    return decodeURIComponent(entry.slice(idx + marker.length));
+  }
+  return entry;
+}
 
 export const CasePhotoUploader = ({
   caseId,
@@ -25,6 +39,45 @@ export const CasePhotoUploader = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [removingUrl, setRemovingUrl] = useState<string | null>(null);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+
+  // Generate signed URLs for all photos
+  useEffect(() => {
+    if (!photos.length) {
+      setSignedUrls({});
+      return;
+    }
+
+    let cancelled = false;
+
+    const generateSignedUrls = async () => {
+      const paths = photos.map(extractStoragePath);
+      const { data, error } = await supabase.storage
+        .from("patient-case-photos")
+        .createSignedUrls(paths, SIGNED_URL_EXPIRY);
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error("Failed to generate signed URLs:", error);
+        return;
+      }
+
+      const urlMap: Record<string, string> = {};
+      data?.forEach((item, i) => {
+        if (item.signedUrl) {
+          urlMap[photos[i]] = item.signedUrl;
+        }
+      });
+      setSignedUrls(urlMap);
+    };
+
+    generateSignedUrls();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [photos]);
 
   const handleUpload = useCallback(
     async (files: FileList | null) => {
@@ -47,7 +100,7 @@ export const CasePhotoUploader = ({
 
       setUploading(true);
       try {
-        const newUrls: string[] = [];
+        const newPaths: string[] = [];
 
         for (const file of toUpload) {
           const compressed = await compressImage(file, 2, 1600);
@@ -60,14 +113,11 @@ export const CasePhotoUploader = ({
 
           if (uploadErr) throw uploadErr;
 
-          const { data: urlData } = supabase.storage
-            .from("patient-case-photos")
-            .getPublicUrl(path);
-
-          newUrls.push(urlData.publicUrl);
+          // Store the path, not the public URL
+          newPaths.push(path);
         }
 
-        const updatedPhotos = [...photos, ...newUrls];
+        const updatedPhotos = [...photos, ...newPaths];
         const { error: updateErr } = await supabase
           .from("patient_cases")
           .update({ photos: updatedPhotos, updated_at: new Date().toISOString() })
@@ -76,7 +126,7 @@ export const CasePhotoUploader = ({
         if (updateErr) throw updateErr;
 
         queryClient.invalidateQueries({ queryKey: ["patient-cases"] });
-        toast.success(`${newUrls.length} photo(s) uploaded`);
+        toast.success(`${newPaths.length} photo(s) uploaded`);
       } catch (err: any) {
         console.error("Upload failed:", err);
         toast.error("Failed to upload photo", { description: err.message });
@@ -89,19 +139,16 @@ export const CasePhotoUploader = ({
   );
 
   const handleRemove = useCallback(
-    async (url: string) => {
+    async (photoEntry: string) => {
       if (!user) return;
-      setRemovingUrl(url);
+      setRemovingUrl(photoEntry);
       try {
-        // Extract path from public URL
-        const pathMatch = url.split("/patient-case-photos/")[1];
-        if (pathMatch) {
-          await supabase.storage
-            .from("patient-case-photos")
-            .remove([decodeURIComponent(pathMatch)]);
-        }
+        const storagePath = extractStoragePath(photoEntry);
+        await supabase.storage
+          .from("patient-case-photos")
+          .remove([storagePath]);
 
-        const updatedPhotos = photos.filter((p) => p !== url);
+        const updatedPhotos = photos.filter((p) => p !== photoEntry);
         const { error } = await supabase
           .from("patient_cases")
           .update({ photos: updatedPhotos, updated_at: new Date().toISOString() })
@@ -134,20 +181,20 @@ export const CasePhotoUploader = ({
       {/* Thumbnails */}
       {photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
-          {photos.map((url) => (
-            <div key={url} className="relative group aspect-square rounded-md overflow-hidden border bg-muted">
+          {photos.map((entry) => (
+            <div key={entry} className="relative group aspect-square rounded-md overflow-hidden border bg-muted">
               <img
-                src={url}
+                src={signedUrls[entry] || ""}
                 alt="Case photo"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
               <button
-                onClick={() => handleRemove(url)}
-                disabled={removingUrl === url}
+                onClick={() => handleRemove(entry)}
+                disabled={removingUrl === entry}
                 className="absolute top-1 right-1 p-0.5 rounded-full bg-destructive/80 text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
               >
-                {removingUrl === url ? (
+                {removingUrl === entry ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
                   <X className="h-3.5 w-3.5" />
