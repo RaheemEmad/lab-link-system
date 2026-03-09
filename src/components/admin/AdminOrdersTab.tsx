@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import ExportDropdown from "@/components/ui/export-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, Search, Pencil, Trash2, ArrowRightLeft } from "lucide-react";
+import { Eye, Search, Pencil, Trash2, ArrowRightLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -50,10 +51,11 @@ interface Order {
   approval_notes: string | null;
 }
 
+const PAGE_SIZE = 50;
+
 const AdminOrdersTab = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
@@ -64,38 +66,46 @@ const AdminOrdersTab = () => {
   const [orderToView, setOrderToView] = useState<Order | null>(null);
   const [labReassignDialogOpen, setLabReassignDialogOpen] = useState(false);
   const [orderToReassign, setOrderToReassign] = useState<Order | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
+  // Server-side paginated query with explicit column selection
+  const { data, isLoading: loading, refetch: fetchOrders } = useQuery({
+    queryKey: ["admin-orders", statusFilter, currentPage],
+    queryFn: async () => {
+      let query = supabase
         .from("orders")
         .select(`
-          *,
+          id, order_number, doctor_name, patient_name, restoration_type, status, urgency,
+          created_at, assigned_lab_id, expected_delivery_date, doctor_id, desired_delivery_date,
+          biological_notes, teeth_number, teeth_shade, shade_system, driver_name,
+          driver_phone_whatsapp, carrier_name, carrier_phone, handling_instructions, approval_notes,
           assigned_lab:labs(name)
-        `)
+        `, { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(100);
+        .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter as any);
+      }
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      setOrders(data || []);
-    } catch (error) {
-      toast.error("Failed to load orders");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return { orders: (data || []) as Order[], totalCount: count || 0 };
+    },
+    staleTime: 15_000,
+    gcTime: 2 * 60_000,
+    retry: 1,
+  });
+
+  const orders = data?.orders || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const handleDeleteOrder = async () => {
     if (!orderToDelete) return;
 
     try {
-      // Verify admin access before deletion
       if (!user) {
         toast.error("Unauthorized");
         return;
@@ -151,41 +161,32 @@ const AdminOrdersTab = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Pending":
-        return "bg-yellow-500";
-      case "In Progress":
-        return "bg-blue-500";
-      case "Ready for QC":
-        return "bg-purple-500";
-      case "Ready for Delivery":
-        return "bg-orange-500";
-      case "Delivered":
-        return "bg-green-500";
-      default:
-        return "bg-gray-500";
+      case "Pending": return "bg-yellow-500";
+      case "In Progress": return "bg-blue-500";
+      case "Ready for QC": return "bg-purple-500";
+      case "Ready for Delivery": return "bg-orange-500";
+      case "Delivered": return "bg-green-500";
+      default: return "bg-gray-500";
     }
   };
 
+  // Client-side search filter (on current page data)
   const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.doctor_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.restoration_type.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      order.order_number.toLowerCase().includes(q) ||
+      order.doctor_name.toLowerCase().includes(q) ||
+      order.patient_name.toLowerCase().includes(q) ||
+      order.restoration_type.toLowerCase().includes(q)
+    );
   });
 
   const toggleOrderSelection = (orderId: string) => {
     setSelectedOrders((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(orderId)) {
-        newSet.delete(orderId);
-      } else {
-        newSet.add(orderId);
-      }
+      if (newSet.has(orderId)) newSet.delete(orderId);
+      else newSet.add(orderId);
       return newSet;
     });
   };
@@ -200,7 +201,6 @@ const AdminOrdersTab = () => {
 
   const handleBulkStatusUpdate = async (newStatus: string) => {
     if (selectedOrders.size === 0) return;
-
     try {
       const { error } = await supabase
         .from("orders")
@@ -249,7 +249,7 @@ const AdminOrdersTab = () => {
       <CardHeader>
         <CardTitle>Order Management</CardTitle>
         <CardDescription>
-          View and monitor all orders in the system ({orders.length} total)
+          View and monitor all orders in the system ({totalCount} total)
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -265,7 +265,7 @@ const AdminOrdersTab = () => {
           </div>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(0); }}
             className="px-3 py-2 border border-input rounded-md bg-background"
           >
             <option value="all">All Statuses</option>
@@ -333,21 +333,15 @@ const AdminOrdersTab = () => {
                       className="rounded border-gray-300"
                     />
                   </TableCell>
-                  <TableCell className="font-medium">
-                    {order.order_number}
-                  </TableCell>
+                  <TableCell className="font-medium">{order.order_number}</TableCell>
                   <TableCell>{order.doctor_name}</TableCell>
                   <TableCell>{order.patient_name}</TableCell>
                   <TableCell>{order.restoration_type}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(order.status)}>
-                      {order.status}
-                    </Badge>
+                    <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>
-                      {order.urgency}
-                    </Badge>
+                    <Badge variant={order.urgency === "Urgent" ? "destructive" : "secondary"}>{order.urgency}</Badge>
                   </TableCell>
                   <TableCell>
                     {order.assigned_lab_id ? (
@@ -361,19 +355,13 @@ const AdminOrdersTab = () => {
                       ? new Date(order.expected_delivery_date).toLocaleDateString()
                       : "—"}
                   </TableCell>
-                  <TableCell>
-                    {new Date(order.created_at).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <TooltipProvider>
                       <div className="flex items-center justify-end gap-1">
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewOrder(order)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
                               <Eye className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
@@ -381,11 +369,7 @@ const AdminOrdersTab = () => {
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditOrder(order)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleEditOrder(order)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
@@ -393,11 +377,7 @@ const AdminOrdersTab = () => {
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleReassignLab(order)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleReassignLab(order)}>
                               <ArrowRightLeft className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
@@ -425,6 +405,33 @@ const AdminOrdersTab = () => {
           </Table>
         </div>
 
+        {/* Server-side Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4">
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage + 1} of {totalPages} ({totalCount} orders)
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 0}
+                onClick={() => setCurrentPage(p => p - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages - 1}
+                onClick={() => setCurrentPage(p => p + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* View Order Details Dialog */}
         {orderToView && (
           <OrderDetailsModal
@@ -442,7 +449,7 @@ const AdminOrdersTab = () => {
           open={labReassignDialogOpen}
           onOpenChange={setLabReassignDialogOpen}
           order={orderToReassign}
-          onSuccess={fetchOrders}
+          onSuccess={() => fetchOrders()}
         />
 
         {/* Delete Confirmation Dialog */}
@@ -454,8 +461,7 @@ const AdminOrdersTab = () => {
                 Are you sure you want to delete order{" "}
                 <span className="font-semibold">{orderToDelete?.order_number}</span> for patient{" "}
                 <span className="font-semibold">{orderToDelete?.patient_name}</span>?
-                <br />
-                <br />
+                <br /><br />
                 This action cannot be undone. All associated notes, attachments, and history will be permanently removed.
               </AlertDialogDescription>
             </AlertDialogHeader>
