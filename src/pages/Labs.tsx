@@ -52,6 +52,8 @@ const ITEMS_PER_PAGE = 9;
 
 const Labs = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
+  const [compareIds, setCompareIds] = useState<string[]>([]);
   
   // Get state from URL or defaults
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
