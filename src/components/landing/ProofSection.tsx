@@ -1,8 +1,12 @@
 import { Quote } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { useApplicationStats } from "@/hooks/useApplicationStats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ProofSection = () => {
+  const { data: statsData, isLoading } = useApplicationStats();
+
   const testimonials = [
     {
       name: "Dr. Sarah Mitchell",
@@ -63,12 +67,20 @@ const ProofSection = () => {
           <div className="text-center mt-12">
             <div className="inline-flex items-center gap-8 px-8 py-4 bg-secondary/50 rounded-xl hover-scale">
               <div className="transition-transform duration-300 hover:scale-110">
-                <p className="text-3xl font-bold text-primary">1,000+</p>
+                {isLoading ? (
+                  <Skeleton className="h-9 w-24 mb-1 mx-auto" />
+                ) : (
+                  <p className="text-3xl font-bold text-primary">{statsData?.processedCases || '1,000'}+</p>
+                )}
                 <p className="text-sm text-muted-foreground">Cases processed</p>
               </div>
               <div className="w-px h-12 bg-border" />
               <div className="transition-transform duration-300 hover:scale-110">
-                <p className="text-3xl font-bold text-primary">12</p>
+                {isLoading ? (
+                  <Skeleton className="h-9 w-16 mb-1 mx-auto" />
+                ) : (
+                  <p className="text-3xl font-bold text-primary">{statsData?.activeLabs || 12}</p>
+                )}
                 <p className="text-sm text-muted-foreground">Labs onboarded</p>
               </div>
             </div>

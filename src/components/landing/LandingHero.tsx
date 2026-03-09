@@ -1,21 +1,32 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, CheckCircle2, Zap, Building2, Stethoscope, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle2, Zap, Building2, Stethoscope, Sparkles, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { motion } from "framer-motion";
+import { useApplicationStats } from "@/hooks/useApplicationStats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const LandingHero = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
+  const { data: statsData, isLoading } = useApplicationStats();
 
   const Arrow = isRTL ? ArrowLeft : ArrowRight;
   
   const stats = [
-    { value: "2 min", label: t.hero.setupTime, icon: Zap },
-    { value: isRTL ? "صفر" : "Zero", label: t.hero.trainingRequired, icon: Sparkles },
+    { 
+      value: isLoading ? <Skeleton className="h-8 w-16 mx-auto" /> : `${statsData?.activeLabs || 12}+`, 
+      label: "Active Labs", 
+      icon: Activity 
+    },
+    { 
+      value: isLoading ? <Skeleton className="h-8 w-20 mx-auto" /> : `${statsData?.totalOrders || 1000}+`, 
+      label: "Orders Processed", 
+      icon: Zap 
+    },
     { value: "100%", label: t.hero.orderVisibility, icon: CheckCircle2 }
   ];
   
