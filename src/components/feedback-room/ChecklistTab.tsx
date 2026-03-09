@@ -12,6 +12,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import ChecklistItem from "./ChecklistItem";
+import { createNotification } from "@/lib/notifications";
 
 interface ChecklistTabProps {
   orderId: string;
