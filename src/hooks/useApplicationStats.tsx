@@ -8,7 +8,7 @@ export const useApplicationStats = () => {
       const [ordersResult, labsResult, deliveredResult] = await Promise.all([
         supabase.from('orders').select('id', { count: 'exact', head: true }),
         supabase.from('labs').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'delivered')
+        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'Delivered')
       ]);
       
       return {
