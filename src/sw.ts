@@ -1,15 +1,64 @@
 /// <reference lib="webworker" />
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { NetworkFirst, CacheFirst, NetworkOnly } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare const self: ServiceWorkerGlobalScope;
 
-// Listen for skip waiting message
+// Precache all assets built by Vite (injected by vite-plugin-pwa)
+precacheAndRoute(self.__WB_MANIFEST);
+
+// ── OAuth: never cache auth redirects ──
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/~oauth'),
+  new NetworkOnly()
+);
+
+// ── API calls: network-first with 5-min cache ──
+registerRoute(
+  ({ url }) => url.hostname.endsWith('supabase.co') && url.pathname.startsWith('/rest/v1'),
+  new NetworkFirst({
+    cacheName: 'api-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 5 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// ── Google Fonts: cache-first, 1 year ──
+registerRoute(
+  ({ url }) => url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com',
+  new CacheFirst({
+    cacheName: 'google-fonts-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// ── Images: cache-first, 30 days ──
+registerRoute(
+  ({ request }) => request.destination === 'image',
+  new CacheFirst({
+    cacheName: 'images-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 }),
+    ],
+  })
+);
+
+// ── Skip waiting on message ──
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-// Handle push notifications from server
+// ── Push notifications ──
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
@@ -30,53 +79,40 @@ self.addEventListener('push', (event) => {
       requireInteraction: data.requireInteraction ?? true,
       actions: [
         { action: 'view', title: 'View' },
-        { action: 'dismiss', title: 'Dismiss' }
+        { action: 'dismiss', title: 'Dismiss' },
       ],
     };
 
-    event.waitUntil(
-      self.registration.showNotification(title, options)
-    );
+    event.waitUntil(self.registration.showNotification(title, options));
   } catch (error) {
     console.error('Error handling push notification:', error);
   }
 });
 
-// Handle notification clicks
+// ── Notification click ──
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  const action = event.action;
-  const data = event.notification.data || {};
-  
-  // If user clicked dismiss, just close
-  if (action === 'dismiss') {
-    return;
-  }
+  if (event.action === 'dismiss') return;
 
-  // Determine URL to open
+  const data = event.notification.data || {};
   const urlToOpen = data.url || (data.orderId ? `/order-tracking/${data.orderId}` : '/dashboard');
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Check if there's already a window open with our app
       for (const client of clientList) {
         const clientUrl = new URL(client.url);
         const targetUrl = new URL(urlToOpen, self.location.origin);
-        
-        // If we have a window on our domain, focus it and navigate
+
         if (clientUrl.origin === targetUrl.origin && 'focus' in client) {
           return client.focus().then(() => {
-            // Navigate to the target URL
             if ('navigate' in client) {
               return (client as any).navigate(urlToOpen);
             }
-            // Fallback: post message to navigate
             client.postMessage({ type: 'NAVIGATE', url: urlToOpen });
           });
         }
       }
-      // If no window open, open a new one
       if (self.clients.openWindow) {
         return self.clients.openWindow(urlToOpen);
       }
@@ -84,10 +120,8 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Handle notification close (for analytics if needed)
+// ── Notification close (analytics hook) ──
 self.addEventListener('notificationclose', (event) => {
   const data = event.notification.data || {};
   console.log('Notification closed:', data.notificationId || event.notification.tag);
 });
-
-export {};
