@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatFileSize } from "@/lib/formatters";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,11 +93,6 @@ export const OrderAttachmentsHub = ({ orderId, order }: OrderAttachmentsHubProps
     }
   });
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
 
   const isImage = (type: string) => type.startsWith('image/');
 

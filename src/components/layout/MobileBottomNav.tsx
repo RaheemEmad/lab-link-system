@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { useUnreadCount } from "@/hooks/useUnreadCount";
+import { useNotificationData } from "@/hooks/useNotificationData";
 import { LayoutDashboard, Plus, Store, User } from "lucide-react";
 import { Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,7 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { unreadCount } = useUnreadCount();
+  const { unreadCount } = useNotificationData();
 
   if (!user || isLoading) return null;
 

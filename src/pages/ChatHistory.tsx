@@ -39,14 +39,14 @@ export default function ChatHistory() {
 
   const currentUserRole: 'doctor' | 'lab_staff' = role === 'lab_staff' ? 'lab_staff' : 'doctor';
 
-  // Fetch chat conversations with pagination
+  // Fetch chat conversations with server-side filtering + pagination
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['chat-conversations', user?.id, role, labId, page],
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Paginated query — fetch PAGE_SIZE messages at a time
-      const { data: messagesData, error } = await supabase
+      // Server-side filtering via !inner join — only fetches accessible messages
+      let query = supabase
         .from('chat_messages')
         .select(`
           order_id,
@@ -54,7 +54,7 @@ export default function ChatHistory() {
           created_at,
           read_at,
           sender_id,
-          orders (
+          orders!inner (
             order_number,
             patient_name,
             doctor_id,
@@ -64,6 +64,14 @@ export default function ChatHistory() {
         .order('created_at', { ascending: false })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
+      // Apply role-based filter server-side
+      if (role === 'lab_staff' && labId) {
+        query = query.eq('orders.assigned_lab_id', labId);
+      } else {
+        query = query.eq('orders.doctor_id', user.id);
+      }
+
+      const { data: messagesData, error } = await query;
       if (error) throw error;
 
       // Group messages by order
@@ -72,13 +80,6 @@ export default function ChatHistory() {
       messagesData?.forEach((msg: any) => {
         const order = msg.orders;
         if (!order) return;
-
-        // Check access using already-fetched role
-        const hasAccess =
-          order.doctor_id === user.id ||
-          (role === 'lab_staff' && order.assigned_lab_id === labId);
-
-        if (!hasAccess) return;
 
         const orderId = msg.order_id;
         const existing = conversationsMap.get(orderId);

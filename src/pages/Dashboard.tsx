@@ -13,7 +13,7 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useUnreadCount } from "@/hooks/useUnreadCount";
+import { useNotificationData } from "@/hooks/useNotificationData";
 import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
 import { DashboardTour } from "@/components/dashboard/DashboardTour";
 import { AchievementToast } from "@/components/dashboard/AchievementToast";
@@ -78,7 +78,7 @@ const Dashboard = () => {
   const [receivedOrderNumber, setReceivedOrderNumber] = useState<string>("");
   
   // Use shared unread count hook - notifications are handled centrally by NotificationPopup
-  const { unreadCount, hasUrgent } = useUnreadCount();
+  const { unreadCount, hasUrgent } = useNotificationData();
 
   // DEBUG: Log every render with current state
   console.debug('[Dashboard] Render:', {
