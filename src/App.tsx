@@ -51,6 +51,8 @@ const OrdersMarketplace = lazy(() => import("./pages/OrdersMarketplace"));
 const LabRequestsManagement = lazy(() => import("./pages/LabRequestsManagement"));
 const LogisticsDashboard = lazy(() => import("./pages/LogisticsDashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Messages = lazy(() => import("./pages/Messages"));
+const SupportCenter = lazy(() => import("./pages/SupportCenter"));
 
 const Achievements = lazy(() => import("./pages/Achievements"));
 const DoctorAchievements = lazy(() => import("./pages/DoctorAchievements"));
