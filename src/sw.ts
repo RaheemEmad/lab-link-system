@@ -74,16 +74,21 @@ self.addEventListener('push', (event) => {
         orderId: data.orderId || data.data?.orderId,
         ...data.data,
       },
-      vibrate: [200, 100, 200],
       tag: data.tag || data.data?.orderId || `lablink-${Date.now()}`,
       requireInteraction: data.requireInteraction ?? true,
+    } as NotificationOptions;
+
+    // Add SW-specific options via spread
+    const extendedOptions = {
+      ...options,
+      vibrate: [200, 100, 200],
       actions: [
         { action: 'view', title: 'View' },
         { action: 'dismiss', title: 'Dismiss' },
       ],
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil(self.registration.showNotification(title, extendedOptions as any));
   } catch (error) {
     console.error('Error handling push notification:', error);
   }
