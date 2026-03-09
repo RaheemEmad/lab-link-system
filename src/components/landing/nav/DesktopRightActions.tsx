@@ -2,16 +2,19 @@ import { useNavigate, Link } from "react-router-dom";
 import { User as UserType } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, LogOut, Trophy, Star, Building2, Truck, Shield, FilePlus, Settings, Inbox as InboxIcon } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { LanguageToggle } from "@/components/ui/language-toggle";
+import { User, LogOut, Trophy, Star, Building2, Truck, Shield, FilePlus, Settings, Inbox as InboxIcon, Globe, Moon, Sun, Monitor, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useTheme } from "next-themes";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Translations } from "@/lib/i18n/types";
