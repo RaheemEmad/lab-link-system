@@ -609,6 +609,40 @@ const Labs = () => {
         </div>
         <ScrollToTop />
       </div>
+
+      {/* Compare floating bar */}
+      {compareIds.length > 0 && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-background border-2 border-primary rounded-2xl shadow-xl px-6 py-3 flex items-center gap-4">
+          <GitCompareArrows className="h-5 w-5 text-primary" />
+          <span className="text-sm font-medium">{compareIds.length} labs selected</span>
+          <div className="flex items-center gap-2">
+            {compareLabData.map((lab: any) => (
+              <Badge key={lab.id} variant="secondary" className="gap-1">
+                {lab.name}
+                <button onClick={() => toggleCompare(lab.id)} className="ml-1 hover:text-destructive">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+          <Button
+            size="sm"
+            disabled={compareIds.length < 2}
+            onClick={() => {
+              // Open compare in new tab or navigate
+              const params = new URLSearchParams();
+              compareIds.forEach((id) => params.append("lab", id));
+              window.open(`/labs?compare=${compareIds.join(",")}`, "_blank");
+            }}
+          >
+            Compare ({compareIds.length}/3)
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setCompareIds([])}>
+            Clear
+          </Button>
+        </div>
+      )}
+
       <LandingFooter />
     </div>
   );
