@@ -276,14 +276,23 @@ export default function LabProfile() {
           Back to Labs
         </Button>
         {user && (
-          <Button
-            variant={isBookmarked ? "default" : "outline"}
-            onClick={() => toggleBookmark.mutate()}
-            disabled={toggleBookmark.isPending}
-          >
-            <Heart className={`h-4 w-4 mr-2 ${isBookmarked ? "fill-current" : ""}`} />
-            {isBookmarked ? "Bookmarked" : "Bookmark Lab"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/messages?start=${labId}`)}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Message
+            </Button>
+            <Button
+              variant={isBookmarked ? "default" : "outline"}
+              onClick={() => toggleBookmark.mutate()}
+              disabled={toggleBookmark.isPending}
+            >
+              <Heart className={`h-4 w-4 mr-2 ${isBookmarked ? "fill-current" : ""}`} />
+              {isBookmarked ? "Bookmarked" : "Bookmark Lab"}
+            </Button>
+          </div>
         )}
       </div>
 
