@@ -1,8 +1,12 @@
 import { Quote } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { useApplicationStats } from "@/hooks/useApplicationStats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ProofSection = () => {
+  const { data: statsData, isLoading } = useApplicationStats();
+
   const testimonials = [
     {
       name: "Dr. Sarah Mitchell",
