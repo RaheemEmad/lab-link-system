@@ -116,6 +116,8 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
     },
     enabled: !!userId && isDoctor,
     staleTime: 30_000,
+    gcTime: 2 * 60_000,
+    retry: 1,
   });
 
   // 3. Delivery confirmations (doctor-only)
