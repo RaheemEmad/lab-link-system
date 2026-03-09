@@ -12,6 +12,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import ChecklistItem from "./ChecklistItem";
+import { createNotification } from "@/lib/notifications";
 
 interface ChecklistTabProps {
   orderId: string;
@@ -123,9 +124,45 @@ const ChecklistTab = ({ orderId }: ChecklistTabProps) => {
       if (error) throw error;
       return { role, itemName };
     },
-    onSuccess: ({ role, itemName }) => {
+    onSuccess: async ({ role, itemName }) => {
       queryClient.invalidateQueries({ queryKey: ["feedback-checklist", orderId] });
       logActivity("checklist_item_confirmed", `${role === "doctor" ? "Doctor" : "Lab"} confirmed: ${itemName}`, { item_name: itemName, confirmed_by: role });
+      // Notify the other party
+      try {
+        const { data: order } = await supabase
+          .from("orders")
+          .select("doctor_id, assigned_lab_id, order_number")
+          .eq("id", orderId)
+          .single();
+        if (order) {
+          if (role === "doctor" && order.assigned_lab_id) {
+            const { data: labStaff } = await supabase
+              .from("user_roles")
+              .select("user_id")
+              .eq("lab_id", order.assigned_lab_id)
+              .eq("role", "lab_staff");
+            for (const s of labStaff || []) {
+              await createNotification({
+                user_id: s.user_id,
+                order_id: orderId,
+                type: "checklist_updated",
+                title: "Checklist Item Confirmed",
+                message: `Doctor confirmed "${itemName}" on order #${order.order_number}`,
+              });
+            }
+          } else if (role === "lab") {
+            await createNotification({
+              user_id: order.doctor_id,
+              order_id: orderId,
+              type: "checklist_updated",
+              title: "Checklist Item Confirmed",
+              message: `Lab confirmed "${itemName}" on order #${order.order_number}`,
+            });
+          }
+        }
+      } catch (notifError) {
+        console.error("Failed to send checklist notification:", notifError);
+      }
       toast.success("Item confirmed");
     },
     onError: (error) => {

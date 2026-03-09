@@ -25,6 +25,18 @@ const POPUP_NOTIFICATION_TYPES = [
   'payment_recorded',
   'credit_note_issued',
   'review_submitted',
+  'new_message',
+  'new_marketplace_application',
+  'admin_order_override',
+  'appointment_scheduled',
+  'appointment_confirmed',
+  'appointment_cancelled',
+  'design_approved',
+  'design_revision_requested',
+  'feedback_attachment',
+  'checklist_updated',
+  'order_edited',
+  'ticket_status_update',
 ];
 
 interface Notification {

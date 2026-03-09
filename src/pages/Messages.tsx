@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Send, MessageSquare, ArrowLeft, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { createNotification } from "@/lib/notifications";
 
 interface Conversation {
   user_id: string;
@@ -153,10 +154,25 @@ const Messages = () => {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setMessageText("");
       queryClient.invalidateQueries({ queryKey: ["dm-messages"] });
       queryClient.invalidateQueries({ queryKey: ["dm-conversations"] });
+      // Notify receiver of new message
+      if (selectedUserId) {
+        const { data: senderProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user!.id)
+          .single();
+        await createNotification({
+          user_id: selectedUserId,
+          order_id: selectedUserId, // No order context, use receiver id as placeholder
+          type: "new_message",
+          title: "New Message",
+          message: `${senderProfile?.full_name || "Someone"} sent you a message`,
+        });
+      }
     },
   });
 

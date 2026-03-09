@@ -11,6 +11,7 @@ import { OrderNotes } from "@/components/order/OrderNotes";
 import { toast } from "sonner";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { createNotification } from "@/lib/notifications";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { CheckCircle2, XCircle, FileText, Download, MessageSquare } from "lucide-react";
 
@@ -96,6 +97,31 @@ const DesignApprovalWorkflow = () => {
         .eq('id', orderId);
 
       if (error) throw error;
+
+      // Notify lab staff
+      const { data: orderFull } = await supabase
+        .from("orders")
+        .select("assigned_lab_id, order_number")
+        .eq("id", orderId)
+        .single();
+      if (orderFull?.assigned_lab_id) {
+        const { data: labStaff } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("lab_id", orderFull.assigned_lab_id)
+          .eq("role", "lab_staff");
+        for (const s of labStaff || []) {
+          await createNotification({
+            user_id: s.user_id,
+            order_id: orderId,
+            type: approved ? "design_approved" : "design_revision_requested",
+            title: approved ? "Design Approved" : "Revision Requested",
+            message: approved
+              ? `Design approved for order #${orderFull.order_number}`
+              : `Revision requested for order #${orderFull.order_number}${approvalNotes ? `: ${approvalNotes.slice(0, 100)}` : ""}`,
+          });
+        }
+      }
 
       toast.success(approved ? "Design Approved!" : "Revision Requested", {
         description: approved 

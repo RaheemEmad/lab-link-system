@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
+import { createNotification } from "@/lib/notifications";
 
 interface AttachmentUploaderProps {
   orderId: string;
@@ -128,6 +129,42 @@ const AttachmentUploader = ({ orderId, onUploadComplete }: AttachmentUploaderPro
 
       if (successCount > 0) {
         toast.success(`${successCount} file${successCount > 1 ? "s" : ""} uploaded successfully`);
+        // Notify the other party about the attachment
+        try {
+          const { data: order } = await supabase
+            .from("orders")
+            .select("doctor_id, assigned_lab_id, order_number")
+            .eq("id", orderId)
+            .single();
+          if (order) {
+            if (isDoctor && order.assigned_lab_id) {
+              const { data: labStaff } = await supabase
+                .from("user_roles")
+                .select("user_id")
+                .eq("lab_id", order.assigned_lab_id)
+                .eq("role", "lab_staff");
+              for (const s of labStaff || []) {
+                await createNotification({
+                  user_id: s.user_id,
+                  order_id: orderId,
+                  type: "feedback_attachment",
+                  title: "New Attachment Uploaded",
+                  message: `Doctor uploaded ${successCount} file(s) to order #${order.order_number}`,
+                });
+              }
+            } else if (isLabStaff) {
+              await createNotification({
+                user_id: order.doctor_id,
+                order_id: orderId,
+                type: "feedback_attachment",
+                title: "New Attachment Uploaded",
+                message: `Lab uploaded ${successCount} file(s) to order #${order.order_number}`,
+              });
+            }
+          }
+        } catch (notifError) {
+          console.error("Failed to send attachment notification:", notifError);
+        }
         setSelectedFiles([]);
         onUploadComplete();
       }

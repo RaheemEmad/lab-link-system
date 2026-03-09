@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { cn } from "@/lib/utils";
 import BidSubmissionDialog from "@/components/order/BidSubmissionDialog";
 import RoleGuard from "@/components/auth/RoleGuard";
+import { createNotification } from "@/lib/notifications";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
@@ -207,8 +208,23 @@ export default function OrdersMarketplace() {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async (_data, orderId) => {
       queryClient.invalidateQueries({ queryKey: ["lab-requests", labId] });
+      // Notify the doctor that a lab applied
+      const { data: order } = await supabase
+        .from("orders")
+        .select("doctor_id, order_number")
+        .eq("id", orderId)
+        .single();
+      if (order?.doctor_id) {
+        await createNotification({
+          user_id: order.doctor_id,
+          order_id: orderId,
+          type: "new_marketplace_application",
+          title: "New Lab Application",
+          message: `A lab has applied to work on order #${order.order_number}`,
+        });
+      }
       toast({
         title: "Request sent",
         description: "Your request to work on this order has been sent to the doctor.",
@@ -310,8 +326,37 @@ export default function OrdersMarketplace() {
       
       return { success: true };
     },
-    onSuccess: () => {
+    onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["marketplace-orders"] });
+      // Notify lab staff of assignment
+      const { data: labStaff } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("lab_id", variables.labId)
+        .eq("role", "lab_staff");
+      const { data: order } = await supabase
+        .from("orders")
+        .select("doctor_id, order_number")
+        .eq("id", variables.orderId)
+        .single();
+      if (labStaff?.length && order) {
+        const notifications = labStaff.map((s) => ({
+          user_id: s.user_id,
+          order_id: variables.orderId,
+          type: "admin_order_override",
+          title: "Order Assigned by Admin",
+          message: `You've been assigned order #${order.order_number}`,
+        }));
+        // Also notify doctor
+        notifications.push({
+          user_id: order.doctor_id,
+          order_id: variables.orderId,
+          type: "admin_order_override",
+          title: "Lab Assigned to Your Order",
+          message: `An admin has assigned a lab to order #${order.order_number}`,
+        });
+        await supabase.from("notifications").insert(notifications);
+      }
       setOverrideOrderId(null);
       setSelectedLabForOverride(null);
       toast({
