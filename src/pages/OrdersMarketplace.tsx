@@ -703,5 +703,6 @@ export default function OrdersMarketplace() {
         )}
       </div>
     </ProtectedRoute>
+    </RoleGuard>
   );
 }
