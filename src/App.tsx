@@ -65,6 +65,10 @@ const PatientCases = lazy(() => import("./pages/PatientCases"));
 const SharedInvoice = lazy(() => import("./pages/SharedInvoice"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const TemplatesLibrary = lazy(() => import("./pages/TemplatesLibrary"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const AppointmentScheduling = lazy(() => import("./pages/AppointmentScheduling"));
+const TrackOrders = lazy(() => import("./pages/TrackOrders"));
+const LabCalendar = lazy(() => import("./pages/LabCalendar"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized QueryClient with better caching and stale time settings
@@ -141,6 +145,10 @@ const AppContent = () => {
             <Route path="/patient-cases" element={<PageTransition><PatientCases /></PageTransition>} />
             <Route path="/inbox" element={<PageTransition><Inbox /></PageTransition>} />
             <Route path="/templates" element={<PageTransition><TemplatesLibrary /></PageTransition>} />
+            <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
+            <Route path="/appointment-scheduling" element={<PageTransition><AppointmentScheduling /></PageTransition>} />
+            <Route path="/track-orders" element={<PageTransition><TrackOrders /></PageTransition>} />
+            <Route path="/lab-calendar" element={<PageTransition><LabCalendar /></PageTransition>} />
 
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />

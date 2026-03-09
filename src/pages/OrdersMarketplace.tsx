@@ -19,6 +19,7 @@ import { OrderChatWindow } from "@/components/chat/OrderChatWindow";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import BidSubmissionDialog from "@/components/order/BidSubmissionDialog";
+import RoleGuard from "@/components/auth/RoleGuard";
 
 export default function OrdersMarketplace() {
   const { user } = useAuth();
@@ -366,6 +367,7 @@ export default function OrdersMarketplace() {
   }, [urgencyFilter, restorationTypeFilter, sortBy]);
 
   return (
+    <RoleGuard allowedRoles={["lab_staff", "admin"]}>
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <LandingNav />
@@ -701,5 +703,6 @@ export default function OrdersMarketplace() {
         )}
       </div>
     </ProtectedRoute>
+    </RoleGuard>
   );
 }
