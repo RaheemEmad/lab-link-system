@@ -241,7 +241,7 @@ export const DesktopRightActions = ({
                 <span className="hidden xl:inline">{t.nav.account}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="min-w-[200px]">
               <DropdownMenuItem asChild>
                 <Link to="/profile">{t.nav.profile}</Link>
               </DropdownMenuItem>
@@ -251,6 +251,38 @@ export const DesktopRightActions = ({
                   {t.nav.settings}
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setLanguage(language === "en" ? "ar" : "en")}>
+                <Globe className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {language === "en" ? "العربية" : "English"}
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {theme === "dark" ? (
+                    <Moon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  ) : (
+                    <Sun className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  )}
+                  Theme
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => setTheme("light")}>
+                    <Sun className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    Light
+                    {theme === "light" && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    <Moon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    Dark
+                    {theme === "dark" && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                    <Monitor className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    System
+                    {theme === "system" && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="text-destructive">
                 <LogOut className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
