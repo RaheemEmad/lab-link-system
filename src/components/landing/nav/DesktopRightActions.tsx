@@ -1,3 +1,4 @@
+// v2 - consolidated theme/language/settings into account dropdown
 import { useNavigate, Link } from "react-router-dom";
 import { User as UserType } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -233,7 +234,7 @@ export const DesktopRightActions = ({
             </Tooltip>
           )}
 
-          {/* Profile Dropdown */}
+          {/* Account Dropdown — includes Profile, Settings, Language, Theme, Sign Out */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-2">
@@ -246,46 +247,48 @@ export const DesktopRightActions = ({
                 <Link to="/profile">{t.nav.profile}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/settings">
-                  <Settings className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                <Link to="/settings" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
                   {t.nav.settings}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setLanguage(language === "en" ? "ar" : "en")}>
-                <Globe className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              <DropdownMenuItem onClick={() => setLanguage(language === "en" ? "ar" : "en")} className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
                 {language === "en" ? "العربية" : "English"}
               </DropdownMenuItem>
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
+                <DropdownMenuSubTrigger className="flex items-center gap-2">
                   {theme === "dark" ? (
-                    <Moon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    <Moon className="h-4 w-4" />
+                  ) : theme === "light" ? (
+                    <Sun className="h-4 w-4" />
                   ) : (
-                    <Sun className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    <Monitor className="h-4 w-4" />
                   )}
                   Theme
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => setTheme("light")}>
-                    <Sun className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2">
+                    <Sun className="h-4 w-4" />
                     Light
                     {theme === "light" && <Check className="h-4 w-4 ml-auto" />}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    <Moon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2">
+                    <Moon className="h-4 w-4" />
                     Dark
                     {theme === "dark" && <Check className="h-4 w-4 ml-auto" />}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("system")}>
-                    <Monitor className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2">
+                    <Monitor className="h-4 w-4" />
                     System
                     {theme === "system" && <Check className="h-4 w-4 ml-auto" />}
                   </DropdownMenuItem>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="text-destructive">
-                <LogOut className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              <DropdownMenuItem onClick={signOut} className="text-destructive flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
                 {t.nav.signOut}
               </DropdownMenuItem>
             </DropdownMenuContent>
