@@ -15,10 +15,13 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  GitCompareArrows,
+  X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LabCard } from "@/components/labs/LabCard";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface Lab {
   id: string;
