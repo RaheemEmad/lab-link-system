@@ -106,16 +106,17 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        const clientUrl = new URL(client.url);
-        const targetUrl = new URL(urlToOpen, self.location.origin);
+        if (client instanceof WindowClient) {
+          const clientUrl = new URL(client.url);
+          const targetUrl = new URL(urlToOpen, self.location.origin);
 
-        if (clientUrl.origin === targetUrl.origin && 'focus' in client) {
-          return client.focus().then(() => {
-            if ('navigate' in client) {
-              return (client as any).navigate(urlToOpen);
-            }
-            client.postMessage({ type: 'NAVIGATE', url: urlToOpen });
-          });
+          if (clientUrl.origin === targetUrl.origin) {
+            return client.focus().then((focusedClient) => {
+              if (focusedClient) {
+                return focusedClient.navigate(urlToOpen);
+              }
+            });
+          }
         }
       }
       if (self.clients.openWindow) {
