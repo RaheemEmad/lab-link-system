@@ -11,6 +11,7 @@ import { OrderNotes } from "@/components/order/OrderNotes";
 import { toast } from "sonner";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { createNotification } from "@/lib/notifications";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { CheckCircle2, XCircle, FileText, Download, MessageSquare } from "lucide-react";
 
