@@ -105,6 +105,7 @@ const AppContent = () => {
       <HelpButton />
       <SessionTimeoutWarning />
       <NotificationPopup />
+      <InstallBanner />
       <MobileBottomNav />
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingScreen />}>

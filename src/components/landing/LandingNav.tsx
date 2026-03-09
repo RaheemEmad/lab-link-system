@@ -18,18 +18,8 @@ const LandingNav = () => {
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const [isInstallable, setIsInstallable] = useState(false);
   const { unreadCount, hasUrgent } = useUnreadCount();
   const { role: userRole, labId } = useUserRole();
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setIsInstallable(true);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
 
   // Fetch count of new unassigned orders for lab staff
   const { data: newOrdersCount } = useQuery({
