@@ -78,7 +78,7 @@ const Dashboard = () => {
   const [receivedOrderNumber, setReceivedOrderNumber] = useState<string>("");
   
   // Use shared unread count hook - notifications are handled centrally by NotificationPopup
-  const { unreadCount, hasUrgent } = useUnreadCount();
+  const { unreadCount, hasUrgent } = useNotificationData();
 
   // DEBUG: Log every render with current state
   console.debug('[Dashboard] Render:', {

@@ -21,7 +21,7 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { unreadCount } = useUnreadCount();
+  const { unreadCount } = useNotificationData();
 
   if (!user || isLoading) return null;
 

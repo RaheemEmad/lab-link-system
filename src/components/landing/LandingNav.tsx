@@ -18,7 +18,7 @@ const LandingNav = () => {
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const { unreadCount, hasUrgent } = useUnreadCount();
+  const { unreadCount, hasUrgent } = useNotificationData();
   const { role: userRole, labId } = useUserRole();
 
   // Fetch count of new unassigned orders for lab staff
