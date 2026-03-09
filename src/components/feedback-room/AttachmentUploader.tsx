@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
+import { createNotification } from "@/lib/notifications";
 
 interface AttachmentUploaderProps {
   orderId: string;
