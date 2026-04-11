@@ -415,6 +415,50 @@ export type Database = {
         }
         Relationships: []
       }
+      doctor_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          doctor_id: string
+          id: string
+          plan_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          doctor_id: string
+          id?: string
+          plan_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          doctor_id?: string
+          id?: string
+          plan_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_room_activity: {
         Row: {
           action_description: string
@@ -3063,6 +3107,36 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          features: Json | null
+          id: string
+          is_active: boolean
+          monthly_fee: number
+          name: string
+          per_order_fee: number
+        }
+        Insert: {
+          created_at?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          monthly_fee: number
+          name: string
+          per_order_fee: number
+        }
+        Update: {
+          created_at?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          monthly_fee?: number
+          name?: string
+          per_order_fee?: number
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           admin_notes: string | null
@@ -3256,6 +3330,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          order_id: string | null
+          type: Database["public"]["Enums"]["wallet_transaction_type"]
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string
+          id?: string
+          order_id?: string | null
+          type: Database["public"]["Enums"]["wallet_transaction_type"]
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          order_id?: string | null
+          type?: Database["public"]["Enums"]["wallet_transaction_type"]
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          deposit_amount: number
+          deposit_paid_at: string | null
+          deposit_required_after: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          withdrawal_eligible_after: string | null
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          deposit_amount?: number
+          deposit_paid_at?: string | null
+          deposit_required_after?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          withdrawal_eligible_after?: string | null
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          deposit_amount?: number
+          deposit_paid_at?: string | null
+          deposit_required_after?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          withdrawal_eligible_after?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -3516,7 +3671,14 @@ export type Database = {
         | "Bridge"
         | "Zirconia Layer"
         | "Zirco-Max"
+      subscription_status: "active" | "cancelled" | "past_due"
       urgency_level: "Normal" | "Urgent"
+      wallet_transaction_type:
+        | "deposit"
+        | "withdrawal"
+        | "order_fee"
+        | "refund"
+        | "hold"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3668,7 +3830,15 @@ export const Constants = {
         "Zirconia Layer",
         "Zirco-Max",
       ],
+      subscription_status: ["active", "cancelled", "past_due"],
       urgency_level: ["Normal", "Urgent"],
+      wallet_transaction_type: [
+        "deposit",
+        "withdrawal",
+        "order_fee",
+        "refund",
+        "hold",
+      ],
     },
   },
 } as const

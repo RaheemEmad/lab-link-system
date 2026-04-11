@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useNotificationData } from "@/hooks/useNotificationData";
-import { LayoutDashboard, Plus, Store, User } from "lucide-react";
+import { LayoutDashboard, Plus, Store, User, Wallet } from "lucide-react";
 import { Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -31,7 +31,10 @@ const MobileBottomNav = () => {
   const navItems: NavItem[] = [
     { label: t.mobileNav.dashboard, icon: LayoutDashboard, href: "/dashboard" },
     ...(isDoctor
-      ? [{ label: t.mobileNav.newOrder, icon: Plus, href: "/new-order" }]
+      ? [
+          { label: t.mobileNav.newOrder, icon: Plus, href: "/new-order" },
+          { label: "Wallet", icon: Wallet, href: "/wallet" },
+        ]
       : isLabStaff
         ? [{ label: t.mobileNav.marketplace, icon: Store, href: "/orders-marketplace" }]
         : []),

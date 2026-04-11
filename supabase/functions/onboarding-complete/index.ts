@@ -80,6 +80,28 @@ serve(async (req) => {
         console.error('Error completing doctor onboarding:', error);
         throw new Error(error.message);
       }
+
+      // Create wallet for doctor (using service role for insert)
+      const serviceClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      const { error: walletError } = await serviceClient
+        .from('wallets')
+        .insert({
+          user_id: user.id,
+          balance: 0,
+          deposit_required_after: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          deposit_amount: 100,
+        });
+
+      if (walletError) {
+        console.error('Error creating wallet:', walletError);
+        // Don't fail onboarding for wallet creation failure
+      } else {
+        console.log(`Wallet created for doctor ${user.id}`);
+      }
     } else if (role === 'lab_staff') {
       const { phone, lab_name, lab_license_number, tax_id, business_address, pricing_mode, pricing_entries } = requestData;
 

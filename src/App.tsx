@@ -72,6 +72,8 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const AppointmentScheduling = lazy(() => import("./pages/AppointmentScheduling"));
 const TrackOrders = lazy(() => import("./pages/TrackOrders"));
 const LabCalendar = lazy(() => import("./pages/LabCalendar"));
+const Wallet = lazy(() => import("./pages/Wallet"));
+const SubscriptionPlans = lazy(() => import("./pages/SubscriptionPlans"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized QueryClient with better caching and stale time settings
@@ -155,6 +157,8 @@ const AppContent = () => {
             <Route path="/appointment-scheduling" element={<PageTransition><AppointmentScheduling /></PageTransition>} />
             <Route path="/track-orders" element={<PageTransition><TrackOrders /></PageTransition>} />
             <Route path="/lab-calendar" element={<PageTransition><LabCalendar /></PageTransition>} />
+            <Route path="/wallet" element={<PageTransition><Wallet /></PageTransition>} />
+            <Route path="/plans" element={<PageTransition><SubscriptionPlans /></PageTransition>} />
 
             <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
             <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />

@@ -158,6 +158,36 @@ Deno.serve(async (req) => {
       );
     }
 
+    // --- Per-order fee deduction ---
+    // Check doctor's active subscription plan
+    const { data: activeSub } = await supabase
+      .from('doctor_subscriptions')
+      .select('id, plan_id, subscription_plans(per_order_fee, name)')
+      .eq('doctor_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    const perOrderFee = (activeSub as any)?.subscription_plans?.per_order_fee ?? 0;
+
+    if (perOrderFee > 0) {
+      // Check wallet balance
+      const { data: wallet } = await supabase
+        .from('wallets')
+        .select('id, balance')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!wallet || wallet.balance < perOrderFee) {
+        return new Response(
+          JSON.stringify({
+            error: 'INSUFFICIENT_BALANCE',
+            message: `Insufficient wallet balance. You need ${perOrderFee} EGP for this order. Current balance: ${wallet?.balance ?? 0} EGP.`
+          }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     console.log('Creating order for user:', user.id);
 
     const { data: orderData, error: insertError } = await supabase
@@ -199,6 +229,32 @@ Deno.serve(async (req) => {
     }
 
     console.log('Order created successfully:', orderData.order_number);
+
+    // Deduct per-order fee from wallet after successful order creation
+    if (perOrderFee > 0) {
+      const { data: wallet } = await supabase
+        .from('wallets')
+        .select('id, balance')
+        .eq('user_id', user.id)
+        .single();
+
+      if (wallet) {
+        await supabase
+          .from('wallets')
+          .update({ balance: wallet.balance - perOrderFee })
+          .eq('id', wallet.id);
+
+        await supabase
+          .from('wallet_transactions')
+          .insert({
+            wallet_id: wallet.id,
+            type: 'order_fee',
+            amount: perOrderFee,
+            description: `Order fee for #${orderData.order_number} (${(activeSub as any)?.subscription_plans?.name} plan)`,
+            order_id: orderData.id,
+          });
+      }
+    }
 
     // Notify assigned lab if directly assigned
     if (orderData.assigned_lab_id) {

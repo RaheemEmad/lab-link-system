@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import OrderDashboard from "@/components/OrderDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Compass, Truck, MessageSquareMore, FolderOpen, FileText } from "lucide-react";
+import { Plus, Compass, Truck, MessageSquareMore, FolderOpen, FileText, Wallet } from "lucide-react";
+import { DepositPromptBanner } from "@/components/wallet/DepositPromptBanner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -279,6 +280,11 @@ const Dashboard = () => {
               </div>
             </div>
             
+            {/* Deposit Prompt for Doctors */}
+            {roleConfirmed && !isLabStaff && (
+              <DepositPromptBanner />
+            )}
+
             {/* Overdue Invoice Banner for Doctors */}
             {roleConfirmed && !isLabStaff && (
               <OverdueInvoiceBanner />
