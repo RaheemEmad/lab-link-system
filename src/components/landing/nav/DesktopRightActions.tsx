@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { User as UserType } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, LogOut, Trophy, Star, Building2, Truck, Shield, FilePlus, Settings, Inbox as InboxIcon, Globe, Moon, Sun, Monitor, Check } from "lucide-react";
+import { User, LogOut, Trophy, Star, Building2, Truck, Shield, FilePlus, Settings, Inbox as InboxIcon, Globe, Moon, Sun, Monitor, Check, Wallet } from "lucide-react";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -74,38 +74,44 @@ export const DesktopRightActions = ({
             </Tooltip>
           )}
 
-          {/* Logistics Dropdown */}
+          {/* Logistics - single button, goes to logistics dashboard */}
           {(userRole === "doctor" || userRole === "lab_staff") && (
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 relative group overflow-hidden hover:bg-primary/10 hover:text-primary transition-all duration-300">
-                      <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
-                      <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Orders & Logistics</p>
-                </TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent align="end">
-                {userRole === "lab_staff" && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/order-tracking">Track Orders</Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem asChild>
-                  <Link to="/logistics">Logistics Dashboard</Link>
-                </DropdownMenuItem>
-                {userRole === "doctor" && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/logistics?tab=tracking">Track Orders</Link>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 relative group overflow-hidden hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                  onClick={() => navigate("/logistics")}
+                >
+                  <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
+                  <Truck className="h-4 w-4 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Logistics</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Wallet - Doctor Only */}
+          {userRole === "doctor" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/wallet")}
+                  className="h-9 w-9 relative group overflow-hidden hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                >
+                  <span className="absolute inset-0 w-0 bg-primary/10 transition-all duration-300 group-hover:w-full" />
+                  <Wallet className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover:scale-110" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Wallet</p>
+              </TooltipContent>
+            </Tooltip>
           )}
 
           {/* Role-specific dropdown menu */}
