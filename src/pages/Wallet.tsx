@@ -7,17 +7,17 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Clock, Shield, TrendingUp } from "lucide-react";
+import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Clock, Shield, TrendingUp, Crown } from "lucide-react";
 import { TransactionHistory } from "@/components/wallet/TransactionHistory";
+import { PaymentInstructions } from "@/components/wallet/PaymentInstructions";
 import { toast } from "@/components/ui/sonner";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 
 const Wallet = () => {
   const { user } = useAuth();
-  const { isDoctor } = useUserRole();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -48,41 +48,6 @@ const Wallet = () => {
       return data;
     },
     enabled: !!user?.id,
-  });
-
-  const depositMutation = useMutation({
-    mutationFn: async () => {
-      if (!wallet) throw new Error("No wallet found");
-
-      // Update wallet balance
-      const { error: walletError } = await supabase
-        .from("wallets")
-        .update({
-          balance: (wallet.balance || 0) + wallet.deposit_amount,
-          deposit_paid_at: new Date().toISOString(),
-          withdrawal_eligible_after: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-        })
-        .eq("id", wallet.id);
-      if (walletError) throw walletError;
-
-      // Log transaction
-      const { error: txError } = await supabase
-        .from("wallet_transactions")
-        .insert({
-          wallet_id: wallet.id,
-          type: "deposit" as const,
-          amount: wallet.deposit_amount,
-          description: "Commitment guarantee deposit",
-        });
-      if (txError) throw txError;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wallet"] });
-      toast.success("Deposit successful! 100 EGP added to your wallet.");
-    },
-    onError: () => {
-      toast.error("Failed to process deposit. Please try again.");
-    },
   });
 
   const isDepositRequired = wallet && !wallet.deposit_paid_at &&
@@ -132,6 +97,7 @@ const Wallet = () => {
                     </p>
                     {subscription && (
                       <Badge variant="secondary" className="mt-2">
+                        <Crown className="h-3 w-3 mr-1" />
                         {(subscription as any).plan?.name} Plan — {(subscription as any).plan?.per_order_fee > 0
                           ? `${(subscription as any).plan?.per_order_fee} EGP/order`
                           : "No commission"}
@@ -139,10 +105,6 @@ const Wallet = () => {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => depositMutation.mutate()} disabled={depositMutation.isPending}>
-                      <ArrowDownCircle className="h-4 w-4 mr-2" />
-                      Deposit
-                    </Button>
                     <Button
                       variant="outline"
                       disabled={!canWithdraw || (wallet?.balance || 0) <= 0}
@@ -168,9 +130,6 @@ const Wallet = () => {
                         This deposit is fully withdrawable after 3 months.
                       </p>
                     </div>
-                    <Button size="sm" onClick={() => depositMutation.mutate()} disabled={depositMutation.isPending}>
-                      Deposit Now
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -207,7 +166,7 @@ const Wallet = () => {
               <Card>
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-3">
-                    <TrendingUp className="h-5 w-5 text-forest-green" />
+                    <TrendingUp className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-xs text-muted-foreground">Plan</p>
                       <p className="font-semibold text-sm">
@@ -235,6 +194,14 @@ const Wallet = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Payment Instructions */}
+            <div className="mb-6">
+              <PaymentInstructions
+                context={isDepositRequired ? "deposit" : "wallet"}
+                amount={isDepositRequired ? 100 : undefined}
+              />
+            </div>
 
             {/* Transaction History */}
             {wallet && <TransactionHistory walletId={wallet.id} />}
