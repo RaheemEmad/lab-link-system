@@ -6,12 +6,15 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { PlanCard } from "@/components/subscription/PlanCard";
+import { PaymentInstructions } from "@/components/wallet/PaymentInstructions";
 import { toast } from "@/components/ui/sonner";
 import { Crown } from "lucide-react";
+import { useState } from "react";
 
 const SubscriptionPlans = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ["subscription-plans"],
@@ -39,41 +42,6 @@ const SubscriptionPlans = () => {
       return data;
     },
     enabled: !!user?.id,
-  });
-
-  const subscribeMutation = useMutation({
-    mutationFn: async (planId: string) => {
-      // If existing subscription, update it
-      if (currentSub) {
-        const { error } = await supabase
-          .from("doctor_subscriptions")
-          .update({
-            plan_id: planId,
-            current_period_start: new Date().toISOString(),
-            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          })
-          .eq("id", currentSub.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("doctor_subscriptions")
-          .insert({
-            doctor_id: user!.id,
-            plan_id: planId,
-            status: "active",
-            current_period_start: new Date().toISOString(),
-            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          });
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["doctor-subscription"] });
-      toast.success("Subscription updated successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to update subscription. Please try again.");
-    },
   });
 
   const tierColors: Record<string, string> = {
@@ -113,15 +81,31 @@ const SubscriptionPlans = () => {
                     plan={plan}
                     isCurrentPlan={currentSub?.plan_id === plan.id}
                     borderClass={tierColors[plan.name] || ""}
-                    onSelect={() => subscribeMutation.mutate(plan.id)}
-                    isLoading={subscribeMutation.isPending}
+                    onSelect={() => setSelectedPlan(plan)}
+                    isLoading={false}
                   />
                 ))}
               </div>
             )}
 
+            {/* Payment instructions appear when a plan is selected */}
+            {selectedPlan && (
+              <div className="mt-8 max-w-lg mx-auto">
+                <PaymentInstructions
+                  planId={selectedPlan.id}
+                  planName={selectedPlan.name}
+                  amount={selectedPlan.monthly_fee}
+                  context="plans"
+                  onSuccess={() => {
+                    setSelectedPlan(null);
+                    toast.success("Payment confirmation submitted! We'll activate your plan shortly.");
+                  }}
+                />
+              </div>
+            )}
+
             <div className="mt-8 text-center text-xs text-muted-foreground">
-              <p>All prices are in EGP. Subscriptions auto-renew monthly. Cancel anytime.</p>
+              <p>All prices are in EGP. After payment confirmation, your plan is activated by our team.</p>
             </div>
           </div>
         </div>
