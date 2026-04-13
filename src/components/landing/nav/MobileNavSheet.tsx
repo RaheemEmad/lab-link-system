@@ -3,7 +3,7 @@ import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { User as UserType } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, Download, Bell, User, LogOut, Plus, Star, Building2, Truck, Shield, Package } from "lucide-react";
+import { Menu, X, Download, Bell, User, LogOut, Plus, Star, Building2, Truck, Shield, Package, Wallet } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Translations } from "@/lib/i18n/types";
@@ -83,16 +83,19 @@ export const MobileNavSheet = ({
                   </button>
                 ))}
 
-                {/* Create Order - Doctor Only */}
+                {/* Doctor Actions */}
                 {userRole === "doctor" && (
-                  <Button
-                    variant="outline"
-                    onClick={() => { navigate("/new-order"); setIsOpen(false); }}
-                    className="w-full gap-2 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Create Order
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => { navigate("/new-order"); setIsOpen(false); }}
+                      className="w-full gap-2 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create Order
+                    </Button>
+                    <MobileNavButton icon={Wallet} label="Wallet" onClick={() => { navigate("/wallet"); setIsOpen(false); }} />
+                  </>
                 )}
 
                 {/* Lab Tools Section */}
@@ -108,12 +111,7 @@ export const MobileNavSheet = ({
                       </div>
                       <MobileNavButton icon={Building2} label="Lab Workflow" onClick={() => { navigate("/lab-workflow"); setIsOpen(false); }} />
                       <MobileNavButton icon={Shield} label="Lab Admin" onClick={() => { navigate("/lab-admin"); setIsOpen(false); }} />
-                      {userRole === "lab_staff" && (
-                        <>
-                          <MobileNavButton icon={Truck} label="Track Orders" onClick={() => { navigate("/logistics?tab=tracking"); setIsOpen(false); }} />
-                          <MobileNavButton icon={Package} label="Logistics Dashboard" onClick={() => { navigate("/logistics"); setIsOpen(false); }} />
-                        </>
-                      )}
+                      <MobileNavButton icon={Truck} label="Logistics" onClick={() => { navigate("/logistics"); setIsOpen(false); }} />
                     </div>
                   </>
                 )}
