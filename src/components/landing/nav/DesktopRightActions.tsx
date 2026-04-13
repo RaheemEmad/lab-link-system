@@ -252,6 +252,14 @@ export const DesktopRightActions = ({
               <DropdownMenuItem asChild>
                 <Link to="/profile">{t.nav.profile}</Link>
               </DropdownMenuItem>
+              {userRole === "doctor" && (
+                <DropdownMenuItem asChild>
+                  <Link to="/wallet" className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4" />
+                    Wallet & Plans
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link to="/settings" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
