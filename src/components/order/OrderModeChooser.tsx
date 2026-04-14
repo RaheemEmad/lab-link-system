@@ -15,22 +15,22 @@ const modes = [
   {
     id: "detailed" as OrderMode,
     icon: FileText,
-    title: "Detailed Order",
-    description: "Step-by-step guided form with all options",
+    title: "Full Case Submission",
+    description: "Send a detailed case to your preferred lab or invite labs to bid",
     badge: null,
   },
   {
     id: "quick" as OrderMode,
     icon: Zap,
     title: "Quick Order",
-    description: "Just 3 fields — patient, restoration, teeth. Submit in seconds.",
+    description: "Just 3 fields — patient, restoration, teeth. Send to lab in seconds.",
     badge: "Fast",
   },
   {
     id: "template" as OrderMode,
     icon: BookTemplate,
     title: "From Template",
-    description: "Pick a saved template and pre-fill your order instantly.",
+    description: "Use a saved template to pre-fill and send your order.",
     badge: null,
   },
 ];
