@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Message {
   id: string;
@@ -50,6 +51,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const messageSound = useRef<HTMLAudioElement | null>(null);
   const { user: authUser } = useAuth();
+  const queryClient = useQueryClient();
   const currentUserId = authUser?.id ?? null;
   const [retryQueue, setRetryQueue] = useState<Map<string, { message: string; retries: number }>>(new Map());
 
@@ -178,6 +180,9 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
       })
       .in('id', messageIds)
       .is('read_at', null);
+
+    // Keep inbox chat count in sync
+    queryClient.invalidateQueries({ queryKey: ["inbox-chats"] });
   };
 
   const updateTypingStatus = async (typing: boolean) => {

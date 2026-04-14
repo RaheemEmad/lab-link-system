@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { createNotification } from "@/lib/notifications";
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
 
 type OrderStatus = "Pending" | "In Progress" | "Ready for QC" | "Ready for Delivery" | "Delivered" | "Cancelled";
@@ -52,6 +53,7 @@ export const OrderStatusDialog = ({
 }: OrderStatusDialogProps) => {
   const { user } = useAuth();
   const { isLabStaff, isAdmin, isDoctor, roleConfirmed } = useUserRole();
+  const queryClient = useQueryClient();
   const [newStatus, setNewStatus] = useState<OrderStatus>(currentStatus);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -128,6 +130,9 @@ export const OrderStatusDialog = ({
         toast.success("Delivery confirmation sent", {
           description: `Awaiting doctor confirmation for ${orderNumber}`,
         });
+
+        // Invalidate inbox so doctor sees the new delivery item
+        queryClient.invalidateQueries({ queryKey: ["inbox-deliveries"] });
       } else {
         // Normal status update for other statuses
         const { error: updateError } = await supabase

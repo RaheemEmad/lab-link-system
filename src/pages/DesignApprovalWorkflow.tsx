@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { createNotification } from "@/lib/notifications";
+import { useQueryClient } from "@tanstack/react-query";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { CheckCircle2, XCircle, FileText, Download, MessageSquare } from "lucide-react";
 
@@ -28,6 +29,7 @@ interface Order {
 
 const DesignApprovalWorkflow = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -132,6 +134,8 @@ const DesignApprovalWorkflow = () => {
       setSelectedOrder(null);
       setApprovalNotes("");
       fetchOrdersForApproval();
+      // Invalidate inbox queries to keep inbox in sync
+      queryClient.invalidateQueries({ queryKey: ["inbox-approvals"] });
     } catch (error: any) {
       console.error('Error updating approval:', error);
       toast.error("Failed to update approval", {

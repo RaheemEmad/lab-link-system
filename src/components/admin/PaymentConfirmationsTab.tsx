@@ -74,6 +74,7 @@ export const PaymentConfirmationsTab = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-payment-confirmations"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-payments"] });
       toast.success("Payment approved and subscription updated!");
     },
     onError: () => toast.error("Failed to approve payment"),
@@ -93,6 +94,7 @@ export const PaymentConfirmationsTab = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-payment-confirmations"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-payments"] });
       setRejectDialog({ id: "", open: false });
       setRejectionReason("");
       toast.success("Payment rejected");
