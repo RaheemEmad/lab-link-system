@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { createNotifications } from "@/lib/notifications";
+import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, AlertTriangle, Package, BookmarkPlus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PostDeliveryReviewDialog } from "./PostDeliveryReviewDialog";
