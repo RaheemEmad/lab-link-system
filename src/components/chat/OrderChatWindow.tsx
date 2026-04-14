@@ -180,6 +180,9 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
       })
       .in('id', messageIds)
       .is('read_at', null);
+
+    // Keep inbox chat count in sync
+    queryClient.invalidateQueries({ queryKey: ["inbox-chats"] });
   };
 
   const updateTypingStatus = async (typing: boolean) => {
