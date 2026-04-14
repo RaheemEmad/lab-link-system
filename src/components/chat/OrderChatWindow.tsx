@@ -51,6 +51,7 @@ export const OrderChatWindow: React.FC<OrderChatWindowProps> = ({
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const messageSound = useRef<HTMLAudioElement | null>(null);
   const { user: authUser } = useAuth();
+  const queryClient = useQueryClient();
   const currentUserId = authUser?.id ?? null;
   const [retryQueue, setRetryQueue] = useState<Map<string, { message: string; retries: number }>>(new Map());
 
