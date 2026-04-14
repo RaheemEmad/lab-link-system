@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Compass, Truck, MessageSquareMore, FolderOpen, FileText, Wallet, AlertTriangle, ChevronDown } from "lucide-react";
 import { DepositPromptBanner } from "@/components/wallet/DepositPromptBanner";
+import { SubscriptionAlerts } from "@/components/subscription/SubscriptionAlerts";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -268,6 +269,9 @@ const Dashboard = () => {
                   </Tooltip>
                 </div>
               </div>
+
+              {/* Subscription alerts for Doctors */}
+              {roleConfirmed && !isLabStaff && <SubscriptionAlerts />}
 
               {/* Deposit Prompt for Doctors */}
               {roleConfirmed && !isLabStaff && <DepositPromptBanner />}

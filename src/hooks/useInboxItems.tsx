@@ -4,7 +4,7 @@ import { useAuth } from "./useAuth";
 import { useUserRole } from "./useUserRole";
 import { useMemo } from "react";
 
-export type InboxItemType = "chat" | "approval" | "delivery" | "invoice";
+export type InboxItemType = "chat" | "approval" | "delivery" | "invoice" | "payment" | "notification" | "feedback" | "review";
 
 export interface InboxItem {
   id: string;
@@ -28,11 +28,6 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
     queryKey: ["inbox-chats", userId],
     queryFn: async (): Promise<InboxItem[]> => {
       if (!userId) return [];
-
-      // Get orders accessible to this user
-      let orderIds: string[] = [];
-
-      // Single join query for both doctor and lab_staff paths
       let query = supabase
         .from("chat_messages")
         .select("id, order_id, message_text, created_at, sender_role, orders!inner(order_number, patient_name, doctor_id, is_deleted)")
@@ -45,14 +40,11 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
       const { data: msgs } = await query;
       if (!msgs || msgs.length === 0) return [];
 
-      // Filter by role access
       const filtered = (msgs as any[]).filter((m) => {
         if (isDoctor) return m.orders?.doctor_id === userId;
-        // Lab staff: we'll check assignments below
         return isLabStaff;
       });
 
-      // For lab staff, verify assignment access
       let accessibleOrderIds: Set<string> | null = null;
       if (isLabStaff && labId) {
         const { data: assignments } = await supabase
@@ -93,7 +85,6 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
     queryKey: ["inbox-approvals", userId],
     queryFn: async (): Promise<InboxItem[]> => {
       if (!userId || !isDoctor) return [];
-
       const { data } = await supabase
         .from("orders")
         .select("id, order_number, patient_name, design_file_url, updated_at")
@@ -125,7 +116,6 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
     queryKey: ["inbox-deliveries", userId],
     queryFn: async (): Promise<InboxItem[]> => {
       if (!userId || !isDoctor) return [];
-
       const { data } = await supabase
         .from("orders")
         .select("id, order_number, patient_name, updated_at, carrier_name")
@@ -158,8 +148,6 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
     queryKey: ["inbox-invoices", userId],
     queryFn: async (): Promise<InboxItem[]> => {
       if (!userId) return [];
-
-      // Doctors see their own order invoices; lab staff see via RLS
       const { data } = await supabase
         .from("invoices")
         .select("id, invoice_number, final_total, due_date, order_id, updated_at, orders!inner(order_number, patient_name, doctor_id)")
@@ -186,11 +174,160 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
     retry: 1,
   });
 
+  // 5. Payment confirmations (pending status for doctors, all pending for admins)
+  const paymentsQuery = useQuery({
+    queryKey: ["inbox-payments", userId],
+    queryFn: async (): Promise<InboxItem[]> => {
+      if (!userId) return [];
+      let query = supabase
+        .from("payment_confirmations")
+        .select("id, payment_method, amount, status, created_at, reference_number")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (!isAdmin) {
+        query = query.eq("user_id", userId);
+      }
+
+      const { data } = await query;
+      return (data || []).map((p) => ({
+        id: `payment-${p.id}`,
+        type: "payment" as const,
+        orderId: "",
+        orderNumber: "",
+        patientName: "",
+        title: isAdmin ? "Payment confirmation pending review" : "Your payment is being reviewed",
+        preview: `${p.payment_method === "instapay" ? "InstaPay" : "Vodafone Cash"} — ${p.amount} EGP${p.reference_number ? ` (Ref: ${p.reference_number})` : ""}`,
+        timestamp: p.created_at || "",
+        metadata: { paymentId: p.id, method: p.payment_method, amount: p.amount },
+      }));
+    },
+    enabled: !!userId,
+    staleTime: 30_000,
+    gcTime: 2 * 60_000,
+    retry: 1,
+  });
+
+  // 6. Unread notifications
+  const notificationsQuery = useQuery({
+    queryKey: ["inbox-notifications", userId],
+    queryFn: async (): Promise<InboxItem[]> => {
+      if (!userId) return [];
+      const { data } = await supabase
+        .from("notifications")
+        .select("id, type, message, order_id, created_at")
+        .eq("user_id", userId)
+        .eq("read", false)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      return (data || []).map((n) => ({
+        id: `notif-${n.id}`,
+        type: "notification" as const,
+        orderId: n.order_id || "",
+        orderNumber: "",
+        patientName: "",
+        title: n.type?.replace(/_/g, " ") || "Notification",
+        preview: n.message || "",
+        timestamp: n.created_at || "",
+        metadata: { notificationId: n.id, notificationType: n.type },
+      }));
+    },
+    enabled: !!userId,
+    staleTime: 30_000,
+    gcTime: 2 * 60_000,
+    retry: 1,
+  });
+
+  // 7. Feedback room unresolved comments
+  const feedbackQuery = useQuery({
+    queryKey: ["inbox-feedback", userId],
+    queryFn: async (): Promise<InboxItem[]> => {
+      if (!userId) return [];
+      const { data } = await supabase
+        .from("feedback_room_comments")
+        .select("id, comment_text, created_at, order_id, user_role, orders!inner(order_number, patient_name, doctor_id)")
+        .eq("is_resolved", false)
+        .neq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      return (data || []).map((c) => {
+        const order = c.orders as unknown as { order_number: string; patient_name: string };
+        return {
+          id: `feedback-${c.id}`,
+          type: "feedback" as const,
+          orderId: c.order_id,
+          orderNumber: order?.order_number || "",
+          patientName: order?.patient_name || "",
+          title: `Unresolved feedback from ${c.user_role}`,
+          preview: c.comment_text?.slice(0, 120) || "",
+          timestamp: c.created_at || "",
+          metadata: { commentId: c.id },
+        };
+      });
+    },
+    enabled: !!userId,
+    staleTime: 30_000,
+    gcTime: 2 * 60_000,
+    retry: 1,
+  });
+
+  // 8. Pending reviews (doctor-only: orders delivered but no review)
+  const reviewsQuery = useQuery({
+    queryKey: ["inbox-reviews", userId],
+    queryFn: async (): Promise<InboxItem[]> => {
+      if (!userId || !isDoctor) return [];
+      const { data: delivered } = await supabase
+        .from("orders")
+        .select("id, order_number, patient_name, assigned_lab_id, updated_at")
+        .eq("doctor_id", userId)
+        .eq("is_deleted", false)
+        .eq("status", "Delivered")
+        .limit(20);
+
+      if (!delivered || delivered.length === 0) return [];
+
+      // Check which have reviews
+      const orderIds = delivered.map((o) => o.id);
+      const { data: existingReviews } = await supabase
+        .from("lab_reviews")
+        .select("order_id")
+        .eq("dentist_id", userId)
+        .in("order_id", orderIds);
+
+      const reviewedIds = new Set(existingReviews?.map((r) => r.order_id) || []);
+
+      return delivered
+        .filter((o) => !reviewedIds.has(o.id) && o.assigned_lab_id)
+        .map((o) => ({
+          id: `review-${o.id}`,
+          type: "review" as const,
+          orderId: o.id,
+          orderNumber: o.order_number,
+          patientName: o.patient_name,
+          title: "Leave a review",
+          preview: "This order has been delivered. Share your experience with the lab.",
+          timestamp: o.updated_at || "",
+          metadata: { labId: o.assigned_lab_id },
+        }));
+    },
+    enabled: !!userId && isDoctor,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    retry: 1,
+  });
+
   const isLoading =
     chatsQuery.isLoading ||
     approvalsQuery.isLoading ||
     deliveriesQuery.isLoading ||
-    invoicesQuery.isLoading;
+    invoicesQuery.isLoading ||
+    paymentsQuery.isLoading ||
+    notificationsQuery.isLoading ||
+    feedbackQuery.isLoading ||
+    reviewsQuery.isLoading;
 
   const items = useMemo(() => {
     const all: InboxItem[] = [
@@ -198,14 +335,17 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
       ...(approvalsQuery.data || []),
       ...(deliveriesQuery.data || []),
       ...(invoicesQuery.data || []),
+      ...(paymentsQuery.data || []),
+      ...(notificationsQuery.data || []),
+      ...(feedbackQuery.data || []),
+      ...(reviewsQuery.data || []),
     ];
 
     const filtered = filter === "all" ? all : all.filter((i) => i.type === filter);
-
     return filtered.sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-  }, [chatsQuery.data, approvalsQuery.data, deliveriesQuery.data, invoicesQuery.data, filter]);
+  }, [chatsQuery.data, approvalsQuery.data, deliveriesQuery.data, invoicesQuery.data, paymentsQuery.data, notificationsQuery.data, feedbackQuery.data, reviewsQuery.data, filter]);
 
   const counts = useMemo(
     () => ({
@@ -213,13 +353,21 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
         (chatsQuery.data?.length || 0) +
         (approvalsQuery.data?.length || 0) +
         (deliveriesQuery.data?.length || 0) +
-        (invoicesQuery.data?.length || 0),
+        (invoicesQuery.data?.length || 0) +
+        (paymentsQuery.data?.length || 0) +
+        (notificationsQuery.data?.length || 0) +
+        (feedbackQuery.data?.length || 0) +
+        (reviewsQuery.data?.length || 0),
       chat: chatsQuery.data?.length || 0,
       approval: approvalsQuery.data?.length || 0,
       delivery: deliveriesQuery.data?.length || 0,
       invoice: invoicesQuery.data?.length || 0,
+      payment: paymentsQuery.data?.length || 0,
+      notification: notificationsQuery.data?.length || 0,
+      feedback: feedbackQuery.data?.length || 0,
+      review: reviewsQuery.data?.length || 0,
     }),
-    [chatsQuery.data, approvalsQuery.data, deliveriesQuery.data, invoicesQuery.data]
+    [chatsQuery.data, approvalsQuery.data, deliveriesQuery.data, invoicesQuery.data, paymentsQuery.data, notificationsQuery.data, feedbackQuery.data, reviewsQuery.data]
   );
 
   const refetchAll = () => {
@@ -227,6 +375,10 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
     approvalsQuery.refetch();
     deliveriesQuery.refetch();
     invoicesQuery.refetch();
+    paymentsQuery.refetch();
+    notificationsQuery.refetch();
+    feedbackQuery.refetch();
+    reviewsQuery.refetch();
   };
 
   return { items, counts, isLoading, refetchAll };
