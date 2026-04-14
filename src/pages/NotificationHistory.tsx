@@ -89,6 +89,7 @@ const NotificationHistory = () => {
       // Invalidate all notification-related queries
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-notifications"] });
     },
   });
 
@@ -116,6 +117,7 @@ const NotificationHistory = () => {
       // CRITICAL: Invalidate ALL notification-related queries to update nav badge
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-notifications"] });
       
       toast({
         title: "Success",

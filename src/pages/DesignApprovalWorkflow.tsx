@@ -29,6 +29,7 @@ interface Order {
 
 const DesignApprovalWorkflow = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -133,6 +134,8 @@ const DesignApprovalWorkflow = () => {
       setSelectedOrder(null);
       setApprovalNotes("");
       fetchOrdersForApproval();
+      // Invalidate inbox queries to keep inbox in sync
+      queryClient.invalidateQueries({ queryKey: ["inbox-approvals"] });
     } catch (error: any) {
       console.error('Error updating approval:', error);
       toast.error("Failed to update approval", {

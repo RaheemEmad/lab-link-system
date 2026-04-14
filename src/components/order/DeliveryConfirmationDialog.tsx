@@ -50,6 +50,7 @@ export const DeliveryConfirmationDialog = ({
   onConfirmed,
 }: DeliveryConfirmationDialogProps) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isConfirming, setIsConfirming] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [issueNote, setIssueNote] = useState("");
@@ -100,6 +101,10 @@ export const DeliveryConfirmationDialog = ({
       toast.success("Delivery confirmed!", {
         description: `Order #${orderNumber} has been marked as delivered.`,
       });
+
+      // Invalidate inbox queries to keep inbox in sync
+      queryClient.invalidateQueries({ queryKey: ["inbox-deliveries"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-reviews"] });
 
       // Optionally save as patient case
       if (saveAsCase && restorationData?.restoration_type && restorationData?.teeth_number && restorationData?.teeth_shade) {

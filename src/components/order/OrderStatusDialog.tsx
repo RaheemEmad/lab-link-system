@@ -53,6 +53,7 @@ export const OrderStatusDialog = ({
 }: OrderStatusDialogProps) => {
   const { user } = useAuth();
   const { isLabStaff, isAdmin, isDoctor, roleConfirmed } = useUserRole();
+  const queryClient = useQueryClient();
   const [newStatus, setNewStatus] = useState<OrderStatus>(currentStatus);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -129,6 +130,9 @@ export const OrderStatusDialog = ({
         toast.success("Delivery confirmation sent", {
           description: `Awaiting doctor confirmation for ${orderNumber}`,
         });
+
+        // Invalidate inbox so doctor sees the new delivery item
+        queryClient.invalidateQueries({ queryKey: ["inbox-deliveries"] });
       } else {
         // Normal status update for other statuses
         const { error: updateError } = await supabase

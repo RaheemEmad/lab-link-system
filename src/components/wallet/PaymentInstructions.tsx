@@ -54,6 +54,7 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-confirmations"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-payments"] });
       toast.success("Payment confirmation submitted!", {
         description: "Our team will review and confirm your payment shortly.",
       });
