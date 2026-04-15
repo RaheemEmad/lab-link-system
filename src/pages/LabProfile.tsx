@@ -17,6 +17,7 @@ import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { LabBadges } from "@/components/labs/LabBadges";
 import { LabPerformanceStats } from "@/components/labs/LabPerformanceStats";
 import { LabPortfolio } from "@/components/labs/LabPortfolio";
+import { LabPastWork } from "@/components/labs/LabPastWork";
 
 import { formatEGP } from "@/lib/formatters";
 
@@ -386,6 +387,9 @@ export default function LabProfile() {
 
       {/* Portfolio */}
       <LabPortfolio labId={lab.id} />
+
+      {/* Past Work, Reviews & Testimonials */}
+      <LabPastWork labId={lab.id} />
 
       {/* Pricing Card - Now uses LabPricingDisplay */}
       {lab && (
