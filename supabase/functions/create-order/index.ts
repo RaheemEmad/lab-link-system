@@ -168,9 +168,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     const perOrderFee = (activeSub as any)?.subscription_plans?.per_order_fee ?? 0;
+    const planName = (activeSub as any)?.subscription_plans?.name ?? 'Unknown';
 
     if (perOrderFee > 0) {
-      // Check wallet balance
+      // Pre-check wallet balance (non-atomic, just for early error)
       const { data: wallet } = await supabase
         .from('wallets')
         .select('id, balance')
