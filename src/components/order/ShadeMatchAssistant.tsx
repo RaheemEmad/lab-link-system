@@ -62,10 +62,18 @@ export const ShadeMatchAssistant = ({ shadeSystem, onShadeSelect, className }: S
   const analyzeImage = async (imageBase64: string) => {
     setIsAnalyzing(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Please sign in to use shade matching");
+        return;
+      }
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(`${supabaseUrl}/functions/v1/shade-match`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ imageBase64, shadeSystem }),
       });
 

@@ -869,7 +869,7 @@ const EditOrder = () => {
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => {
+                              onClick={async () => {
                                 const isUrl =
                                   field.value?.startsWith("http://") ||
                                   field.value?.startsWith("https://");

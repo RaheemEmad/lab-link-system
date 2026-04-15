@@ -862,7 +862,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
+                        onClick={async () => {
                           const content = field.value.trim();
                           
                           // Check if it's a URL
