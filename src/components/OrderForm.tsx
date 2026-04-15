@@ -862,7 +862,7 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
+                        onClick={async () => {
                           const content = field.value.trim();
                           
                           // Check if it's a URL
@@ -872,14 +872,9 @@ const OrderForm = ({ onSubmitSuccess }: OrderFormProps) => {
                             // For URLs, open directly in a new tab
                             window.open(content, '_blank', 'noopener,noreferrer');
                           } else {
-                            // For HTML content, render in a new window
-                            const previewWindow = window.open('', '_blank', 'width=1024,height=768');
-                            if (!previewWindow) {
-                              toast.error('Failed to open preview window. Please allow popups.');
-                              return;
-                            }
-                            previewWindow.document.write(content);
-                            previewWindow.document.close();
+                            // For HTML content, sanitize and render safely
+                            const { openSanitizedHtmlPreview } = await import('@/lib/htmlSanitize');
+                            openSanitizedHtmlPreview(content);
                           }
                         }}
                         className="text-xs"

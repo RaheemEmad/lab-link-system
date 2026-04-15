@@ -869,18 +869,15 @@ const EditOrder = () => {
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => {
+                              onClick={async () => {
                                 const isUrl =
                                   field.value?.startsWith("http://") ||
                                   field.value?.startsWith("https://");
                                 if (isUrl) {
                                   window.open(field.value, "_blank", "noopener,noreferrer");
                                 } else {
-                                  const previewWindow = window.open("", "_blank");
-                                  if (previewWindow) {
-                                    previewWindow.document.write(field.value || "");
-                                    previewWindow.document.close();
-                                  }
+                                  const { openSanitizedHtmlPreview } = await import('@/lib/htmlSanitize');
+                                  openSanitizedHtmlPreview(field.value || "");
                                 }
                               }}
                             >

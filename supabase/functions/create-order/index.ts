@@ -168,9 +168,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     const perOrderFee = (activeSub as any)?.subscription_plans?.per_order_fee ?? 0;
+    const planName = (activeSub as any)?.subscription_plans?.name ?? 'Unknown';
 
     if (perOrderFee > 0) {
-      // Check wallet balance
+      // Pre-check wallet balance (non-atomic, just for early error)
       const { data: wallet } = await supabase
         .from('wallets')
         .select('id, balance')
@@ -230,29 +231,18 @@ Deno.serve(async (req) => {
 
     console.log('Order created successfully:', orderData.order_number);
 
-    // Deduct per-order fee from wallet after successful order creation
+    // Atomically deduct per-order fee from wallet
     if (perOrderFee > 0) {
-      const { data: wallet } = await supabase
-        .from('wallets')
-        .select('id, balance')
-        .eq('user_id', user.id)
-        .single();
+      const { data: deductResult, error: deductError } = await supabase.rpc('deduct_wallet_fee', {
+        p_user_id: user.id,
+        p_fee: perOrderFee,
+        p_description: `Order fee for #${orderData.order_number} (${planName} plan)`,
+        p_order_id: orderData.id,
+      });
 
-      if (wallet) {
-        await supabase
-          .from('wallets')
-          .update({ balance: wallet.balance - perOrderFee })
-          .eq('id', wallet.id);
-
-        await supabase
-          .from('wallet_transactions')
-          .insert({
-            wallet_id: wallet.id,
-            type: 'order_fee',
-            amount: perOrderFee,
-            description: `Order fee for #${orderData.order_number} (${(activeSub as any)?.subscription_plans?.name} plan)`,
-            order_id: orderData.id,
-          });
+      if (deductError || !deductResult?.success) {
+        // Order was created but fee deduction failed — log but don't fail the order
+        console.error('Wallet deduction failed after order creation:', deductError || deductResult?.error);
       }
     }
 
