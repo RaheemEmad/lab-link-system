@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Save, KeyRound, Bell, Award, RefreshCw } from "lucide-react";
+import { Save, KeyRound, Bell, Award, RefreshCw, ShieldCheck } from "lucide-react";
+import { DoctorVerifiedBadge } from "@/components/doctors/DoctorVerifiedBadge";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -425,6 +426,9 @@ const Profile = () => {
                         <Badge variant={userRole ? formatRole(userRole).variant : "default"} className="text-xs">
                           {userRole ? formatRole(userRole).label : "Loading..."}
                         </Badge>
+                        {user?.id && userRole === "doctor" && (
+                          <DoctorVerifiedBadge userId={user.id} size="md" />
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {userRole ? formatRole(userRole).description : "Fetching your role information..."}

@@ -459,6 +459,39 @@ export type Database = {
           },
         ]
       }
+      doctor_verification: {
+        Row: {
+          completed_order_count: number
+          created_at: string
+          id: string
+          is_verified: boolean
+          updated_at: string
+          user_id: string
+          verification_status: string
+          verified_at: string | null
+        }
+        Insert: {
+          completed_order_count?: number
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          updated_at?: string
+          user_id: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Update: {
+          completed_order_count?: number
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          updated_at?: string
+          user_id?: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       feedback_room_activity: {
         Row: {
           action_description: string
@@ -1243,6 +1276,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "lab_inventory_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          invite_code: string
+          invited_by: string
+          invited_email: string | null
+          lab_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          invite_code?: string
+          invited_by: string
+          invited_email?: string | null
+          lab_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          invite_code?: string
+          invited_by?: string
+          invited_email?: string | null
+          lab_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_invitations_lab_id_fkey"
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"

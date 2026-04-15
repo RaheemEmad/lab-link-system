@@ -101,10 +101,14 @@ const NewOrder = () => {
         </div>
 
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6">
-          {orderMode === "template" ? "Create from Template" : "Place Order with Lab"}
+          {orderMode === "template"
+            ? "Create from Template"
+            : "Place Order with Lab"}
         </h1>
         <p className="text-sm text-muted-foreground mb-4">
-          Send your case to a preferred lab or invite labs to bid on your order.
+          {orderMode === "template"
+            ? "Select a saved template to quickly place a repeat order."
+            : "Submit your case to a preferred lab, or open it for labs to review and place bids. You can also use an invitation link from a lab."}
         </p>
 
         {/* Mode Chooser */}

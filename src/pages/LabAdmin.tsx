@@ -28,7 +28,8 @@ import {
   X,
   Package,
   DollarSign,
-  ShieldCheck
+  ShieldCheck,
+  Users
 } from "lucide-react";
 import LabPricingSetup from "@/components/billing/LabPricingSetup";
 import { LabVerificationStatus } from "@/components/labs/LabVerificationStatus";
@@ -39,6 +40,7 @@ import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { LabProfilePreview } from "@/components/labs/LabProfilePreview";
 import { InventoryManager } from "@/components/lab/InventoryManager";
+import { LabInvitationManager } from "@/components/labs/LabInvitationManager";
 
 const labProfileSchema = z.object({
   name: z.string().min(2, "Lab name is required").max(100),
@@ -411,10 +413,10 @@ const LabAdmin = () => {
             )}
 
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+              <TabsList className="grid w-full grid-cols-5 max-w-3xl">
                 <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Profile & Settings</span>
+                  <span className="hidden sm:inline">Profile</span>
                   <span className="sm:hidden">Profile</span>
                 </TabsTrigger>
                 <TabsTrigger value="pricing" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
@@ -426,6 +428,11 @@ const LabAdmin = () => {
                   <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Specializations</span>
                   <span className="sm:hidden">Specs</span>
+                </TabsTrigger>
+                <TabsTrigger value="invitations" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                  <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Invitations</span>
+                  <span className="sm:hidden">Invite</span>
                 </TabsTrigger>
                 <TabsTrigger value="inventory" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -832,6 +839,19 @@ const LabAdmin = () => {
               {/* Pricing Tab */}
               <TabsContent value="pricing">
                 {labId && <LabPricingSetup labId={labId} />}
+              </TabsContent>
+
+              {/* Invitations Tab */}
+              <TabsContent value="invitations">
+                {labId ? (
+                  <LabInvitationManager labId={labId} />
+                ) : (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      Lab not found. Please complete your lab setup first.
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               {/* Inventory Tab */}
