@@ -841,6 +841,19 @@ const LabAdmin = () => {
                 {labId && <LabPricingSetup labId={labId} />}
               </TabsContent>
 
+              {/* Invitations Tab */}
+              <TabsContent value="invitations">
+                {labId ? (
+                  <LabInvitationManager labId={labId} />
+                ) : (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      Lab not found. Please complete your lab setup first.
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
               {/* Inventory Tab */}
               <TabsContent value="inventory">
                 <InventoryManager />
