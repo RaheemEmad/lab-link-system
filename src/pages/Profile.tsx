@@ -426,6 +426,9 @@ const Profile = () => {
                         <Badge variant={userRole ? formatRole(userRole).variant : "default"} className="text-xs">
                           {userRole ? formatRole(userRole).label : "Loading..."}
                         </Badge>
+                        {user?.id && userRole === "doctor" && (
+                          <DoctorVerifiedBadge userId={user.id} size="md" />
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {userRole ? formatRole(userRole).description : "Fetching your role information..."}
