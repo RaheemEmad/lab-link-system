@@ -28,7 +28,8 @@ import {
   X,
   Package,
   DollarSign,
-  ShieldCheck
+  ShieldCheck,
+  Users
 } from "lucide-react";
 import LabPricingSetup from "@/components/billing/LabPricingSetup";
 import { LabVerificationStatus } from "@/components/labs/LabVerificationStatus";
