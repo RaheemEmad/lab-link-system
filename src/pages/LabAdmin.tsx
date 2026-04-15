@@ -411,10 +411,10 @@ const LabAdmin = () => {
             )}
 
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+              <TabsList className="grid w-full grid-cols-5 max-w-3xl">
                 <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Profile & Settings</span>
+                  <span className="hidden sm:inline">Profile</span>
                   <span className="sm:hidden">Profile</span>
                 </TabsTrigger>
                 <TabsTrigger value="pricing" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
@@ -426,6 +426,11 @@ const LabAdmin = () => {
                   <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Specializations</span>
                   <span className="sm:hidden">Specs</span>
+                </TabsTrigger>
+                <TabsTrigger value="invitations" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                  <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Invitations</span>
+                  <span className="sm:hidden">Invite</span>
                 </TabsTrigger>
                 <TabsTrigger value="inventory" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
