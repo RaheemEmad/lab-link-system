@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Camera, Sparkles, AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ShadeResult {
   primary_shade: string;
