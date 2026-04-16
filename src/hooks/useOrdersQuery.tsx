@@ -41,7 +41,7 @@ const ORDERS_PER_PAGE = 25;
 
 export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string = "") => {
   const { user } = useAuth();
-  const { isDoctor, isLabStaff, isLoading: roleLoading, labId, role } = useUserRole();
+  const { isDoctor, isLabStaff, isLoading: roleLoading, labId, role, roleConfirmed } = useUserRole();
   const queryClient = useQueryClient();
 
   // Build query key
@@ -60,7 +60,7 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
   } = useInfiniteQuery({
     queryKey,
     queryFn: async ({ pageParam = 0 }) => {
-      if (!user || roleLoading) {
+      if (!user || !roleConfirmed) {
         return { orders: [], totalCount: 0, nextPage: undefined };
       }
 
@@ -120,7 +120,7 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
     },
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 0,
-    enabled: !!user && !roleLoading,
+    enabled: !!user && roleConfirmed,
     staleTime: 30000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -332,7 +332,7 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
   return {
     orders,
     totalCount,
-    isLoading: isLoading || roleLoading,
+    isLoading: isLoading || !roleConfirmed,
     isError,
     error,
     fetchNextPage,

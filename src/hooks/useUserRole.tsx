@@ -51,8 +51,11 @@ export const useUserRole = () => {
   // 3. User exists but query hasn't succeeded yet
   const isLoading = authLoading || queryPending || (!!user?.id && status === 'pending');
   
-  // Role is only confirmed when we've successfully fetched the data
+  // Role is only confirmed when we've successfully fetched the data AND a role exists
   const roleConfirmed = !isLoading && status === 'success' && !!user?.id;
+  
+  // NEW: Indicates role data was fetched but user has no role assigned yet (new signup)
+  const hasNoRole = !isLoading && status === 'success' && !!user?.id && !data?.role;
 
   // DEBUG: Log state transitions
   useEffect(() => {
@@ -75,7 +78,8 @@ export const useUserRole = () => {
     role: roleConfirmed ? (data?.role ?? null) : null,
     labId: roleConfirmed ? (data?.lab_id ?? null) : null,
     isLoading,
-    roleConfirmed, // New: explicit flag for when role is definitively known
+    roleConfirmed, // Explicit flag for when role is definitively known
+    hasNoRole, // True when user is authenticated but has no role (new signup, needs onboarding)
     error,
     refetch,
     // Helper functions for role checks - DEFENSIVE: return false when role not confirmed

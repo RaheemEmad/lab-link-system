@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight, XCircle, Shield, DollarSign, RefreshCw } from "lucide-react";
+import { Package, Calendar, User, Send, CheckCircle, Filter, ChevronLeft, ChevronRight, XCircle, Shield, DollarSign, RefreshCw, Paperclip, Clock, BadgeCheck, Building2, Palette, Hash } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -64,24 +64,65 @@ export default function OrdersMarketplace() {
     fetchLabIdAndRole();
   }, [user]);
 
-  // Fetch marketplace orders (auto_assign_pending, unassigned, excluding refused)
+  // Fetch marketplace orders with doctor info, verification, and attachment counts
   const { data: orders, isLoading } = useQuery({
     queryKey: ["marketplace-orders", labId],
     queryFn: async () => {
+      // 1. Fetch orders
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select("id, order_number, restoration_type, urgency, created_at, desired_delivery_date, target_budget, status, auto_assign_pending, assigned_lab_id, teeth_shade, teeth_number")
+        .select("id, order_number, restoration_type, urgency, created_at, desired_delivery_date, target_budget, status, auto_assign_pending, assigned_lab_id, teeth_shade, teeth_number, doctor_id, doctor_name")
         .eq("auto_assign_pending", true)
         .is("assigned_lab_id", null)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
+      if (!ordersData || ordersData.length === 0) return [];
 
-      // If no labId (new lab staff without lab assignment), show all marketplace orders
-      // They can apply but won't be accepted until they're assigned to a lab
-      if (!labId) return ordersData;
+      // 2. Fetch doctor profiles for all unique doctor_ids
+      const doctorIds = [...new Set(ordersData.map(o => o.doctor_id).filter(Boolean))];
+      const { data: profiles } = doctorIds.length > 0
+        ? await supabase
+            .from("profiles")
+            .select("id, full_name, clinic_name")
+            .in("id", doctorIds)
+        : { data: [] };
 
-      // Filter out orders where this lab has been refused
+      // 3. Fetch verification status for those doctors
+      const { data: verifications } = doctorIds.length > 0
+        ? await supabase
+            .from("doctor_verification")
+            .select("user_id, is_verified")
+            .in("user_id", doctorIds)
+        : { data: [] };
+
+      // 4. Fetch attachment counts per order
+      const orderIds = ordersData.map(o => o.id);
+      const { data: attachments } = await supabase
+        .from("order_attachments")
+        .select("order_id")
+        .in("order_id", orderIds);
+
+      // Build lookup maps
+      const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+      const verificationMap = new Map((verifications || []).map(v => [v.user_id, v.is_verified]));
+      const attachmentCountMap = new Map<string, number>();
+      (attachments || []).forEach(a => {
+        attachmentCountMap.set(a.order_id, (attachmentCountMap.get(a.order_id) || 0) + 1);
+      });
+
+      // Enrich orders
+      const enriched = ordersData.map(order => ({
+        ...order,
+        doctor_profile: profileMap.get(order.doctor_id) || null,
+        is_verified: verificationMap.get(order.doctor_id) || false,
+        attachment_count: attachmentCountMap.get(order.id) || 0,
+      }));
+
+      // If no labId, show all
+      if (!labId) return enriched;
+
+      // Filter out refused
       const { data: refusedRequests } = await supabase
         .from("lab_work_requests")
         .select("order_id")
@@ -89,10 +130,9 @@ export default function OrdersMarketplace() {
         .eq("status", "refused");
 
       const refusedOrderIds = new Set(refusedRequests?.map(r => r.order_id) || []);
-      
-      return ordersData.filter(order => !refusedOrderIds.has(order.id));
+      return enriched.filter(order => !refusedOrderIds.has(order.id));
     },
-    enabled: !!user?.id, // Enable if user exists, not just labId
+    enabled: !!user?.id,
   });
 
   // Set up realtime subscription for new orders
@@ -508,18 +548,23 @@ export default function OrdersMarketplace() {
             ) : (
               <>
                 <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {paginatedOrders.map((order) => {
+                  {paginatedOrders.map((order: any) => {
                     const requestStatus = getRequestStatus(order.id);
+                    const profile = order.doctor_profile;
+                    const doctorDisplayName = profile?.full_name || order.doctor_name || "Unknown Doctor";
+                    const clinicName = profile?.clinic_name;
+                    const isVerified = order.is_verified;
+                    const attachmentCount = order.attachment_count || 0;
                     
                     return (
-                      <Card key={order.id} className="hover:shadow-lg transition-shadow min-w-0">
-                        <CardHeader className="p-4 sm:p-6">
+                      <Card key={order.id} className="hover:shadow-lg transition-shadow min-w-0 flex flex-col">
+                        <CardHeader className="p-4 sm:p-5 pb-2 sm:pb-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <CardTitle className="text-base sm:text-lg mb-1 truncate">
+                              <CardTitle className="text-base sm:text-lg mb-0.5 truncate">
                                 {order.restoration_type}
                               </CardTitle>
-                              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                              <p className="text-xs text-muted-foreground truncate">
                                 {order.order_number}
                               </p>
                             </div>
@@ -528,79 +573,128 @@ export default function OrdersMarketplace() {
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-xs sm:text-sm">
-                              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="truncate">
-                                Submitted: {new Date(order.created_at).toLocaleDateString()}
-                              </span>
+                        <CardContent className="p-4 sm:p-5 pt-0 space-y-3 flex-1 flex flex-col">
+                          {/* Doctor & Clinic Info */}
+                          <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
+                            <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm font-medium truncate">{doctorDisplayName}</span>
+                                {isVerified && (
+                                  <BadgeCheck className="h-4 w-4 text-primary shrink-0" />
+                                )}
+                              </div>
+                              {clinicName && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Building2 className="h-3 w-3 shrink-0" />
+                                  <span className="truncate">{clinicName}</span>
+                                </div>
+                              )}
                             </div>
-                            {/* Budget Display */}
-                            {order.target_budget && (
-                              <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                                <DollarSign className="h-4 w-4 flex-shrink-0" />
-                                <span>Budget: EGP {order.target_budget.toLocaleString('en-EG', { minimumFractionDigits: 2 })}</span>
+                          </div>
+
+                          {/* Case Specs */}
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {order.teeth_shade && (
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <Palette className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">Shade: {order.teeth_shade}</span>
                               </div>
                             )}
-                            {!order.target_budget && (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <DollarSign className="h-4 w-4 flex-shrink-0" />
-                                <span>Budget: Open</span>
+                            {order.teeth_number && (
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <Hash className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">Teeth: {order.teeth_number}</span>
                               </div>
                             )}
                           </div>
 
-                          {requestStatus ? (
-                            <div className="pt-2 space-y-2">
-                              {requestStatus.status === 'pending' ? (
-                                <>
-                                  <Badge variant="outline" className="w-full justify-center py-2 text-xs">
-                                    <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                                    <span>Request Sent</span>
-                                  </Badge>
-                                  <Button
-                                    onClick={() => cancelRequest.mutate(order.id)}
-                                    disabled={cancelRequest.isPending}
-                                    variant="outline"
-                                    className="w-full text-xs sm:text-sm"
-                                  >
-                                    <XCircle className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                                    <span className="truncate">Cancel</span>
-                                  </Button>
-                                </>
-                              ) : requestStatus.status === 'accepted' ? (
-                                <Badge variant="default" className="w-full justify-center py-2 text-xs">
-                                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                                  <span>Accepted</span>
-                                </Badge>
-                              ) : null}
+                          {/* Meta: Date, Deadline, Attachments */}
+                          <div className="space-y-1.5 text-xs">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5 shrink-0" />
+                              <span>Submitted: {new Date(order.created_at).toLocaleDateString()}</span>
+                            </div>
+                            {order.desired_delivery_date && (
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Clock className="h-3.5 w-3.5 shrink-0" />
+                                <span>Due: {new Date(order.desired_delivery_date).toLocaleDateString()}</span>
+                              </div>
+                            )}
+                            {attachmentCount > 0 && (
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                                <span>{attachmentCount} file{attachmentCount > 1 ? 's' : ''} attached</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Budget */}
+                          {order.target_budget ? (
+                            <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                              <DollarSign className="h-4 w-4 shrink-0" />
+                              <span>Budget: EGP {order.target_budget.toLocaleString('en-EG', { minimumFractionDigits: 2 })}</span>
                             </div>
                           ) : (
-                            <Button
-                              onClick={() => setBidDialogOrder(order)}
-                              disabled={sendRequest.isPending}
-                              className="w-full text-xs sm:text-sm"
-                            >
-                              <DollarSign className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                              <span className="truncate">Submit Bid</span>
-                            </Button>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <DollarSign className="h-3.5 w-3.5 shrink-0" />
+                              <span>Budget: Open</span>
+                            </div>
                           )}
-                          
-                          {isAdmin && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setOverrideOrderId(order.id);
-                                setSelectedLabForOverride(null);
-                              }}
-                              className="w-full mt-2 border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
-                            >
-                              <Shield className="h-4 w-4 mr-2" />
-                              Admin Override
-                            </Button>
-                          )}
+
+                          {/* Actions */}
+                          <div className="mt-auto pt-2">
+                            {requestStatus ? (
+                              <div className="space-y-2">
+                                {requestStatus.status === 'pending' ? (
+                                  <>
+                                    <Badge variant="outline" className="w-full justify-center py-2 text-xs">
+                                      <Send className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                      Request Sent
+                                    </Badge>
+                                    <Button
+                                      onClick={() => cancelRequest.mutate(order.id)}
+                                      disabled={cancelRequest.isPending}
+                                      variant="outline"
+                                      className="w-full text-xs sm:text-sm"
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1.5 shrink-0" />
+                                      Cancel
+                                    </Button>
+                                  </>
+                                ) : requestStatus.status === 'accepted' ? (
+                                  <Badge variant="default" className="w-full justify-center py-2 text-xs">
+                                    <CheckCircle className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                    Accepted
+                                  </Badge>
+                                ) : null}
+                              </div>
+                            ) : (
+                              <Button
+                                onClick={() => setBidDialogOrder(order)}
+                                disabled={sendRequest.isPending}
+                                className="w-full text-xs sm:text-sm"
+                              >
+                                <DollarSign className="h-4 w-4 mr-1.5 shrink-0" />
+                                Submit Bid
+                              </Button>
+                            )}
+                            
+                            {isAdmin && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setOverrideOrderId(order.id);
+                                  setSelectedLabForOverride(null);
+                                }}
+                                className="w-full mt-2 border-destructive/50 text-destructive hover:bg-destructive/5"
+                              >
+                                <Shield className="h-4 w-4 mr-2" />
+                                Admin Override
+                              </Button>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     );
