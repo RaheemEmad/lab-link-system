@@ -332,7 +332,7 @@ export const useOrdersQuery = (statusFilter: string = "all", searchTerm: string 
   return {
     orders,
     totalCount,
-    isLoading: isLoading || roleLoading,
+    isLoading: isLoading || !roleConfirmed,
     isError,
     error,
     fetchNextPage,
