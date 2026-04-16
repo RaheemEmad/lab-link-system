@@ -548,17 +548,23 @@ export default function OrdersMarketplace() {
             ) : (
               <>
                 <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {paginatedOrders.map((order) => {
+                  {paginatedOrders.map((order: any) => {
                     const requestStatus = getRequestStatus(order.id);
+                    const profile = order.doctor_profile;
+                    const doctorDisplayName = profile?.full_name || order.doctor_name || "Unknown Doctor";
+                    const clinicName = profile?.clinic_name;
+                    const isVerified = order.is_verified;
+                    const attachmentCount = order.attachment_count || 0;
+                    
                     return (
-                      <Card key={order.id} className="hover:shadow-lg transition-shadow min-w-0">
-                        <CardHeader className="p-4 sm:p-6">
+                      <Card key={order.id} className="hover:shadow-lg transition-shadow min-w-0 flex flex-col">
+                        <CardHeader className="p-4 sm:p-5 pb-2 sm:pb-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <CardTitle className="text-base sm:text-lg mb-1 truncate">
+                              <CardTitle className="text-base sm:text-lg mb-0.5 truncate">
                                 {order.restoration_type}
                               </CardTitle>
-                              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                              <p className="text-xs text-muted-foreground truncate">
                                 {order.order_number}
                               </p>
                             </div>
@@ -567,79 +573,128 @@ export default function OrdersMarketplace() {
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-xs sm:text-sm">
-                              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="truncate">
-                                Submitted: {new Date(order.created_at).toLocaleDateString()}
-                              </span>
+                        <CardContent className="p-4 sm:p-5 pt-0 space-y-3 flex-1 flex flex-col">
+                          {/* Doctor & Clinic Info */}
+                          <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
+                            <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm font-medium truncate">{doctorDisplayName}</span>
+                                {isVerified && (
+                                  <BadgeCheck className="h-4 w-4 text-primary shrink-0" />
+                                )}
+                              </div>
+                              {clinicName && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Building2 className="h-3 w-3 shrink-0" />
+                                  <span className="truncate">{clinicName}</span>
+                                </div>
+                              )}
                             </div>
-                            {/* Budget Display */}
-                            {order.target_budget && (
-                              <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                                <DollarSign className="h-4 w-4 flex-shrink-0" />
-                                <span>Budget: EGP {order.target_budget.toLocaleString('en-EG', { minimumFractionDigits: 2 })}</span>
+                          </div>
+
+                          {/* Case Specs */}
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {order.teeth_shade && (
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <Palette className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">Shade: {order.teeth_shade}</span>
                               </div>
                             )}
-                            {!order.target_budget && (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <DollarSign className="h-4 w-4 flex-shrink-0" />
-                                <span>Budget: Open</span>
+                            {order.teeth_number && (
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <Hash className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">Teeth: {order.teeth_number}</span>
                               </div>
                             )}
                           </div>
 
-                          {requestStatus ? (
-                            <div className="pt-2 space-y-2">
-                              {requestStatus.status === 'pending' ? (
-                                <>
-                                  <Badge variant="outline" className="w-full justify-center py-2 text-xs">
-                                    <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                                    <span>Request Sent</span>
-                                  </Badge>
-                                  <Button
-                                    onClick={() => cancelRequest.mutate(order.id)}
-                                    disabled={cancelRequest.isPending}
-                                    variant="outline"
-                                    className="w-full text-xs sm:text-sm"
-                                  >
-                                    <XCircle className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                                    <span className="truncate">Cancel</span>
-                                  </Button>
-                                </>
-                              ) : requestStatus.status === 'accepted' ? (
-                                <Badge variant="default" className="w-full justify-center py-2 text-xs">
-                                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                                  <span>Accepted</span>
-                                </Badge>
-                              ) : null}
+                          {/* Meta: Date, Deadline, Attachments */}
+                          <div className="space-y-1.5 text-xs">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5 shrink-0" />
+                              <span>Submitted: {new Date(order.created_at).toLocaleDateString()}</span>
+                            </div>
+                            {order.desired_delivery_date && (
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Clock className="h-3.5 w-3.5 shrink-0" />
+                                <span>Due: {new Date(order.desired_delivery_date).toLocaleDateString()}</span>
+                              </div>
+                            )}
+                            {attachmentCount > 0 && (
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                                <span>{attachmentCount} file{attachmentCount > 1 ? 's' : ''} attached</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Budget */}
+                          {order.target_budget ? (
+                            <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                              <DollarSign className="h-4 w-4 shrink-0" />
+                              <span>Budget: EGP {order.target_budget.toLocaleString('en-EG', { minimumFractionDigits: 2 })}</span>
                             </div>
                           ) : (
-                            <Button
-                              onClick={() => setBidDialogOrder(order)}
-                              disabled={sendRequest.isPending}
-                              className="w-full text-xs sm:text-sm"
-                            >
-                              <DollarSign className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                              <span className="truncate">Submit Bid</span>
-                            </Button>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <DollarSign className="h-3.5 w-3.5 shrink-0" />
+                              <span>Budget: Open</span>
+                            </div>
                           )}
-                          
-                          {isAdmin && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setOverrideOrderId(order.id);
-                                setSelectedLabForOverride(null);
-                              }}
-                              className="w-full mt-2 border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
-                            >
-                              <Shield className="h-4 w-4 mr-2" />
-                              Admin Override
-                            </Button>
-                          )}
+
+                          {/* Actions */}
+                          <div className="mt-auto pt-2">
+                            {requestStatus ? (
+                              <div className="space-y-2">
+                                {requestStatus.status === 'pending' ? (
+                                  <>
+                                    <Badge variant="outline" className="w-full justify-center py-2 text-xs">
+                                      <Send className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                      Request Sent
+                                    </Badge>
+                                    <Button
+                                      onClick={() => cancelRequest.mutate(order.id)}
+                                      disabled={cancelRequest.isPending}
+                                      variant="outline"
+                                      className="w-full text-xs sm:text-sm"
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1.5 shrink-0" />
+                                      Cancel
+                                    </Button>
+                                  </>
+                                ) : requestStatus.status === 'accepted' ? (
+                                  <Badge variant="default" className="w-full justify-center py-2 text-xs">
+                                    <CheckCircle className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                    Accepted
+                                  </Badge>
+                                ) : null}
+                              </div>
+                            ) : (
+                              <Button
+                                onClick={() => setBidDialogOrder(order)}
+                                disabled={sendRequest.isPending}
+                                className="w-full text-xs sm:text-sm"
+                              >
+                                <DollarSign className="h-4 w-4 mr-1.5 shrink-0" />
+                                Submit Bid
+                              </Button>
+                            )}
+                            
+                            {isAdmin && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setOverrideOrderId(order.id);
+                                  setSelectedLabForOverride(null);
+                                }}
+                                className="w-full mt-2 border-destructive/50 text-destructive hover:bg-destructive/5"
+                              >
+                                <Shield className="h-4 w-4 mr-2" />
+                                Admin Override
+                              </Button>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     );
