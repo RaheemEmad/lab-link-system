@@ -550,7 +550,6 @@ export default function OrdersMarketplace() {
                 <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {paginatedOrders.map((order) => {
                     const requestStatus = getRequestStatus(order.id);
-                    
                     return (
                       <Card key={order.id} className="hover:shadow-lg transition-shadow min-w-0">
                         <CardHeader className="p-4 sm:p-6">
