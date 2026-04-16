@@ -64,24 +64,65 @@ export default function OrdersMarketplace() {
     fetchLabIdAndRole();
   }, [user]);
 
-  // Fetch marketplace orders (auto_assign_pending, unassigned, excluding refused)
+  // Fetch marketplace orders with doctor info, verification, and attachment counts
   const { data: orders, isLoading } = useQuery({
     queryKey: ["marketplace-orders", labId],
     queryFn: async () => {
+      // 1. Fetch orders
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select("id, order_number, restoration_type, urgency, created_at, desired_delivery_date, target_budget, status, auto_assign_pending, assigned_lab_id, teeth_shade, teeth_number")
+        .select("id, order_number, restoration_type, urgency, created_at, desired_delivery_date, target_budget, status, auto_assign_pending, assigned_lab_id, teeth_shade, teeth_number, doctor_id, doctor_name")
         .eq("auto_assign_pending", true)
         .is("assigned_lab_id", null)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
+      if (!ordersData || ordersData.length === 0) return [];
 
-      // If no labId (new lab staff without lab assignment), show all marketplace orders
-      // They can apply but won't be accepted until they're assigned to a lab
-      if (!labId) return ordersData;
+      // 2. Fetch doctor profiles for all unique doctor_ids
+      const doctorIds = [...new Set(ordersData.map(o => o.doctor_id).filter(Boolean))];
+      const { data: profiles } = doctorIds.length > 0
+        ? await supabase
+            .from("profiles")
+            .select("id, full_name, clinic_name")
+            .in("id", doctorIds)
+        : { data: [] };
 
-      // Filter out orders where this lab has been refused
+      // 3. Fetch verification status for those doctors
+      const { data: verifications } = doctorIds.length > 0
+        ? await supabase
+            .from("doctor_verification")
+            .select("user_id, is_verified")
+            .in("user_id", doctorIds)
+        : { data: [] };
+
+      // 4. Fetch attachment counts per order
+      const orderIds = ordersData.map(o => o.id);
+      const { data: attachments } = await supabase
+        .from("order_attachments")
+        .select("order_id")
+        .in("order_id", orderIds);
+
+      // Build lookup maps
+      const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+      const verificationMap = new Map((verifications || []).map(v => [v.user_id, v.is_verified]));
+      const attachmentCountMap = new Map<string, number>();
+      (attachments || []).forEach(a => {
+        attachmentCountMap.set(a.order_id, (attachmentCountMap.get(a.order_id) || 0) + 1);
+      });
+
+      // Enrich orders
+      const enriched = ordersData.map(order => ({
+        ...order,
+        doctor_profile: profileMap.get(order.doctor_id) || null,
+        is_verified: verificationMap.get(order.doctor_id) || false,
+        attachment_count: attachmentCountMap.get(order.id) || 0,
+      }));
+
+      // If no labId, show all
+      if (!labId) return enriched;
+
+      // Filter out refused
       const { data: refusedRequests } = await supabase
         .from("lab_work_requests")
         .select("order_id")
@@ -89,10 +130,9 @@ export default function OrdersMarketplace() {
         .eq("status", "refused");
 
       const refusedOrderIds = new Set(refusedRequests?.map(r => r.order_id) || []);
-      
-      return ordersData.filter(order => !refusedOrderIds.has(order.id));
+      return enriched.filter(order => !refusedOrderIds.has(order.id));
     },
-    enabled: !!user?.id, // Enable if user exists, not just labId
+    enabled: !!user?.id,
   });
 
   // Set up realtime subscription for new orders
