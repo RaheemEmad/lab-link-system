@@ -18,6 +18,8 @@ import { LabBadges } from "@/components/labs/LabBadges";
 import { LabPerformanceStats } from "@/components/labs/LabPerformanceStats";
 import { LabPortfolio } from "@/components/labs/LabPortfolio";
 import { LabPastWork } from "@/components/labs/LabPastWork";
+import { LabGallery } from "@/components/labs/LabGallery";
+import { LabAggregateStatsCard } from "@/components/labs/LabAggregateStatsCard";
 
 import { formatEGP } from "@/lib/formatters";
 
@@ -384,6 +386,12 @@ export default function LabProfile() {
 
       {/* Performance Stats */}
       <LabPerformanceStats labId={lab.id} />
+
+      {/* Aggregate review stats */}
+      <LabAggregateStatsCard labId={lab.id} />
+
+      {/* Work Gallery */}
+      <LabGallery labId={lab.id} />
 
       {/* Portfolio */}
       <LabPortfolio labId={lab.id} />
