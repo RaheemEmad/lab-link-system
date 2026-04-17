@@ -35,6 +35,7 @@ import {
   History
 } from "lucide-react";
 import { toast } from "sonner";
+import { PostDeliveryReviewDialog } from "@/components/order/PostDeliveryReviewDialog";
 
 interface Order {
   id: string;
@@ -73,6 +74,34 @@ const OrderTracking = () => {
   const { role: userRole, isLoading: roleLoading } = useUserRole();
   const [selectedOrderForNotes, setSelectedOrderForNotes] = useState<string | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [reviewPrompt, setReviewPrompt] = useState<{ orderId: string; orderNumber: string; labId: string; labName: string } | null>(null);
+
+  // Auto-prompt review when a delivered order has no review yet (doctors only)
+  useEffect(() => {
+    if (userRole !== "doctor" || !user || !orders.length) return;
+    const delivered = orders.find(
+      (o) => o.status === "Delivered" && o.assigned_lab_id && o.labs?.name
+    );
+    if (!delivered) return;
+
+    let cancelled = false;
+    (async () => {
+      const { data: existing } = await supabase
+        .from("lab_reviews")
+        .select("id")
+        .eq("order_id", delivered.id)
+        .eq("dentist_id", user.id)
+        .maybeSingle();
+      if (cancelled || existing) return;
+      setReviewPrompt({
+        orderId: delivered.id,
+        orderNumber: delivered.order_number,
+        labId: delivered.assigned_lab_id!,
+        labName: delivered.labs!.name,
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [orders, userRole, user]);
 
   useEffect(() => {
     if (!user && !roleLoading) {
