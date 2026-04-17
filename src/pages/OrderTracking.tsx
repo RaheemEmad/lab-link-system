@@ -718,6 +718,18 @@ const OrderTracking = () => {
           }}
         />
       )}
+
+      {reviewPrompt && (
+        <PostDeliveryReviewDialog
+          orderId={reviewPrompt.orderId}
+          orderNumber={reviewPrompt.orderNumber}
+          labId={reviewPrompt.labId}
+          labName={reviewPrompt.labName}
+          open={!!reviewPrompt}
+          onOpenChange={(o) => !o && setReviewPrompt(null)}
+          onSubmitted={() => setReviewPrompt(null)}
+        />
+      )}
     </div>
   );
 };
