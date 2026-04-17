@@ -41,6 +41,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { LabProfilePreview } from "@/components/labs/LabProfilePreview";
 import { InventoryManager } from "@/components/lab/InventoryManager";
 import { LabInvitationManager } from "@/components/labs/LabInvitationManager";
+import { TeamMemberInvitations } from "@/components/labs/TeamMemberInvitations";
+import { LabGalleryManager } from "@/components/labs/LabGalleryManager";
+import { Image as ImageIcon, UserPlus } from "lucide-react";
 
 const labProfileSchema = z.object({
   name: z.string().min(2, "Lab name is required").max(100),
@@ -413,31 +416,34 @@ const LabAdmin = () => {
             )}
 
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+              <TabsList className="flex flex-wrap w-full max-w-4xl gap-1 h-auto">
                 <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Profile</span>
-                  <span className="sm:hidden">Profile</span>
+                  <span>Profile</span>
                 </TabsTrigger>
                 <TabsTrigger value="pricing" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Pricing</span>
-                  <span className="sm:hidden">Price</span>
+                  <span>Pricing</span>
                 </TabsTrigger>
                 <TabsTrigger value="specializations" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Specializations</span>
-                  <span className="sm:hidden">Specs</span>
+                  <span>Specs</span>
+                </TabsTrigger>
+                <TabsTrigger value="gallery" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                  <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span>Gallery</span>
+                </TabsTrigger>
+                <TabsTrigger value="team" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                  <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span>Team</span>
                 </TabsTrigger>
                 <TabsTrigger value="invitations" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Invitations</span>
-                  <span className="sm:hidden">Invite</span>
+                  <span>Doctors</span>
                 </TabsTrigger>
                 <TabsTrigger value="inventory" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                   <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Inventory</span>
-                  <span className="sm:hidden">Inv.</span>
+                  <span>Inventory</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -839,6 +845,32 @@ const LabAdmin = () => {
               {/* Pricing Tab */}
               <TabsContent value="pricing">
                 {labId && <LabPricingSetup labId={labId} />}
+              </TabsContent>
+
+              {/* Gallery Tab */}
+              <TabsContent value="gallery">
+                {labId ? (
+                  <LabGalleryManager labId={labId} />
+                ) : (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      Lab not found. Please complete your lab setup first.
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Team Tab */}
+              <TabsContent value="team">
+                {labId ? (
+                  <TeamMemberInvitations labId={labId} />
+                ) : (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      Lab not found. Please complete your lab setup first.
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               {/* Invitations Tab */}
