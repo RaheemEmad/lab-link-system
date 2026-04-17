@@ -1227,6 +1227,53 @@ export type Database = {
           },
         ]
       }
+      lab_gallery: {
+        Row: {
+          caption: string | null
+          case_type: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string
+          lab_id: string
+          material: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          case_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url: string
+          lab_id: string
+          material?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          case_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string
+          lab_id?: string
+          material?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_gallery_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_inventory: {
         Row: {
           category: string
@@ -3321,6 +3368,56 @@ export type Database = {
         }
         Relationships: []
       }
+      team_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          invite_token: string
+          invited_by: string
+          invited_email: string
+          invited_role: Database["public"]["Enums"]["app_role"]
+          lab_id: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          invited_by: string
+          invited_email: string
+          invited_role: Database["public"]["Enums"]["app_role"]
+          lab_id: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          invited_by?: string
+          invited_email?: string
+          invited_role?: Database["public"]["Enums"]["app_role"]
+          lab_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitations_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -3673,6 +3770,19 @@ export type Database = {
       generate_order_number: { Args: never; Returns: string }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_application_stats: { Args: never; Returns: Json }
+      get_lab_aggregate_stats: {
+        Args: { p_lab_id: string }
+        Returns: {
+          avg_accuracy: number
+          avg_communication: number
+          avg_overall: number
+          avg_quality: number
+          avg_turnaround: number
+          avg_value: number
+          on_time_percentage: number
+          total_reviews: number
+        }[]
+      }
       get_ranked_labs: {
         Args: {
           p_limit?: number
