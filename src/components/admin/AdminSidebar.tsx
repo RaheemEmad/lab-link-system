@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, Activity, MessageSquare, BarChart, LogOut, User, Shield, Bell, DollarSign, CreditCard } from "lucide-react";
+import { LayoutDashboard, Users, Package, Activity, MessageSquare, BarChart, LogOut, User, Shield, Bell, DollarSign, CreditCard, LifeBuoy } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +28,7 @@ const adminMenuItems = [
   { title: "Pricing Rules", url: "/admin/pricing-rules", icon: DollarSign },
   { title: "Security", url: "/admin?tab=security", icon: Shield },
   { title: "Alerts", url: "/admin?tab=alerts", icon: Bell },
+  { title: "Support", url: "/admin?tab=support", icon: LifeBuoy },
 ];
 
 const userMenuItems = [

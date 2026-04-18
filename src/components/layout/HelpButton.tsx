@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HelpCircle, Mail, Phone, MessageSquare, TicketPlus } from 'lucide-react';
+import { HelpCircle, Mail, Phone, TicketPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -21,6 +21,7 @@ export const HelpButton: React.FC = () => {
           variant="outline"
           size="icon"
           className="fixed bottom-20 right-6 z-40 h-10 w-10 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 bg-background border-2 border-primary/20 hover:border-primary"
+          aria-label="Open help"
         >
           <HelpCircle className="h-5 w-5 text-primary" />
         </Button>
@@ -30,36 +31,35 @@ export const HelpButton: React.FC = () => {
           <div>
             <h3 className="font-semibold text-lg mb-2">Need Help?</h3>
             <p className="text-sm text-muted-foreground">
-              Contact our support team if you encounter any issues.
+              All support is handled through tickets — submit one and we'll
+              reply right inside it.
             </p>
           </div>
-          
+
           {user && (
             <div className="space-y-2">
               <Button
-                variant="outline"
                 className="w-full justify-start gap-2"
                 onClick={() => { setIsOpen(false); navigate('/support'); }}
               >
                 <TicketPlus className="h-4 w-4" />
-                Submit Support Ticket
+                Submit a Support Ticket
               </Button>
               <Button
                 variant="outline"
                 className="w-full justify-start gap-2"
-                onClick={() => { setIsOpen(false); navigate('/messages'); }}
+                onClick={() => { setIsOpen(false); navigate('/support?tab=tickets'); }}
               >
-                <MessageSquare className="h-4 w-4" />
-                Direct Messages
+                View My Tickets
               </Button>
             </div>
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-3 pt-3 border-t">
             <div className="flex items-start gap-3">
               <Mail className="h-5 w-5 text-primary mt-0.5" />
               <div>
-                <p className="text-sm font-medium">Email Support</p>
+                <p className="text-sm font-medium">Email</p>
                 <a
                   href="mailto:raheem.amer.swe@gmail.com"
                   className="text-sm text-primary hover:underline"
@@ -68,11 +68,11 @@ export const HelpButton: React.FC = () => {
                 </a>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <Phone className="h-5 w-5 text-primary mt-0.5" />
               <div>
-                <p className="text-sm font-medium">Business Phone</p>
+                <p className="text-sm font-medium">Phone</p>
                 <a
                   href="tel:+201018385093"
                   className="text-sm text-primary hover:underline"
@@ -81,12 +81,6 @@ export const HelpButton: React.FC = () => {
                 </a>
               </div>
             </div>
-          </div>
-          
-          <div className="pt-3 border-t">
-            <p className="text-xs text-muted-foreground">
-              Our support team is available to help you with any questions or technical issues.
-            </p>
           </div>
         </div>
       </PopoverContent>

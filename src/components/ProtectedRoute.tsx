@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,10 +17,12 @@ const ONBOARDING_EXEMPT = [
   "/settings",
   "/install",
   "/support",
+  "/admin",
 ];
 
 const ProtectedRoute = ({ children, skipOnboardingCheck = false }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const { isAdmin, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,16 +47,17 @@ const ProtectedRoute = ({ children, skipOnboardingCheck = false }: ProtectedRout
     }
   }, [user, loading, navigate]);
 
-  // Onboarding enforcement
+  // Onboarding enforcement — admins are exempt entirely
   useEffect(() => {
-    if (loading || profileLoading || !user || skipOnboardingCheck) return;
+    if (loading || profileLoading || roleLoading || !user || skipOnboardingCheck) return;
+    if (isAdmin) return; // Admins never need to fill clinic info
     const isExempt = ONBOARDING_EXEMPT.some((r) => location.pathname.startsWith(r));
     if (isExempt) return;
 
     if (profile && profile.onboarding_completed === false) {
       navigate("/profile-completion", { replace: true });
     }
-  }, [loading, profileLoading, user, profile, skipOnboardingCheck, location.pathname, navigate]);
+  }, [loading, profileLoading, roleLoading, isAdmin, user, profile, skipOnboardingCheck, location.pathname, navigate]);
 
   if (loading) {
     return (
