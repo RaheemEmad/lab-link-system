@@ -91,6 +91,7 @@ export const useRealtimeNotifications = () => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
 
     const isUrgent = notification.type.includes('warning') || notification.type.includes('issue') || notification.type === 'sla_warning';
+    const targetUrl = buildNotificationUrl(notification.order_id, role);
 
     try {
       if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
@@ -103,7 +104,7 @@ export const useRealtimeNotifications = () => {
             requireInteraction: isUrgent,
             vibrate: isUrgent ? [200, 100, 200, 100, 200] : [200, 100, 200],
             data: {
-              url: `/order-tracking/${notification.order_id}`,
+              url: targetUrl,
               orderId: notification.order_id,
               notificationId: notification.id,
             },
@@ -123,21 +124,22 @@ export const useRealtimeNotifications = () => {
         });
         nativeNotif.onclick = () => {
           window.focus();
-          window.location.href = `/order-tracking/${notification.order_id}`;
+          window.location.href = targetUrl;
           nativeNotif.close();
         };
       }
     } catch (error) {
       console.error("Error showing native notification:", error);
     }
-  }, []);
+  }, [role]);
 
   const showNotificationPopup = useCallback((notification: Notification) => {
     const isWarning = notification.type.includes('warning') || notification.type.includes('issue');
     const isSuccess = notification.type.includes('confirmed') || notification.type.includes('accepted');
+    const targetUrl = buildNotificationUrl(notification.order_id, role);
     const action = {
       label: "View",
-      onClick: () => { window.location.href = `/order-tracking/${notification.order_id}`; },
+      onClick: () => { window.location.href = targetUrl; },
     };
 
     if (isSuccess) {
