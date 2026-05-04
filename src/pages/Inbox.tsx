@@ -150,7 +150,7 @@ const InboxPage = () => {
         );
       case "notification":
         return item.orderId ? (
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate(`/order-tracking?orderId=${item.orderId}`)}>
+          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate(role === "lab_staff" ? `/lab-order/${item.orderId}` : `/order-tracking?orderId=${item.orderId}`)}>
             View
           </Button>
         ) : null;
