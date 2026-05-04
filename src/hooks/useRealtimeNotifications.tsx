@@ -1,8 +1,21 @@
 import { useEffect, useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+/**
+ * Build the correct deep-link for a notification based on the recipient's role.
+ * - Labs go to the lab-side detail page (/lab-order/:id)
+ * - Doctors/admins go to the tracking page filtered to that order
+ * Falls back to the inbox when no order_id is present.
+ */
+const buildNotificationUrl = (orderId: string | null | undefined, role: string | null | undefined): string => {
+  if (!orderId) return "/inbox";
+  if (role === "lab_staff") return `/lab-order/${orderId}`;
+  return `/order-tracking?orderId=${orderId}`;
+};
 
 const POPUP_NOTIFICATION_TYPES = [
   'order_accepted',
