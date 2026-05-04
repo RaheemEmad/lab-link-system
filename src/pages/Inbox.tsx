@@ -52,6 +52,7 @@ const InboxPage = () => {
   const { items, counts, isLoading, refetchAll } = useInboxItems(activeTab);
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { role } = useUserRole();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
