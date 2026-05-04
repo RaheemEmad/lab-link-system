@@ -65,6 +65,7 @@ interface Notification {
 
 export const useRealtimeNotifications = () => {
   const { user } = useAuth();
+  const { role } = useUserRole();
   const queryClient = useQueryClient();
   const [permission, setPermission] = useState<NotificationPermission>("default");
 
