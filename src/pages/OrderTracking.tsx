@@ -32,10 +32,12 @@ import {
   FileText,
   Mail,
   Phone,
-  History
+  History,
+  QrCode
 } from "lucide-react";
 import { toast } from "sonner";
 import { PostDeliveryReviewDialog } from "@/components/order/PostDeliveryReviewDialog";
+import { printOrderBrochure } from "@/lib/orderBrochure";
 
 interface Order {
   id: string;
