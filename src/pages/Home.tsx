@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingHero from "@/components/landing/LandingHero";
 import ProblemSection from "@/components/landing/ProblemSection";
+import ValuePropSection from "@/components/landing/ValuePropSection";
 import FeatureSnapshot from "@/components/landing/FeatureSnapshot";
 import RoleShowcase from "@/components/landing/RoleShowcase";
 import LiveDemoSection from "@/components/landing/LiveDemoSection";
@@ -22,6 +23,7 @@ const Home = () => {
       <LandingNav />
       <LandingHero />
       <ProblemSection />
+      <ValuePropSection />
       <FeatureSnapshot />
       <RoleShowcase />
       <LiveDemoSection />

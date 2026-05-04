@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layouts/PageLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useInboxItems, type InboxItemType } from "@/hooks/useInboxItems";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +53,7 @@ const InboxPage = () => {
   const { items, counts, isLoading, refetchAll } = useInboxItems(activeTab);
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { role } = useUserRole();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -150,7 +152,7 @@ const InboxPage = () => {
         );
       case "notification":
         return item.orderId ? (
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate(`/order-tracking?orderId=${item.orderId}`)}>
+          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate(role === "lab_staff" ? `/lab-order/${item.orderId}` : `/order-tracking?orderId=${item.orderId}`)}>
             View
           </Button>
         ) : null;

@@ -32,10 +32,12 @@ import {
   FileText,
   Mail,
   Phone,
-  History
+  History,
+  QrCode
 } from "lucide-react";
 import { toast } from "sonner";
 import { PostDeliveryReviewDialog } from "@/components/order/PostDeliveryReviewDialog";
+import { printOrderBrochure } from "@/lib/orderBrochure";
 
 interface Order {
   id: string;
@@ -410,6 +412,24 @@ const OrderTracking = () => {
                             >
                               <MessageSquare className="h-4 w-4 mr-2" />
                               Notes
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => printOrderBrochure({
+                                orderId: order.id,
+                                orderNumber: order.order_number,
+                                doctorName: order.doctor_name,
+                                patientName: order.patient_name,
+                                labName: (order as any).labs?.name ?? null,
+                                labPhone: (order as any).labs?.contact_phone ?? null,
+                                status: order.status,
+                                dueDate: order.expected_delivery_date,
+                              })}
+                              aria-label="Download order brochure with QR"
+                              title="Brochure with QR"
+                            >
+                              <QrCode className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>

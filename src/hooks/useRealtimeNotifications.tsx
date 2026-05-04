@@ -1,8 +1,21 @@
 import { useEffect, useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+/**
+ * Build the correct deep-link for a notification based on the recipient's role.
+ * - Labs go to the lab-side detail page (/lab-order/:id)
+ * - Doctors/admins go to the tracking page filtered to that order
+ * Falls back to the inbox when no order_id is present.
+ */
+const buildNotificationUrl = (orderId: string | null | undefined, role: string | null | undefined): string => {
+  if (!orderId) return "/inbox";
+  if (role === "lab_staff") return `/lab-order/${orderId}`;
+  return `/order-tracking?orderId=${orderId}`;
+};
 
 const POPUP_NOTIFICATION_TYPES = [
   'order_accepted',
@@ -52,6 +65,7 @@ interface Notification {
 
 export const useRealtimeNotifications = () => {
   const { user } = useAuth();
+  const { role } = useUserRole();
   const queryClient = useQueryClient();
   const [permission, setPermission] = useState<NotificationPermission>("default");
 
@@ -77,6 +91,7 @@ export const useRealtimeNotifications = () => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
 
     const isUrgent = notification.type.includes('warning') || notification.type.includes('issue') || notification.type === 'sla_warning';
+    const targetUrl = buildNotificationUrl(notification.order_id, role);
 
     try {
       if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
@@ -89,7 +104,7 @@ export const useRealtimeNotifications = () => {
             requireInteraction: isUrgent,
             vibrate: isUrgent ? [200, 100, 200, 100, 200] : [200, 100, 200],
             data: {
-              url: `/order-tracking/${notification.order_id}`,
+              url: targetUrl,
               orderId: notification.order_id,
               notificationId: notification.id,
             },
@@ -109,21 +124,22 @@ export const useRealtimeNotifications = () => {
         });
         nativeNotif.onclick = () => {
           window.focus();
-          window.location.href = `/order-tracking/${notification.order_id}`;
+          window.location.href = targetUrl;
           nativeNotif.close();
         };
       }
     } catch (error) {
       console.error("Error showing native notification:", error);
     }
-  }, []);
+  }, [role]);
 
   const showNotificationPopup = useCallback((notification: Notification) => {
     const isWarning = notification.type.includes('warning') || notification.type.includes('issue');
     const isSuccess = notification.type.includes('confirmed') || notification.type.includes('accepted');
+    const targetUrl = buildNotificationUrl(notification.order_id, role);
     const action = {
       label: "View",
-      onClick: () => { window.location.href = `/order-tracking/${notification.order_id}`; },
+      onClick: () => { window.location.href = targetUrl; },
     };
 
     if (isSuccess) {
