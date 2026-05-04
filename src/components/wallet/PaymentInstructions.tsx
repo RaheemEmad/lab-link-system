@@ -137,16 +137,28 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
             <span className="text-sm font-medium text-green-700 dark:text-green-400">Confirm via WhatsApp</span>
           </div>
           <p className="text-xs text-muted-foreground">
-            After sending payment, confirm via WhatsApp call to {PAYMENT_PHONE}
+            After paying, send the pre-filled template below to {PAYMENT_PHONE} so we can match and confirm your transfer.
           </p>
           <Button
             variant="outline"
             size="sm"
             className="text-green-600 border-green-300 hover:bg-green-50"
-            onClick={() => window.open(`https://wa.me/${PAYMENT_PHONE.replace('+', '')}`, "_blank")}
+            onClick={() => {
+              const lines = [
+                "LabLink — Payment Confirmation",
+                planName ? `Plan: ${planName}` : context === "deposit" ? "Type: Commitment Deposit" : "Type: Wallet Top-up",
+                amount ? `Amount: ${amount} EGP` : null,
+                `Method: ${paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "InstaPay"}`,
+                phoneUsed ? `Sender Number: ${phoneUsed}` : "Sender Number: <your number here>",
+                referenceNumber ? `Reference: ${referenceNumber}` : null,
+                user?.email ? `Account: ${user.email}` : null,
+              ].filter(Boolean).join("\n");
+              const url = `https://wa.me/${PAYMENT_PHONE.replace('+', '')}?text=${encodeURIComponent(lines)}`;
+              window.open(url, "_blank");
+            }}
           >
             <Phone className="h-3 w-3 mr-1" />
-            Open WhatsApp
+            Send Template on WhatsApp
           </Button>
         </div>
 
