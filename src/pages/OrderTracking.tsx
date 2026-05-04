@@ -421,9 +421,10 @@ const OrderTracking = () => {
                                 orderNumber: order.order_number,
                                 doctorName: order.doctor_name,
                                 patientName: order.patient_name,
-                                labName: (order as any).lab_name ?? null,
+                                labName: (order as any).labs?.name ?? null,
+                                labPhone: (order as any).labs?.contact_phone ?? null,
                                 status: order.status,
-                                dueDate: (order as any).due_date ?? null,
+                                dueDate: order.expected_delivery_date,
                               })}
                               aria-label="Download order brochure with QR"
                               title="Brochure with QR"
