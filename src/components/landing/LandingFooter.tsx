@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { downloadGenericBrochure } from "@/lib/orderBrochure";
 
 const LandingFooter = () => {
   const currentYear = new Date().getFullYear();
@@ -12,26 +13,24 @@ const LandingFooter = () => {
           <div className="text-xs sm:text-sm text-muted-foreground text-center md:text-start">
             © {currentYear} {t.footer.copyright}
           </div>
-          
+
           <nav className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-8">
-            <Link 
-              to="/privacy" 
-              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/privacy" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
               {t.footer.privacy}
             </Link>
-            <Link 
-              to="/terms" 
-              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/terms" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
               {t.footer.terms}
             </Link>
-            <Link 
-              to="/contact" 
-              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/contact" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
               {t.footer.contact}
             </Link>
+            <button
+              type="button"
+              onClick={() => downloadGenericBrochure()}
+              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              How-to brochure (PDF)
+            </button>
           </nav>
         </div>
       </div>
