@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">
+  <url><loc>https://lablink-smartlab.lovable.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://lablink-smartlab.lovable.app/auth</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://lablink-smartlab.lovable.app/how-it-works</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://lablink-smartlab.lovable.app/labs</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://lablink-smartlab.lovable.app/about</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://lablink-smartlab.lovable.app/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://lablink-smartlab.lovable.app/subscription-plans</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://lablink-smartlab.lovable.app/privacy-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://lablink-smartlab.lovable.app/terms-of-service</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+</urlset>
