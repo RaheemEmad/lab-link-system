@@ -92,6 +92,7 @@ export const PaymentConfirmationsTab = () => {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ id }: { id: string }) => {
+      const conf = confirmations?.find((c: any) => c.id === id);
       const { error } = await supabase
         .from("payment_confirmations")
         .update({
@@ -101,6 +102,18 @@ export const PaymentConfirmationsTab = () => {
         })
         .eq("id", id);
       if (error) throw error;
+
+      // In-app notification for the user
+      if (conf?.user_id) {
+        await supabase.from("notifications").insert({
+          user_id: conf.user_id,
+          type: "payment_rejected",
+          title: "Payment rejected",
+          message: rejectionReason
+            ? `Your payment was rejected: ${rejectionReason}`
+            : "Your payment submission was rejected. Please contact support for details.",
+        } as any);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-payment-confirmations"] });
