@@ -254,31 +254,85 @@ const VideoTutorialSection = () => {
         </div>
       </div>
 
-      {/* Video Modal Placeholder - Could be enhanced with actual video player */}
-      {activeVideo && (
-        <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
-          onClick={() => setActiveVideo(null)}
-        >
-          <div 
-            className="bg-card rounded-xl max-w-4xl w-full overflow-hidden shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+      {/* Step-by-step tutorial modal */}
+      {activeVideo && (() => {
+        const tutorial = tutorials.find((t) => t.id === activeVideo);
+        if (!tutorial) return null;
+        const Icon = tutorial.icon;
+        return (
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
+            onClick={() => setActiveVideo(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tutorial-title"
           >
-            <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <div className="text-center space-y-4 p-8">
-                <Video className="w-16 h-16 text-primary mx-auto" />
-                <p className="text-lg font-semibold">Video Player</p>
-                <p className="text-sm text-muted-foreground">
-                  Tutorial video will be displayed here
-                </p>
-                <Button onClick={() => setActiveVideo(null)}>
-                  Close Preview
+            <div
+              className="bg-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-border"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 p-6 border-b border-border">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 id="tutorial-title" className="text-lg font-bold truncate">
+                      {tutorial.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Badge variant="secondary" className="text-[10px]">{tutorial.difficulty}</Badge>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {tutorial.duration}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setActiveVideo(null)}
+                  aria-label="Close tutorial"
+                >
+                  <X className="w-5 h-5" />
                 </Button>
+              </div>
+
+              <div className="p-6 space-y-5">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {tutorial.description}
+                </p>
+
+                <ol className="space-y-3">
+                  {tutorial.steps.map((step, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center">
+                        {idx + 1}
+                      </div>
+                      <div className="pt-1">
+                        <p className="text-sm font-medium leading-relaxed">{step}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <Button asChild className="flex-1">
+                    <Link to={tutorial.ctaHref}>
+                      {tutorial.ctaLabel}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                  <Button variant="outline" onClick={() => setActiveVideo(null)}>
+                    Close
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </section>
   );
 };
