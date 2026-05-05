@@ -961,6 +961,21 @@ const LabOrderDetail = () => {
                       View Order Form
                     </Button>
                   )}
+                  {labContactPhone && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-green-700 border-green-300 hover:bg-green-50 dark:hover:bg-green-950/20"
+                      onClick={() => {
+                        const url = buildLabPaymentWhatsAppUrl(labContactPhone, {
+                          orderNumber: order.order_number,
+                        });
+                        window.open(url, "_blank", "noopener,noreferrer");
+                      }}
+                    >
+                      <Phone className="h-4 w-4 mr-2" />
+                      Pay this lab via WhatsApp{labName ? ` (${labName})` : ""}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
