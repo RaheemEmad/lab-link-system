@@ -1,15 +1,18 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Play, 
-  FileText, 
-  Building2, 
+import {
+  Play,
+  FileText,
+  Building2,
   TrendingUp,
   Clock,
   CheckCircle2,
-  Video
+  Video,
+  ArrowRight,
+  X,
 } from "lucide-react";
 
 const VideoTutorialSection = () => {
