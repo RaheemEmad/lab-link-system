@@ -204,6 +204,11 @@ const Wallet = () => {
               />
             </div>
 
+            {/* Recent Payment Submissions (real-time admin verification) */}
+            <div className="mb-6">
+              <PaymentConfirmationStatus />
+            </div>
+
             {/* Transaction History */}
             {wallet && <TransactionHistory walletId={wallet.id} />}
           </div>
