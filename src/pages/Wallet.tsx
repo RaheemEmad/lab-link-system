@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Clock, Shield, TrendingUp, Crown } from "lucide-react";
 import { TransactionHistory } from "@/components/wallet/TransactionHistory";
 import { PaymentInstructions } from "@/components/wallet/PaymentInstructions";
+import { PaymentConfirmationStatus } from "@/components/wallet/PaymentConfirmationStatus";
 import { toast } from "@/components/ui/sonner";
 import { formatDistanceToNow } from "date-fns";
 
