@@ -41,6 +41,16 @@ export const PaymentConfirmationsTab = () => {
         .eq("id", id);
       if (error) throw error;
 
+      // In-app notification for the user
+      const conf = confirmations?.find((c: any) => c.id === id);
+      const amount = conf?.amount;
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        type: "payment_approved",
+        title: "Payment approved",
+        message: `Your payment${amount ? ` of ${amount} EGP` : ""} has been approved and credited to your wallet.`,
+      } as any);
+
       // If plan_id is set, update or create subscription
       if (planId) {
         const { data: existing } = await supabase
