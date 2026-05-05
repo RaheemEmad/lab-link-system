@@ -200,6 +200,15 @@ const LabOrderDetail = () => {
       }
 
       setOrder(data);
+      if (data.assigned_lab_id) {
+        const { data: lab } = await supabase
+          .from('labs')
+          .select('name, contact_phone')
+          .eq('id', data.assigned_lab_id)
+          .maybeSingle();
+        setLabContactPhone(lab?.contact_phone ?? null);
+        setLabName(lab?.name ?? null);
+      }
       setEditableFields({
         restoration_type: data.restoration_type,
         teeth_shade: data.teeth_shade,
