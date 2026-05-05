@@ -23,7 +23,7 @@ const VideoTutorialSection = () => {
       id: "create-order",
       icon: FileText,
       title: "Creating Your First Order",
-      duration: "3:24",
+      duration: "3 min read",
       difficulty: "Beginner",
       description: "Learn how to submit a complete dental lab order in under 2 minutes",
       thumbnail: "order-form",
@@ -32,15 +32,16 @@ const VideoTutorialSection = () => {
         "Select tooth numbers and restoration type",
         "Upload photos for accurate shade matching",
         "Choose your preferred lab or auto-assign",
-        "Set delivery requirements and submit"
+        "Set delivery requirements and submit",
       ],
-      videoUrl: "" // Placeholder - can be replaced with actual video URL
+      ctaLabel: "Start a new order",
+      ctaHref: "/new-order",
     },
     {
       id: "lab-profile",
       icon: Building2,
       title: "Setting Up Your Lab Profile",
-      duration: "4:12",
+      duration: "4 min read",
       difficulty: "Beginner",
       description: "Create a professional lab profile that attracts dentist partnerships",
       thumbnail: "lab-profile",
@@ -49,15 +50,16 @@ const VideoTutorialSection = () => {
         "Upload your lab logo and branding",
         "Configure specializations and expertise levels",
         "Set pricing tiers and turnaround times",
-        "Preview and publish your profile"
+        "Preview and publish your profile",
       ],
-      videoUrl: ""
+      ctaLabel: "Open Lab Admin",
+      ctaHref: "/lab-admin",
     },
     {
       id: "track-orders",
       icon: TrendingUp,
       title: "Tracking Orders & Updates",
-      duration: "2:45",
+      duration: "3 min read",
       difficulty: "Beginner",
       description: "Monitor order progress and manage status updates in real-time",
       thumbnail: "tracking",
@@ -66,10 +68,11 @@ const VideoTutorialSection = () => {
         "Filter and search for specific orders",
         "Update order status and add notes",
         "Upload delivery tracking information",
-        "Confirm delivery and close orders"
+        "Confirm delivery and close orders",
       ],
-      videoUrl: ""
-    }
+      ctaLabel: "Open Order Tracking",
+      ctaHref: "/order-tracking",
+    },
   ];
 
   const getThumbnailGradient = (type: string) => {
