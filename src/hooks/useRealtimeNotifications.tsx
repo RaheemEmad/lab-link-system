@@ -50,6 +50,8 @@ const POPUP_NOTIFICATION_TYPES = [
   'checklist_updated',
   'order_edited',
   'ticket_status_update',
+  'payment_approved',
+  'payment_rejected',
 ];
 
 interface Notification {

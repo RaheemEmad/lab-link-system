@@ -2162,7 +2162,7 @@ export type Database = {
           created_at: string
           id: string
           message: string
-          order_id: string
+          order_id: string | null
           read: boolean
           title: string
           type: string
@@ -2172,7 +2172,7 @@ export type Database = {
           created_at?: string
           id?: string
           message: string
-          order_id: string
+          order_id?: string | null
           read?: boolean
           title: string
           type: string
@@ -2182,7 +2182,7 @@ export type Database = {
           created_at?: string
           id?: string
           message?: string
-          order_id?: string
+          order_id?: string | null
           read?: boolean
           title?: string
           type?: string
