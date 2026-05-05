@@ -85,6 +85,8 @@ const LabOrderDetail = () => {
   const { user } = useAuth();
   
   const [order, setOrder] = useState<Order | null>(null);
+  const [labContactPhone, setLabContactPhone] = useState<string | null>(null);
+  const [labName, setLabName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
