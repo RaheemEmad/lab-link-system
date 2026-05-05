@@ -14,7 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { ArrowLeft, Save, FileText, Upload, Send, AlertCircle, Clock, Truck, Package, MessageSquare, Calendar, Clipboard, Link, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Save, FileText, Upload, Send, AlertCircle, Clock, Truck, Package, MessageSquare, Calendar, Clipboard, Link, CheckCircle2, Phone } from "lucide-react";
+import { buildLabPaymentWhatsAppUrl } from "@/lib/orderBrochure";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { OrderStatusDialog } from "@/components/order/OrderStatusDialog";
@@ -84,6 +85,8 @@ const LabOrderDetail = () => {
   const { user } = useAuth();
   
   const [order, setOrder] = useState<Order | null>(null);
+  const [labContactPhone, setLabContactPhone] = useState<string | null>(null);
+  const [labName, setLabName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -197,6 +200,15 @@ const LabOrderDetail = () => {
       }
 
       setOrder(data);
+      if (data.assigned_lab_id) {
+        const { data: lab } = await supabase
+          .from('labs')
+          .select('name, contact_phone')
+          .eq('id', data.assigned_lab_id)
+          .maybeSingle();
+        setLabContactPhone(lab?.contact_phone ?? null);
+        setLabName(lab?.name ?? null);
+      }
       setEditableFields({
         restoration_type: data.restoration_type,
         teeth_shade: data.teeth_shade,
@@ -947,6 +959,21 @@ const LabOrderDetail = () => {
                     >
                       <FileText className="h-4 w-4 mr-2" />
                       View Order Form
+                    </Button>
+                  )}
+                  {labContactPhone && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-green-700 border-green-300 hover:bg-green-50 dark:hover:bg-green-950/20"
+                      onClick={() => {
+                        const url = buildLabPaymentWhatsAppUrl(labContactPhone, {
+                          orderNumber: order.order_number,
+                        });
+                        window.open(url, "_blank", "noopener,noreferrer");
+                      }}
+                    >
+                      <Phone className="h-4 w-4 mr-2" />
+                      Pay this lab via WhatsApp{labName ? ` (${labName})` : ""}
                     </Button>
                   )}
                 </CardContent>
