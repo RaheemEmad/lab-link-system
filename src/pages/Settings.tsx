@@ -14,6 +14,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import { cn } from "@/lib/utils";
 import { PrivacyTab } from "@/components/settings/PrivacyTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
+import { NotificationPreferencesTab } from "@/components/settings/NotificationPreferencesTab";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -119,23 +120,7 @@ const Settings = () => {
 
             {/* Notifications */}
             <TabsContent value="notifications">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t.settings.notificationPrefs}</CardTitle>
-                  <CardDescription>{t.settings.controlUpdates}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="email-notifs">{t.settings.emailNotifications}</Label>
-                    <Switch id="email-notifs" checked={emailNotifs} onCheckedChange={setEmailNotifs} />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-notifs">{t.settings.pushNotifications}</Label>
-                    <Switch id="push-notifs" checked={pushNotifs} onCheckedChange={setPushNotifs} />
-                  </div>
-                </CardContent>
-              </Card>
+              <NotificationPreferencesTab />
             </TabsContent>
 
             {/* Security - NEW */}

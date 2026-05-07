@@ -2127,6 +2127,36 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          category: string
+          created_at: string
+          email: boolean
+          id: string
+          in_app: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          email?: boolean
+          id?: string
+          in_app?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          email?: boolean
+          id?: string
+          in_app?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_reminders: {
         Row: {
           created_at: string | null
@@ -2840,6 +2870,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_notification_audit: {
+        Row: {
+          action: string
+          channel: string
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          payment_confirmation_id: string | null
+          recipient_email: string | null
+          recipient_user_id: string
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          action: string
+          channel: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_confirmation_id?: string | null
+          recipient_email?: string | null
+          recipient_user_id: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          action?: string
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_confirmation_id?: string | null
+          recipient_email?: string | null
+          recipient_user_id?: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
       }
       preferred_labs: {
         Row: {
@@ -3899,6 +3971,7 @@ export type Database = {
         }
         Returns: string
       }
+      purge_old_payment_notification_audit: { Args: never; Returns: undefined }
       raise_invoice_dispute: {
         Args: { p_invoice_id: string; p_reason: string; p_user_id: string }
         Returns: boolean
