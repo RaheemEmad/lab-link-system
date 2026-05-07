@@ -19,6 +19,7 @@ const AdminSecurityTab = lazy(() => import("@/components/admin/AdminSecurityTab"
 const AdminAlertsTab = lazy(() => import("@/components/admin/AdminAlertsTab"));
 const PaymentConfirmationsTab = lazy(() => import("@/components/admin/PaymentConfirmationsTab").then(m => ({ default: m.PaymentConfirmationsTab })));
 const AdminSupportTab = lazy(() => import("@/components/admin/AdminSupportTab"));
+const PaymentNotificationAuditTab = lazy(() => import("@/components/admin/PaymentNotificationAuditTab"));
 
 const TabLoadingFallback = () => (
   <div className="flex items-center justify-center p-12">
@@ -164,6 +165,12 @@ const Admin = () => {
               <TabsContent value="support" className="space-y-4">
                 <Suspense fallback={<TabLoadingFallback />}>
                   <AdminSupportTab />
+                </Suspense>
+              </TabsContent>
+
+              <TabsContent value="payment-audit" className="space-y-4">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <PaymentNotificationAuditTab />
                 </Suspense>
               </TabsContent>
             </Tabs>
