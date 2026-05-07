@@ -31,7 +31,9 @@ export const PaymentConfirmationsTab = () => {
 
   const approveMutation = useMutation({
     mutationFn: async ({ id, userId, planId }: { id: string; userId: string; planId: string | null }) => {
-      // Update confirmation status
+      const { data: authUser } = await supabase.auth.getUser();
+      const adminId = authUser.user?.id ?? null;
+
       const { error } = await supabase
         .from("payment_confirmations")
         .update({
@@ -41,14 +43,40 @@ export const PaymentConfirmationsTab = () => {
         .eq("id", id);
       if (error) throw error;
 
-      // In-app notification for the user
       const conf = confirmations?.find((c: any) => c.id === id);
       const amount = conf?.amount;
-      await supabase.from("notifications").insert({
+
+      // In-app notification
+      const { error: notifErr } = await supabase.from("notifications").insert({
         user_id: userId,
         type: "payment_approved",
         title: "Payment approved",
         message: `Your payment${amount ? ` of ${amount} EGP` : ""} has been approved and credited to your wallet.`,
+      } as any);
+
+      // Audit log (in-app)
+      await supabase.from("payment_notification_audit").insert({
+        payment_confirmation_id: id,
+        recipient_user_id: userId,
+        action: "approved",
+        channel: "in_app",
+        status: notifErr ? "failed" : "sent",
+        error_message: notifErr?.message ?? null,
+        triggered_by: adminId,
+        metadata: { amount, plan_id: planId },
+      } as any);
+
+      // Email notification (best effort via auth-email-hook compatible function if present)
+      // Currently no transactional email function deployed for payment events — log as skipped.
+      await supabase.from("payment_notification_audit").insert({
+        payment_confirmation_id: id,
+        recipient_user_id: userId,
+        action: "approved",
+        channel: "email",
+        status: "skipped",
+        error_message: "email channel not yet configured",
+        triggered_by: adminId,
+        metadata: { amount },
       } as any);
 
       // If plan_id is set, update or create subscription
@@ -85,6 +113,7 @@ export const PaymentConfirmationsTab = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-payment-confirmations"] });
       queryClient.invalidateQueries({ queryKey: ["inbox-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["payment-notification-audit"] });
       toast.success("Payment approved and subscription updated!");
     },
     onError: () => toast.error("Failed to approve payment"),
@@ -92,6 +121,8 @@ export const PaymentConfirmationsTab = () => {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ id }: { id: string }) => {
+      const { data: authUser } = await supabase.auth.getUser();
+      const adminId = authUser.user?.id ?? null;
       const conf = confirmations?.find((c: any) => c.id === id);
       const { error } = await supabase
         .from("payment_confirmations")
@@ -103,9 +134,8 @@ export const PaymentConfirmationsTab = () => {
         .eq("id", id);
       if (error) throw error;
 
-      // In-app notification for the user
       if (conf?.user_id) {
-        await supabase.from("notifications").insert({
+        const { error: notifErr } = await supabase.from("notifications").insert({
           user_id: conf.user_id,
           type: "payment_rejected",
           title: "Payment rejected",
@@ -113,11 +143,34 @@ export const PaymentConfirmationsTab = () => {
             ? `Your payment was rejected: ${rejectionReason}`
             : "Your payment submission was rejected. Please contact support for details.",
         } as any);
+
+        await supabase.from("payment_notification_audit").insert({
+          payment_confirmation_id: id,
+          recipient_user_id: conf.user_id,
+          action: "rejected",
+          channel: "in_app",
+          status: notifErr ? "failed" : "sent",
+          error_message: notifErr?.message ?? null,
+          triggered_by: adminId,
+          metadata: { reason: rejectionReason },
+        } as any);
+
+        await supabase.from("payment_notification_audit").insert({
+          payment_confirmation_id: id,
+          recipient_user_id: conf.user_id,
+          action: "rejected",
+          channel: "email",
+          status: "skipped",
+          error_message: "email channel not yet configured",
+          triggered_by: adminId,
+          metadata: { reason: rejectionReason },
+        } as any);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-payment-confirmations"] });
       queryClient.invalidateQueries({ queryKey: ["inbox-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["payment-notification-audit"] });
       setRejectDialog({ id: "", open: false });
       setRejectionReason("");
       toast.success("Payment rejected");
