@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { shouldShowInApp } from "@/hooks/useNotificationPreferences";
 
 /**
  * Build the correct deep-link for a notification based on the recipient's role.
@@ -176,11 +177,12 @@ export const useRealtimeNotifications = () => {
           table: 'notifications',
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
+        async (payload) => {
           const notification = payload.new as Notification;
 
           if (POPUP_NOTIFICATION_TYPES.includes(notification.type)) {
-            showNotificationPopup(notification);
+            const allowed = await shouldShowInApp(user.id, notification.type);
+            if (allowed) showNotificationPopup(notification);
           }
 
           // Batch invalidation — single predicate instead of 6 separate calls
