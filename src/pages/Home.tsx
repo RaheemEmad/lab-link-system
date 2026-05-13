@@ -21,20 +21,22 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       <LandingNav />
-      <LandingHero />
-      <ProblemSection />
-      <ValuePropSection />
-      <FeatureSnapshot />
-      <RoleShowcase />
-      <LiveDemoSection />
-      <HowItWorks />
-      <Suspense fallback={<div className="min-h-[200px]" />}>
-        <VideoTutorialSection />
-        <DualView />
-        <ProofSection />
-        <FAQSection />
-        <FinalCTA />
-      </Suspense>
+      <main>
+        <LandingHero />
+        <ProblemSection />
+        <ValuePropSection />
+        <FeatureSnapshot />
+        <RoleShowcase />
+        <LiveDemoSection />
+        <HowItWorks />
+        <Suspense fallback={<div className="min-h-[200px]" />}>
+          <VideoTutorialSection />
+          <DualView />
+          <ProofSection />
+          <FAQSection />
+          <FinalCTA />
+        </Suspense>
+      </main>
       <LandingFooter />
       <ScrollToTop />
     </div>
