@@ -1,0 +1,21 @@
+# LabLink
+
+> Egypt's smart dental lab marketplace — connecting dentists with verified dental labs to submit cases, compare quotes, and track every order in real time.
+
+LabLink is a workflow platform that replaces chaotic WhatsApp-driven lab orders with a transparent, trackable system for dentists, dental labs, and admins. It supports the full lifecycle: case submission, lab matching and bidding, real-time status tracking, in-app chat, deliveries, invoicing, and payments — with bilingual (English/Arabic) and PWA support.
+
+## Pages
+
+- [Home](/): Overview of LabLink for dentists and dental labs.
+- [How it works](/how-it-works): Step-by-step walkthrough of the order flow.
+- [Browse labs](/labs): Directory of verified dental labs with ratings and specializations.
+- [Subscription plans](/plans): Available pricing tiers for doctors and labs.
+- [About](/about): Mission and values behind LabLink.
+- [Contact](/contact): Reach the LabLink support team.
+- [Sign in / Sign up](/auth): Account access for dentists and lab staff.
+- [Install app](/install): Install LabLink as a PWA on mobile or desktop.
+
+## Optional
+
+- [Privacy policy](/privacy): How user data is handled.
+- [Terms of service](/terms): Terms governing use of the platform.
