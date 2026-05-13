@@ -24,11 +24,11 @@ const PageLayout = ({
   return (
     <div className="min-h-screen flex flex-col">
       {showNav && <LandingNav />}
-      <div className={`flex-1 ${bgClass}`}>
+      <main className={`flex-1 ${bgClass}`}>
         <div className={`container px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-12 ${maxWidth} mx-auto`}>
           {children}
         </div>
-      </div>
+      </main>
       {showFooter && <LandingFooter />}
       <ScrollToTop />
     </div>
