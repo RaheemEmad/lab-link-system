@@ -31,9 +31,47 @@ Allow: /
 
 User-agent: *
 Allow: /
+# Admin & account
 Disallow: /admin
+Disallow: /admin/login
 Disallow: /admin-login
 Disallow: /settings
+Disallow: /profile
+Disallow: /profile-completion
+Disallow: /onboarding
 Disallow: /wallet
+# Doctor / lab workspace
+Disallow: /dashboard
+Disallow: /new-order
+Disallow: /edit-order
+Disallow: /order-tracking
+Disallow: /orders-marketplace
+Disallow: /track-orders
+Disallow: /design-approval
+Disallow: /preferred-labs
+Disallow: /lab-workflow
+Disallow: /lab-order
+Disallow: /lab-requests
+Disallow: /lab-admin
+Disallow: /lab-calendar
+Disallow: /logistics
+# Communication & collaboration
+Disallow: /messages
+Disallow: /chat-history
+Disallow: /notifications
+Disallow: /inbox
+Disallow: /drafts
+Disallow: /feedback-room
+Disallow: /patient-cases
+Disallow: /templates
+# Reporting & support
+Disallow: /analytics
+Disallow: /appointment-scheduling
+Disallow: /achievements
+Disallow: /doctor-achievements
+Disallow: /lab-achievements
+Disallow: /support
+# Tokenized / per-user resources
+Disallow: /invoice
 
 Sitemap: https://lablink-smartlab.lovable.app/sitemap.xml
