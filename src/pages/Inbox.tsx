@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PaymentDetailsModal from "@/components/wallet/PaymentDetailsModal";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layouts/PageLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
