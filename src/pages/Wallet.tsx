@@ -14,13 +14,16 @@ import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Clock, Shield, Tr
 import { TransactionHistory } from "@/components/wallet/TransactionHistory";
 import { PaymentInstructions } from "@/components/wallet/PaymentInstructions";
 import { PaymentConfirmationStatus } from "@/components/wallet/PaymentConfirmationStatus";
+import { WithdrawalDialog } from "@/components/wallet/WithdrawalDialog";
 import { toast } from "@/components/ui/sonner";
 import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
 
 const Wallet = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   const { data: wallet, isLoading } = useQuery({
     queryKey: ["wallet", user?.id],
@@ -109,6 +112,7 @@ const Wallet = () => {
                     <Button
                       variant="outline"
                       disabled={!canWithdraw || (wallet?.balance || 0) <= 0}
+                      onClick={() => setWithdrawOpen(true)}
                     >
                       <ArrowUpCircle className="h-4 w-4 mr-2" />
                       Withdraw
@@ -117,6 +121,12 @@ const Wallet = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <WithdrawalDialog
+              open={withdrawOpen}
+              onOpenChange={setWithdrawOpen}
+              availableBalance={Number(wallet?.balance || 0)}
+            />
 
             {/* Deposit Required Banner */}
             {isDepositRequired && (

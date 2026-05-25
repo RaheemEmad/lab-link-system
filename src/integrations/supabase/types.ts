@@ -3758,6 +3758,51 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          method: Database["public"]["Enums"]["withdrawal_method"]
+          notes: string | null
+          payout_handle: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          method: Database["public"]["Enums"]["withdrawal_method"]
+          notes?: string | null
+          payout_handle: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: Database["public"]["Enums"]["withdrawal_method"]
+          notes?: string | null
+          payout_handle?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -4039,6 +4084,8 @@ export type Database = {
         | "order_fee"
         | "refund"
         | "hold"
+      withdrawal_method: "instapay" | "vodafone_cash"
+      withdrawal_status: "pending" | "approved" | "rejected" | "paid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4199,6 +4246,8 @@ export const Constants = {
         "refund",
         "hold",
       ],
+      withdrawal_method: ["instapay", "vodafone_cash"],
+      withdrawal_status: ["pending", "approved", "rejected", "paid"],
     },
   },
 } as const
