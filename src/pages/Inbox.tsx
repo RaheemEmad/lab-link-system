@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PaymentDetailsModal from "@/components/wallet/PaymentDetailsModal";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layouts/PageLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -50,6 +51,7 @@ const TYPE_STYLES: Record<InboxItemType, { badge: string; label: string }> = {
 
 const InboxPage = () => {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [paymentModal, setPaymentModal] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
   const { items, counts, isLoading, refetchAll } = useInboxItems(activeTab);
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -134,7 +136,12 @@ const InboxPage = () => {
         );
       case "payment":
         return (
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate("/wallet")}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs"
+            onClick={() => setPaymentModal({ open: true, id: (item.metadata as any)?.paymentId ?? null })}
+          >
             <Wallet className="h-3 w-3 ltr:mr-1 rtl:ml-1" />View
           </Button>
         );
@@ -263,6 +270,11 @@ const InboxPage = () => {
             </div>
           </AnimatePresence>
         )}
+        <PaymentDetailsModal
+          paymentId={paymentModal.id}
+          open={paymentModal.open}
+          onOpenChange={(open) => setPaymentModal((s) => ({ ...s, open }))}
+        />
       </PageLayout>
     </ProtectedRoute>
   );
