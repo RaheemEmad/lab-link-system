@@ -270,6 +270,11 @@ const InboxPage = () => {
             </div>
           </AnimatePresence>
         )}
+        <PaymentDetailsModal
+          paymentId={paymentModal.id}
+          open={paymentModal.open}
+          onOpenChange={(open) => setPaymentModal((s) => ({ ...s, open }))}
+        />
       </PageLayout>
     </ProtectedRoute>
   );
