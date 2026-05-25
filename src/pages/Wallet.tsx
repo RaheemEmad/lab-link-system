@@ -23,6 +23,7 @@ const Wallet = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   const { data: wallet, isLoading } = useQuery({
     queryKey: ["wallet", user?.id],
