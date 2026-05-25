@@ -136,7 +136,12 @@ const InboxPage = () => {
         );
       case "payment":
         return (
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate("/wallet")}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs"
+            onClick={() => setPaymentModal({ open: true, id: (item.metadata as any)?.paymentId ?? null })}
+          >
             <Wallet className="h-3 w-3 ltr:mr-1 rtl:ml-1" />View
           </Button>
         );
