@@ -51,6 +51,7 @@ const TYPE_STYLES: Record<InboxItemType, { badge: string; label: string }> = {
 
 const InboxPage = () => {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [paymentModal, setPaymentModal] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
   const { items, counts, isLoading, refetchAll } = useInboxItems(activeTab);
   const { t } = useLanguage();
   const navigate = useNavigate();
