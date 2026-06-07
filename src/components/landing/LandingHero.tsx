@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, CheckCircle2, Zap, Building2, Stethoscope, Sparkles, Activity } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle2, FileText, Activity, Zap, ShieldCheck, Stethoscope, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -7,187 +7,188 @@ import { motion } from "framer-motion";
 import { useApplicationStats } from "@/hooks/useApplicationStats";
 import { Skeleton } from "@/components/ui/skeleton";
 
-
 const LandingHero = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const { data: statsData, isLoading } = useApplicationStats();
-
   const Arrow = isRTL ? ArrowLeft : ArrowRight;
-  
-  const stats = [
-    { 
-      value: isLoading ? <Skeleton className="h-8 w-16 mx-auto" /> : `${statsData?.activeLabs || 12}+`, 
-      label: "Active Labs", 
-      icon: Activity 
-    },
-    { 
-      value: isLoading ? <Skeleton className="h-8 w-20 mx-auto" /> : `${statsData?.totalOrders || 1000}+`, 
-      label: "Orders Processed", 
-      icon: Zap 
-    },
-    { value: "100%", label: t.hero.orderVisibility, icon: CheckCircle2 }
-  ];
-  
-  const benefits = [
-    t.hero.benefit1,
-    t.hero.benefit2,
-    t.hero.benefit3,
-  ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
 
   return (
-    <section className="relative min-h-[80vh] sm:min-h-[85vh] lg:min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-primary/10 via-accent/5 to-background">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.2, 0.3] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-24 ltr:-left-24 rtl:-right-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
-        />
-        <motion.div 
-          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.3, 0.2] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -bottom-24 ltr:-right-24 rtl:-left-24 w-[500px] h-[500px] bg-accent/20 rounded-full blur-3xl"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.05)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,black,transparent)]" />
+    <section className="relative overflow-hidden bg-background pt-20 pb-12 sm:pt-28 sm:pb-20 lg:pt-32 lg:pb-28">
+      {/* Subtle background grid + glow */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,black,transparent)] opacity-40" />
+        <div className="absolute -top-32 ltr:-right-32 rtl:-left-32 h-[480px] w-[480px] rounded-full bg-primary/10 blur-3xl" />
       </div>
-      
-      <div className="container relative z-10 px-4 sm:px-6 lg:px-8 mx-auto py-12 sm:py-16 lg:py-20 pt-20 sm:pt-28 lg:pt-32">
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="max-w-5xl mx-auto"
-        >
-          <div className="text-center space-y-6 sm:space-y-8">
-            
-            <motion.h1 
-              variants={itemVariants}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.15] sm:leading-[1.2] text-foreground tracking-tight px-2"
-            >
-              {t.hero.headline}{" "}
-              <span className="relative inline-block">
-                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-[gradient_3s_ease_infinite] bg-[length:200%_auto]">
-                  {t.hero.headlineHighlight}
-                </span>
-                <motion.div
-                  animate={{ scaleX: [0, 1] }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                  className={`absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent ${isRTL ? 'origin-right' : 'origin-left'}`}
-                />
+
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          {/* LEFT: Copy */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="max-w-xl space-y-6 sm:space-y-8"
+          >
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-primary shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
               </span>
-            </motion.h1>
-            
-            <motion.p 
-              variants={itemVariants}
-              className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4"
-            >
+              {t.hero.trustLine.split("•")[0].trim()}
+            </div>
+
+            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-6xl xl:text-7xl">
+              {t.hero.headline}{" "}
+              <span className="relative inline-block text-primary">
+                {t.hero.headlineHighlight}
+                <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-primary/25" />
+              </span>
+            </h1>
+
+            <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
               {t.hero.subheadline}
-            </motion.p>
-            
-            <motion.div 
-              variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center items-start sm:items-center max-w-4xl mx-auto px-4"
-            >
-              {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground group w-full sm:w-auto">
-                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                  <span className="text-start flex-1">{benefit}</span>
-                </div>
+            </p>
+
+            <ul className="space-y-2.5">
+              {[t.hero.benefit1, t.hero.benefit2, t.hero.benefit3].map((b, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm text-foreground/80">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                  <span>{b}</span>
+                </li>
               ))}
-            </motion.div>
-            
-            <motion.div 
-              variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-3 justify-center pt-4 px-4"
-            >
-              <Button 
-                variant="gradient"
-                size="lg" 
-                className="group relative z-10 w-full sm:w-auto"
+            </ul>
+
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+              <Button
+                size="lg"
                 onClick={() => navigate(user ? "/new-order" : "/auth")}
+                className="group h-12 rounded-xl px-7 text-base font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform"
               >
-                <span className="relative z-10 flex items-center justify-center">
-                  <Stethoscope className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                  <span className="hidden xs:inline">{isRTL ? "" : "For\u00A0"}</span>{t.hero.ctaDentists}
-                  <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1 transition-transform" />
-                </span>
+                <Stethoscope className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                {t.hero.forDentists}
+                <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
               </Button>
-              
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 variant="outline"
-                className="group w-full sm:w-auto"
                 onClick={() => navigate(user ? "/lab-admin" : "/auth")}
+                className="group h-12 rounded-xl px-7 text-base font-semibold"
               >
                 <Building2 className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                <span className="hidden xs:inline">{isRTL ? "" : "For\u00A0"}</span>{t.hero.ctaLabs}
-                <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1 transition-transform" />
+                {t.hero.forLabs}
+                <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
               </Button>
-            </motion.div>
-            
-            <motion.p 
-              variants={itemVariants}
-              className="text-xs text-muted-foreground"
-            >
-              {t.hero.trustLine}
-            </motion.p>
-            
-            <motion.div 
-              variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto pt-8 sm:pt-10 px-4"
-            >
-              {stats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <motion.div 
-                    key={index}
-                    whileHover={{ y: -4 }}
-                    className="text-center p-4 sm:p-5 rounded-lg sm:rounded-xl bg-gradient-to-b from-primary/5 to-transparent border border-primary/10 hover:border-primary/20 transition-all duration-300"
-                  >
-                    <div className="flex justify-center mb-2">
-                      <div className="p-2 sm:p-2.5 rounded-full bg-primary/10">
-                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                      </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground">{t.hero.trustLine}</p>
+          </motion.div>
+
+          {/* RIGHT: Bento product preview */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.15 }}
+            className="relative"
+          >
+            <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-tr from-primary/15 via-primary/5 to-transparent blur-2xl" />
+            <div className="relative rounded-3xl border border-border bg-card/70 p-3 shadow-2xl shadow-primary/10 backdrop-blur-xl sm:p-4">
+              {/* window chrome */}
+              <div className="mb-3 flex items-center gap-1.5 border-b border-border pb-3 px-2">
+                <div className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
+                <div className="h-2.5 w-2.5 rounded-full bg-warning/70" />
+                <div className="h-2.5 w-2.5 rounded-full bg-success/70" />
+                <div className="ltr:ml-3 rtl:mr-3 h-4 w-32 rounded-full bg-muted" />
+              </div>
+
+              {/* bento grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <BentoStat
+                  icon={<Activity className="h-4 w-4" />}
+                  label="Active Labs"
+                  value={isLoading ? <Skeleton className="h-7 w-14" /> : `${statsData?.activeLabs || 12}+`}
+                  tone="primary"
+                />
+                <BentoStat
+                  icon={<Zap className="h-4 w-4" />}
+                  label="Orders Processed"
+                  value={isLoading ? <Skeleton className="h-7 w-16" /> : `${statsData?.totalOrders || 1000}+`}
+                  tone="success"
+                />
+                <BentoStat
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                  label={t.hero.orderVisibility}
+                  value="100%"
+                  tone="primary"
+                />
+                <BentoStat
+                  icon={<CheckCircle2 className="h-4 w-4" />}
+                  label="On-time Delivery"
+                  value="98%"
+                  tone="success"
+                />
+              </div>
+
+              {/* mini order card */}
+              <div className="mt-3 rounded-2xl border border-border bg-background/60 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <FileText className="h-4 w-4" />
                     </div>
-                    <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-                      {stat.value}
+                    <div>
+                      <div className="text-xs font-semibold text-foreground">Order #LL-4921</div>
+                      <div className="text-[10px] text-muted-foreground">Zirconia Crown · A2</div>
                     </div>
-                    <div className="text-xs text-muted-foreground font-medium">
-                      {stat.label}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </div>
-        </motion.div>
+                  </div>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                    In Progress
+                  </span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: "68%" }}
+                    transition={{ duration: 1.2, delay: 0.6 }}
+                    className="h-full rounded-full bg-primary"
+                  />
+                </div>
+                <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+                  <span>Lab accepted</span>
+                  <span>Ready in 2d</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
 };
+
+const BentoStat = ({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: React.ReactNode;
+  value: React.ReactNode;
+  tone: "primary" | "success";
+}) => (
+  <div className="rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <div
+      className={`mb-3 flex h-8 w-8 items-center justify-center rounded-lg ${
+        tone === "primary" ? "bg-primary/10 text-primary" : "bg-success/10 text-success"
+      }`}
+    >
+      {icon}
+    </div>
+    <div className="text-2xl font-bold tracking-tight text-foreground">{value}</div>
+    <div className="text-[11px] text-muted-foreground">{label}</div>
+  </div>
+);
 
 export default LandingHero;
