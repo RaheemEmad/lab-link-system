@@ -1,93 +1,91 @@
-import { FileText, Building2, TrendingUp, Truck } from "lucide-react";
+import { FileText, Building2, TrendingUp, Truck, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 const HowItWorks = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+  const { isRTL } = useLanguage();
+  const Arrow = isRTL ? ArrowLeft : ArrowRight;
+
   const steps = [
     {
-      number: "1",
+      number: "01",
       icon: FileText,
-      title: "Create & Submit Orders",
-      description: "Dentists fill guided forms with tooth details, shades, photos, and select their preferred lab",
+      title: "Create & Submit",
+      description: "Dentists fill a guided form — tooth details, shades, photos — and pick a preferred lab.",
     },
     {
-      number: "2",
+      number: "02",
       icon: Building2,
-      title: "Lab Accepts & Processes",
-      description: "Labs receive orders, update status through the workflow, and collaborate via notes",
+      title: "Lab Accepts",
+      description: "Labs receive the order, accept with one click, and start moving it through their workflow.",
     },
     {
-      number: "3",
+      number: "03",
       icon: TrendingUp,
       title: "Track Progress",
-      description: "Both parties monitor real-time status updates with automatic notifications",
+      description: "Both sides see live status updates and notifications as the case advances.",
     },
     {
-      number: "4",
+      number: "04",
       icon: Truck,
       title: "Deliver & Close",
-      description: "Add tracking details, confirm delivery, and maintain complete audit history",
+      description: "Add tracking, confirm delivery, and keep the full audit trail for every order.",
     },
   ];
 
   return (
-    <section id="how-it-works" className="py-12 sm:py-16 md:py-24 bg-background">
-      <div className="container px-4 mx-auto">
+    <section id="how-it-works" className="relative bg-muted/30 py-20 sm:py-24">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+              Workflow
+            </div>
+            <h2 className="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Simple, Transparent Workflow
             </h2>
-            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-              From order creation to delivery, every step is tracked and visible to your entire team.
+            <p className="text-base text-muted-foreground sm:text-lg">
+              From order creation to delivery — every step is tracked, visible, and on the record.
             </p>
           </div>
         </ScrollReveal>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 mb-8 sm:mb-12 max-w-7xl mx-auto">
+
+        <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {/* connector */}
+          <div className="absolute left-0 right-0 top-7 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent lg:block" />
+
           {steps.map((step, index) => (
-            <ScrollReveal key={index} delay={index * 100}>
-              <div className="relative">
-                {/* Connector line */}
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/50 to-primary/20" />
-                )}
-                
-                <div className="relative text-center space-y-4 group">
-                  {/* Step number badge */}
-                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary text-primary-foreground text-lg sm:text-xl font-bold shadow-soft hover-scale">
+            <ScrollReveal key={index} delay={index * 80}>
+              <div className="group relative h-full rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <step.icon className="h-5 w-5" />
+                  </div>
+                  <span className="font-mono text-xs font-bold text-muted-foreground">
                     {step.number}
-                  </div>
-                  
-                  {/* Icon */}
-                  <div className="flex justify-center">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary/10 flex items-center justify-center hover-scale group-hover:bg-primary/20 transition-colors">
-                      <step.icon className="w-7 h-7 sm:w-8 sm:h-8 text-primary transition-transform duration-300 group-hover:scale-110" strokeWidth={2} />
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <h3 className="text-lg sm:text-xl font-semibold">{step.title}</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed px-2">{step.description}</p>
+                  </span>
                 </div>
+                <h3 className="mb-2 text-lg font-semibold text-foreground">{step.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{step.description}</p>
               </div>
             </ScrollReveal>
           ))}
         </div>
-        
+
         <ScrollReveal delay={400}>
-          <div className="text-center px-4 mt-12">
-            <Button 
+          <div className="mt-14 text-center">
+            <Button
               size="lg"
-              className="text-base sm:text-lg px-8 py-6 h-auto hover-scale hover-glow shadow-lg"
               onClick={() => navigate(user ? "/new-order" : "/auth")}
+              className="group h-12 rounded-xl px-7 text-base font-semibold shadow-lg shadow-primary/20"
             >
               {user ? "Submit Your First Order" : "Get Started Free"}
+              <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
             </Button>
           </div>
         </ScrollReveal>
