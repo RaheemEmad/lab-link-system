@@ -1969,6 +1969,30 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_leads: {
+        Row: {
+          contact_type: string
+          contact_value: string
+          created_at: string
+          id: string
+          source: string | null
+        }
+        Insert: {
+          contact_type: string
+          contact_value: string
+          created_at?: string
+          id?: string
+          source?: string | null
+        }
+        Update: {
+          contact_type?: string
+          contact_value?: string
+          created_at?: string
+          id?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       login_attempts: {
         Row: {
           attempted_at: string

@@ -16,6 +16,7 @@ import {
   BarChart3,
   ArrowRight,
 } from "lucide-react";
+import LeadCaptureCTA from "@/components/landing/LeadCaptureCTA";
 
 const steps = [
   {
@@ -116,6 +117,14 @@ const HowItWorks = () => {
             </div>
           </div>
         </section>
+
+        {/* Lead capture — email / WhatsApp → digital order form */}
+        <section className="border-t border-border bg-background py-16 sm:py-20">
+          <div className="container mx-auto max-w-4xl px-4 sm:px-6">
+            <LeadCaptureCTA source="how-it-works" variant="band" />
+          </div>
+        </section>
+
 
         {/* Features */}
         <section className="border-t border-border bg-muted/30 py-20 sm:py-24">
