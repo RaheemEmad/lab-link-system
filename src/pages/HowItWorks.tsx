@@ -16,6 +16,7 @@ import {
   BarChart3,
   ArrowRight,
 } from "lucide-react";
+import LeadCaptureCTA from "@/components/landing/LeadCaptureCTA";
 
 const steps = [
   {
