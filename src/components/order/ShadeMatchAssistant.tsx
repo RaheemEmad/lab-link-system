@@ -200,7 +200,7 @@ export const ShadeMatchAssistant = ({ shadeSystem, onShadeSelect, className }: S
                 {result.consult_lab && (
                   <div className="flex items-start gap-2 p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200">
                     <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs">Ambiguous shade detected — consider consulting the lab for a physical shade match.</p>
+                    <p className="text-xs">Ambiguous shade detected - consider consulting the lab for a physical shade match.</p>
                   </div>
                 )}
 

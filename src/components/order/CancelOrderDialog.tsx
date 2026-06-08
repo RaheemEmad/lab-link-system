@@ -147,7 +147,7 @@ export function CancelOrderDialog({
         });
       }
 
-      // Notify doctor (if doctor cancelled, no need — they initiated it)
+      // Notify doctor (if doctor cancelled, no need - they initiated it)
 
       toast({
         title: "Order Cancelled",

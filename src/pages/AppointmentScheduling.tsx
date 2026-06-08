@@ -411,7 +411,7 @@ const AppointmentScheduling = () => {
                   <SelectContent>
                     {userOrders.map((o) => (
                       <SelectItem key={o.id} value={o.id}>
-                        #{o.order_number} — {o.patient_name}
+                        #{o.order_number} - {o.patient_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -425,7 +425,7 @@ const AppointmentScheduling = () => {
               )}
               {selectedLabId && !hasAvailability && (
                 <p className="text-xs text-muted-foreground bg-muted rounded p-2">
-                  ⚠️ Lab hasn't configured availability — all times shown
+                  ⚠️ Lab hasn't configured availability - all times shown
                 </p>
               )}
 
@@ -570,7 +570,7 @@ const AppointmentCard = ({
         <div className="flex items-start justify-between">
           <div>
             <p className="font-medium text-sm">
-              {order?.order_number ? `#${order.order_number}` : "Order"} — {order?.patient_name || ""}
+              {order?.order_number ? `#${order.order_number}` : "Order"} - {order?.patient_name || ""}
             </p>
             <p className="text-xs text-muted-foreground capitalize">{appointment.appointment_type}</p>
           </div>

@@ -249,7 +249,7 @@ const InboxPage = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               {item.orderNumber && <span className="text-sm font-semibold text-foreground">#{item.orderNumber}</span>}
-                              {item.patientName && <span className="text-xs text-muted-foreground">— {item.patientName}</span>}
+                              {item.patientName && <span className="text-xs text-muted-foreground">- {item.patientName}</span>}
                               <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", style.badge)}>{style.label}</Badge>
                             </div>
                             <p className="text-sm font-medium text-foreground mb-0.5">{item.title}</p>

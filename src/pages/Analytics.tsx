@@ -306,7 +306,7 @@ const DoctorAnalyticsView = ({ stats }: { stats: DoctorStatsData }) => {
       <StatCard icon={Package} label="Total Orders" value={String(stats.totalOrders)} sub={`${stats.completedCount} delivered`} />
       <StatCard icon={DollarSign} label="Total Spent" value={formatEGP(stats.totalSpent)} sub={`${formatEGP(stats.totalPaid)} paid`} />
       <StatCard icon={Clock} label="Avg Turnaround" value={`${stats.avgTurnaround} days`} sub="creation to delivery" />
-      <StatCard icon={CheckCircle2} label="Completion Rate" value={stats.totalOrders > 0 ? `${Math.round((stats.completedCount / stats.totalOrders) * 100)}%` : "—"} sub={`${stats.cancelledCount} cancelled`} />
+      <StatCard icon={CheckCircle2} label="Completion Rate" value={stats.totalOrders > 0 ? `${Math.round((stats.completedCount / stats.totalOrders) * 100)}%` : "-"} sub={`${stats.cancelledCount} cancelled`} />
     </div>
 
     <div className="grid gap-6 md:grid-cols-2">
@@ -415,7 +415,7 @@ const LabAnalyticsView = ({ stats }: { stats: LabStatsData }) => {
       <StatCard icon={Package} label="Total Orders" value={String(stats.totalOrders)} sub={`${stats.inProgressCount} in progress`} />
       <StatCard icon={DollarSign} label="Total Revenue" value={formatEGP(stats.totalRevenue)} sub={`${formatEGP(stats.totalReceived)} received`} />
       <StatCard icon={TrendingUp} label="On-Time Rate" value={`${stats.onTimeRate}%`} sub={`${stats.completedCount} completed`} />
-      <StatCard icon={Star} label="Completion Rate" value={stats.totalOrders > 0 ? `${Math.round((stats.completedCount / stats.totalOrders) * 100)}%` : "—"} sub="of all orders" />
+      <StatCard icon={Star} label="Completion Rate" value={stats.totalOrders > 0 ? `${Math.round((stats.completedCount / stats.totalOrders) * 100)}%` : "-"} sub="of all orders" />
     </div>
 
     <div className="grid gap-6 md:grid-cols-2">

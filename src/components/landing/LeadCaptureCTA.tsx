@@ -17,7 +17,7 @@ const phoneRe = /^\+?[\d\s\-()]{7,20}$/;
 interface Props {
   /** Source label saved with the lead (e.g. "landing-hero", "how-it-works"). */
   source?: string;
-  /** Optional layout tweak — "card" for inline card, "band" for full-width band. */
+  /** Optional layout tweak - "card" for inline card, "band" for full-width band. */
   variant?: "card" | "band";
 }
 

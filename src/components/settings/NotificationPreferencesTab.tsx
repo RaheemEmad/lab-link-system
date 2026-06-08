@@ -13,7 +13,7 @@ export function NotificationPreferencesTab() {
     const current = prefs[category as keyof typeof prefs];
     update(
       { category: category as any, in_app: current.in_app, email: current.email, [channel]: value } as any,
-      // @ts-ignore — react-query v5 callback shape
+      // @ts-ignore - react-query v5 callback shape
       { onSuccess: () => toast.success("Preferences updated"), onError: () => toast.error("Failed to update") }
     );
   };

@@ -162,7 +162,7 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
           orderNumber: order?.order_number || "",
           patientName: order?.patient_name || "",
           title: `Invoice ${inv.invoice_number} overdue`,
-          preview: `Amount due: EGP ${inv.final_total}${inv.due_date ? ` — Due: ${inv.due_date}` : ""}`,
+          preview: `Amount due: EGP ${inv.final_total}${inv.due_date ? ` - Due: ${inv.due_date}` : ""}`,
           timestamp: inv.updated_at || "",
           metadata: { amount: inv.final_total, invoiceId: inv.id, dueDate: inv.due_date },
         };
@@ -198,7 +198,7 @@ export const useInboxItems = (filter: InboxItemType | "all" = "all") => {
         orderNumber: "",
         patientName: "",
         title: isAdmin ? "Payment confirmation pending review" : "Your payment is being reviewed",
-        preview: `${p.payment_method === "instapay" ? "InstaPay" : "Vodafone Cash"} — ${p.amount} EGP${p.reference_number ? ` (Ref: ${p.reference_number})` : ""}`,
+        preview: `${p.payment_method === "instapay" ? "InstaPay" : "Vodafone Cash"} - ${p.amount} EGP${p.reference_number ? ` (Ref: ${p.reference_number})` : ""}`,
         timestamp: p.created_at || "",
         metadata: { paymentId: p.id, method: p.payment_method, amount: p.amount },
       }));

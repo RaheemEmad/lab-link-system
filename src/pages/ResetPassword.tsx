@@ -46,7 +46,7 @@ const ResetPassword = () => {
       if (isRecovery) {
         setMode("set-new");
       } else {
-        // No recovery context — show the request form
+        // No recovery context - show the request form
         setMode("request");
       }
     }, 300);

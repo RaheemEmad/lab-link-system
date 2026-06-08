@@ -353,7 +353,7 @@ const AdminOrdersTab = () => {
                   <TableCell>
                     {order.expected_delivery_date
                       ? new Date(order.expected_delivery_date).toLocaleDateString()
-                      : "—"}
+                      : "-"}
                   </TableCell>
                   <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">

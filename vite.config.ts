@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt"],
       manifest: {
-        name: "LabLink — Dental Lab Order Management",
+        name: "LabLink - Dental Lab Order Management",
         short_name: "LabLink",
         description: "Transform WhatsApp chaos into streamlined dental lab workflows",
         theme_color: "#2D6CDF",

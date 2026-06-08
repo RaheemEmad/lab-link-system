@@ -240,7 +240,7 @@ export const SchedulingTabContent = () => {
               <Label>Order *</Label>
               <Select value={selectedOrderId} onValueChange={setSelectedOrderId}>
                 <SelectTrigger><SelectValue placeholder="Select order" /></SelectTrigger>
-                <SelectContent>{userOrders.map((o) => <SelectItem key={o.id} value={o.id}>#{o.order_number} — {o.patient_name}</SelectItem>)}</SelectContent>
+                <SelectContent>{userOrders.map((o) => <SelectItem key={o.id} value={o.id}>#{o.order_number} - {o.patient_name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
@@ -277,7 +277,7 @@ export const SchedulingTabContent = () => {
                       return disabled ? (
                         <Tooltip key={pick.label}>
                           <TooltipTrigger asChild>{btn}</TooltipTrigger>
-                          <TooltipContent>Unavailable — past date or lab closed</TooltipContent>
+                          <TooltipContent>Unavailable - past date or lab closed</TooltipContent>
                         </Tooltip>
                       ) : btn;
                     })}
@@ -287,7 +287,7 @@ export const SchedulingTabContent = () => {
             )}
 
             {selectedLabId && hasAvailability && <p className="text-xs text-muted-foreground bg-primary/5 rounded p-2">📅 Dates and times filtered by lab availability</p>}
-            {selectedLabId && !hasAvailability && <p className="text-xs text-muted-foreground bg-muted rounded p-2">⚠️ Lab hasn't configured availability — all times shown</p>}
+            {selectedLabId && !hasAvailability && <p className="text-xs text-muted-foreground bg-muted rounded p-2">⚠️ Lab hasn't configured availability - all times shown</p>}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -386,7 +386,7 @@ const AppointmentCard = ({ appointment, statusColor, onConfirm, onCancel, curren
     <Card>
       <CardContent className="pt-5 space-y-3">
         <div className="flex items-start justify-between">
-          <div><p className="font-medium text-sm">{order?.order_number ? `#${order.order_number}` : "Order"} — {order?.patient_name || ""}</p><p className="text-xs text-muted-foreground capitalize">{appointment.appointment_type}</p></div>
+          <div><p className="font-medium text-sm">{order?.order_number ? `#${order.order_number}` : "Order"} - {order?.patient_name || ""}</p><p className="text-xs text-muted-foreground capitalize">{appointment.appointment_type}</p></div>
           <Badge className={cn("text-xs", statusColor(appointment.status))}>{appointment.status}</Badge>
         </div>
         <div className="flex items-center gap-4 text-sm">

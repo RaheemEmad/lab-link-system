@@ -161,7 +161,7 @@ const StatementGenerator = ({ open, onOpenChange }: StatementGeneratorProps) => 
       </style></head><body>
       <div class="header">
         <h1>LABLINK</h1>
-        <h2>Statement of Account — ${format(periodStart, "MMMM yyyy")}</h2>
+        <h2>Statement of Account - ${format(periodStart, "MMMM yyyy")}</h2>
       </div>
       <div class="info">
         <div><strong>Doctor:</strong> ${doctor?.name || '-'}</div>

@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback } from "react";
 import { CallBackProps, STATUS, Step } from "react-joyride";
 import { useAuth } from "@/hooks/useAuth";
 
-// Dynamic import — react-joyride (~30KB) only loads when tour runs
+// Dynamic import - react-joyride (~30KB) only loads when tour runs
 const Joyride = lazy(() => import("react-joyride"));
 
 interface DashboardTourProps {

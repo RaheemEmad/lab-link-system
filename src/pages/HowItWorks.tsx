@@ -28,7 +28,7 @@ const steps = [
   {
     icon: Send,
     title: "Instant Submission",
-    description: "Order is sent to the lab instantly — fully organized, with photos and notes attached securely.",
+    description: "Order is sent to the lab instantly - fully organized, with photos and notes attached securely.",
   },
   {
     icon: CheckCircle,
@@ -76,7 +76,7 @@ const HowItWorks = () => {
               How It Works
             </div>
             <h1 className="mb-5 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              From impression to insert — <span className="text-primary">without the friction</span>
+              From impression to insert - <span className="text-primary">without the friction</span>
             </h1>
             <p className="text-base text-muted-foreground sm:text-lg">
               A transparent six-step workflow connecting dentists and labs seamlessly.
@@ -118,7 +118,7 @@ const HowItWorks = () => {
           </div>
         </section>
 
-        {/* Lead capture — email / WhatsApp → digital order form */}
+        {/* Lead capture - email / WhatsApp → digital order form */}
         <section className="border-t border-border bg-background py-16 sm:py-20">
           <div className="container mx-auto max-w-4xl px-4 sm:px-6">
             <LeadCaptureCTA source="how-it-works" variant="band" />

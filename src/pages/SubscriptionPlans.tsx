@@ -63,7 +63,7 @@ const SubscriptionPlans = () => {
                 Subscription Plans
               </h1>
               <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
-                Choose a plan that fits your practice. All plans include full platform access — save more with higher tiers.
+                Choose a plan that fits your practice. All plans include full platform access - save more with higher tiers.
               </p>
             </div>
 

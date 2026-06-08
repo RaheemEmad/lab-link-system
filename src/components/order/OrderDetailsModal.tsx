@@ -199,7 +199,7 @@ export function OrderDetailsModal({ open, onOpenChange, order }: OrderDetailsMod
                         <div key={note.id} className="bg-muted/50 border border-border p-3 rounded-lg">
                           <p className="font-medium">{note.note_text}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {note.profiles?.full_name || "Unknown"} — {format(new Date(note.created_at), "PPp")}
+                            {note.profiles?.full_name || "Unknown"} - {format(new Date(note.created_at), "PPp")}
                           </p>
                         </div>
                       ))}

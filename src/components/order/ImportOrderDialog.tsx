@@ -193,7 +193,7 @@ export function ImportOrderDialog({ open, onOpenChange, onImport }: ImportOrderD
               >
                 <Upload className="h-8 w-8" />
                 <span className="text-sm font-medium">Click to upload prescription photo</span>
-                <span className="text-xs">JPG, PNG, WebP — max 10MB</span>
+                <span className="text-xs">JPG, PNG, WebP - max 10MB</span>
               </button>
             )}
             <Button

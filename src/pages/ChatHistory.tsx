@@ -45,7 +45,7 @@ export default function ChatHistory() {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Server-side filtering via !inner join — only fetches accessible messages
+      // Server-side filtering via !inner join - only fetches accessible messages
       let query = supabase
         .from('chat_messages')
         .select(`

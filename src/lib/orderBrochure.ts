@@ -24,7 +24,7 @@ export const buildLabPaymentWhatsAppUrl = (
 ) => {
   const phone = labPhone.replace(/[^0-9]/g, "");
   const lines = [
-    "LabLink — Order Payment Confirmation",
+    "LabLink - Order Payment Confirmation",
     order.orderNumber ? `Order #: ${order.orderNumber}` : null,
     order.amount ? `Amount: ${order.amount} EGP` : null,
     `Sender Number: ${order.senderPhone || "<your number here>"}`,
@@ -75,8 +75,8 @@ export const printOrderBrochure = async (data: BrochureOrderData) => {
     <div class="body">
       <div>
         <div class="field">Order #</div><div class="val">${data.orderNumber ?? data.orderId.slice(0, 8).toUpperCase()}</div>
-        <div class="field" style="margin-top:12px">Patient</div><div class="val">${data.patientName ?? "—"}</div>
-        <div class="field" style="margin-top:12px">Doctor</div><div class="val">${data.doctorName ?? "—"}</div>
+        <div class="field" style="margin-top:12px">Patient</div><div class="val">${data.patientName ?? "-"}</div>
+        <div class="field" style="margin-top:12px">Doctor</div><div class="val">${data.doctorName ?? "-"}</div>
         <div class="field" style="margin-top:12px">Lab</div><div class="val">${data.labName ?? "Pending assignment"}</div>
         <div class="field" style="margin-top:12px">Status</div><div class="val">${data.status ?? "Pending"}</div>
         ${data.dueDate ? `<div class="field" style="margin-top:12px">Due</div><div class="val">${data.dueDate}</div>` : ""}
@@ -86,7 +86,7 @@ export const printOrderBrochure = async (data: BrochureOrderData) => {
         <div class="qr"><img src="${tutorialQr}" alt="How to use LabLink QR" width="120" height="120"/><strong>How to use LabLink</strong><small>${tutorialUrl}</small></div>
       </div>
     </div>
-    <div class="foot">LabLink — Egypt's dental marketplace · lablink-smartlab.lovable.app</div>
+    <div class="foot">LabLink - Egypt's dental marketplace · lablink-smartlab.lovable.app</div>
   </div>
   <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300))</script>
   </body></html>`;

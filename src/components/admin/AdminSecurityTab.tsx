@@ -269,7 +269,7 @@ const AdminSecurityTab = () => {
                       <Badge variant="outline">{alert.alert_type}</Badge>
                     </TableCell>
                     <TableCell className="font-mono text-xs">
-                      {alert.ip_address || '—'}
+                      {alert.ip_address || '-'}
                     </TableCell>
                     <TableCell>
                       {new Date(alert.created_at).toLocaleString()}

@@ -105,7 +105,7 @@ const TemplatesLibrary = () => {
                     <div className="min-w-0">
                       <p className="font-medium text-sm truncate">{t.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <Badge variant="secondary" className="text-[10px]">{t.restoration_type || "—"}</Badge>
+                        <Badge variant="secondary" className="text-[10px]">{t.restoration_type || "-"}</Badge>
                         <span className="text-[10px] text-muted-foreground">
                           {t.teeth_number || "No teeth"} · {t.teeth_shade || "No shade"}
                         </span>

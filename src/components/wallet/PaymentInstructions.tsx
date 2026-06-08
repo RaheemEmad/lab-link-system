@@ -145,7 +145,7 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
             className="text-green-600 border-green-300 hover:bg-green-50"
             onClick={() => {
               const lines = [
-                "LabLink — Payment Confirmation",
+                "LabLink - Payment Confirmation",
                 planName ? `Plan: ${planName}` : context === "deposit" ? "Type: Commitment Deposit" : "Type: Wallet Top-up",
                 amount ? `Amount: ${amount} EGP` : null,
                 `Method: ${paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "InstaPay"}`,

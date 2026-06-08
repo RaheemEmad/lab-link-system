@@ -16,7 +16,7 @@ const HowItWorks = () => {
       number: "01",
       icon: FileText,
       title: "Create & Submit",
-      description: "Dentists fill a guided form — tooth details, shades, photos — and pick a preferred lab.",
+      description: "Dentists fill a guided form - tooth details, shades, photos - and pick a preferred lab.",
     },
     {
       number: "02",
@@ -50,7 +50,7 @@ const HowItWorks = () => {
               Simple, Transparent Workflow
             </h2>
             <p className="text-base text-muted-foreground sm:text-lg">
-              From order creation to delivery — every step is tracked, visible, and on the record.
+              From order creation to delivery - every step is tracked, visible, and on the record.
             </p>
           </div>
         </ScrollReveal>

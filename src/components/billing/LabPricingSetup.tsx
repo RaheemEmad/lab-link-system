@@ -216,7 +216,7 @@ const LabPricingSetup = ({ labId, readOnly = false }: LabPricingSetupProps) => {
                 </Label>
                 {readOnly ? (
                   <span className="font-semibold">
-                    {row.fixed_price ? formatEGP(row.fixed_price) : '—'}
+                    {row.fixed_price ? formatEGP(row.fixed_price) : '-'}
                   </span>
                 ) : (
                   <div className="relative">

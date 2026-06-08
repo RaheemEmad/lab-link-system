@@ -124,7 +124,7 @@ const AdminActivityTab = () => {
                     </code>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {log.ip_address || "—"}
+                    {log.ip_address || "-"}
                   </TableCell>
                   <TableCell className="max-w-md">
                     {log.metadata && (

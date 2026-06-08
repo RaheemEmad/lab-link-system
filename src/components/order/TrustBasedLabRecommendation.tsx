@@ -133,7 +133,7 @@ export const TrustBasedLabRecommendation = ({
           <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
             <p>
               <strong className="text-foreground">Trust-first selection:</strong> These labs are ranked by 
-              reliability, quality, and expertise. Prices are fixed—no negotiation needed. Select a lab to 
+              reliability, quality, and expertise. Prices are fixed-no negotiation needed. Select a lab to 
               start your order immediately.
             </p>
           </div>

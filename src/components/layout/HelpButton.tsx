@@ -31,7 +31,7 @@ export const HelpButton: React.FC = () => {
           <div>
             <h3 className="font-semibold text-lg mb-2">Need Help?</h3>
             <p className="text-sm text-muted-foreground">
-              All support is handled through tickets — submit one and we'll
+              All support is handled through tickets - submit one and we'll
               reply right inside it.
             </p>
           </div>

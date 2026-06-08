@@ -185,7 +185,7 @@ export const useRealtimeNotifications = () => {
             if (allowed) showNotificationPopup(notification);
           }
 
-          // Batch invalidation — single predicate instead of 6 separate calls
+          // Batch invalidation - single predicate instead of 6 separate calls
           queryClient.invalidateQueries({
             predicate: (query) => {
               const key = query.queryKey[0] as string;

@@ -28,13 +28,13 @@ export function LabAggregateStatsCard({ labId }: Props) {
     {
       icon: Star,
       label: "Overall",
-      value: data.avg_overall ? Number(data.avg_overall).toFixed(1) : "—",
+      value: data.avg_overall ? Number(data.avg_overall).toFixed(1) : "-",
       suffix: "★",
     },
     {
       icon: Award,
       label: "Quality",
-      value: data.avg_quality ? Number(data.avg_quality).toFixed(1) : "—",
+      value: data.avg_quality ? Number(data.avg_quality).toFixed(1) : "-",
       suffix: "★",
     },
     {
