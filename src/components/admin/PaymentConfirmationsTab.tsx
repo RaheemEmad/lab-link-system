@@ -67,7 +67,7 @@ export const PaymentConfirmationsTab = () => {
       } as any);
 
       // Email notification (best effort via auth-email-hook compatible function if present)
-      // Currently no transactional email function deployed for payment events — log as skipped.
+      // Currently no transactional email function deployed for payment events - log as skipped.
       await supabase.from("payment_notification_audit").insert({
         payment_confirmation_id: id,
         recipient_user_id: userId,

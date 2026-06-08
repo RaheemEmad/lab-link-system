@@ -8,14 +8,14 @@ import { useApplicationStats } from "@/hooks/useApplicationStats";
 const doctorBenefits = [
   { icon: ScanLine, title: "AI Shade Match", desc: "Snap a tooth photo and get instant shade suggestions powered by Gemini vision." },
   { icon: Building2, title: "Verified Lab Marketplace", desc: "Compare quotes from trusted labs ranked by trust score, on-time rate, and price." },
-  { icon: MessageSquare, title: "Live Case Room", desc: "Chat, share 3D scans and photos, approve designs — all in one collaboration hub." },
+  { icon: MessageSquare, title: "Live Case Room", desc: "Chat, share 3D scans and photos, approve designs - all in one collaboration hub." },
   { icon: Wallet, title: "Safe Manual Payments", desc: "InstaPay & Vodafone Cash with WhatsApp confirmation templates and admin verification." },
 ];
 
 const labBenefits = [
   { icon: Users, title: "Inbound Case Pipeline", desc: "Real-time marketplace of clinic orders matched to your specialization and capacity." },
   { icon: BarChart3, title: "Workload & SLA Heatmap", desc: "See what's due today, this week, and where you're overbooked." },
-  { icon: Shield, title: "Trust & Verification", desc: "Build a verified profile with gallery, reviews, and on-time stats — win more orders." },
+  { icon: Shield, title: "Trust & Verification", desc: "Build a verified profile with gallery, reviews, and on-time stats - win more orders." },
   { icon: TrendingUp, title: "Subscription Tiers", desc: "Pay per order or upgrade for lower fees, priority placement, and AI recommendations." },
 ];
 
@@ -110,7 +110,7 @@ const ValuePropSection = () => {
                     <ul className="space-y-2 text-sm">
                       {[
                         "Two-sided network effects: more verified labs → more clinic retention",
-                        "Sticky workflow software (orders, chat, invoicing, wallet) — not just a directory",
+                        "Sticky workflow software (orders, chat, invoicing, wallet) - not just a directory",
                         "Bilingual EN/AR, mobile-first PWA, ready for cross-border expansion",
                       ].map((line) => (
                         <li key={line} className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />{line}</li>
@@ -120,11 +120,11 @@ const ValuePropSection = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-xl border bg-gradient-to-br from-primary/5 to-transparent p-4">
                       <div className="text-xs text-muted-foreground mb-1">Live active labs</div>
-                      <div className="text-3xl font-bold">{stats?.activeLabs ?? "—"}</div>
+                      <div className="text-3xl font-bold">{stats?.activeLabs ?? "-"}</div>
                     </div>
                     <div className="rounded-xl border bg-gradient-to-br from-accent/5 to-transparent p-4">
                       <div className="text-xs text-muted-foreground mb-1">Orders processed</div>
-                      <div className="text-3xl font-bold">{stats?.totalOrders ?? "—"}</div>
+                      <div className="text-3xl font-bold">{stats?.totalOrders ?? "-"}</div>
                     </div>
                     {investorMetrics.map((m) => (
                       <div key={m.label} className="rounded-xl border p-4">

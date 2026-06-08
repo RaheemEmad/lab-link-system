@@ -68,7 +68,7 @@ const AdminSupportTab = () => {
     staleTime: 15_000,
   });
 
-  // Realtime — refresh list on any ticket/reply change
+  // Realtime - refresh list on any ticket/reply change
   useEffect(() => {
     const channel = supabase
       .channel("admin-support-tickets")

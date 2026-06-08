@@ -240,7 +240,7 @@ export const DesktopRightActions = ({
             </Tooltip>
           )}
 
-          {/* Account Dropdown — includes Profile, Settings, Language, Theme, Sign Out */}
+          {/* Account Dropdown - includes Profile, Settings, Language, Theme, Sign Out */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-2">

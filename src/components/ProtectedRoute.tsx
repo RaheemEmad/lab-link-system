@@ -47,7 +47,7 @@ const ProtectedRoute = ({ children, skipOnboardingCheck = false }: ProtectedRout
     }
   }, [user, loading, navigate]);
 
-  // Onboarding enforcement — admins are exempt entirely
+  // Onboarding enforcement - admins are exempt entirely
   useEffect(() => {
     if (loading || profileLoading || roleLoading || !user || skipOnboardingCheck) return;
     if (isAdmin) return; // Admins never need to fill clinic info

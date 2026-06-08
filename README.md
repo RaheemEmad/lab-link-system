@@ -1,4 +1,4 @@
-# LabLink — Dental Lab Management & Marketplace
+# LabLink - Dental Lab Management & Marketplace
 
 ![LabLink](https://img.shields.io/badge/Version-1.0.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18.2.0-61dafb.svg)
@@ -23,7 +23,7 @@ A comprehensive web application built to streamline dental lab workflows, connec
 | **DevOps / SRE** | Deployment, environment variables, monitoring, migrations |
 | **QA Engineers** | Test users, E2E test instructions and troubleshooting |
 
-## 🛠 Quickstart — Developer (Local)
+## 🛠 Quickstart - Developer (Local)
 
 ### Prerequisites
 

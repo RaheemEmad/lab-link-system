@@ -31,7 +31,7 @@ const About = () => {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground leading-relaxed">
-            LabLink was built to solve a real problem in dental practices: the endless back-and-forth of WhatsApp messages, lost orders, unclear timelines, and manual tracking chaos. We believe dental professionals deserve better tools—clinical-grade software that brings precision, clarity, and reliability to every order.
+            LabLink was built to solve a real problem in dental practices: the endless back-and-forth of WhatsApp messages, lost orders, unclear timelines, and manual tracking chaos. We believe dental professionals deserve better tools-clinical-grade software that brings precision, clarity, and reliability to every order.
           </p>
         </CardContent>
       </Card>
@@ -41,7 +41,7 @@ const About = () => {
         <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center mb-8">Our Values</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { icon: Shield, title: "Precision", desc: "Every detail matters—from shades to materials to delivery dates. We ensure nothing gets lost in translation." },
+            { icon: Shield, title: "Precision", desc: "Every detail matters-from shades to materials to delivery dates. We ensure nothing gets lost in translation." },
             { icon: Zap, title: "Speed", desc: "Fast intake, instant updates, and real-time tracking. No more waiting for responses or digging through chat history." },
             { icon: Users, title: "Clarity", desc: "Guided workflows and transparent status tracking. Everyone knows exactly where every order stands." },
             { icon: Heart, title: "Reliability", desc: "Always available, always tracking. A system you can depend on, every single day." },

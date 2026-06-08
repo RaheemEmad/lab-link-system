@@ -190,7 +190,7 @@ const QuickOrderForm = ({ onSubmitSuccess, onSwitchToDetailed }: QuickOrderFormP
           <Zap className="h-5 w-5 text-primary" />
           <CardTitle className="text-xl">Quick Order</CardTitle>
         </div>
-        <CardDescription>Fill in just the essentials — we'll use smart defaults for the rest.</CardDescription>
+        <CardDescription>Fill in just the essentials - we'll use smart defaults for the rest.</CardDescription>
       </CardHeader>
       <CardContent className="px-4 sm:px-6">
         <Form {...form}>

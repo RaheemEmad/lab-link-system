@@ -497,7 +497,7 @@ export function ShipmentDetailModal({
             )}
           </TabsContent>
 
-          {/* TAB 2: Shipment — display-first with edit toggle */}
+          {/* TAB 2: Shipment - display-first with edit toggle */}
           <TabsContent value="shipment" className="px-4 sm:px-6 pb-6 mt-4">
             {canEditShipment && hasShipmentData && !isEditing && (
               <div className="flex justify-end mb-3">

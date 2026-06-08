@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Rate limit — single DB function call instead of 4 sequential queries
+    // Rate limit - single DB function call instead of 4 sequential queries
     const { data: rateLimitResult, error: rlError } = await supabase.rpc(
       'check_and_increment_rate_limit',
       {
@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
       });
 
       if (deductError || !deductResult?.success) {
-        // Order was created but fee deduction failed — log but don't fail the order
+        // Order was created but fee deduction failed - log but don't fail the order
         console.error('Wallet deduction failed after order creation:', deductError || deductResult?.error);
       }
     }

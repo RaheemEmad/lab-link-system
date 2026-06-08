@@ -125,7 +125,7 @@ export const DeliveryConfirmationDialog = ({
               .filter(Boolean) as string[];
           }
         } catch {
-          // Non-critical — continue without photos
+          // Non-critical - continue without photos
         }
 
         // Check if case already exists for this patient

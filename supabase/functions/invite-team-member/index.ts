@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
 
     if (inviteErr && !inviteErr.message?.includes("already")) {
       console.error("Invite email error:", inviteErr);
-      // Still return success — invitation row exists; user can sign up directly
+      // Still return success - invitation row exists; user can sign up directly
     }
 
     return new Response(

@@ -10,7 +10,7 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-# AI crawlers — explicitly allowed for discovery in answer engines
+# AI crawlers - explicitly allowed for discovery in answer engines
 User-agent: GPTBot
 Allow: /
 

@@ -381,7 +381,7 @@ const EditOrder = () => {
         }
       } catch (syncError) {
         console.error("Feedback room sync error:", syncError);
-        // Non-blocking — order was already saved
+        // Non-blocking - order was already saved
       }
 
       clearSavedData();

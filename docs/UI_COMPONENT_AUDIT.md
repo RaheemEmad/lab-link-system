@@ -7,14 +7,14 @@
 
 ## 1. Re-Render Issues
 
-### 1.1 CRITICAL — Debug Logging on Every Render ✅ FIXED
+### 1.1 CRITICAL - Debug Logging on Every Render ✅ FIXED
 | Component | Issue | Impact |
 |-----------|-------|--------|
 | `OrderDashboard.tsx` | `console.debug()` called on every render with object allocation | High CPU on frequent updates |
 
 **Fix applied:** Removed render-time debug logging and verbose `fetchOrders` console statements.
 
-### 1.2 HIGH — State Updates Triggering Cascading Re-renders
+### 1.2 HIGH - State Updates Triggering Cascading Re-renders
 | Component | State Count | Issue |
 |-----------|-------------|-------|
 | `Profile.tsx` | 8 individual `useState` calls | Each field update triggers re-render of entire page |
@@ -33,7 +33,7 @@ const [phone, setPhone] = useState("");
 const [profileState, dispatch] = useReducer(profileReducer, initialState);
 ```
 
-### 1.3 MEDIUM — Realtime Subscriptions Triggering Full Refetch
+### 1.3 MEDIUM - Realtime Subscriptions Triggering Full Refetch
 | Component | Issue |
 |-----------|-------|
 | `OrderDashboard.tsx` | Any `orders` table change → full `fetchOrders()` refetch |
@@ -81,15 +81,15 @@ These receive stable props but re-render when parent updates:
 | File | Line | Issue |
 |------|------|-------|
 | `AdminNotifications.tsx` | 34 | `useEffect(fn, [])` calls `fetchNotifications` which uses no deps but should |
-| `AdminCommunicationTab.tsx` | 28 | `useEffect(fn, [])` — `fetchNotes` has no deps |
-| `AdminDashboardTab.tsx` | 87 | `useEffect(fn, [])` — `fetchStats` captures stale state |
-| `QCChecklist.tsx` | 45 | `useEffect(fn, [])` — doesn't depend on `orderId` |
-| `OrderTracking.tsx` | 75 | `useEffect(fn, [])` — `fetchOrders` should depend on user |
+| `AdminCommunicationTab.tsx` | 28 | `useEffect(fn, [])` - `fetchNotes` has no deps |
+| `AdminDashboardTab.tsx` | 87 | `useEffect(fn, [])` - `fetchStats` captures stale state |
+| `QCChecklist.tsx` | 45 | `useEffect(fn, [])` - doesn't depend on `orderId` |
+| `OrderTracking.tsx` | 75 | `useEffect(fn, [])` - `fetchOrders` should depend on user |
 
 ### 3.2 Over-Fetching Due to Effect Dependencies
 | File | Issue |
 |------|-------|
-| `Labs.tsx` | 3 separate `useEffect` hooks for URL sync, realtime, and page reset — could be 1 |
+| `Labs.tsx` | 3 separate `useEffect` hooks for URL sync, realtime, and page reset - could be 1 |
 | `LandingNav.tsx` | `useEffect` fetches `user_roles` on every `user` change (same as `useUserRole()`) |
 
 ### 3.3 Inline Async in useEffect (Anti-pattern)
@@ -105,7 +105,7 @@ useEffect(() => {
 
 ---
 
-## 4. Large Components — Should Be Split
+## 4. Large Components - Should Be Split
 
 | Component | Lines | Responsibility Count | Suggested Splits |
 |-----------|-------|---------------------|-----------------|
@@ -236,7 +236,7 @@ These are acceptable since content is static:
 ## 10. Priority Action Items
 
 ### Immediate (High Impact, Low Effort)
-1. ✅ Remove debug `console.debug` from render paths — **DONE**
+1. ✅ Remove debug `console.debug` from render paths - **DONE**
 2. Create `<PageLayout>` to eliminate repeated Nav/Footer wrapper
 3. Add `useMemo` to `OrderDashboard` filtered/sorted list
 4. Add `useMemo` to `LabWorkflowManagement` inline `.filter().map()` calls

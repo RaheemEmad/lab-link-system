@@ -387,7 +387,7 @@ const AdminUsersTab = () => {
                           />
                         </TableCell>
                         <TableCell className="font-medium">
-                          {user.full_name || "—"}
+                          {user.full_name || "-"}
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
@@ -396,9 +396,9 @@ const AdminUsersTab = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {user.clinic_name || user.lab_name || "—"}
+                          {user.clinic_name || user.lab_name || "-"}
                         </TableCell>
-                        <TableCell>{user.phone || "—"}</TableCell>
+                        <TableCell>{user.phone || "-"}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             {user.onboarding_completed ? (

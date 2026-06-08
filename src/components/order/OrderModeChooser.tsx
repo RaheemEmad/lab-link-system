@@ -23,7 +23,7 @@ const modes = [
     id: "quick" as OrderMode,
     icon: Zap,
     title: "Quick Order",
-    description: "Send a fast order to your lab — just patient name, restoration type, and teeth.",
+    description: "Send a fast order to your lab - just patient name, restoration type, and teeth.",
     badge: "Fast",
   },
   {

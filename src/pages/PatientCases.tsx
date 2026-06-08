@@ -313,7 +313,7 @@ const PatientCases = () => {
         <Dialog open={!!photoCase} onOpenChange={() => setPhotoCase(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>{photoCase?.patient_name} — Photos</DialogTitle>
+              <DialogTitle>{photoCase?.patient_name} - Photos</DialogTitle>
             </DialogHeader>
             {photoCase && (
               <CasePhotoUploader caseId={photoCase.id} photos={photoCase.photos} />
@@ -325,7 +325,7 @@ const PatientCases = () => {
         <Dialog open={!!ordersCase} onOpenChange={() => setOrdersCase(null)}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>{ordersCase?.patient_name} — Orders</DialogTitle>
+              <DialogTitle>{ordersCase?.patient_name} - Orders</DialogTitle>
             </DialogHeader>
             {ordersLoading ? (
               <div className="flex justify-center py-8">

@@ -1,5 +1,5 @@
 /**
- * Shared formatting utilities — single source of truth.
+ * Shared formatting utilities - single source of truth.
  * Import from here instead of defining inline helpers.
  */
 

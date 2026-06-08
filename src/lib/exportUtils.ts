@@ -47,7 +47,7 @@ export function exportToPDF(data: Record<string, unknown>[], title: string, file
   const rows = data
     .map(
       row =>
-        `<tr>${headers.map(h => `<td>${String(row[h] ?? '—')}</td>`).join('')}</tr>`,
+        `<tr>${headers.map(h => `<td>${String(row[h] ?? '-')}</td>`).join('')}</tr>`,
     )
     .join('');
 

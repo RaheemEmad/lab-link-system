@@ -784,7 +784,7 @@ export default function OrderNotesDialog({
             <SheetHeader className="pb-2">
               <SheetTitle className="flex items-center gap-2 text-base">
                 <StickyNote className="h-4 w-4 text-primary" />
-                Notes — {orderNumber}
+                Notes - {orderNumber}
               </SheetTitle>
             </SheetHeader>
             {notesContent}
@@ -802,7 +802,7 @@ export default function OrderNotesDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <StickyNote className="h-4 w-4 text-primary" />
-              Notes — {orderNumber}
+              Notes - {orderNumber}
             </DialogTitle>
           </DialogHeader>
           {notesContent}

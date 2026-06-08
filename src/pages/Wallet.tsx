@@ -102,7 +102,7 @@ const Wallet = () => {
                     {subscription && (
                       <Badge variant="secondary" className="mt-2">
                         <Crown className="h-3 w-3 mr-1" />
-                        {(subscription as any).plan?.name} Plan — {(subscription as any).plan?.per_order_fee > 0
+                        {(subscription as any).plan?.name} Plan - {(subscription as any).plan?.per_order_fee > 0
                           ? `${(subscription as any).plan?.per_order_fee} EGP/order`
                           : "No commission"}
                       </Badge>

@@ -996,7 +996,7 @@ const OrderDashboard = () => {
                                 {format(new Date(order.expected_delivery_date), "MMM d, yyyy")}
                               </span>
                             ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
+                              <span className="text-xs text-muted-foreground">-</span>
                             )}
                           </TableCell>
                         )}

@@ -183,7 +183,7 @@ export const InventoryManager = () => {
                       {item.minimum_stock}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
-                      {item.supplier_name || "—"}
+                      {item.supplier_name || "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
