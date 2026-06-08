@@ -337,7 +337,7 @@ export const DesktopRightActions = ({
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button size="sm" onClick={() => navigate("/auth")}>
+              <Button size="sm" onClick={() => navigate("/auth?mode=signup")}>
                 {t.nav.signUp}
               </Button>
             </TooltipTrigger>

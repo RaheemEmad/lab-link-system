@@ -170,7 +170,7 @@ const HowItWorks = () => {
                 <div className="flex flex-col justify-center gap-3 sm:flex-row">
                   <Button
                     size="lg"
-                    onClick={() => navigate("/auth")}
+                    onClick={() => navigate("/auth?mode=signup")}
                     className="group h-12 rounded-xl bg-primary px-7 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/30 hover:scale-[1.02] transition-transform"
                   >
                     Get Started Now

@@ -174,7 +174,7 @@ export const MobileNavSheet = ({
                     <Button variant="outline" className="w-full" onClick={() => { navigate("/auth"); setIsOpen(false); }}>
                       {t.nav.signIn}
                     </Button>
-                    <Button className="w-full" onClick={() => { navigate("/auth"); setIsOpen(false); }}>
+                    <Button className="w-full" onClick={() => { navigate("/auth?mode=signup"); setIsOpen(false); }}>
                       {t.nav.signUp}
                     </Button>
                   </div>
