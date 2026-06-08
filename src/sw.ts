@@ -10,6 +10,30 @@ declare const self: ServiceWorkerGlobalScope;
 // Precache all assets built by Vite (injected by vite-plugin-pwa)
 precacheAndRoute(self.__WB_MANIFEST);
 
+// ── Navigation requests (HTML documents): network-first so users always get the
+//    latest index.html. This prevents the "error loading dynamically imported module"
+//    error caused by a cached index.html referencing chunk hashes from an older build.
+registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  new NetworkFirst({
+    cacheName: 'pages-cache',
+    networkTimeoutSeconds: 5,
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
+  })
+);
+
+// ── JS / CSS assets: network-first so hashed chunks from the latest deploy win
+//    over any stale cached versions.
+registerRoute(
+  ({ request, url }) =>
+    (request.destination === 'script' || request.destination === 'style') &&
+    url.origin === self.location.origin,
+  new NetworkFirst({
+    cacheName: 'assets-cache',
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
+  })
+);
+
 // ── OAuth: never cache auth redirects ──
 registerRoute(
   ({ url }) => url.pathname.startsWith('/~oauth'),
