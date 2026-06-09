@@ -1,23 +1,14 @@
 import { AlertCircle, Shuffle, FileQuestion } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const ProblemSection = () => {
+  const { t } = useLanguage();
+  const p = t.landing.problem;
   const problems = [
-    {
-      icon: FileQuestion,
-      title: "Missing details",
-      description: "Shades and tooth numbers lost in chat",
-    },
-      {
-        icon: Shuffle,
-        title: "Non-repeatable process",
-        description: "Each order handled differently, total chaos",
-      },
-    {
-      icon: AlertCircle,
-      title: "No accountability",
-      description: "Who shipped what? When? No record",
-    },
+    { icon: FileQuestion, title: p.missingTitle, description: p.missingDesc },
+    { icon: Shuffle, title: p.processTitle, description: p.processDesc },
+    { icon: AlertCircle, title: p.accountabilityTitle, description: p.accountabilityDesc },
   ];
 
   return (
@@ -25,10 +16,10 @@ const ProblemSection = () => {
       <div className="container px-4 mx-auto">
         <ScrollReveal>
           <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12 sm:mb-14 md:mb-16 lg:mb-20 max-w-4xl mx-auto leading-tight">
-            Dental labs lose time and money because communication is built on WhatsApp: messy, missing, and dangerous
+            {p.headline}
           </h3>
         </ScrollReveal>
-        
+
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mb-10 sm:mb-12">
           {problems.map((problem, index) => (
             <ScrollReveal key={index} delay={index * 100}>
@@ -40,13 +31,10 @@ const ProblemSection = () => {
             </ScrollReveal>
           ))}
         </div>
-        
+
         <div className="text-center">
-          <a 
-            href="#how-it-works" 
-            className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors"
-          >
-            See how LabLink fixes this →
+          <a href="#how-it-works" className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors">
+            {p.seeHow}
           </a>
         </div>
       </div>
