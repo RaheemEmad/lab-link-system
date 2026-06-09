@@ -106,13 +106,13 @@ const LandingHero = () => {
               <div className="grid grid-cols-2 gap-3">
                 <BentoStat
                   icon={<Activity className="h-4 w-4" />}
-                  label="Active Labs"
+                  label={t.landing.heroExtras.activeLabs}
                   value={isLoading ? <Skeleton className="h-7 w-14" /> : `${statsData?.activeLabs || 12}+`}
                   tone="primary"
                 />
                 <BentoStat
                   icon={<Zap className="h-4 w-4" />}
-                  label="Orders Processed"
+                  label={t.landing.heroExtras.ordersProcessed}
                   value={isLoading ? <Skeleton className="h-7 w-16" /> : `${statsData?.totalOrders || 1000}+`}
                   tone="success"
                 />
@@ -124,7 +124,7 @@ const LandingHero = () => {
                 />
                 <BentoStat
                   icon={<CheckCircle2 className="h-4 w-4" />}
-                  label="On-time Delivery"
+                  label={t.landing.heroExtras.onTime}
                   value="98%"
                   tone="success"
                 />
@@ -138,12 +138,12 @@ const LandingHero = () => {
                       <FileText className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-foreground">Order #LL-4921</div>
-                      <div className="text-[10px] text-muted-foreground">Zirconia Crown · A2</div>
+                      <div className="text-xs font-semibold text-foreground" dir="ltr">Order #LL-4921</div>
+                      <div className="text-[10px] text-muted-foreground">{t.landing.heroExtras.sampleProduct}</div>
                     </div>
                   </div>
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                    In Progress
+                    {t.landing.heroExtras.inProgress}
                   </span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -155,8 +155,8 @@ const LandingHero = () => {
                   />
                 </div>
                 <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
-                  <span>Lab accepted</span>
-                  <span>Ready in 2d</span>
+                  <span>{t.landing.heroExtras.labAccepted}</span>
+                  <span>{t.landing.heroExtras.readyIn}</span>
                 </div>
               </div>
             </div>

@@ -4,57 +4,51 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Stethoscope, Building2, TrendingUp, Users, Shield, Wallet, ScanLine, MessageSquare, BarChart3, Globe2, Sparkles, CheckCircle2 } from "lucide-react";
 import { useApplicationStats } from "@/hooks/useApplicationStats";
-
-const doctorBenefits = [
-  { icon: ScanLine, title: "AI Shade Match", desc: "Snap a tooth photo and get instant shade suggestions powered by Gemini vision." },
-  { icon: Building2, title: "Verified Lab Marketplace", desc: "Compare quotes from trusted labs ranked by trust score, on-time rate, and price." },
-  { icon: MessageSquare, title: "Live Case Room", desc: "Chat, share 3D scans and photos, approve designs - all in one collaboration hub." },
-  { icon: Wallet, title: "Safe Manual Payments", desc: "InstaPay & Vodafone Cash with WhatsApp confirmation templates and admin verification." },
-];
-
-const labBenefits = [
-  { icon: Users, title: "Inbound Case Pipeline", desc: "Real-time marketplace of clinic orders matched to your specialization and capacity." },
-  { icon: BarChart3, title: "Workload & SLA Heatmap", desc: "See what's due today, this week, and where you're overbooked." },
-  { icon: Shield, title: "Trust & Verification", desc: "Build a verified profile with gallery, reviews, and on-time stats - win more orders." },
-  { icon: TrendingUp, title: "Subscription Tiers", desc: "Pay per order or upgrade for lower fees, priority placement, and AI recommendations." },
-];
-
-const investorMetrics = [
-  { label: "Egyptian dental clinics (TAM)", value: "30,000+" },
-  { label: "Active dental labs", value: "1,000+" },
-  { label: "Average WhatsApp orders / lab / month", value: "120" },
-  { label: "Take-rate per order", value: "7–15 EGP" },
-];
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const ValuePropSection = () => {
   const { data: stats } = useApplicationStats();
+  const { t } = useLanguage();
+  const v = t.landing.valueProp;
   const [tab, setTab] = useState<"doctors" | "labs" | "investors">("doctors");
+
+  const doctorBenefits = [
+    { icon: ScanLine, title: v.docs.aiT, desc: v.docs.aiD },
+    { icon: Building2, title: v.docs.mktT, desc: v.docs.mktD },
+    { icon: MessageSquare, title: v.docs.roomT, desc: v.docs.roomD },
+    { icon: Wallet, title: v.docs.payT, desc: v.docs.payD },
+  ];
+
+  const labBenefits = [
+    { icon: Users, title: v.labs.pipeT, desc: v.labs.pipeD },
+    { icon: BarChart3, title: v.labs.heatT, desc: v.labs.heatD },
+    { icon: Shield, title: v.labs.trustT, desc: v.labs.trustD },
+    { icon: TrendingUp, title: v.labs.tierT, desc: v.labs.tierD },
+  ];
+
+  const investorMetrics = [
+    { label: v.inv.mClinics, value: "30,000+" },
+    { label: v.inv.mLabs, value: "1,000+" },
+    { label: v.inv.mWa, value: "120" },
+    { label: v.inv.mTake, value: "7–15 EGP" },
+  ];
 
   return (
     <section className="py-20 bg-gradient-to-b from-background to-secondary/20">
       <div className="container px-4 mx-auto max-w-6xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-4">
-            <Sparkles className="w-3.5 h-3.5" /> Built for everyone in the dental supply chain
+            <Sparkles className="w-3.5 h-3.5" /> {v.badge}
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            One platform. Three audiences. Zero WhatsApp chaos.
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            LabLink replaces fragmented chats, paper slips, and mental tracking with a single source of truth.
-          </p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">{v.headline}</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{v.sub}</p>
         </motion.div>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
+        <Tabs value={tab} onValueChange={(val) => setTab(val as typeof tab)} className="w-full">
           <TabsList className="grid w-full max-w-xl mx-auto grid-cols-3 h-auto p-1">
-            <TabsTrigger value="doctors" className="py-2.5 gap-2"><Stethoscope className="w-4 h-4" /> Doctors</TabsTrigger>
-            <TabsTrigger value="labs" className="py-2.5 gap-2"><Building2 className="w-4 h-4" /> Labs</TabsTrigger>
-            <TabsTrigger value="investors" className="py-2.5 gap-2"><TrendingUp className="w-4 h-4" /> Investors</TabsTrigger>
+            <TabsTrigger value="doctors" className="py-2.5 gap-2"><Stethoscope className="w-4 h-4" /> {v.tabDoctors}</TabsTrigger>
+            <TabsTrigger value="labs" className="py-2.5 gap-2"><Building2 className="w-4 h-4" /> {v.tabLabs}</TabsTrigger>
+            <TabsTrigger value="investors" className="py-2.5 gap-2"><TrendingUp className="w-4 h-4" /> {v.tabInvestors}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="doctors" className="mt-8">
@@ -99,31 +93,23 @@ const ValuePropSection = () => {
                 <div className="grid lg:grid-cols-2 gap-8 items-center">
                   <div>
                     <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-success/10 text-success text-xs font-medium mb-4">
-                      <Globe2 className="w-3.5 h-3.5" /> Egypt → MENA
+                      <Globe2 className="w-3.5 h-3.5" /> {v.inv.badge}
                     </div>
-                    <h3 className="text-2xl sm:text-3xl font-bold mb-3 tracking-tight">A vertical SaaS marketplace in a $1B+ regional dental services market</h3>
-                    <p className="text-muted-foreground mb-6">
-                      LabLink monetizes per-order fees, verified-lab subscriptions, and value-added services
-                      (AI shade match, logistics, financing). Already running with real orders, real labs,
-                      and a real payment loop.
-                    </p>
+                    <h3 className="text-2xl sm:text-3xl font-bold mb-3 tracking-tight">{v.inv.headline}</h3>
+                    <p className="text-muted-foreground mb-6">{v.inv.body}</p>
                     <ul className="space-y-2 text-sm">
-                      {[
-                        "Two-sided network effects: more verified labs → more clinic retention",
-                        "Sticky workflow software (orders, chat, invoicing, wallet) - not just a directory",
-                        "Bilingual EN/AR, mobile-first PWA, ready for cross-border expansion",
-                      ].map((line) => (
+                      {[v.inv.bullet1, v.inv.bullet2, v.inv.bullet3].map((line) => (
                         <li key={line} className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />{line}</li>
                       ))}
                     </ul>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-xl border bg-gradient-to-br from-primary/5 to-transparent p-4">
-                      <div className="text-xs text-muted-foreground mb-1">Live active labs</div>
+                      <div className="text-xs text-muted-foreground mb-1">{v.inv.liveLabs}</div>
                       <div className="text-3xl font-bold">{stats?.activeLabs ?? "-"}</div>
                     </div>
                     <div className="rounded-xl border bg-gradient-to-br from-accent/5 to-transparent p-4">
-                      <div className="text-xs text-muted-foreground mb-1">Orders processed</div>
+                      <div className="text-xs text-muted-foreground mb-1">{v.inv.ordersProcessed}</div>
                       <div className="text-3xl font-bold">{stats?.totalOrders ?? "-"}</div>
                     </div>
                     {investorMetrics.map((m) => (

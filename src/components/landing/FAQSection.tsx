@@ -1,37 +1,17 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const FAQSection = () => {
+  const { t } = useLanguage();
+  const f = t.landing.faq;
   const faqs = [
-    {
-      question: "How does role-based access work?",
-      answer: "When you sign up, you choose your role: Doctor, Lab Staff, or Admin. Doctors can create and track their orders. Lab Staff can update statuses and add notes to all orders. Admins have full oversight and management capabilities.",
-    },
-    {
-      question: "What features are included?",
-      answer: "LabLink includes complete order management, real-time status tracking with full history timeline, internal notes system for collaboration between doctors and lab staff, automatic notifications for status changes, and secure role-based access control.",
-    },
-    {
-      question: "Do both doctors and lab staff need accounts?",
-      answer: "Yes, both doctors and lab staff need accounts to access LabLink. This ensures secure access, proper tracking of who made changes, and role-specific features. Sign up takes less than 2 minutes.",
-    },
-    {
-      question: "How do I track order changes?",
-      answer: "Every order has a complete history timeline showing all status changes with timestamps and the user who made each change. You can also add internal notes to communicate about specific orders with your team.",
-    },
-    {
-      question: "Is my data secure?",
-      answer: "Absolutely. LabLink uses enterprise-grade security with role-based access control, encrypted data storage, and secure authentication. Only authorized users with the correct role can access specific features and data.",
-    },
-    {
-      question: "How much does it cost?",
-      answer: "LabLink is currently free to use with all core features included: order management, status tracking, notes, and notifications. We're building advanced analytics and reporting features that may be offered as paid upgrades in the future.",
-    },
+    { question: f.q1, answer: f.a1 },
+    { question: f.q2, answer: f.a2 },
+    { question: f.q3, answer: f.a3 },
+    { question: f.q4, answer: f.a4 },
+    { question: f.q5, answer: f.a5 },
+    { question: f.q6, answer: f.a6 },
   ];
 
   return (
@@ -39,19 +19,14 @@ const FAQSection = () => {
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto">
           <ScrollReveal>
-            <h3 className="text-3xl md:text-4xl font-bold text-center mb-12">
-              Frequently Asked Questions
-            </h3>
+            <h3 className="text-3xl md:text-4xl font-bold text-center mb-12">{f.headline}</h3>
           </ScrollReveal>
-          
+
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, index) => (
               <ScrollReveal key={index} delay={index * 80}>
-                <AccordionItem 
-                  value={`item-${index}`}
-                  className="bg-card px-6 rounded-xl border border-border hover-scale transition-all duration-300"
-                >
-                  <AccordionTrigger className="text-left font-semibold hover:no-underline hover:text-primary transition-colors">
+                <AccordionItem value={`item-${index}`} className="bg-card px-6 rounded-xl border border-border hover-scale transition-all duration-300">
+                  <AccordionTrigger className="text-start font-semibold hover:no-underline hover:text-primary transition-colors">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">

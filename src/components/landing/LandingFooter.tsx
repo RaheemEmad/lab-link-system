@@ -29,7 +29,7 @@ const LandingFooter = () => {
               onClick={() => downloadGenericBrochure()}
               className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              How-to brochure (PDF)
+              {t.landing.footerExtras.brochure}
             </button>
           </nav>
         </div>

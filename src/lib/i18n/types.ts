@@ -158,4 +158,129 @@ export interface Translations {
     allCaughtUp: string;
     noItems: string;
   };
+  landing: {
+    heroExtras: {
+      activeLabs: string;
+      ordersProcessed: string;
+      onTime: string;
+      inProgress: string;
+      labAccepted: string;
+      readyIn: string;
+      sampleProduct: string;
+    };
+    problem: {
+      headline: string;
+      missingTitle: string;
+      missingDesc: string;
+      processTitle: string;
+      processDesc: string;
+      accountabilityTitle: string;
+      accountabilityDesc: string;
+      seeHow: string;
+    };
+    valueProp: {
+      badge: string;
+      headline: string;
+      sub: string;
+      tabDoctors: string;
+      tabLabs: string;
+      tabInvestors: string;
+      docs: { aiT: string; aiD: string; mktT: string; mktD: string; roomT: string; roomD: string; payT: string; payD: string };
+      labs: { pipeT: string; pipeD: string; heatT: string; heatD: string; trustT: string; trustD: string; tierT: string; tierD: string };
+      inv: {
+        badge: string;
+        headline: string;
+        body: string;
+        bullet1: string;
+        bullet2: string;
+        bullet3: string;
+        liveLabs: string;
+        ordersProcessed: string;
+        mClinics: string;
+        mLabs: string;
+        mWa: string;
+        mTake: string;
+      };
+    };
+    howItWorks: {
+      badge: string;
+      headline: string;
+      sub: string;
+      step1Title: string; step1Desc: string;
+      step2Title: string; step2Desc: string;
+      step3Title: string; step3Desc: string;
+      step4Title: string; step4Desc: string;
+      ctaUser: string;
+      ctaGuest: string;
+    };
+    lead: {
+      title: string;
+      sub: string;
+      email: string;
+      whatsapp: string;
+      emailPh: string;
+      waPh: string;
+      emailAria: string;
+      waAria: string;
+      continueBtn: string;
+      disclaimer: string;
+      errEmpty: string;
+      errEmail: string;
+      errPhone: string;
+      errSave: string;
+      successTitle: string;
+      successBodyEmail: string;
+      successBodyWa: string;
+      openOrder: string;
+      submitAnother: string;
+    };
+    proof: {
+      headline: string;
+      t1q: string; t1n: string; t1r: string;
+      t2q: string; t2n: string; t2r: string;
+      t3q: string; t3n: string; t3r: string;
+      cases: string;
+      labs: string;
+    };
+    faq: {
+      headline: string;
+      q1: string; a1: string;
+      q2: string; a2: string;
+      q3: string; a3: string;
+      q4: string; a4: string;
+      q5: string; a5: string;
+      q6: string; a6: string;
+    };
+    finalCTA: {
+      headline: string;
+      sub: string;
+      dentist: string;
+      lab: string;
+      trust: string;
+    };
+    howItWorksPage: {
+      badge: string;
+      headline1: string;
+      headline2: string;
+      sub: string;
+      step1T: string; step1D: string;
+      step2T: string; step2D: string;
+      step3T: string; step3D: string;
+      step4T: string; step4D: string;
+      step5T: string; step5D: string;
+      step6T: string; step6D: string;
+      featuresHeadline: string;
+      featuresSub: string;
+      feat1T: string; feat1D: string;
+      feat2T: string; feat2D: string;
+      feat3T: string; feat3D: string;
+      ctaHeadline: string;
+      ctaSub: string;
+      ctaPrimary: string;
+      ctaSecondary: string;
+    };
+    footerExtras: {
+      brochure: string;
+    };
+  };
 }
