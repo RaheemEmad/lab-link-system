@@ -24,8 +24,9 @@ interface Props {
 const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const Arrow = isRTL ? ArrowLeft : ArrowRight;
+  const l = t.landing.lead;
 
   const [mode, setMode] = useState<Mode>("email");
   const [value, setValue] = useState("");
@@ -34,9 +35,9 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
 
   const validate = (): string | null => {
     const v = value.trim();
-    if (!v) return "Please enter a contact";
-    if (mode === "email" && !emailRe.test(v)) return "Please enter a valid email";
-    if (mode === "whatsapp" && !phoneRe.test(v)) return "Please enter a valid phone number";
+    if (!v) return l.errEmpty;
+    if (mode === "email" && !emailRe.test(v)) return l.errEmail;
+    if (mode === "whatsapp" && !phoneRe.test(v)) return l.errPhone;
     return null;
   };
 
@@ -55,7 +56,7 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
     });
     setSubmitting(false);
     if (error) {
-      toast.error("Could not save your details. Please try again.");
+      toast.error(l.errSave);
       return;
     }
     setSuccess(true);
@@ -74,48 +75,32 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
 
       <AnimatePresence mode="wait">
         {!success ? (
-          <motion.div
-            key="form"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-            className="relative"
-          >
+          <motion.div key="form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="relative">
             <div className="mb-5 max-w-xl">
-              <h3 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                Start your first order in 2 minutes
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-                Drop your email or WhatsApp and we'll take you straight to the digital order form.
-              </p>
+              <h3 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{l.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground sm:text-base">{l.sub}</p>
             </div>
 
-            {/* Mode switch */}
             <div className="mb-4 inline-flex rounded-xl border border-border bg-muted/50 p-1">
               <button
                 type="button"
                 onClick={() => setMode("email")}
                 aria-pressed={mode === "email"}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  mode === "email"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                  mode === "email" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Mail className="h-3.5 w-3.5" /> Email
+                <Mail className="h-3.5 w-3.5" /> {l.email}
               </button>
               <button
                 type="button"
                 onClick={() => setMode("whatsapp")}
                 aria-pressed={mode === "whatsapp"}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  mode === "whatsapp"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                  mode === "whatsapp" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                <MessageCircle className="h-3.5 w-3.5" /> {l.whatsapp}
               </button>
             </div>
 
@@ -123,13 +108,14 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
               <Input
                 type={mode === "email" ? "email" : "tel"}
                 inputMode={mode === "email" ? "email" : "tel"}
-                placeholder={mode === "email" ? "you@clinic.com" : "+20 100 123 4567"}
+                placeholder={mode === "email" ? l.emailPh : l.waPh}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 required
                 disabled={submitting}
                 className="h-12 flex-1 rounded-xl text-base"
-                aria-label={mode === "email" ? "Email address" : "WhatsApp number"}
+                aria-label={mode === "email" ? l.emailAria : l.waAria}
+                dir="ltr"
               />
               <Button
                 type="submit"
@@ -141,58 +127,39 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Continue
+                    {l.continueBtn}
                     <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
                   </>
                 )}
               </Button>
             </form>
 
-            <p className="mt-3 text-xs text-muted-foreground">
-              No spam. We'll only use this to follow up on your first order.
-            </p>
+            <p className="mt-3 text-xs text-muted-foreground">{l.disclaimer}</p>
           </motion.div>
         ) : (
-          <motion.div
-            key="success"
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.3 }}
-            className="relative flex flex-col items-start gap-4"
-          >
+          <motion.div key="success" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.3 }} className="relative flex flex-col items-start gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15 text-success">
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <div className="max-w-xl">
-              <h3 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                You're in. Let's create your order.
-              </h3>
+              <h3 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{l.successTitle}</h3>
               <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-                We saved your {mode === "email" ? "email" : "WhatsApp number"} (
-                <span className="font-medium text-foreground">{value.trim()}</span>). Continue to the
-                digital order form to send your first case to a verified lab.
+                {mode === "email" ? l.successBodyEmail : l.successBodyWa}{" "}
+                <span className="font-medium text-foreground" dir="ltr">{value.trim()}</span>
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                size="lg"
-                onClick={goToOrder}
-                className="group h-12 rounded-xl px-6 text-base font-semibold shadow-lg shadow-primary/20"
-              >
-                Open the order form
+              <Button size="lg" onClick={goToOrder} className="group h-12 rounded-xl px-6 text-base font-semibold shadow-lg shadow-primary/20">
+                {l.openOrder}
                 <Arrow className="ltr:ml-2 rtl:mr-2 h-4 w-4 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
               </Button>
               <Button
                 size="lg"
                 variant="ghost"
-                onClick={() => {
-                  setSuccess(false);
-                  setValue("");
-                }}
+                onClick={() => { setSuccess(false); setValue(""); }}
                 className="h-12 rounded-xl px-4 text-sm"
               >
-                Submit another contact
+                {l.submitAnother}
               </Button>
             </div>
           </motion.div>
