@@ -27,6 +27,10 @@ export const PlanCard = ({ plan, isCurrentPlan, borderClass, onSelect, isLoading
   const handleSelect = () => {
     if (isCurrentPlan || isSelecting) return;
     setIsSelecting(true);
+    // Subtle haptic feedback on supported devices
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try { navigator.vibrate?.(15); } catch { /* noop */ }
+    }
     // Brief animation so the tap feels acknowledged before the payment panel renders
     setTimeout(() => {
       onSelect();
@@ -36,11 +40,15 @@ export const PlanCard = ({ plan, isCurrentPlan, borderClass, onSelect, isLoading
 
   return (
     <Card
+      aria-busy={isSelecting}
+      aria-disabled={isSelecting || isCurrentPlan}
+      aria-pressed={isSelecting}
+      data-state={isSelecting ? "selecting" : isCurrentPlan ? "current" : "idle"}
       className={cn(
         "relative flex flex-col transition-all duration-300 hover-scale",
         borderClass,
         isCurrentPlan && "bg-primary/5",
-        isSelecting && "ring-2 ring-primary scale-[1.02] shadow-lg animate-pulse",
+        isSelecting && "ring-2 ring-primary scale-[1.02] shadow-lg animate-pulse pointer-events-none",
       )}
     >
       {isPopular && (
