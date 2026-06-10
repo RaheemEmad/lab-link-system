@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,23 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
   const [notes, setNotes] = useState("");
 
   const PAYMENT_PHONE = "+201018385093";
+
+  // Pre-fetch the user's profile so the WhatsApp template is fully populated
+  // and the customer only needs to tap Send.
+  const { data: profile } = useQuery({
+    queryKey: ["profile-wa-prefill", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 60_000,
+  });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -144,12 +161,15 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
             size="sm"
             className="text-green-600 border-green-300 hover:bg-green-50"
             onClick={() => {
+              const senderPhone = phoneUsed || profile?.phone || "";
+              const senderName = profile?.full_name || "";
               const lines = [
                 "LabLink - Payment Confirmation",
                 planName ? `Plan: ${planName}` : context === "deposit" ? "Type: Commitment Deposit" : "Type: Wallet Top-up",
                 amount ? `Amount: ${amount} EGP` : null,
                 `Method: ${paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "InstaPay"}`,
-                phoneUsed ? `Sender Number: ${phoneUsed}` : "Sender Number: <your number here>",
+                senderName ? `Name: ${senderName}` : null,
+                senderPhone ? `Sender Number: ${senderPhone}` : null,
                 referenceNumber ? `Reference: ${referenceNumber}` : null,
                 user?.email ? `Account: ${user.email}` : null,
               ].filter(Boolean).join("\n");

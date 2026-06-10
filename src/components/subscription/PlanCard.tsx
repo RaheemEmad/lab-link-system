@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface PlanCardProps {
   plan: {
@@ -21,9 +22,27 @@ interface PlanCardProps {
 export const PlanCard = ({ plan, isCurrentPlan, borderClass, onSelect, isLoading }: PlanCardProps) => {
   const features = Array.isArray(plan.features) ? plan.features : [];
   const isPopular = plan.name === "Gold";
+  const [isSelecting, setIsSelecting] = useState(false);
+
+  const handleSelect = () => {
+    if (isCurrentPlan || isSelecting) return;
+    setIsSelecting(true);
+    // Brief animation so the tap feels acknowledged before the payment panel renders
+    setTimeout(() => {
+      onSelect();
+      setTimeout(() => setIsSelecting(false), 400);
+    }, 450);
+  };
 
   return (
-    <Card className={cn("relative flex flex-col transition-all hover:shadow-lg", borderClass, isCurrentPlan && "bg-primary/5")}>
+    <Card
+      className={cn(
+        "relative flex flex-col transition-all duration-300 hover-scale",
+        borderClass,
+        isCurrentPlan && "bg-primary/5",
+        isSelecting && "ring-2 ring-primary scale-[1.02] shadow-lg animate-pulse",
+      )}
+    >
       {isPopular && (
         <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[10px]">
           Most Popular
@@ -56,12 +75,21 @@ export const PlanCard = ({ plan, isCurrentPlan, borderClass, onSelect, isLoading
           ))}
         </ul>
         <Button
-          className="w-full"
+          className="w-full transition-all"
           variant={isCurrentPlan ? "outline" : isPopular ? "default" : "outline"}
-          disabled={isCurrentPlan || isLoading}
-          onClick={onSelect}
+          disabled={isCurrentPlan || isLoading || isSelecting}
+          onClick={handleSelect}
         >
-          {isCurrentPlan ? "Current Plan" : "Select Plan"}
+          {isCurrentPlan ? (
+            "Current Plan"
+          ) : isSelecting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Selecting…
+            </>
+          ) : (
+            "Select Plan"
+          )}
         </Button>
       </CardContent>
     </Card>
