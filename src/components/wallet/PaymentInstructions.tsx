@@ -31,6 +31,23 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
 
   const PAYMENT_PHONE = "+201018385093";
 
+  // Pre-fetch the user's profile so the WhatsApp template is fully populated
+  // and the customer only needs to tap Send.
+  const { data: profile } = useQuery({
+    queryKey: ["profile-wa-prefill", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 60_000,
+  });
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
