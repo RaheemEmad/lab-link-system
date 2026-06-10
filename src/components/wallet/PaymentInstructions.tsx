@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Smartphone, Phone, Copy, CheckCircle2, ExternalLink, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface PaymentInstructionsProps {
   planId?: string;
