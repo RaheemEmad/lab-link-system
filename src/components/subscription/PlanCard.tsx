@@ -75,12 +75,21 @@ export const PlanCard = ({ plan, isCurrentPlan, borderClass, onSelect, isLoading
           ))}
         </ul>
         <Button
-          className="w-full"
+          className="w-full transition-all"
           variant={isCurrentPlan ? "outline" : isPopular ? "default" : "outline"}
-          disabled={isCurrentPlan || isLoading}
-          onClick={onSelect}
+          disabled={isCurrentPlan || isLoading || isSelecting}
+          onClick={handleSelect}
         >
-          {isCurrentPlan ? "Current Plan" : "Select Plan"}
+          {isCurrentPlan ? (
+            "Current Plan"
+          ) : isSelecting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Selecting…
+            </>
+          ) : (
+            "Select Plan"
+          )}
         </Button>
       </CardContent>
     </Card>
