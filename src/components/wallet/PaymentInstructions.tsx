@@ -161,12 +161,15 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
             size="sm"
             className="text-green-600 border-green-300 hover:bg-green-50"
             onClick={() => {
+              const senderPhone = phoneUsed || profile?.phone || "";
+              const senderName = profile?.full_name || "";
               const lines = [
                 "LabLink - Payment Confirmation",
                 planName ? `Plan: ${planName}` : context === "deposit" ? "Type: Commitment Deposit" : "Type: Wallet Top-up",
                 amount ? `Amount: ${amount} EGP` : null,
                 `Method: ${paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "InstaPay"}`,
-                phoneUsed ? `Sender Number: ${phoneUsed}` : "Sender Number: <your number here>",
+                senderName ? `Name: ${senderName}` : null,
+                senderPhone ? `Sender Number: ${senderPhone}` : null,
                 referenceNumber ? `Reference: ${referenceNumber}` : null,
                 user?.email ? `Account: ${user.email}` : null,
               ].filter(Boolean).join("\n");
