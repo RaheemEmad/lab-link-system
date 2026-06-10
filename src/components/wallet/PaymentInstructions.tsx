@@ -166,37 +166,84 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
               try {
                 const senderPhone = phoneUsed || profile?.phone || "";
                 const senderName = profile?.full_name || "";
-                const renewal = "Monthly (auto-renews each month until cancelled)";
-                const priceLine = amount != null
-                  ? `Price: ${amount.toLocaleString()} EGP / month`
+                const isAr = language === "ar";
+                const locale = isAr ? "ar-EG" : "en-US";
+                const currencyFormatter = new Intl.NumberFormat(locale, {
+                  style: "currency",
+                  currency: "EGP",
+                  maximumFractionDigits: 0,
+                });
+                const renewal = isAr
+                  ? "شهري (يتجدد تلقائياً كل شهر حتى الإلغاء)"
+                  : "Monthly (auto-renews each month until cancelled)";
+                const formattedAmount = amount != null ? currencyFormatter.format(amount) : null;
+                const methodLabel = isAr
+                  ? paymentMethod === "vodafone_cash" ? "فودافون كاش" : "إنستا باي"
+                  : paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "InstaPay";
+                const labels = isAr
+                  ? {
+                      header: "LabLink - تأكيد الدفع",
+                      plan: "الخطة",
+                      typeDeposit: "نوع: وديعة الالتزام",
+                      typeWallet: "نوع: شحن المحفظة",
+                      price: "السعر",
+                      renewal: "التجديد",
+                      amountPaid: "المبلغ المدفوع",
+                      method: "الطريقة",
+                      name: "الاسم",
+                      senderNumber: "رقم المرسل",
+                      reference: "الرقم المرجعي",
+                      account: "الحساب",
+                    }
+                  : {
+                      header: "LabLink - Payment Confirmation",
+                      plan: "Plan",
+                      typeDeposit: "Type: Commitment Deposit",
+                      typeWallet: "Type: Wallet Top-up",
+                      price: "Price",
+                      renewal: "Renewal",
+                      amountPaid: "Amount Paid",
+                      method: "Method",
+                      name: "Name",
+                      senderNumber: "Sender Number",
+                      reference: "Reference",
+                      account: "Account",
+                    };
+                const priceLine = formattedAmount
+                  ? `${labels.price}: ${formattedAmount} / ${isAr ? "شهر" : "month"}`
                   : null;
                 const lines = [
-                  "LabLink - Payment Confirmation",
+                  labels.header,
                   planName
-                    ? `Plan: ${planName}`
+                    ? `${labels.plan}: ${planName}`
                     : context === "deposit"
-                      ? "Type: Commitment Deposit"
-                      : "Type: Wallet Top-up",
+                      ? labels.typeDeposit
+                      : labels.typeWallet,
                   priceLine,
-                  planName ? `Renewal: ${renewal}` : null,
-                  amount != null ? `Amount Paid: ${amount.toLocaleString()} EGP` : null,
-                  `Method: ${paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "InstaPay"}`,
-                  senderName ? `Name: ${senderName}` : null,
-                  senderPhone ? `Sender Number: ${senderPhone}` : null,
-                  referenceNumber ? `Reference: ${referenceNumber}` : null,
-                  user?.email ? `Account: ${user.email}` : null,
+                  planName ? `${labels.renewal}: ${renewal}` : null,
+                  formattedAmount ? `${labels.amountPaid}: ${formattedAmount}` : null,
+                  `${labels.method}: ${methodLabel}`,
+                  senderName ? `${labels.name}: ${senderName}` : null,
+                  senderPhone ? `${labels.senderNumber}: ${senderPhone}` : null,
+                  referenceNumber ? `${labels.reference}: ${referenceNumber}` : null,
+                  user?.email ? `${labels.account}: ${user.email}` : null,
                 ].filter(Boolean).join("\n");
                 if (!lines.trim()) throw new Error("empty template");
-                const url = `https://wa.me/${PAYMENT_PHONE.replace('+', '')}?text=${encodeURIComponent(lines)}`;
+                const url = `https://wa.me/${PAYMENT_PHONE.replace("+", "")}?text=${encodeURIComponent(lines)}`;
                 const win = window.open(url, "_blank", "noopener,noreferrer");
                 if (!win) throw new Error("popup blocked");
-                toast.success("WhatsApp opened", {
-                  description: "Just tap Send — your details are already filled in.",
+                toast.success(isAr ? "تم فتح الواتساب" : "WhatsApp opened", {
+                  description: isAr
+                    ? "اضغط إرسال — بياناتك مملوءة مسبقاً."
+                    : "Just tap Send — your details are already filled in.",
                 });
               } catch (err) {
                 console.error("WhatsApp template error:", err);
-                toast.error("Couldn't open WhatsApp", {
-                  description: `Please message ${PAYMENT_PHONE} directly to confirm your payment.`,
+                const isAr = language === "ar";
+                toast.error(isAr ? "تعذر فتح الواتساب" : "Couldn't open WhatsApp", {
+                  description: isAr
+                    ? `يرجى التواصل مع ${PAYMENT_PHONE} مباشرة لتأكيد الدفع.`
+                    : `Please message ${PAYMENT_PHONE} directly to confirm your payment.`,
                 });
               }
             }}
