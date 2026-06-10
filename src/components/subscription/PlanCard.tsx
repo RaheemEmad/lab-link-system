@@ -22,9 +22,27 @@ interface PlanCardProps {
 export const PlanCard = ({ plan, isCurrentPlan, borderClass, onSelect, isLoading }: PlanCardProps) => {
   const features = Array.isArray(plan.features) ? plan.features : [];
   const isPopular = plan.name === "Gold";
+  const [isSelecting, setIsSelecting] = useState(false);
+
+  const handleSelect = () => {
+    if (isCurrentPlan || isSelecting) return;
+    setIsSelecting(true);
+    // Brief animation so the tap feels acknowledged before the payment panel renders
+    setTimeout(() => {
+      onSelect();
+      setTimeout(() => setIsSelecting(false), 400);
+    }, 450);
+  };
 
   return (
-    <Card className={cn("relative flex flex-col transition-all hover:shadow-lg", borderClass, isCurrentPlan && "bg-primary/5")}>
+    <Card
+      className={cn(
+        "relative flex flex-col transition-all duration-300 hover-scale",
+        borderClass,
+        isCurrentPlan && "bg-primary/5",
+        isSelecting && "ring-2 ring-primary scale-[1.02] shadow-lg animate-pulse",
+      )}
+    >
       {isPopular && (
         <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[10px]">
           Most Popular
