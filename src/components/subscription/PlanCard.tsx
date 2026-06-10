@@ -45,12 +45,17 @@ export const PlanCard = ({ plan, isCurrentPlan, borderClass, onSelect, isLoading
       aria-pressed={isSelecting}
       data-state={isSelecting ? "selecting" : isCurrentPlan ? "current" : "idle"}
       className={cn(
-        "relative flex flex-col transition-all duration-300 hover-scale",
+        "relative flex flex-col transition-all duration-300 hover-scale overflow-hidden",
         borderClass,
         isCurrentPlan && "bg-primary/5",
-        isSelecting && "ring-2 ring-primary scale-[1.02] shadow-lg animate-pulse pointer-events-none",
+        isSelecting && "ring-2 ring-primary scale-[1.02] shadow-lg animate-pulse pointer-events-none opacity-60 cursor-not-allowed",
       )}
     >
+      {isSelecting && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/40 backdrop-blur-[1px] rounded-lg">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      )}
       {isPopular && (
         <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[10px]">
           Most Popular
