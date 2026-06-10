@@ -23,6 +23,7 @@ interface PaymentInstructionsProps {
 
 export const PaymentInstructions = ({ planId, planName, amount, context = "wallet", onSuccess }: PaymentInstructionsProps) => {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("instapay");
