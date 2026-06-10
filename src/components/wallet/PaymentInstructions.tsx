@@ -161,20 +161,42 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
             size="sm"
             className="text-green-600 border-green-300 hover:bg-green-50"
             onClick={() => {
-              const senderPhone = phoneUsed || profile?.phone || "";
-              const senderName = profile?.full_name || "";
-              const lines = [
-                "LabLink - Payment Confirmation",
-                planName ? `Plan: ${planName}` : context === "deposit" ? "Type: Commitment Deposit" : "Type: Wallet Top-up",
-                amount ? `Amount: ${amount} EGP` : null,
-                `Method: ${paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "InstaPay"}`,
-                senderName ? `Name: ${senderName}` : null,
-                senderPhone ? `Sender Number: ${senderPhone}` : null,
-                referenceNumber ? `Reference: ${referenceNumber}` : null,
-                user?.email ? `Account: ${user.email}` : null,
-              ].filter(Boolean).join("\n");
-              const url = `https://wa.me/${PAYMENT_PHONE.replace('+', '')}?text=${encodeURIComponent(lines)}`;
-              window.open(url, "_blank");
+              try {
+                const senderPhone = phoneUsed || profile?.phone || "";
+                const senderName = profile?.full_name || "";
+                const renewal = "Monthly (auto-renews each month until cancelled)";
+                const priceLine = amount != null
+                  ? `Price: ${amount.toLocaleString()} EGP / month`
+                  : null;
+                const lines = [
+                  "LabLink - Payment Confirmation",
+                  planName
+                    ? `Plan: ${planName}`
+                    : context === "deposit"
+                      ? "Type: Commitment Deposit"
+                      : "Type: Wallet Top-up",
+                  priceLine,
+                  planName ? `Renewal: ${renewal}` : null,
+                  amount != null ? `Amount Paid: ${amount.toLocaleString()} EGP` : null,
+                  `Method: ${paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "InstaPay"}`,
+                  senderName ? `Name: ${senderName}` : null,
+                  senderPhone ? `Sender Number: ${senderPhone}` : null,
+                  referenceNumber ? `Reference: ${referenceNumber}` : null,
+                  user?.email ? `Account: ${user.email}` : null,
+                ].filter(Boolean).join("\n");
+                if (!lines.trim()) throw new Error("empty template");
+                const url = `https://wa.me/${PAYMENT_PHONE.replace('+', '')}?text=${encodeURIComponent(lines)}`;
+                const win = window.open(url, "_blank", "noopener,noreferrer");
+                if (!win) throw new Error("popup blocked");
+                toast.success("WhatsApp opened", {
+                  description: "Just tap Send — your details are already filled in.",
+                });
+              } catch (err) {
+                console.error("WhatsApp template error:", err);
+                toast.error("Couldn't open WhatsApp", {
+                  description: `Please message ${PAYMENT_PHONE} directly to confirm your payment.`,
+                });
+              }
             }}
           >
             <Phone className="h-3 w-3 mr-1" />
