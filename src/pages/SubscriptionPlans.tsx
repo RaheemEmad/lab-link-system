@@ -88,21 +88,28 @@ const SubscriptionPlans = () => {
               </div>
             )}
 
-            {/* Payment instructions appear when a plan is selected */}
-            {selectedPlan && (
-              <div className="mt-8 max-w-lg mx-auto">
-                <PaymentInstructions
-                  planId={selectedPlan.id}
-                  planName={selectedPlan.name}
-                  amount={selectedPlan.monthly_fee}
-                  context="plans"
-                  onSuccess={() => {
-                    setSelectedPlan(null);
-                    toast.success("Payment confirmation submitted! We'll activate your plan shortly.");
-                  }}
-                />
-              </div>
-            )}
+            {/* Payment instructions open in a modal so the user clearly sees the next step */}
+            <Dialog open={!!selectedPlan} onOpenChange={(open) => !open && setSelectedPlan(null)}>
+              <DialogContent className="max-w-lg p-0 border-0 bg-transparent shadow-none">
+                <DialogHeader className="sr-only">
+                  <DialogTitle>
+                    {selectedPlan ? `Pay for ${selectedPlan.name} plan` : "Payment Methods"}
+                  </DialogTitle>
+                </DialogHeader>
+                {selectedPlan && (
+                  <PaymentInstructions
+                    planId={selectedPlan.id}
+                    planName={selectedPlan.name}
+                    amount={selectedPlan.monthly_fee}
+                    context="plans"
+                    onSuccess={() => {
+                      setSelectedPlan(null);
+                      toast.success("Payment confirmation submitted! We'll activate your plan shortly.");
+                    }}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
 
             <div className="mt-8 text-center text-xs text-muted-foreground">
               <p>All prices are in EGP. After payment confirmation, your plan is activated by our team.</p>
