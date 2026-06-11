@@ -8,6 +8,7 @@ import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { PlanCard } from "@/components/subscription/PlanCard";
 import { PaymentInstructions } from "@/components/wallet/PaymentInstructions";
 import { toast } from "@/components/ui/sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Crown } from "lucide-react";
 import { useState } from "react";
 
