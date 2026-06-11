@@ -255,20 +255,21 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
                 ].filter(Boolean).join("\n");
                 if (!lines.trim()) throw new Error("empty template");
                 const url = `https://wa.me/${PAYMENT_PHONE.replace("+", "")}?text=${encodeURIComponent(lines)}`;
-                const win = window.open(url, "_blank", "noopener,noreferrer");
-                if (!win) throw new Error("popup blocked");
                 toast.success(isAr ? "تم فتح الواتساب" : "WhatsApp opened", {
                   description: isAr
                     ? "اضغط إرسال — بياناتك مملوءة مسبقاً."
                     : "Just tap Send — your details are already filled in.",
                 });
+                window.setTimeout(() => {
+                  window.location.assign(url);
+                }, 150);
               } catch (err) {
                 console.error("WhatsApp template error:", err);
                 const msg = isAr
-                  ? "تعذر فتح الواتساب. حاول مرة أخرى."
-                  : "Couldn't open WhatsApp. Please retry.";
+                  ? "تعذر إنشاء رابط الواتساب. حاول مرة أخرى."
+                  : "Couldn't generate the WhatsApp link. Please retry.";
                 setWaError(msg);
-                toast.error(isAr ? "تعذر فتح الواتساب" : "Couldn't open WhatsApp", {
+                toast.error(isAr ? "تعذر إنشاء رابط الواتساب" : "Couldn't generate WhatsApp link", {
                   description: isAr
                     ? `يرجى التواصل مع ${PAYMENT_PHONE} مباشرة لتأكيد الدفع.`
                     : `Please message ${PAYMENT_PHONE} directly to confirm your payment.`,
