@@ -163,24 +163,44 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
           <p className="text-xs text-muted-foreground">
             After paying, send the pre-filled template below to {PAYMENT_PHONE} so we can match and confirm your transfer.
           </p>
+
+          {waError && (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive flex items-start gap-2"
+            >
+              <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p>{waError}</p>
+                <p className="opacity-80 mt-0.5">
+                  {language === "ar"
+                    ? `أو راسلنا مباشرة على ${PAYMENT_PHONE}.`
+                    : `Or message ${PAYMENT_PHONE} directly.`}
+                </p>
+              </div>
+            </div>
+          )}
+
           <Button
             variant="outline"
             size="sm"
             className="text-green-600 border-green-300 hover:bg-green-50"
             onClick={() => {
+              const isAr = language === "ar";
               try {
+                setWaError(null);
                 const senderPhone = phoneUsed || profile?.phone || "";
                 const senderName = profile?.full_name || "";
-                const isAr = language === "ar";
-                const locale = isAr ? "ar-EG" : "en-US";
-                const currencyFormatter = new Intl.NumberFormat(locale, {
-                  style: "currency",
-                  currency: "EGP",
-                  maximumFractionDigits: 0,
+                const locale = isAr ? "ar" : "en";
+                const currencyFormatter = getCurrencyFormatter(locale);
+                const period = inferBillingPeriod(amount ?? 0, billingPeriod ?? null);
+                const renewal = formatRenewal({
+                  locale,
+                  period,
+                  trialDays: trialDays ?? undefined,
+                  nextRenewalAt: nextRenewalAt ?? undefined,
                 });
-                const renewal = isAr
-                  ? "شهري (يتجدد تلقائياً كل شهر حتى الإلغاء)"
-                  : "Monthly (auto-renews each month until cancelled)";
                 const formattedAmount = amount != null ? currencyFormatter.format(amount) : null;
                 const methodLabel = isAr
                   ? paymentMethod === "vodafone_cash" ? "فودافون كاش" : "إنستا باي"
@@ -215,7 +235,7 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
                       account: "Account",
                     };
                 const priceLine = formattedAmount
-                  ? `${labels.price}: ${formattedAmount} / ${isAr ? "شهر" : "month"}`
+                  ? `${labels.price}: ${formattedAmount}`
                   : null;
                 const lines = [
                   labels.header,
@@ -225,7 +245,7 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
                       ? labels.typeDeposit
                       : labels.typeWallet,
                   priceLine,
-                  planName ? `${labels.renewal}: ${renewal}` : null,
+                  planName || period !== "free" ? `${labels.renewal}: ${renewal}` : null,
                   formattedAmount ? `${labels.amountPaid}: ${formattedAmount}` : null,
                   `${labels.method}: ${methodLabel}`,
                   senderName ? `${labels.name}: ${senderName}` : null,
@@ -244,7 +264,10 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
                 });
               } catch (err) {
                 console.error("WhatsApp template error:", err);
-                const isAr = language === "ar";
+                const msg = isAr
+                  ? "تعذر فتح الواتساب. حاول مرة أخرى."
+                  : "Couldn't open WhatsApp. Please retry.";
+                setWaError(msg);
                 toast.error(isAr ? "تعذر فتح الواتساب" : "Couldn't open WhatsApp", {
                   description: isAr
                     ? `يرجى التواصل مع ${PAYMENT_PHONE} مباشرة لتأكيد الدفع.`
@@ -253,10 +276,13 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
               }
             }}
           >
-            <Phone className="h-3 w-3 mr-1" />
-            Send Template on WhatsApp
+            {waError ? <RotateCcw className="h-3 w-3 mr-1" /> : <Phone className="h-3 w-3 mr-1" />}
+            {waError
+              ? (language === "ar" ? "إعادة المحاولة" : "Retry WhatsApp")
+              : "Send Template on WhatsApp"}
           </Button>
         </div>
+
 
         {/* Submit Confirmation Form */}
         {!showConfirmForm ? (
