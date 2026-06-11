@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,9 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Smartphone, Phone, Copy, CheckCircle2, ExternalLink, MessageCircle } from "lucide-react";
+import { Smartphone, Phone, Copy, CheckCircle2, ExternalLink, MessageCircle, AlertTriangle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { formatRenewal, getCurrencyFormatter, inferBillingPeriod, type BillingPeriod } from "@/lib/renewalFormat";
 
 interface PaymentInstructionsProps {
   planId?: string;
