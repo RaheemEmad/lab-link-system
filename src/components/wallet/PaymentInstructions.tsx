@@ -19,10 +19,13 @@ interface PaymentInstructionsProps {
   planName?: string;
   amount?: number;
   context?: "onboarding" | "plans" | "wallet" | "deposit";
+  billingPeriod?: BillingPeriod | null;
+  trialDays?: number | null;
+  nextRenewalAt?: string | null;
   onSuccess?: () => void;
 }
 
-export const PaymentInstructions = ({ planId, planName, amount, context = "wallet", onSuccess }: PaymentInstructionsProps) => {
+export const PaymentInstructions = ({ planId, planName, amount, context = "wallet", billingPeriod, trialDays, nextRenewalAt, onSuccess }: PaymentInstructionsProps) => {
   const { user } = useAuth();
   const { language } = useLanguage();
   const queryClient = useQueryClient();
@@ -31,6 +34,7 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
   const [referenceNumber, setReferenceNumber] = useState("");
   const [phoneUsed, setPhoneUsed] = useState("");
   const [notes, setNotes] = useState("");
+  const [waError, setWaError] = useState<string | null>(null);
 
   const PAYMENT_PHONE = "+201018385093";
 
