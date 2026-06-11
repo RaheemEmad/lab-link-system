@@ -9,19 +9,23 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Smartphone, Phone, Copy, CheckCircle2, ExternalLink, MessageCircle } from "lucide-react";
+import { Smartphone, Phone, Copy, CheckCircle2, ExternalLink, MessageCircle, AlertTriangle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { formatRenewal, getCurrencyFormatter, inferBillingPeriod, type BillingPeriod } from "@/lib/renewalFormat";
 
 interface PaymentInstructionsProps {
   planId?: string;
   planName?: string;
   amount?: number;
   context?: "onboarding" | "plans" | "wallet" | "deposit";
+  billingPeriod?: BillingPeriod | null;
+  trialDays?: number | null;
+  nextRenewalAt?: string | null;
   onSuccess?: () => void;
 }
 
-export const PaymentInstructions = ({ planId, planName, amount, context = "wallet", onSuccess }: PaymentInstructionsProps) => {
+export const PaymentInstructions = ({ planId, planName, amount, context = "wallet", billingPeriod, trialDays, nextRenewalAt, onSuccess }: PaymentInstructionsProps) => {
   const { user } = useAuth();
   const { language } = useLanguage();
   const queryClient = useQueryClient();
@@ -30,6 +34,7 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
   const [referenceNumber, setReferenceNumber] = useState("");
   const [phoneUsed, setPhoneUsed] = useState("");
   const [notes, setNotes] = useState("");
+  const [waError, setWaError] = useState<string | null>(null);
 
   const PAYMENT_PHONE = "+201018385093";
 
@@ -158,24 +163,44 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
           <p className="text-xs text-muted-foreground">
             After paying, send the pre-filled template below to {PAYMENT_PHONE} so we can match and confirm your transfer.
           </p>
+
+          {waError && (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive flex items-start gap-2"
+            >
+              <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p>{waError}</p>
+                <p className="opacity-80 mt-0.5">
+                  {language === "ar"
+                    ? `أو راسلنا مباشرة على ${PAYMENT_PHONE}.`
+                    : `Or message ${PAYMENT_PHONE} directly.`}
+                </p>
+              </div>
+            </div>
+          )}
+
           <Button
             variant="outline"
             size="sm"
             className="text-green-600 border-green-300 hover:bg-green-50"
             onClick={() => {
+              const isAr = language === "ar";
               try {
+                setWaError(null);
                 const senderPhone = phoneUsed || profile?.phone || "";
                 const senderName = profile?.full_name || "";
-                const isAr = language === "ar";
-                const locale = isAr ? "ar-EG" : "en-US";
-                const currencyFormatter = new Intl.NumberFormat(locale, {
-                  style: "currency",
-                  currency: "EGP",
-                  maximumFractionDigits: 0,
+                const locale = isAr ? "ar" : "en";
+                const currencyFormatter = getCurrencyFormatter(locale);
+                const period = inferBillingPeriod(amount ?? 0, billingPeriod ?? null);
+                const renewal = formatRenewal({
+                  locale,
+                  period,
+                  trialDays: trialDays ?? undefined,
+                  nextRenewalAt: nextRenewalAt ?? undefined,
                 });
-                const renewal = isAr
-                  ? "شهري (يتجدد تلقائياً كل شهر حتى الإلغاء)"
-                  : "Monthly (auto-renews each month until cancelled)";
                 const formattedAmount = amount != null ? currencyFormatter.format(amount) : null;
                 const methodLabel = isAr
                   ? paymentMethod === "vodafone_cash" ? "فودافون كاش" : "إنستا باي"
@@ -210,7 +235,7 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
                       account: "Account",
                     };
                 const priceLine = formattedAmount
-                  ? `${labels.price}: ${formattedAmount} / ${isAr ? "شهر" : "month"}`
+                  ? `${labels.price}: ${formattedAmount}`
                   : null;
                 const lines = [
                   labels.header,
@@ -220,7 +245,7 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
                       ? labels.typeDeposit
                       : labels.typeWallet,
                   priceLine,
-                  planName ? `${labels.renewal}: ${renewal}` : null,
+                  planName || period !== "free" ? `${labels.renewal}: ${renewal}` : null,
                   formattedAmount ? `${labels.amountPaid}: ${formattedAmount}` : null,
                   `${labels.method}: ${methodLabel}`,
                   senderName ? `${labels.name}: ${senderName}` : null,
@@ -239,7 +264,10 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
                 });
               } catch (err) {
                 console.error("WhatsApp template error:", err);
-                const isAr = language === "ar";
+                const msg = isAr
+                  ? "تعذر فتح الواتساب. حاول مرة أخرى."
+                  : "Couldn't open WhatsApp. Please retry.";
+                setWaError(msg);
                 toast.error(isAr ? "تعذر فتح الواتساب" : "Couldn't open WhatsApp", {
                   description: isAr
                     ? `يرجى التواصل مع ${PAYMENT_PHONE} مباشرة لتأكيد الدفع.`
@@ -248,10 +276,13 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
               }
             }}
           >
-            <Phone className="h-3 w-3 mr-1" />
-            Send Template on WhatsApp
+            {waError ? <RotateCcw className="h-3 w-3 mr-1" /> : <Phone className="h-3 w-3 mr-1" />}
+            {waError
+              ? (language === "ar" ? "إعادة المحاولة" : "Retry WhatsApp")
+              : "Send Template on WhatsApp"}
           </Button>
         </div>
+
 
         {/* Submit Confirmation Form */}
         {!showConfirmForm ? (

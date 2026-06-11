@@ -7,7 +7,7 @@ const LandingFooter = () => {
   const { t } = useLanguage();
 
   return (
-    <footer className="py-6 sm:py-8 lg:py-12 bg-secondary/30 border-t border-border">
+    <footer className="py-6 sm:py-8 lg:py-12 bg-card text-card-foreground border-t border-border">
       <div className="container px-4 sm:px-6 lg:px-8 mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 md:gap-6">
           <div className="text-xs sm:text-sm text-muted-foreground text-center md:text-start">
