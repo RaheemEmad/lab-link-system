@@ -110,25 +110,27 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
       </CardHeader>
       <CardContent className="space-y-4">
         {/* InstaPay */}
-        <div className="rounded-lg border p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <div className="rounded-lg border p-3 sm:p-4 space-y-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 min-w-0">
               <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-200">InstaPay</Badge>
-              <span className="text-sm font-medium">Recommended</span>
+              <span className="text-sm font-medium truncate">Recommended</span>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => window.open("https://www.instapay.eg/?lang=en", "_blank")}
-              className="text-xs gap-1"
+              className="text-xs gap-1 shrink-0"
             >
               <ExternalLink className="h-3 w-3" />
-              Open InstaPay
+              <span className="hidden xs:inline sm:inline">Open InstaPay</span>
+              <span className="xs:hidden sm:hidden">Open</span>
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Send to: <span className="font-mono font-semibold text-foreground">{PAYMENT_PHONE}</span>
-            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => copyToClipboard(PAYMENT_PHONE)}>
+          <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+            <span>Send to:</span>
+            <span className="font-mono font-semibold text-foreground break-all">{PAYMENT_PHONE}</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => copyToClipboard(PAYMENT_PHONE)}>
               <Copy className="h-3 w-3" />
             </Button>
           </p>
