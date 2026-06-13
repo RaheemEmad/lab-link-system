@@ -88,7 +88,7 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
             aria-live="polite"
           >
             <Loader2 className="h-7 w-7 animate-spin text-primary" />
-            <p className="text-sm font-medium text-foreground">{l.saving ?? (isRTL ? "جارٍ الحفظ…" : "Saving…")}</p>
+            <p className="text-sm font-medium text-foreground">{isRTL ? "جارٍ الحفظ…" : "Saving…"}</p>
           </motion.div>
         )}
       </AnimatePresence>
