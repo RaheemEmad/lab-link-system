@@ -56,9 +56,11 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
     });
     setSubmitting(false);
     if (error) {
+      console.error("[LeadCaptureCTA] insert failed", error);
       toast.error(l.errSave);
       return;
     }
+    toast.success(l.successTitle);
     setSuccess(true);
   };
 
@@ -70,8 +72,27 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
       : "relative overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-lg";
 
   return (
-    <div className={wrapperClass}>
+    <div className={wrapperClass} aria-busy={submitting}>
       <div className="absolute -top-16 ltr:-right-16 rtl:-left-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+
+      <AnimatePresence>
+        {submitting && (
+          <motion.div
+            key="buffering"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-[inherit] bg-background/80 backdrop-blur-sm"
+            role="status"
+            aria-live="polite"
+          >
+            <Loader2 className="h-7 w-7 animate-spin text-primary" />
+            <p className="text-sm font-medium text-foreground">{isRTL ? "جارٍ الحفظ…" : "Saving…"}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
 
       <AnimatePresence mode="wait">
         {!success ? (
