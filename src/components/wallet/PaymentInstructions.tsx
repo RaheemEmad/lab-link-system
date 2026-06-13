@@ -140,14 +140,15 @@ export const PaymentInstructions = ({ planId, planName, amount, context = "walle
         </div>
 
         {/* Vodafone Cash */}
-        <div className="rounded-lg border p-4 space-y-2">
-          <div className="flex items-center gap-2">
+        <div className="rounded-lg border p-3 sm:p-4 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary" className="bg-red-500/10 text-red-600 border-red-200">Vodafone Cash</Badge>
             <span className="text-sm text-muted-foreground">Alternative</span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Send to: <span className="font-mono font-semibold text-foreground">{PAYMENT_PHONE}</span>
-            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => copyToClipboard(PAYMENT_PHONE)}>
+          <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+            <span>Send to:</span>
+            <span className="font-mono font-semibold text-foreground break-all">{PAYMENT_PHONE}</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => copyToClipboard(PAYMENT_PHONE)}>
               <Copy className="h-3 w-3" />
             </Button>
           </p>
