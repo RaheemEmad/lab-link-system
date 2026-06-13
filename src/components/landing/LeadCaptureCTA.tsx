@@ -56,9 +56,11 @@ const LeadCaptureCTA = ({ source = "landing", variant = "card" }: Props) => {
     });
     setSubmitting(false);
     if (error) {
+      console.error("[LeadCaptureCTA] insert failed", error);
       toast.error(l.errSave);
       return;
     }
+    toast.success(l.successTitle);
     setSuccess(true);
   };
 
