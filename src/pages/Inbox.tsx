@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Inbox as InboxIcon, MessageSquare, Palette, PackageCheck, Receipt,
@@ -192,9 +192,11 @@ const InboxPage = () => {
           )}
         </div>
 
-        {/* Filter tabs */}
-        <ScrollArea className="w-full mb-6">
-          <div className="flex gap-1 pb-2">
+        {/* Filter tabs — hidden scrollbar, snap on touch */}
+        <div className="relative mb-6 -mx-3 sm:mx-0">
+          <div
+            className="flex gap-1 overflow-x-auto px-3 sm:px-0 pb-2 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          >
             {TABS.map(({ key, icon: Icon }) => {
               const count = countForTab(key);
               const active = activeTab === key;
@@ -203,9 +205,10 @@ const InboxPage = () => {
                   key={key}
                   onClick={() => setActiveTab(key)}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all",
+                    "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all snap-start shrink-0 min-h-[44px]",
                     active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
                   )}
+                  aria-pressed={active}
                 >
                   <Icon className="h-4 w-4" />
                   {tabLabel(key)}
@@ -221,8 +224,10 @@ const InboxPage = () => {
               );
             })}
           </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+          {/* Edge fade hint that more tabs exist */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent sm:hidden" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-background to-transparent sm:hidden" />
+        </div>
 
         {/* Feed */}
         {isLoading ? (

@@ -91,7 +91,7 @@ const SubscriptionPlans = () => {
 
             {/* Payment instructions open in a modal so the user clearly sees the next step */}
             <Dialog open={!!selectedPlan} onOpenChange={(open) => !open && setSelectedPlan(null)}>
-              <DialogContent className="max-w-lg p-0 border-0 bg-transparent shadow-none">
+              <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-lg p-0 border-0 bg-transparent shadow-none max-h-[90dvh] overflow-y-auto overscroll-contain">
                 <DialogHeader className="sr-only">
                   <DialogTitle>
                     {selectedPlan ? `Pay for ${selectedPlan.name} plan` : "Payment Methods"}
