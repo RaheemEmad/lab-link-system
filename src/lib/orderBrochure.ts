@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { escapeHtml } from "./htmlEscape";
 
 export interface BrochureOrderData {
   orderId: string;
@@ -51,7 +52,7 @@ export const printOrderBrochure = async (data: BrochureOrderData) => {
     QRCode.toDataURL(tutorialUrl, { width: 220, margin: 1 }),
   ]);
 
-  const html = `<!doctype html><html><head><meta charset="utf-8"/><title>LabLink Order ${data.orderNumber ?? data.orderId.slice(0, 8)}</title>
+  const html = `<!doctype html><html><head><meta charset="utf-8"/><title>LabLink Order ${escapeHtml(data.orderNumber ?? data.orderId.slice(0, 8))}</title>
   <style>
     *{box-sizing:border-box} body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:32px;color:#0F172A;background:#fff}
     .wrap{max-width:720px;margin:0 auto;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden}
@@ -74,17 +75,18 @@ export const printOrderBrochure = async (data: BrochureOrderData) => {
     </div>
     <div class="body">
       <div>
-        <div class="field">Order #</div><div class="val">${data.orderNumber ?? data.orderId.slice(0, 8).toUpperCase()}</div>
-        <div class="field" style="margin-top:12px">Patient</div><div class="val">${data.patientName ?? "-"}</div>
-        <div class="field" style="margin-top:12px">Doctor</div><div class="val">${data.doctorName ?? "-"}</div>
-        <div class="field" style="margin-top:12px">Lab</div><div class="val">${data.labName ?? "Pending assignment"}</div>
-        <div class="field" style="margin-top:12px">Status</div><div class="val">${data.status ?? "Pending"}</div>
-        ${data.dueDate ? `<div class="field" style="margin-top:12px">Due</div><div class="val">${data.dueDate}</div>` : ""}
+        <div class="field">Order #</div><div class="val">${escapeHtml(data.orderNumber ?? data.orderId.slice(0, 8).toUpperCase())}</div>
+        <div class="field" style="margin-top:12px">Patient</div><div class="val">${escapeHtml(data.patientName ?? "-")}</div>
+        <div class="field" style="margin-top:12px">Doctor</div><div class="val">${escapeHtml(data.doctorName ?? "-")}</div>
+        <div class="field" style="margin-top:12px">Lab</div><div class="val">${escapeHtml(data.labName ?? "Pending assignment")}</div>
+        <div class="field" style="margin-top:12px">Status</div><div class="val">${escapeHtml(data.status ?? "Pending")}</div>
+        ${data.dueDate ? `<div class="field" style="margin-top:12px">Due</div><div class="val">${escapeHtml(data.dueDate)}</div>` : ""}
       </div>
       <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="qr"><img src="${trackingQr}" alt="Track order QR" width="160" height="160"/><strong>Track this order</strong><small>${trackingUrl}</small></div>
-        <div class="qr"><img src="${tutorialQr}" alt="How to use LabLink QR" width="120" height="120"/><strong>How to use LabLink</strong><small>${tutorialUrl}</small></div>
+        <div class="qr"><img src="${escapeHtml(trackingQr)}" alt="Track order QR" width="160" height="160"/><strong>Track this order</strong><small>${escapeHtml(trackingUrl)}</small></div>
+        <div class="qr"><img src="${escapeHtml(tutorialQr)}" alt="How to use LabLink QR" width="120" height="120"/><strong>How to use LabLink</strong><small>${escapeHtml(tutorialUrl)}</small></div>
       </div>
+    </div>
     </div>
     <div class="foot">LabLink - Egypt's dental marketplace · lablink-smartlab.lovable.app</div>
   </div>

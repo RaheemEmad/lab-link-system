@@ -2,6 +2,7 @@
  * CSV & PDF export utilities for admin data.
  * Dynamically imported by admin tabs to keep out of main bundle.
  */
+import { escapeHtml } from "./htmlEscape";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function exportToCSV(data: Record<string, unknown>[], filename: string) {
@@ -47,11 +48,11 @@ export function exportToPDF(data: Record<string, unknown>[], title: string, file
   const rows = data
     .map(
       row =>
-        `<tr>${headers.map(h => `<td>${String(row[h] ?? '-')}</td>`).join('')}</tr>`,
+        `<tr>${headers.map(h => `<td>${escapeHtml(row[h] ?? '-')}</td>`).join('')}</tr>`,
     )
     .join('');
 
-  const html = `<!DOCTYPE html><html><head><title>${title}</title>
+  const html = `<!DOCTYPE html><html><head><title>${escapeHtml(title)}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:40px;color:#1a1a2e}
@@ -64,9 +65,9 @@ export function exportToPDF(data: Record<string, unknown>[], title: string, file
   .footer{margin-top:32px;text-align:center;font-size:11px;color:#94a3b8}
   @media print{body{padding:20px}table{font-size:11px}}
 </style></head><body>
-<h1>${title}</h1>
-<p class="meta">Generated ${new Date().toLocaleString()} &bull; ${data.length} record${data.length !== 1 ? 's' : ''}</p>
-<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>
+<h1>${escapeHtml(title)}</h1>
+<p class="meta">Generated ${escapeHtml(new Date().toLocaleString())} &bull; ${data.length} record${data.length !== 1 ? 's' : ''}</p>
+<table><thead><tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>
 <p class="footer">LabLink &mdash; ${new Date().getFullYear()}</p>
 </body></html>`;
 

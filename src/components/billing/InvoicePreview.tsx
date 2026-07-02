@@ -33,6 +33,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { formatEGP } from "@/lib/formatters";
+import { escapeHtml } from "@/lib/htmlEscape";
 
 type InvoiceStatus = 'draft' | 'generated' | 'locked' | 'finalized' | 'disputed';
 type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
@@ -241,30 +242,30 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
     // Generate line items HTML
     const lineItemsHtml = lineItems?.map(item => `
       <tr>
-        <td>${item.description}</td>
-        <td class="amount">${item.quantity}</td>
-        <td class="amount">${formatEGP(item.unit_price)}</td>
-        <td class="amount">${formatEGP(item.total_price)}</td>
+        <td>${escapeHtml(item.description)}</td>
+        <td class="amount">${escapeHtml(item.quantity)}</td>
+        <td class="amount">${escapeHtml(formatEGP(item.unit_price))}</td>
+        <td class="amount">${escapeHtml(formatEGP(item.total_price))}</td>
       </tr>
     `).join('') || '';
 
     // Generate adjustments HTML
     const adjustmentsHtml = adjustments?.map(adj => `
       <tr>
-        <td>Adjustment: ${adj.adjustment_type} - ${adj.reason}</td>
+        <td>Adjustment: ${escapeHtml(adj.adjustment_type)} - ${escapeHtml(adj.reason)}</td>
         <td class="amount">-</td>
         <td class="amount">-</td>
-        <td class="amount ${adj.amount >= 0 ? 'positive' : 'negative'}">${adj.amount >= 0 ? '+' : ''}${formatEGP(adj.amount)}</td>
+        <td class="amount ${adj.amount >= 0 ? 'positive' : 'negative'}">${adj.amount >= 0 ? '+' : ''}${escapeHtml(formatEGP(adj.amount))}</td>
       </tr>
     `).join('') || '';
 
     // Generate expenses HTML
     const expensesHtml = expenses?.map(exp => `
       <tr class="expense-row">
-        <td>Expense: ${exp.expense_type}${exp.description ? ` - ${exp.description}` : ''}</td>
+        <td>Expense: ${escapeHtml(exp.expense_type)}${exp.description ? ` - ${escapeHtml(exp.description)}` : ''}</td>
         <td class="amount">-</td>
         <td class="amount">-</td>
-        <td class="amount negative">-${formatEGP(exp.amount)}</td>
+        <td class="amount negative">-${escapeHtml(formatEGP(exp.amount))}</td>
       </tr>
     `).join('') || '';
 
@@ -272,7 +273,7 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Invoice ${invoice.invoice_number}</title>
+          <title>Invoice ${escapeHtml(invoice.invoice_number)}</title>
           <style>
             * { box-sizing: border-box; }
             body { 
@@ -424,9 +425,9 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
               <p>Dental Laboratory Management</p>
             </div>
             <div class="invoice-info">
-              <div class="invoice-number">${invoice.invoice_number}</div>
-              <div style="color: #666; font-size: 13px;">Invoice Date: ${format(new Date(invoice.created_at), 'MMMM d, yyyy')}</div>
-              <span class="status status-${invoice.status}">${invoice.status}</span>
+              <div class="invoice-number">${escapeHtml(invoice.invoice_number)}</div>
+              <div style="color: #666; font-size: 13px;">Invoice Date: ${escapeHtml(format(new Date(invoice.created_at), 'MMMM d, yyyy'))}</div>
+              <span class="status status-${escapeHtml(invoice.status)}">${escapeHtml(invoice.status)}</span>
             </div>
           </div>
           
@@ -435,41 +436,41 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
             <div class="info-grid">
               <div class="info-item">
                 <div class="info-label">Order Number</div>
-                <div class="info-value">${order?.order_number || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.order_number || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Patient Name</div>
-                <div class="info-value">${order?.patient_name || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.patient_name || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Doctor</div>
-                <div class="info-value">${order?.doctor_name || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.doctor_name || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Laboratory</div>
-                <div class="info-value">${lab?.name || '-'}</div>
+                <div class="info-value">${escapeHtml(lab?.name || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Restoration Type</div>
-                <div class="info-value">${order?.restoration_type || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.restoration_type || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Teeth</div>
-                <div class="info-value">${order?.teeth_number || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.teeth_number || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Shade</div>
-                <div class="info-value">${order?.teeth_shade || '-'}${order?.shade_system ? ` (${order.shade_system})` : ''}</div>
+                <div class="info-value">${escapeHtml(order?.teeth_shade || '-')}${order?.shade_system ? ` (${escapeHtml(order.shade_system)})` : ''}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Urgency</div>
-                <div class="info-value">${order?.urgency || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.urgency || '-')}</div>
               </div>
             </div>
             ${order?.handling_instructions ? `
               <div style="margin-top: 15px;">
                 <div class="info-label">Special Instructions</div>
-                <div class="info-value" style="font-weight: normal;">${order.handling_instructions}</div>
+                <div class="info-value" style="font-weight: normal;">${escapeHtml(order.handling_instructions)}</div>
               </div>
             ` : ''}
           </div>
@@ -478,26 +479,26 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
             <div class="section-title" style="border-bottom: none; padding-bottom: 0;">Timeline</div>
             <div class="timeline-item">
               <span class="timeline-label">Order Created</span>
-              <span class="timeline-value">${order?.created_at ? format(new Date(order.created_at), 'MMM d, yyyy h:mm a') : '-'}</span>
+              <span class="timeline-value">${escapeHtml(order?.created_at ? format(new Date(order.created_at), 'MMM d, yyyy h:mm a') : '-')}</span>
             </div>
             ${order?.agreed_fee_at ? `
             <div class="timeline-item">
               <span class="timeline-label">Fee Agreed</span>
-              <span class="timeline-value">${format(new Date(order.agreed_fee_at), 'MMM d, yyyy h:mm a')} - ${formatEGP(order.agreed_fee || 0)}</span>
+              <span class="timeline-value">${escapeHtml(format(new Date(order.agreed_fee_at), 'MMM d, yyyy h:mm a'))} - ${escapeHtml(formatEGP(order.agreed_fee || 0))}</span>
             </div>
             ` : ''}
             <div class="timeline-item">
               <span class="timeline-label">Expected Delivery</span>
-              <span class="timeline-value">${order?.expected_delivery_date ? format(new Date(order.expected_delivery_date), 'MMM d, yyyy') : '-'}</span>
+              <span class="timeline-value">${escapeHtml(order?.expected_delivery_date ? format(new Date(order.expected_delivery_date), 'MMM d, yyyy') : '-')}</span>
             </div>
             <div class="timeline-item">
               <span class="timeline-label">Actual Delivery</span>
-              <span class="timeline-value">${order?.actual_delivery_date ? format(new Date(order.actual_delivery_date), 'MMM d, yyyy') : '-'}</span>
+              <span class="timeline-value">${escapeHtml(order?.actual_delivery_date ? format(new Date(order.actual_delivery_date), 'MMM d, yyyy') : '-')}</span>
             </div>
             ${order?.delivery_confirmed_at ? `
             <div class="timeline-item">
               <span class="timeline-label">Delivery Confirmed</span>
-              <span class="timeline-value">${format(new Date(order.delivery_confirmed_at), 'MMM d, yyyy h:mm a')}</span>
+              <span class="timeline-value">${escapeHtml(format(new Date(order.delivery_confirmed_at), 'MMM d, yyyy h:mm a'))}</span>
             </div>
             ` : ''}
           </div>
@@ -521,29 +522,29 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
           <div class="totals-section">
             <div class="total-row">
               <span>Subtotal</span>
-              <span>${formatEGP(invoice.subtotal)}</span>
+              <span>${escapeHtml(formatEGP(invoice.subtotal))}</span>
             </div>
             ${invoice.adjustments_total !== 0 ? `
             <div class="total-row">
               <span>Adjustments</span>
-              <span class="${invoice.adjustments_total >= 0 ? 'positive' : 'negative'}">${invoice.adjustments_total >= 0 ? '+' : ''}${formatEGP(invoice.adjustments_total)}</span>
+              <span class="${invoice.adjustments_total >= 0 ? 'positive' : 'negative'}">${invoice.adjustments_total >= 0 ? '+' : ''}${escapeHtml(formatEGP(invoice.adjustments_total))}</span>
             </div>
             ` : ''}
             ${invoice.expenses_total > 0 ? `
             <div class="total-row">
               <span>Expenses</span>
-              <span class="negative">-${formatEGP(invoice.expenses_total)}</span>
+              <span class="negative">-${escapeHtml(formatEGP(invoice.expenses_total))}</span>
             </div>
             ` : ''}
             <div class="total-row final">
               <span>TOTAL</span>
-              <span>${formatEGP(invoice.final_total)}</span>
+              <span>${escapeHtml(formatEGP(invoice.final_total))}</span>
             </div>
           </div>
           
           <div class="footer">
-            <p><strong>Invoice Generated:</strong> ${invoice.generated_at ? format(new Date(invoice.generated_at), 'MMMM d, yyyy h:mm a') : '-'}</p>
-            ${invoice.finalized_at ? `<p><strong>Invoice Finalized:</strong> ${format(new Date(invoice.finalized_at), 'MMMM d, yyyy h:mm a')}</p>` : ''}
+            <p><strong>Invoice Generated:</strong> ${escapeHtml(invoice.generated_at ? format(new Date(invoice.generated_at), 'MMMM d, yyyy h:mm a') : '-')}</p>
+            ${invoice.finalized_at ? `<p><strong>Invoice Finalized:</strong> ${escapeHtml(format(new Date(invoice.finalized_at), 'MMMM d, yyyy h:mm a'))}</p>` : ''}
             <p style="margin-top: 15px;">This invoice was automatically generated by LabLink.</p>
             <p>For questions or disputes, please contact support within 7 days of invoice generation.</p>
           </div>

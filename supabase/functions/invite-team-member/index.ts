@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Resolve inviter's lab_id
+    // Resolve inviter's lab_id and role
     const { data: roleRow } = await adminClient
       .from("user_roles")
       .select("lab_id, role")
@@ -68,6 +68,15 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Prevent privilege escalation: only admins can invite admins
+    if (role === "admin" && roleRow.role !== "admin") {
+      return new Response(
+        JSON.stringify({ error: "Only admins can invite users with the admin role" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
 
     // Create invitation row
     const { data: invitation, error: insertErr } = await adminClient
