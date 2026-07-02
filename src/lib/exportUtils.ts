@@ -2,6 +2,7 @@
  * CSV & PDF export utilities for admin data.
  * Dynamically imported by admin tabs to keep out of main bundle.
  */
+import { escapeHtml } from "./htmlEscape";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function exportToCSV(data: Record<string, unknown>[], filename: string) {
