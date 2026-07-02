@@ -425,9 +425,9 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
               <p>Dental Laboratory Management</p>
             </div>
             <div class="invoice-info">
-              <div class="invoice-number">${invoice.invoice_number}</div>
-              <div style="color: #666; font-size: 13px;">Invoice Date: ${format(new Date(invoice.created_at), 'MMMM d, yyyy')}</div>
-              <span class="status status-${invoice.status}">${invoice.status}</span>
+              <div class="invoice-number">${escapeHtml(invoice.invoice_number)}</div>
+              <div style="color: #666; font-size: 13px;">Invoice Date: ${escapeHtml(format(new Date(invoice.created_at), 'MMMM d, yyyy'))}</div>
+              <span class="status status-${escapeHtml(invoice.status)}">${escapeHtml(invoice.status)}</span>
             </div>
           </div>
           
@@ -436,41 +436,41 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
             <div class="info-grid">
               <div class="info-item">
                 <div class="info-label">Order Number</div>
-                <div class="info-value">${order?.order_number || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.order_number || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Patient Name</div>
-                <div class="info-value">${order?.patient_name || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.patient_name || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Doctor</div>
-                <div class="info-value">${order?.doctor_name || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.doctor_name || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Laboratory</div>
-                <div class="info-value">${lab?.name || '-'}</div>
+                <div class="info-value">${escapeHtml(lab?.name || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Restoration Type</div>
-                <div class="info-value">${order?.restoration_type || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.restoration_type || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Teeth</div>
-                <div class="info-value">${order?.teeth_number || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.teeth_number || '-')}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Shade</div>
-                <div class="info-value">${order?.teeth_shade || '-'}${order?.shade_system ? ` (${order.shade_system})` : ''}</div>
+                <div class="info-value">${escapeHtml(order?.teeth_shade || '-')}${order?.shade_system ? ` (${escapeHtml(order.shade_system)})` : ''}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Urgency</div>
-                <div class="info-value">${order?.urgency || '-'}</div>
+                <div class="info-value">${escapeHtml(order?.urgency || '-')}</div>
               </div>
             </div>
             ${order?.handling_instructions ? `
               <div style="margin-top: 15px;">
                 <div class="info-label">Special Instructions</div>
-                <div class="info-value" style="font-weight: normal;">${order.handling_instructions}</div>
+                <div class="info-value" style="font-weight: normal;">${escapeHtml(order.handling_instructions)}</div>
               </div>
             ` : ''}
           </div>
