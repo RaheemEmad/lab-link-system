@@ -15,6 +15,7 @@ import { Loader2, FileText, Download } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, getYear, getMonth } from "date-fns";
 import { toast } from "sonner";
 import { formatEGP } from "@/lib/formatters";
+import { escapeHtml } from "@/lib/htmlEscape";
 
 interface StatementGeneratorProps {
   open: boolean;
