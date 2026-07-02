@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { escapeHtml } from "./htmlEscape";
 
 export interface BrochureOrderData {
   orderId: string;
