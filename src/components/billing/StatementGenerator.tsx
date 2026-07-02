@@ -134,12 +134,12 @@ const StatementGenerator = ({ open, onOpenChange }: StatementGeneratorProps) => 
     const doctor = doctors?.find(d => d.id === selectedDoctorId);
     const rows = previewInvoices.map(inv => `
       <tr>
-        <td>${inv.invoice_number}</td>
-        <td>${(inv as any).order?.patient_name || '-'}</td>
-        <td>${(inv as any).order?.restoration_type || '-'}</td>
-        <td class="amount">${formatEGP(inv.final_total)}</td>
-        <td class="amount">${formatEGP(inv.amount_paid || 0)}</td>
-        <td class="amount">${formatEGP(inv.final_total - (inv.amount_paid || 0))}</td>
+        <td>${escapeHtml(inv.invoice_number)}</td>
+        <td>${escapeHtml((inv as any).order?.patient_name || '-')}</td>
+        <td>${escapeHtml((inv as any).order?.restoration_type || '-')}</td>
+        <td class="amount">${escapeHtml(formatEGP(inv.final_total))}</td>
+        <td class="amount">${escapeHtml(formatEGP(inv.amount_paid || 0))}</td>
+        <td class="amount">${escapeHtml(formatEGP(inv.final_total - (inv.amount_paid || 0)))}</td>
       </tr>
     `).join("");
 
@@ -162,11 +162,11 @@ const StatementGenerator = ({ open, onOpenChange }: StatementGeneratorProps) => 
       </style></head><body>
       <div class="header">
         <h1>LABLINK</h1>
-        <h2>Statement of Account - ${format(periodStart, "MMMM yyyy")}</h2>
+        <h2>Statement of Account - ${escapeHtml(format(periodStart, "MMMM yyyy"))}</h2>
       </div>
       <div class="info">
-        <div><strong>Doctor:</strong> ${doctor?.name || '-'}</div>
-        <div><strong>Period:</strong> ${format(periodStart, "MMM d")} – ${format(periodEnd, "MMM d, yyyy")}</div>
+        <div><strong>Doctor:</strong> ${escapeHtml(doctor?.name || '-')}</div>
+        <div><strong>Period:</strong> ${escapeHtml(format(periodStart, "MMM d"))} – ${escapeHtml(format(periodEnd, "MMM d, yyyy"))}</div>
       </div>
       <table><thead><tr><th>Invoice</th><th>Patient</th><th>Type</th><th class="amount">Total</th><th class="amount">Paid</th><th class="amount">Balance</th></tr></thead>
       <tbody>${rows}</tbody></table>
