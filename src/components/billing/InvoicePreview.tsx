@@ -242,30 +242,30 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
     // Generate line items HTML
     const lineItemsHtml = lineItems?.map(item => `
       <tr>
-        <td>${item.description}</td>
-        <td class="amount">${item.quantity}</td>
-        <td class="amount">${formatEGP(item.unit_price)}</td>
-        <td class="amount">${formatEGP(item.total_price)}</td>
+        <td>${escapeHtml(item.description)}</td>
+        <td class="amount">${escapeHtml(item.quantity)}</td>
+        <td class="amount">${escapeHtml(formatEGP(item.unit_price))}</td>
+        <td class="amount">${escapeHtml(formatEGP(item.total_price))}</td>
       </tr>
     `).join('') || '';
 
     // Generate adjustments HTML
     const adjustmentsHtml = adjustments?.map(adj => `
       <tr>
-        <td>Adjustment: ${adj.adjustment_type} - ${adj.reason}</td>
+        <td>Adjustment: ${escapeHtml(adj.adjustment_type)} - ${escapeHtml(adj.reason)}</td>
         <td class="amount">-</td>
         <td class="amount">-</td>
-        <td class="amount ${adj.amount >= 0 ? 'positive' : 'negative'}">${adj.amount >= 0 ? '+' : ''}${formatEGP(adj.amount)}</td>
+        <td class="amount ${adj.amount >= 0 ? 'positive' : 'negative'}">${adj.amount >= 0 ? '+' : ''}${escapeHtml(formatEGP(adj.amount))}</td>
       </tr>
     `).join('') || '';
 
     // Generate expenses HTML
     const expensesHtml = expenses?.map(exp => `
       <tr class="expense-row">
-        <td>Expense: ${exp.expense_type}${exp.description ? ` - ${exp.description}` : ''}</td>
+        <td>Expense: ${escapeHtml(exp.expense_type)}${exp.description ? ` - ${escapeHtml(exp.description)}` : ''}</td>
         <td class="amount">-</td>
         <td class="amount">-</td>
-        <td class="amount negative">-${formatEGP(exp.amount)}</td>
+        <td class="amount negative">-${escapeHtml(formatEGP(exp.amount))}</td>
       </tr>
     `).join('') || '';
 
