@@ -479,26 +479,26 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
             <div class="section-title" style="border-bottom: none; padding-bottom: 0;">Timeline</div>
             <div class="timeline-item">
               <span class="timeline-label">Order Created</span>
-              <span class="timeline-value">${order?.created_at ? format(new Date(order.created_at), 'MMM d, yyyy h:mm a') : '-'}</span>
+              <span class="timeline-value">${escapeHtml(order?.created_at ? format(new Date(order.created_at), 'MMM d, yyyy h:mm a') : '-')}</span>
             </div>
             ${order?.agreed_fee_at ? `
             <div class="timeline-item">
               <span class="timeline-label">Fee Agreed</span>
-              <span class="timeline-value">${format(new Date(order.agreed_fee_at), 'MMM d, yyyy h:mm a')} - ${formatEGP(order.agreed_fee || 0)}</span>
+              <span class="timeline-value">${escapeHtml(format(new Date(order.agreed_fee_at), 'MMM d, yyyy h:mm a'))} - ${escapeHtml(formatEGP(order.agreed_fee || 0))}</span>
             </div>
             ` : ''}
             <div class="timeline-item">
               <span class="timeline-label">Expected Delivery</span>
-              <span class="timeline-value">${order?.expected_delivery_date ? format(new Date(order.expected_delivery_date), 'MMM d, yyyy') : '-'}</span>
+              <span class="timeline-value">${escapeHtml(order?.expected_delivery_date ? format(new Date(order.expected_delivery_date), 'MMM d, yyyy') : '-')}</span>
             </div>
             <div class="timeline-item">
               <span class="timeline-label">Actual Delivery</span>
-              <span class="timeline-value">${order?.actual_delivery_date ? format(new Date(order.actual_delivery_date), 'MMM d, yyyy') : '-'}</span>
+              <span class="timeline-value">${escapeHtml(order?.actual_delivery_date ? format(new Date(order.actual_delivery_date), 'MMM d, yyyy') : '-')}</span>
             </div>
             ${order?.delivery_confirmed_at ? `
             <div class="timeline-item">
               <span class="timeline-label">Delivery Confirmed</span>
-              <span class="timeline-value">${format(new Date(order.delivery_confirmed_at), 'MMM d, yyyy h:mm a')}</span>
+              <span class="timeline-value">${escapeHtml(format(new Date(order.delivery_confirmed_at), 'MMM d, yyyy h:mm a'))}</span>
             </div>
             ` : ''}
           </div>
