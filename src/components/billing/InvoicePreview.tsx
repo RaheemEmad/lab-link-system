@@ -33,6 +33,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { formatEGP } from "@/lib/formatters";
+import { escapeHtml } from "@/lib/htmlEscape";
 
 type InvoiceStatus = 'draft' | 'generated' | 'locked' | 'finalized' | 'disputed';
 type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
