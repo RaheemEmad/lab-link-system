@@ -273,7 +273,7 @@ const InvoicePreview = ({ invoice, onClose }: InvoicePreviewProps) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Invoice ${invoice.invoice_number}</title>
+          <title>Invoice ${escapeHtml(invoice.invoice_number)}</title>
           <style>
             * { box-sizing: border-box; }
             body { 
