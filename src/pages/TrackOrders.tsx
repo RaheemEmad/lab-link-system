@@ -150,7 +150,7 @@ const TrackOrders = () => {
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
-      toast.error("Failed to load orders");
+      notifyFetchError("Failed to load orders", error);
     } finally {
       setLoading(false);
     }
