@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Package, Truck, MapPin, Clock, Phone, User, AlertTriangle, Calendar, ArrowLeft, FileText, ExternalLink, Edit, Save, X } from "lucide-react";
 import { toast } from "sonner";
+import { notifyFetchError } from "@/lib/fetchErrorToast";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
