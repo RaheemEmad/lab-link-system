@@ -114,7 +114,7 @@ const LogisticsDashboard = () => {
         setShipments(orders || []);
       } catch (error) {
         console.error("Error fetching logistics data:", error);
-        toast.error("Failed to load logistics data");
+        notifyFetchError("Failed to load logistics data", error);
       } finally {
         setLoading(false);
       }
