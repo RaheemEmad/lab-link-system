@@ -3980,6 +3980,10 @@ export type Database = {
         Returns: undefined
       }
       is_account_locked: { Args: { user_email: string }; Returns: boolean }
+      lab_staff_can_view_assignment: {
+        Args: { _order_id: string; _user_id: string }
+        Returns: boolean
+      }
       lab_was_refused_for_order: {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean
