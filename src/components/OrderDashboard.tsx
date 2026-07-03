@@ -259,7 +259,7 @@ const OrderDashboard = () => {
       if (error) throw error;
       setDeletedOrders((data || []) as any);
     } catch (error: any) {
-      toast.error("Failed to load deleted orders");
+      notifyFetchError("Failed to load deleted orders", error);
     } finally {
       setDeletedLoading(false);
     }
