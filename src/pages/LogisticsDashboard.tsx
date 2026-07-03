@@ -23,6 +23,7 @@ import { AnalyticsTabContent } from "@/components/logistics/AnalyticsTabContent"
 import { SchedulingTabContent } from "@/components/logistics/SchedulingTabContent";
 import { useLogisticsTabBadges } from "@/hooks/useLogisticsTabBadges";
 import { toast } from "sonner";
+import { notifyFetchError } from "@/lib/fetchErrorToast";
 
 interface OrderShipment {
   id: string;
@@ -113,7 +114,7 @@ const LogisticsDashboard = () => {
         setShipments(orders || []);
       } catch (error) {
         console.error("Error fetching logistics data:", error);
-        toast.error("Failed to load logistics data");
+        notifyFetchError("Failed to load logistics data", error);
       } finally {
         setLoading(false);
       }
