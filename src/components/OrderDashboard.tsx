@@ -216,7 +216,7 @@ const OrderDashboard = () => {
       setOrders(data || []);
     } catch (error: any) {
       console.error('[OrderDashboard] Failed to fetch orders:', error.message);
-      toast.error("Failed to load orders");
+      notifyFetchError("Failed to load orders", error);
     } finally {
       setLoading(false);
     }
