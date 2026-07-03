@@ -206,9 +206,7 @@ const OrderTracking = () => {
       setOrders(data || []);
     } catch (error: any) {
       console.error('Error fetching orders:', error);
-      toast.error("Failed to load orders", {
-        description: error.message
-      });
+      notifyFetchError("Failed to load orders", error);
     } finally {
       setIsLoading(false);
     }
