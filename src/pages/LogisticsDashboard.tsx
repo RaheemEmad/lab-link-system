@@ -23,6 +23,7 @@ import { AnalyticsTabContent } from "@/components/logistics/AnalyticsTabContent"
 import { SchedulingTabContent } from "@/components/logistics/SchedulingTabContent";
 import { useLogisticsTabBadges } from "@/hooks/useLogisticsTabBadges";
 import { toast } from "sonner";
+import { notifyFetchError } from "@/lib/fetchErrorToast";
 
 interface OrderShipment {
   id: string;
