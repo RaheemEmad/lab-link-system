@@ -203,5 +203,8 @@ export const usePageTitle = () => {
     // Update Twitter Card tags
     updateMetaTag('twitter:title', metadata.title);
     updateMetaTag('twitter:description', metadata.description);
+
+    // Update canonical URL per route
+    updateCanonical(location.pathname);
   }, [location.pathname]);
 };
