@@ -159,6 +159,13 @@ const Dashboard = () => {
 
   return (
     <ProtectedRoute>
+      <StructuredData
+        id="dashboard-breadcrumb"
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Dashboard", path: "/dashboard" },
+        ])}
+      />
       <div className="min-h-screen flex flex-col">
         {showReceiveAnimation && (
           <DashboardReceiveAnimation
