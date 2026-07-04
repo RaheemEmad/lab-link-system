@@ -473,6 +473,14 @@ const OrderTracking = () => {
   // Doctor view - original card layout
   return (
     <div className="min-h-screen flex flex-col">
+      <StructuredData
+        id="order-tracking-breadcrumb"
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Dashboard", path: "/dashboard" },
+          { name: "Order Tracking", path: "/order-tracking" },
+        ])}
+      />
       <LandingNav />
       <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
         <div className="container max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
