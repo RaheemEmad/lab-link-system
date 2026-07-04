@@ -88,6 +88,14 @@ const NewOrder = () => {
 
   return (
     <ProtectedRoute>
+      <StructuredData
+        id="new-order-breadcrumb"
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Dashboard", path: "/dashboard" },
+          { name: "New Order", path: "/new-order" },
+        ])}
+      />
       <PageLayout bgClass="bg-secondary/30" maxWidth="max-w-3xl">
         <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="w-fit">
