@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { StructuredData, breadcrumbSchema } from "@/components/seo/StructuredData";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNotificationData } from "@/hooks/useNotificationData";
 import { FirstTimeModal } from "@/components/onboarding/FirstTimeModal";
