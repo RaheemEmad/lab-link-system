@@ -7,6 +7,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import LeadCaptureCTA from "@/components/landing/LeadCaptureCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { StructuredData, websiteSchema, breadcrumbSchema } from "@/components/seo/StructuredData";
 
 // Below-fold sections - lazy-loaded to reduce initial bundle
 const ProofSection = lazy(() => import("@/components/landing/ProofSection"));
