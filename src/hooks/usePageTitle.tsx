@@ -145,6 +145,17 @@ const updateOGTag = (property: string, content: string) => {
   element.setAttribute('content', content);
 };
 
+const CANONICAL_BASE = "https://lablink-smartlab.lovable.app";
+const updateCanonical = (pathname: string) => {
+  let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+  if (!link) {
+    link = document.createElement("link");
+    link.setAttribute("rel", "canonical");
+    document.head.appendChild(link);
+  }
+  link.setAttribute("href", `${CANONICAL_BASE}${pathname}`);
+};
+
 export const usePageTitle = () => {
   const location = useLocation();
 
@@ -192,5 +203,8 @@ export const usePageTitle = () => {
     // Update Twitter Card tags
     updateMetaTag('twitter:title', metadata.title);
     updateMetaTag('twitter:description', metadata.description);
+
+    // Update canonical URL per route
+    updateCanonical(location.pathname);
   }, [location.pathname]);
 };

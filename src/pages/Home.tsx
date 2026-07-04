@@ -7,6 +7,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import LeadCaptureCTA from "@/components/landing/LeadCaptureCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { StructuredData, websiteSchema, breadcrumbSchema } from "@/components/seo/StructuredData";
 
 // Below-fold sections - lazy-loaded to reduce initial bundle
 const ProofSection = lazy(() => import("@/components/landing/ProofSection"));
@@ -16,6 +17,11 @@ const FinalCTA = lazy(() => import("@/components/landing/FinalCTA"));
 const Home = () => {
   return (
     <div className="min-h-screen">
+      <StructuredData id="home-website" data={websiteSchema()} />
+      <StructuredData
+        id="home-breadcrumb"
+        data={breadcrumbSchema([{ name: "Home", path: "/" }])}
+      />
       <LandingNav />
       <main>
         <LandingHero />

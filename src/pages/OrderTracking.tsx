@@ -16,6 +16,7 @@ import OrderNotesDialog from "@/components/order/OrderNotesDialog";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { StructuredData, breadcrumbSchema } from "@/components/seo/StructuredData";
 import { CardSkeleton } from "@/components/ui/skeleton-loader";
 import { StaggeredList, StaggeredItem } from "@/components/ui/staggered-list";
 import { 
@@ -472,6 +473,14 @@ const OrderTracking = () => {
   // Doctor view - original card layout
   return (
     <div className="min-h-screen flex flex-col">
+      <StructuredData
+        id="order-tracking-breadcrumb"
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Dashboard", path: "/dashboard" },
+          { name: "Order Tracking", path: "/order-tracking" },
+        ])}
+      />
       <LandingNav />
       <div className="flex-1 bg-secondary/30 py-4 sm:py-6 lg:py-12">
         <div className="container max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">

@@ -13,6 +13,7 @@ import QuickOrderForm from "@/components/order/QuickOrderForm";
 import { OrderTemplateSelector } from "@/components/order/OrderTemplateSelector";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { StructuredData, breadcrumbSchema } from "@/components/seo/StructuredData";
 
 const PREFERRED_MODE_KEY = "lablink-preferred-order-mode";
 
@@ -87,6 +88,14 @@ const NewOrder = () => {
 
   return (
     <ProtectedRoute>
+      <StructuredData
+        id="new-order-breadcrumb"
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Dashboard", path: "/dashboard" },
+          { name: "New Order", path: "/new-order" },
+        ])}
+      />
       <PageLayout bgClass="bg-secondary/30" maxWidth="max-w-3xl">
         <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="w-fit">
