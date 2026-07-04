@@ -16,6 +16,7 @@ import OrderNotesDialog from "@/components/order/OrderNotesDialog";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { StructuredData, breadcrumbSchema } from "@/components/seo/StructuredData";
 import { CardSkeleton } from "@/components/ui/skeleton-loader";
 import { StaggeredList, StaggeredItem } from "@/components/ui/staggered-list";
 import { 
