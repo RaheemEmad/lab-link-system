@@ -13,6 +13,7 @@ import QuickOrderForm from "@/components/order/QuickOrderForm";
 import { OrderTemplateSelector } from "@/components/order/OrderTemplateSelector";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { StructuredData, breadcrumbSchema } from "@/components/seo/StructuredData";
 
 const PREFERRED_MODE_KEY = "lablink-preferred-order-mode";
 
