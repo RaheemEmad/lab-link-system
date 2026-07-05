@@ -56,3 +56,14 @@ export const websiteSchema = () => ({
     "query-input": "required name=search_term_string",
   },
 });
+
+export const faqSchema = (items: { question: string; answer: string }[]) => ({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: items.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+});
+

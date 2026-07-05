@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingHero from "@/components/landing/LandingHero";
 import ProblemSection from "@/components/landing/ProblemSection";
@@ -7,7 +7,9 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import LeadCaptureCTA from "@/components/landing/LeadCaptureCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
-import { StructuredData, websiteSchema, breadcrumbSchema } from "@/components/seo/StructuredData";
+import { StructuredData, websiteSchema, breadcrumbSchema, faqSchema } from "@/components/seo/StructuredData";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+
 
 // Below-fold sections - lazy-loaded to reduce initial bundle
 const ProofSection = lazy(() => import("@/components/landing/ProofSection"));
@@ -15,6 +17,19 @@ const FAQSection = lazy(() => import("@/components/landing/FAQSection"));
 const FinalCTA = lazy(() => import("@/components/landing/FinalCTA"));
 
 const Home = () => {
+  const { t } = useLanguage();
+  const faqData = useMemo(() => {
+    const f = t.landing.faq;
+    return faqSchema([
+      { question: f.q1, answer: f.a1 },
+      { question: f.q2, answer: f.a2 },
+      { question: f.q3, answer: f.a3 },
+      { question: f.q4, answer: f.a4 },
+      { question: f.q5, answer: f.a5 },
+      { question: f.q6, answer: f.a6 },
+    ]);
+  }, [t]);
+
   return (
     <div className="min-h-screen">
       <StructuredData id="home-website" data={websiteSchema()} />
@@ -22,6 +37,8 @@ const Home = () => {
         id="home-breadcrumb"
         data={breadcrumbSchema([{ name: "Home", path: "/" }])}
       />
+      <StructuredData id="home-faq" data={faqData} />
+
       <LandingNav />
       <main>
         <LandingHero />
