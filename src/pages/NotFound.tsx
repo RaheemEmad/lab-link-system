@@ -16,7 +16,45 @@ const NotFound = () => {
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+
+    // SEO: prevent indexing of 404s. Override sitewide robots and drop canonical.
+    document.title = "Page Not Found — LabLink";
+    const prevRobots = document.querySelector('meta[name="robots"]');
+    const prevRobotsContent = prevRobots?.getAttribute("content") ?? null;
+    let robotsEl = prevRobots as HTMLMetaElement | null;
+    if (!robotsEl) {
+      robotsEl = document.createElement("meta");
+      robotsEl.setAttribute("name", "robots");
+      document.head.appendChild(robotsEl);
+    }
+    robotsEl.setAttribute("content", "noindex, nofollow");
+
+    const canonical = document.querySelector('link[rel="canonical"]');
+    const prevCanonicalHref = canonical?.getAttribute("href") ?? null;
+    canonical?.remove();
+
+    // Signal 404 to Lovable's static host / prerenderer via a meta hint.
+    const statusMeta = document.createElement("meta");
+    statusMeta.setAttribute("name", "prerender-status-code");
+    statusMeta.setAttribute("content", "404");
+    document.head.appendChild(statusMeta);
+
+    return () => {
+      if (prevRobotsContent !== null) {
+        robotsEl?.setAttribute("content", prevRobotsContent);
+      } else {
+        robotsEl?.remove();
+      }
+      if (prevCanonicalHref) {
+        const link = document.createElement("link");
+        link.setAttribute("rel", "canonical");
+        link.setAttribute("href", prevCanonicalHref);
+        document.head.appendChild(link);
+      }
+      statusMeta.remove();
+    };
   }, [location.pathname]);
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
