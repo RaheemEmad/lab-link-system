@@ -4,14 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "predev": "bunx tsx scripts/verify-seo-files.ts",
+    "predev": "bunx tsx scripts/generate-sitemap.ts && bunx tsx scripts/verify-seo-files.ts",
     "dev": "vite",
-    "prebuild": "bunx tsx scripts/verify-seo-files.ts",
+    "prebuild": "bunx tsx scripts/generate-sitemap.ts && bunx tsx scripts/verify-seo-files.ts",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "verify:seo": "bunx tsx scripts/verify-seo-files.ts"
+    "verify:seo": "bunx tsx scripts/verify-seo-files.ts",
+    "generate:sitemap": "bunx tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
