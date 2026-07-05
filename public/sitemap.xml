@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://lablink-smartlab.lovable.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/auth</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/how-it-works</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/labs</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/about</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/plans</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/install</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/reset-password</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://lablink-smartlab.lovable.app/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-</urlset>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://lablink-smartlab.lovable.app/sitemap-pages.xml</loc>
+    <lastmod>2026-07-05</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://lablink-smartlab.lovable.app/sitemap-labs.xml</loc>
+    <lastmod>2026-07-05</lastmod>
+  </sitemap>
+</sitemapindex>

@@ -74,20 +74,33 @@ if (!existsSync(robotsPath)) {
   }
 }
 
-if (!existsSync(sitemapPath)) {
+// Verify sitemap index + sub-sitemaps.
+const indexPath = resolve("public/sitemap.xml");
+if (!existsSync(indexPath)) {
   errors.push("public/sitemap.xml is missing");
 } else {
-  const sitemap = readFileSync(sitemapPath, "utf8");
-  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-  if (locs.length === 0) errors.push("sitemap.xml has zero <loc> entries");
-  for (const loc of locs) {
-    if (!loc.startsWith(BASE_URL)) {
-      errors.push(`sitemap.xml entry uses wrong base URL: ${loc}`);
+  const indexXml = readFileSync(indexPath, "utf8");
+  if (!indexXml.includes("<sitemapindex")) {
+    errors.push("public/sitemap.xml must be a <sitemapindex> (run generate:sitemap)");
+  }
+  const subLocs = [...indexXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  if (subLocs.length === 0) errors.push("sitemap.xml has zero <sitemap> entries");
+  for (const loc of subLocs) {
+    if (!loc.startsWith(BASE_URL)) errors.push(`sitemap index entry uses wrong base URL: ${loc}`);
+    const rel = loc.replace(BASE_URL + "/", "");
+    const subPath = resolve("public", rel);
+    if (!existsSync(subPath)) {
+      errors.push(`sitemap index references missing file: public/${rel}`);
+      continue;
     }
-    // Cross-check: no private route should appear in sitemap.
-    const path = loc.replace(BASE_URL, "") || "/";
-    if (PRIVATE_ROUTES.some((p) => path === p || path.startsWith(p + "/"))) {
-      errors.push(`sitemap.xml lists private route: ${path}`);
+    const subXml = readFileSync(subPath, "utf8");
+    const urlLocs = [...subXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    for (const u of urlLocs) {
+      if (!u.startsWith(BASE_URL)) errors.push(`${rel} entry uses wrong base URL: ${u}`);
+      const p = u.replace(BASE_URL, "") || "/";
+      if (PRIVATE_ROUTES.some((pr) => p === pr || p.startsWith(pr + "/"))) {
+        errors.push(`${rel} lists private route: ${p}`);
+      }
     }
   }
 }
