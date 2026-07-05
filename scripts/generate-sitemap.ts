@@ -11,11 +11,23 @@
 // valid sitemap-labs.xml so the index stays consistent and the build never
 // breaks over sitemap generation.
 
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync, existsSync } from "fs";
 import { resolve } from "path";
-import { config as loadEnv } from "dotenv";
 
-loadEnv();
+// Lightweight .env loader so we don't take on a dotenv dep.
+function loadDotenv() {
+  const p = resolve(".env");
+  if (!existsSync(p)) return;
+  for (const line of readFileSync(p, "utf8").split("\n")) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (!m) continue;
+    const [, k, rawV] = m;
+    if (process.env[k]) continue;
+    const v = rawV.replace(/^['"]|['"]$/g, "");
+    process.env[k] = v;
+  }
+}
+loadDotenv();
 
 const BASE_URL = "https://lablink-smartlab.lovable.app";
 const NOW = new Date().toISOString().slice(0, 10);
