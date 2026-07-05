@@ -52,7 +52,7 @@ const PRIVATE_ROUTES = [
 
 const errors: string[] = [];
 const robotsPath = resolve("public/robots.txt");
-const sitemapPath = resolve("public/sitemap.xml");
+
 
 if (!existsSync(robotsPath)) {
   errors.push("public/robots.txt is missing");
