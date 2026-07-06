@@ -1,11 +1,12 @@
 # LabLink - Dental Lab Management & Marketplace
 
-![LabLink](https://img.shields.io/badge/Version-1.0.0-blue.svg)
-![React](https://img.shields.io/badge/React-18.2.0-61dafb.svg)
-![Supabase](https://img.shields.io/badge/Supabase-Backend-3ecf8e.svg)
+![LabLink](https://img.shields.io/badge/Version-1.1.0-blue.svg)
+![React](https://img.shields.io/badge/React-18.3.1-61dafb.svg)
+![Vite](https://img.shields.io/badge/Vite-5.4.19-646cff.svg)
+![Supabase](https://img.shields.io/badge/Supabase-2.81.1-3ecf8e.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-A comprehensive web application built to streamline dental lab workflows, connecting dentists (doctors) with laboratories and lab staff. Supports direct lab assignment and marketplace-style auto-assign flow, secure file uploads, real-time order/notification updates, invoices, and role-based access controls.
+A comprehensive web application built to streamline dental lab workflows, connecting dentists (doctors) with laboratories and lab staff. Supports direct lab assignment and marketplace-style auto-assignment with real-time collaboration features.
 
 ## 🚀 Why LabLink Matters
 
@@ -13,6 +14,8 @@ A comprehensive web application built to streamline dental lab workflows, connec
 - **Accelerates order turnaround** via marketplace and auto-assignment
 - **Centralizes communication, files, and invoices**
 - **Enforces security and compliance** via database-level RLS & file validation
+- **Real-time collaboration** with chat, notifications, and live updates
+- **Optimized for performance** with PWA support and offline capabilities
 
 ## 👥 Who This README Is For
 
@@ -27,8 +30,8 @@ A comprehensive web application built to streamline dental lab workflows, connec
 
 ### Prerequisites
 
-- Node.js (recommended via nvm)
-- npm (or bun/pnpm if configured)
+- Node.js v18+ (recommended via nvm)
+- npm/yarn/pnpm/bun package manager
 - Supabase project (for Postgres, Auth, Storage, Edge Functions)
 - Optional: Playwright for E2E tests
 
@@ -42,7 +45,7 @@ npm ci
 
 ### Local Environment Setup
 
-1. Copy `.env.example` to `.env`
+1. Copy `.env.example` to `.env.local`
 2. Supply credentials for Supabase, Sentry, and other integrations:
 
 ```env
@@ -76,10 +79,11 @@ The project includes Replit-ready configuration. Ensure environment variables ar
 
 | Component | Technology | Deployment Target |
 |-----------|------------|-------------------|
-| **Frontend** | Vite/React | Vercel, Netlify, Cloudflare Pages |
+| **Frontend** | Vite/React 18.3.1 | Vercel, Netlify, Cloudflare Pages |
 | **Backend** | Supabase | Supabase Cloud |
 | **Edge Functions** | Supabase Edge Functions | Supabase Dashboard |
 | **Database** | PostgreSQL | Supabase Managed |
+| **PWA** | Vite PWA Plugin | CDN + Service Worker |
 
 ## ⚙️ Environment Variables
 
@@ -110,14 +114,17 @@ The project includes Replit-ready configuration. Ensure environment variables ar
 
 | Command | Purpose |
 |---------|---------|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Create production build |
+| `npm run dev` | Start Vite dev server with SEO verification |
+| `npm run build` | Create production build with optimizations |
+| `npm run build:dev` | Create development build |
 | `npm run preview` | Serve build locally |
 | `npm run lint` | ESLint linting |
 | `npm run format` | Prettier formatting |
 | `npm run test` | Unit tests |
 | `npm run create-test-users` | Automated test user creation |
 | `npm run verify-test-data` | Validate test fixtures |
+| `npm run verify:seo` | Verify SEO files and metadata |
+| `npm run generate:sitemap` | Generate sitemap.xml |
 | `npx playwright test` | Run E2E tests |
 
 ## 🏗 Architecture & Data Flow
@@ -125,7 +132,7 @@ The project includes Replit-ready configuration. Ensure environment variables ar
 ```
 [Browser / Mobile UI]
         ⇅
-[Frontend (Vite/React)]
+[Frontend (Vite/React 18)]
         ⇅
 [Supabase Client SDK]
         ⇅
@@ -134,6 +141,8 @@ The project includes Replit-ready configuration. Ensure environment variables ar
 [Postgres (RLS + WAL)]
         ⇅
 [Storage: file uploads]
+        ⇅
+[Service Worker (PWA)]
 ```
 
 ### Key Systems
@@ -142,6 +151,8 @@ The project includes Replit-ready configuration. Ensure environment variables ar
 - **Marketplace**: `auto_assign_pending` orders, eligible labs apply
 - **Notifications**: Real-time via Postgres changes → client subscription channels
 - **Files**: Storage with server-side validation (file type, size, content-type checks)
+- **Chat**: Real-time messaging with file sharing and typing indicators
+- **PWA**: Offline support, installable app, background sync
 
 ## 🗄 Database & Migrations
 
@@ -152,6 +163,7 @@ The project includes Replit-ready configuration. Ensure environment variables ar
 - `users`, `user_roles`, `labs`, `orders`, `order_items`
 - `applications`, `invoices`, `files`, `notifications`
 - `audit_logs`, `badges`, `challenges`, `migrations_meta`, `settings`
+- `chat_messages`, `chat_participants`, `message_reactions`
 
 ### Example RLS Policy
 
@@ -170,12 +182,14 @@ Migrations are applied using Supabase CLI or psql.
 - Supabase Auth handles signup/signin
 - Social providers configurable via Supabase dashboard
 - Onboarding requires `onboarding_completed = true` for marketplace access
+- Multi-factor authentication support
 
 ### Row Level Security (RLS)
 
-- **Doctors**: CRUD their own orders
+- **Doctors**: CRUD their own orders, view own chat/files
 - **Lab Staff**: Access orders assigned to their lab or applied marketplace orders
 - **Admins**: Elevated privileges via service role
+- **Chat Access**: Only participants can view/edit messages
 
 ### Edge Functions
 
@@ -185,12 +199,14 @@ Migrations are applied using Supabase CLI or psql.
 | `file-validation` | Validate uploaded files (MIME types, magic bytes, size) |
 | `invoice-generator` | Create invoice PDFs |
 | `webhook-handler` | Process external webhooks |
+| `chat-notifications` | Send real-time chat notifications |
 
 **Deploy with:** `supabase functions deploy`
 
 ### Realtime Subscriptions
 
 ```javascript
+// Order updates
 const subscription = supabase
   .channel('order-updates')
   .on('postgres_changes', {
@@ -200,6 +216,19 @@ const subscription = supabase
     filter: `doctor_id=eq.${doctorId}`
   }, payload => {
     // Handle update
+  })
+  .subscribe();
+
+// Chat messages
+const chatSubscription = supabase
+  .channel(`chat-${conversationId}`)
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'chat_messages',
+    filter: `conversation_id=eq.${conversationId}`
+  }, payload => {
+    // Handle new message
   })
   .subscribe();
 ```
@@ -214,6 +243,7 @@ const subscription = supabase
 | `/edge/validate-file` | POST | File validation before upload |
 | `/edge/generate-invoice` | POST | Invoice PDF generation |
 | `/edge/webhook` | POST | External notifications |
+| `/edge/chat-notifications` | POST | Chat real-time notifications |
 
 ### Frontend Examples
 
@@ -237,14 +267,31 @@ await supabase
   });
 ```
 
+**Send Chat Message:**
+```javascript
+await supabase
+  .from('chat_messages')
+  .insert({
+    conversation_id: conversationId,
+    sender_id: userId,
+    content: messageText,
+    attachment_ids: attachmentIds
+  });
+```
+
 ## 💻 Frontend Architecture
 
 ### Tech Stack
 
-- **React 18** + TypeScript
-- **Vite** build tool
+- **React 18.3.1** + TypeScript
+- **Vite 5.4.19** build tool with SWC
 - **shadcn-ui** component library
-- **Tailwind CSS** styling
+- **Tailwind CSS 3.4** styling
+- **React Query 5.83** for data fetching
+- **Framer Motion 12.23** for animations
+- **React Router 6.30** for routing
+- **Zod 3.25** for schema validation
+- **PWA Plugin 0.21** for offline support
 
 ### Project Structure
 
@@ -252,7 +299,7 @@ await supabase
 src/
 ├── components/          # Reusable UI components
 ├── pages/              # Page-level components/routes
-├── lib/                # API/supabase helpers, types
+├── lib/                # API/supabase helpers, types, utilities
 ├── hooks/              # Custom React hooks
 └── utils/              # Utility functions
 
@@ -260,6 +307,14 @@ supabase/
 ├── migrations/         # Database migrations
 ├── functions/          # Edge functions
 └── policies/           # RLS policies
+
+public/
+├── manifest.json       # PWA manifest
+└── service-worker.js   # Service worker for offline
+
+scripts/
+├── generate-sitemap.ts # SEO sitemap generation
+└── verify-seo-files.ts # SEO verification
 ```
 
 ### File Uploads
@@ -267,6 +322,15 @@ supabase/
 1. Upload to Supabase Storage
 2. Validate via edge function before persisting
 3. Store metadata in `files` table referencing storage paths
+4. Support for multiple file formats (DCM, STL, OBJ, images)
+
+### PWA Features
+
+- Offline support with service worker
+- Installable app (add to home screen)
+- Push notifications
+- Background sync for pending orders
+- Optimized asset caching
 
 ## 🧪 Testing
 
@@ -276,14 +340,24 @@ supabase/
 # Run all tests
 npx playwright test
 
-# UI mode
+# UI mode (recommended for debugging)
 npx playwright test --ui
 
-# Headed mode
+# Headed mode (see browser)
 npx playwright test --headed
+
+# Run specific test file
+npx playwright test e2e/auto-assign-workflow.spec.ts
 ```
 
-**Example Test:** `e2e/auto-assign-workflow.spec.ts`
+**Test Files:**
+- `order-creation.spec.ts` - Order form and creation flow
+- `order-workflow.spec.ts` - Complete order lifecycle
+- `chat-functionality.spec.ts` - Real-time messaging
+- `auto-assign-workflow.spec.ts` - Marketplace auto-assignment
+- `error-cases.spec.ts` - Error handling and edge cases
+- `invoicing.spec.ts` - Invoice generation
+- `load-testing.spec.ts` - Performance and stress testing
 
 ### Test Accounts
 
@@ -296,8 +370,10 @@ npx playwright test --headed
 
 ```bash
 # Run load tests (staging environment only)
-npx playwright test e2e/load-testing.spec.ts
+npx playwright test e2e/load-testing.spec.ts --workers=10
 ```
+
+For detailed load testing guide, see `e2e/load-testing-README.md`
 
 ## 🔒 Security Model
 
@@ -306,25 +382,36 @@ npx playwright test e2e/load-testing.spec.ts
 - **Row-Level Security (RLS)** in Postgres
 - **Supabase Auth** for sessions and JWTs
 - **Edge Functions** for sensitive server-side operations
+- **Multi-factor authentication** support
+- **Secure password hashing** with bcrypt
 
 ### File Validation
 
 ```javascript
 // Server-side checks
-const allowedTypes = ['dcm', 'stl', 'obj', 'jpg', 'png'];
+const allowedTypes = ['dcm', 'stl', 'obj', 'jpg', 'png', 'pdf'];
 const maxSize = 50 * 1024 * 1024; // 50MB
+const mimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
 ```
 
 ### Rate Limiting
 
 - Implement at edge function or CDN level
 - Protect resource-intensive endpoints
+- Prevent chat message spam
+- Throttle file uploads
 
 ### Audit Logging
 
 All privileged actions write to `audit_logs` including:
 - `user_id`, `action`, `resource_id`
-- `timestamp`, `ip_address`
+- `timestamp`, `ip_address`, `changes`
+
+### Content Security
+
+- DOMPurify for HTML sanitization
+- XSS protection via Content Security Policy
+- CSRF tokens for state-changing operations
 
 ## 📊 Observability & Logging
 
@@ -334,31 +421,29 @@ All privileged actions write to `audit_logs` including:
 | Server Errors | Sentry (Server DSN) |
 | Database Performance | Supabase Analytics |
 | Application Logs | Console + Structured Logging |
+| PWA Analytics | Web Vitals, offline usage |
 
 ## 🔄 CI/CD
 
-### GitHub Actions Workflow (`.github/workflows/e2e.yml`)
+### GitHub Actions Workflow
 
-```yaml
-name: E2E Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - run: npm ci
-      - run: npx playwright install --with-deps
-      - run: npx playwright test
-```
+Automated testing and deployment pipelines configured in `.github/workflows/`
+
+**Key Stages:**
+1. Lint & Format Check
+2. Type Checking
+3. Unit Tests
+4. E2E Tests (Playwright)
+5. Build Optimization
+6. Deployment to Staging/Production
 
 ### Deployment Pipeline
 
-1. **Build**: `npm run build`
+1. **Build**: `npm run build` (optimized production bundle)
 2. **Deploy Static Assets**: Vercel/Netlify/Cloudflare Pages
-3. **Database Migrations**: Supabase CLI
+3. **Database Migrations**: Supabase CLI (auto on deployment)
 4. **Edge Functions**: `supabase functions deploy`
+5. **Service Worker**: Auto-updated via PWA plugin
 
 ## 🐛 Troubleshooting
 
@@ -368,10 +453,25 @@ jobs:
 |-------|----------|
 | "User not found" in tests | Run `npm run create-test-users` |
 | "No available orders" in marketplace | Create order with `auto_assign_pending = true` |
-| Authentication fails locally | Check Supabase environment variables |
-| Edge function permission errors | Verify `SUPABASE_SERVICE_ROLE_KEY` |
+| Authentication fails locally | Check Supabase environment variables in `.env.local` |
+| Edge function permission errors | Verify `SUPABASE_SERVICE_ROLE_KEY` is set |
 | Playwright test failures | Use `data-testid` attributes for stable selectors |
-| File upload rejected | Check file validation edge function |
+| File upload rejected | Check file validation edge function logs |
+| PWA not installing | Ensure HTTPS in production, check manifest.json |
+| Chat messages not syncing | Verify Realtime enabled in Supabase dashboard |
+| SEO verification fails | Run `npm run verify:seo` to check metadata |
+
+### Debug Mode
+
+Enable debug logging:
+```javascript
+// In development
+const supabase = createClient(url, key, {
+  auth: {
+    debug: true
+  }
+});
+```
 
 ## 🤝 Contributing
 
@@ -380,6 +480,8 @@ jobs:
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `chore/` - Maintenance tasks
+- `docs/` - Documentation updates
+- `perf/` - Performance improvements
 
 ### Development Process
 
@@ -400,28 +502,43 @@ npm run format
 
 # Run tests
 npm run test
+
+# Check SEO compliance
+npm run verify:seo
 ```
+
+### Commit Standards
+
+- Use conventional commits: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`
+- Reference issues: `fixes #123`
+- Keep commits atomic and focused
 
 ## 🗺 Roadmap
 
 ### Short-term (1-3 months)
-- [ ] Harden marketplace eligibility checks
-- [ ] Add auto-assign scoring algorithms
-- [ ] Expand load-testing scenarios
-- [ ] Polish onboarding UX
+- [x] Auto-assign marketplace functionality
+- [x] Real-time chat and notifications
+- [x] PWA offline support
+- [ ] Mobile app optimization
+- [ ] Advanced analytics dashboard
+- [ ] SLA management features
 
 ### Mid-term (3-9 months)
 - [ ] Advanced analytics & performance dashboards
 - [ ] Automated SLA reminders
 - [ ] SLA-based routing in auto-assign
 - [ ] Multi-tenant separation for labs
+- [ ] Integration APIs for third-party systems
+- [ ] Bulk order import/export
 
 ### Long-term (9-18 months)
 - [ ] Mobile app (React Native)
-- [ ] Push notifications
+- [ ] Enhanced push notifications
 - [ ] ML-based lab recommendations
 - [ ] ETA prediction algorithms
 - [ ] Marketplace monetization flows
+- [ ] Video consultation support
+- [ ] AR/3D preview capabilities
 
 ## 📋 Appendix
 
@@ -444,19 +561,64 @@ const subscription = supabase
 
 ```
 .
-├── README.md                 # This file
-├── e2e/                     # Playwright tests and test data
-├── src/                     # Frontend application code
-├── supabase/               # Database migrations, RLS policies, functions
-├── public/                 # Static assets
-├── playwright.config.ts    # Playwright configuration
-├── package.json           # Dependencies and scripts
-└── tailwind.config.ts     # Tailwind CSS configuration
+├── README.md                      # This file
+├── .env.example                   # Environment template
+├── e2e/                          # Playwright tests and test data
+├── src/                          # Frontend application code
+├── supabase/                     # Database migrations, RLS policies, functions
+├── public/                       # Static assets & PWA manifest
+├── scripts/                      # Build and utility scripts
+├── .github/workflows/            # CI/CD pipelines
+├── playwright.config.ts          # Playwright configuration
+├── vite.config.ts               # Vite configuration
+├── tailwind.config.ts           # Tailwind CSS configuration
+├── tsconfig.json                # TypeScript configuration
+├── package.json                 # Dependencies and scripts
+└── LICENSE                      # MIT License
 ```
+
+### Performance Tips
+
+- Use React Query for server state management
+- Leverage code splitting with React Router lazy loading
+- Optimize images with modern formats (WebP)
+- Enable compression in production
+- Monitor Core Web Vitals with Sentry
+- Use service worker for intelligent caching
+
+### Debugging Tools
+
+- React DevTools browser extension
+- Redux DevTools for state inspection
+- Supabase Studio for database inspection
+- Playwright Inspector for E2E debugging
+- Network tab in Chrome DevTools
+
+### Security Checklist
+
+- [ ] All environment variables properly set
+- [ ] Service role keys never exposed
+- [ ] RLS policies enabled on all tables
+- [ ] File uploads validated server-side
+- [ ] HTTPS enabled in production
+- [ ] CSP headers configured
+- [ ] Rate limiting enabled
+- [ ] Audit logging configured
+
+### Resources & Documentation
+
+- [Supabase Documentation](https://supabase.io/docs)
+- [React Documentation](https://react.dev)
+- [Vite Guide](https://vitejs.dev)
+- [Playwright Testing](https://playwright.dev)
+- [Tailwind CSS](https://tailwindcss.com)
+- [shadcn/ui Components](https://ui.shadcn.com)
 
 ### License & Credits
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Built with ❤️ using modern web technologies and best practices.
 
 ### Contact & Support
 
@@ -465,7 +627,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 | **Product/Feature Inquiries** | Product Owner |
 | **Infrastructure & Deployment** | DevOps Team |
 | **Code & Pull Requests** | Create PR against main branch |
+| **Bug Reports** | Create issue with reproduction steps |
 
 ---
 
 **LabLink** - Streamlining dental lab workflows through innovative technology solutions.
+
+*Last updated: July 2026 | Created with Vite + React + Supabase*
