@@ -67,3 +67,45 @@ export const faqSchema = (items: { question: string; answer: string }[]) => ({
   })),
 });
 
+/**
+ * Local/GEO schema: tells Google this is an Egypt-based service targeting
+ * dental professionals across major Egyptian governorates. Emitting this
+ * on Home/About/Contact unlocks local pack + "near me" query eligibility.
+ */
+export const localBusinessSchema = () => ({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${BASE}/#organization`,
+  name: "LabLink",
+  alternateName: "لاب لينك",
+  url: `${BASE}/`,
+  logo: `${BASE}/lablink-icon.png`,
+  image: `${BASE}/lablink-icon.png`,
+  description:
+    "Egypt's smart dental lab marketplace connecting dentists with verified dental labs across Cairo, Giza, Alexandria and the rest of Egypt.",
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: "EG",
+    addressRegion: "Cairo",
+    addressLocality: "Cairo",
+  },
+  areaServed: [
+    { "@type": "Country", name: "Egypt" },
+    { "@type": "City", name: "Cairo" },
+    { "@type": "City", name: "Giza" },
+    { "@type": "City", name: "Alexandria" },
+    { "@type": "City", name: "Mansoura" },
+    { "@type": "City", name: "Tanta" },
+  ],
+  availableLanguage: ["en", "ar"],
+  knowsLanguage: ["en", "ar"],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    email: "support@lablink-smartlab.lovable.app",
+    availableLanguage: ["English", "Arabic"],
+    areaServed: "EG",
+  },
+});
+
+
