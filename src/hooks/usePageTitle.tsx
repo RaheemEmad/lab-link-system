@@ -156,6 +156,28 @@ const updateCanonical = (pathname: string) => {
   link.setAttribute("href", `${CANONICAL_BASE}${pathname}`);
 };
 
+// hreflang tells Google we serve English + Arabic content on the same URL
+// (i18n is client-side via ?lang=). x-default falls back to English.
+const HREFLANG_MARKER = "data-lablink-hreflang";
+const updateHreflang = (pathname: string) => {
+  document
+    .querySelectorAll(`link[${HREFLANG_MARKER}]`)
+    .forEach((el) => el.remove());
+  const langs: { hreflang: string; href: string }[] = [
+    { hreflang: "en", href: `${CANONICAL_BASE}${pathname}` },
+    { hreflang: "ar", href: `${CANONICAL_BASE}${pathname}?lang=ar` },
+    { hreflang: "x-default", href: `${CANONICAL_BASE}${pathname}` },
+  ];
+  for (const { hreflang, href } of langs) {
+    const link = document.createElement("link");
+    link.setAttribute("rel", "alternate");
+    link.setAttribute("hreflang", hreflang);
+    link.setAttribute("href", href);
+    link.setAttribute(HREFLANG_MARKER, "1");
+    document.head.appendChild(link);
+  }
+};
+
 export const usePageTitle = () => {
   const location = useLocation();
 
@@ -206,5 +228,8 @@ export const usePageTitle = () => {
 
     // Update canonical URL per route
     updateCanonical(location.pathname);
+
+    // Update hreflang alternates (en, ar, x-default)
+    updateHreflang(location.pathname);
   }, [location.pathname]);
 };
