@@ -9,6 +9,7 @@ import { Mail, Phone, MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import PageLayout from "@/components/layouts/PageLayout";
+import { StructuredData, localBusinessSchema, breadcrumbSchema } from "@/components/seo/StructuredData";
 
 const contactFormSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
