@@ -33,6 +33,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       <StructuredData id="home-website" data={websiteSchema()} />
+      <StructuredData id="home-org" data={localBusinessSchema()} />
       <StructuredData
         id="home-breadcrumb"
         data={breadcrumbSchema([{ name: "Home", path: "/" }])}
