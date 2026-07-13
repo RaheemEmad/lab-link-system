@@ -3,12 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target, Users, Shield, Zap, Heart, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layouts/PageLayout";
+import { StructuredData, localBusinessSchema, breadcrumbSchema } from "@/components/seo/StructuredData";
 
 const About = () => {
   const navigate = useNavigate();
 
   return (
     <PageLayout>
+      <StructuredData id="about-org" data={localBusinessSchema()} />
+      <StructuredData
+        id="about-breadcrumb"
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "About", path: "/about" },
+        ])}
+      />
       {/* Hero Section */}
       <div className="text-center mb-12 sm:mb-16">
         <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">

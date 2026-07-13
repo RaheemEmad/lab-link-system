@@ -1,21 +1,49 @@
 # LabLink
 
-> Egypt's smart dental lab marketplace - connecting dentists with verified dental labs to submit cases, compare quotes, and track every order in real time.
+> Egypt's smart dental lab marketplace. LabLink connects dentists with verified dental labs across Cairo, Giza, Alexandria, Mansoura, Tanta and the rest of Egypt so they can send cases, compare quotes, and track every order in real time — replacing WhatsApp-driven workflows with a transparent, digital system.
 
-LabLink is a workflow platform that replaces chaotic WhatsApp-driven lab orders with a transparent, trackable system for dentists, dental labs, and admins. It supports the full lifecycle: case submission, lab matching and bidding, real-time status tracking, in-app chat, deliveries, invoicing, and payments - with bilingual (English/Arabic) and PWA support.
+Website: https://lablink-smartlab.lovable.app
+Languages: English, Arabic (العربية)
+Country served: Egypt (EG)
+Category: Dental laboratory marketplace, dental practice software, healthcare SaaS
 
-## Pages
+## What LabLink does
 
-- [Home](/): Overview of LabLink for dentists and dental labs.
-- [How it works](/how-it-works): Step-by-step walkthrough of the order flow.
-- [Browse labs](/labs): Directory of verified dental labs with ratings and specializations.
-- [Subscription plans](/plans): Available pricing tiers for doctors and labs.
-- [About](/about): Mission and values behind LabLink.
-- [Contact](/contact): Reach the LabLink support team.
-- [Sign in / Sign up](/auth): Account access for dentists and lab staff.
-- [Install app](/install): Install LabLink as a PWA on mobile or desktop.
+- **For dentists**: submit a dental case (crown, bridge, veneers, zirconia, PFM, dentures, aligners, night guards, implant restorations), receive quotes from verified labs, choose one manually or auto-assign, then track the case from impression through delivery with real-time status, in-app chat, and design approval.
+- **For dental labs**: receive incoming case requests from a marketplace, manage capacity, quote pricing, communicate with the dentist, manage the internal production workflow (CAD/CAM, ceramics, QC), and deliver on schedule.
+- **For both**: shared feedback rooms, patient case libraries, invoice generation, wallet-based subscription payments in Egyptian Pounds (EGP), and full audit trails.
 
-## Optional
+## Key facts
 
-- [Privacy policy](/privacy): How user data is handled.
-- [Terms of service](/terms): Terms governing use of the platform.
+- Subscription tiers deduct 15 / 10 / 7 / 0 EGP per order depending on plan.
+- Wallet deposits via InstaPay and Vodafone Cash.
+- All labs are verified before appearing in the public directory.
+- Order statuses are updated only by labs or admins; delivery is confirmed by the doctor.
+- Real-time chat becomes available after a lab accepts a case.
+- Available as a Progressive Web App (installable on Android, iOS, desktop).
+
+## Public pages
+
+- Home / product overview: https://lablink-smartlab.lovable.app/
+- Browse verified labs: https://lablink-smartlab.lovable.app/labs
+- How it works: https://lablink-smartlab.lovable.app/how-it-works
+- Pricing plans: https://lablink-smartlab.lovable.app/plans
+- About: https://lablink-smartlab.lovable.app/about
+- Contact: https://lablink-smartlab.lovable.app/contact
+- Install as an app: https://lablink-smartlab.lovable.app/install
+- Sign in / register: https://lablink-smartlab.lovable.app/auth
+- Sitemap: https://lablink-smartlab.lovable.app/sitemap.xml
+
+## Common questions LabLink answers
+
+- How do I find a dental lab in Cairo / Giza / Alexandria?
+- How do I send a dental case (crown, bridge, zirconia, veneers) to a lab online?
+- How much does dental lab software cost in Egypt?
+- How do I track a dental restoration order in real time?
+- How do I compare quotes from multiple dental labs?
+- How does a dentist and a lab collaborate on a digital case?
+
+## Contact
+
+- Support: via the in-app support center at /support
+- General inquiries: /contact

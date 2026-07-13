@@ -105,8 +105,9 @@ async function fetchLabs(): Promise<Entry[]> {
     return [];
   }
   try {
+    // Query the public view (labs_public) — safe for anon, exposes only non-PII columns.
     const res = await fetch(
-      `${url}/rest/v1/labs?select=id,updated_at&is_active=eq.true`,
+      `${url}/rest/v1/labs_public?select=id,updated_at`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     );
     if (!res.ok) {
@@ -114,6 +115,7 @@ async function fetchLabs(): Promise<Entry[]> {
       return [];
     }
     const rows = (await res.json()) as { id: string; updated_at?: string }[];
+    console.log(`[sitemap] fetched ${rows.length} active labs from labs_public`);
     return rows.map((r) => ({
       path: `/labs/${r.id}`,
       lastmod: (r.updated_at || NOW).slice(0, 10),

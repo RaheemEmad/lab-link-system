@@ -9,6 +9,7 @@ import { Mail, Phone, MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import PageLayout from "@/components/layouts/PageLayout";
+import { StructuredData, localBusinessSchema, breadcrumbSchema } from "@/components/seo/StructuredData";
 
 const contactFormSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
@@ -63,6 +64,14 @@ const Contact = () => {
 
   return (
     <PageLayout bgClass="bg-secondary/30" maxWidth="max-w-4xl">
+      <StructuredData id="contact-org" data={localBusinessSchema()} />
+      <StructuredData
+        id="contact-breadcrumb"
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Contact", path: "/contact" },
+        ])}
+      />
       <div className="text-center mb-8 sm:mb-12">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4">Get in Touch</h1>
         <p className="text-base sm:text-lg text-muted-foreground">

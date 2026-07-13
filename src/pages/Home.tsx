@@ -7,7 +7,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import LeadCaptureCTA from "@/components/landing/LeadCaptureCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
-import { StructuredData, websiteSchema, breadcrumbSchema, faqSchema } from "@/components/seo/StructuredData";
+import { StructuredData, websiteSchema, breadcrumbSchema, faqSchema, localBusinessSchema } from "@/components/seo/StructuredData";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 
@@ -33,6 +33,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       <StructuredData id="home-website" data={websiteSchema()} />
+      <StructuredData id="home-org" data={localBusinessSchema()} />
       <StructuredData
         id="home-breadcrumb"
         data={breadcrumbSchema([{ name: "Home", path: "/" }])}

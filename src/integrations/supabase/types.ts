@@ -254,6 +254,13 @@ export type Database = {
             referencedRelation: "labs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "billing_statements_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       chat_messages: {
@@ -1140,6 +1147,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lab_application_audit_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lab_application_audit_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -1190,6 +1204,13 @@ export type Database = {
             referencedRelation: "labs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lab_availability_slots_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       lab_badges: {
@@ -1223,6 +1244,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_badges_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1270,6 +1298,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_gallery_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1328,6 +1363,13 @@ export type Database = {
             referencedRelation: "labs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lab_inventory_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       lab_invitations: {
@@ -1376,6 +1418,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_invitations_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1431,6 +1480,13 @@ export type Database = {
             referencedRelation: "labs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lab_performance_metrics_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: true
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       lab_photos: {
@@ -1467,6 +1523,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_photos_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1520,6 +1583,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_portfolio_items_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1581,6 +1651,13 @@ export type Database = {
             referencedRelation: "labs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lab_pricing_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       lab_pricing_history: {
@@ -1623,6 +1700,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_pricing_history_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1689,6 +1773,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lab_reviews_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lab_reviews_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -1731,6 +1822,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_specializations_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1841,6 +1939,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_work_requests_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
           {
@@ -2563,6 +2668,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "order_templates_assigned_lab_id_fkey"
+            columns: ["assigned_lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "order_templates_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -2752,6 +2864,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "orders_assigned_lab_id_fkey"
+            columns: ["assigned_lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "orders_doctor_id_fkey"
             columns: ["doctor_id"]
             isOneToOne: false
@@ -2832,6 +2951,13 @@ export type Database = {
             columns: ["preferred_lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_cases_preferred_lab_id_fkey"
+            columns: ["preferred_lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -2965,6 +3091,13 @@ export type Database = {
             columns: ["lab_id"]
             isOneToOne: false
             referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preferred_labs_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -3547,6 +3680,13 @@ export type Database = {
             referencedRelation: "labs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "team_invitations_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_achievements: {
@@ -3699,6 +3839,13 @@ export type Database = {
             referencedRelation: "labs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       wallet_transactions: {
@@ -3829,7 +3976,90 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      labs_public: {
+        Row: {
+          address: string | null
+          completed_order_count: number | null
+          created_at: string | null
+          description: string | null
+          first_active_at: string | null
+          id: string | null
+          is_active: boolean | null
+          is_new_lab: boolean | null
+          is_sponsored: boolean | null
+          is_verified: boolean | null
+          logo_url: string | null
+          max_price_egp: number | null
+          min_price_egp: number | null
+          name: string | null
+          performance_score: number | null
+          pricing_mode: string | null
+          pricing_tier: Database["public"]["Enums"]["pricing_tier"] | null
+          standard_sla_days: number | null
+          subscription_tier: string | null
+          trust_score: number | null
+          updated_at: string | null
+          urgent_sla_days: number | null
+          verification_status: string | null
+          visibility_tier: string | null
+          website_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          completed_order_count?: number | null
+          created_at?: string | null
+          description?: string | null
+          first_active_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          is_new_lab?: boolean | null
+          is_sponsored?: boolean | null
+          is_verified?: boolean | null
+          logo_url?: string | null
+          max_price_egp?: number | null
+          min_price_egp?: number | null
+          name?: string | null
+          performance_score?: number | null
+          pricing_mode?: string | null
+          pricing_tier?: Database["public"]["Enums"]["pricing_tier"] | null
+          standard_sla_days?: number | null
+          subscription_tier?: string | null
+          trust_score?: number | null
+          updated_at?: string | null
+          urgent_sla_days?: number | null
+          verification_status?: string | null
+          visibility_tier?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          completed_order_count?: number | null
+          created_at?: string | null
+          description?: string | null
+          first_active_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          is_new_lab?: boolean | null
+          is_sponsored?: boolean | null
+          is_verified?: boolean | null
+          logo_url?: string | null
+          max_price_egp?: number | null
+          min_price_egp?: number | null
+          name?: string | null
+          performance_score?: number | null
+          pricing_mode?: string | null
+          pricing_tier?: Database["public"]["Enums"]["pricing_tier"] | null
+          standard_sla_days?: number | null
+          subscription_tier?: string | null
+          trust_score?: number | null
+          updated_at?: string | null
+          urgent_sla_days?: number | null
+          verification_status?: string | null
+          visibility_tier?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_invoice_line_items: {
